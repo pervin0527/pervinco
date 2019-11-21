@@ -13,3 +13,4 @@ definition dataset
 train_dataset_dir = pathlib.Path('/home/barcelona/pervinco/datasets/flower_photos')
 train_data_num = len(list(train_dataset_dir.glob('*/*.jpg')))
 print(train_data_num)
+print('test')
