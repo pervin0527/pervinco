@@ -1,3 +1,1 @@
-# Hi
-# i'm
-# gosu
+# Rest in peace
