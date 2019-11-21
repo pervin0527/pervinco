@@ -13,7 +13,7 @@ definition datas.
 train data = cats(1000) + dogs(1000)
 validation data = cats(500) + dogs(500)
 '''
-dataset_dir = '/home/barcelona/gg/datasets/cats_and_dogs_filtered'
+dataset_dir = '/home/barcelona/pervinco/datasets/cats_and_dogs_filtered'
 train_dir = os.path.join(dataset_dir, 'train')
 validation_dir = os.path.join(dataset_dir, 'validation')
 

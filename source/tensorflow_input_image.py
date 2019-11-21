@@ -12,7 +12,7 @@ from sklearn.preprocessing import LabelEncoder
 # tf.enable_eager_execution()
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 
-train_data_dir = pathlib.Path('/home/barcelona/PycharmProjects/tensorflow/datasets/flower_photos')
+train_data_dir = pathlib.Path('/home/barcelona/pervinco/datasets/flower_photos')
 train_data_num = len(list(train_data_dir.glob('*/*.jpg')))
 print(train_data_num)
 

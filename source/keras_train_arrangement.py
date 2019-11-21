@@ -22,8 +22,8 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 
-train_dir = os.path.join('/home/barcelona/gg/datasets/cats_and_dogs_filtered/train')
-val_dir = os.path.join('/home/barcelona/gg/datasets/cats_and_dogs_filtered/validation')
+train_dir = os.path.join('/home/barcelona/pervinco/datasets/cats_and_dogs_filtered/train')
+val_dir = os.path.join('/home/barcelona/pervinco/datasets/cats_and_dogs_filtered/validation')
 
 train_cats_dir = os.path.join(train_dir, 'cats')
 train_dogs_dir = os.path.join(train_dir, 'dogs')
@@ -124,7 +124,7 @@ model = Sequential([
 model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 model.summary()
 
-checkpoint_path = "/home/barcelona/gg/model/cp-{epoch:04d}.ckpt"
+checkpoint_path = "/home/barcelona/pervinco/checkpoint/cp-{epoch:04d}.ckpt"
 checkpoint_dir = os.path.dirname(checkpoint_path)
 cp_callback = tf.keras.callbacks.ModelCheckpoint(checkpoint_path,
                                                  save_weights_only=True,
