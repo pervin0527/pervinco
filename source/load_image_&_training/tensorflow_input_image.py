@@ -9,7 +9,7 @@ import numpy as np
 import pathlib
 from sklearn.preprocessing import LabelEncoder
 
-# tf.enable_eager_execution()
+tf.executing_eagerly()
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 
 train_data_dir = pathlib.Path('/home/barcelona/pervinco/datasets/flower_photos')

@@ -21,6 +21,8 @@ matplotlib.pyplot to plot the graph and display images in the training and valid
 import numpy as np
 import os
 import matplotlib.pyplot as plt
+tf.executing_eagerly()
+
 
 train_dir = os.path.join('/home/barcelona/pervinco/datasets/cats_and_dogs_filtered/train')
 val_dir = os.path.join('/home/barcelona/pervinco/datasets/cats_and_dogs_filtered/validation')
