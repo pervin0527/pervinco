@@ -1,5 +1,2 @@
-# Rest
-in
-==
-peace
-------
+<<<<<<< HEAD
+# REst In PEACE
