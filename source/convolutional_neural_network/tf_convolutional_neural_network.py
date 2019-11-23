@@ -5,6 +5,7 @@ import os
 import pathlib
 import tensorflow as tf
 import numpy as np
+import cv2
 from sklearn.preprocessing import LabelEncoder
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.callbacks import ModelCheckpoint
@@ -19,7 +20,7 @@ definition dataset
 consuming sets of files - https://www.tensorflow.org/guide/data#consuming_sets_of_files
 '''
 AUTOTUNE = tf.data.experimental.AUTOTUNE
-BATCH_SIZE = 300
+BATCH_SIZE = 2000
 IMG_HEIGHT = 224
 IMG_WIDTH = 224
 
@@ -31,6 +32,7 @@ print(train_data_num)
 train_data_list = tf.data.Dataset.list_files(str(train_ds_dir/'*/*'))
 
 CLASS_NAMES = np.array([item.name for item in train_ds_dir.glob('*') if item.name != "LICENSE.txt"])
+print(CLASS_NAMES)
 
 
 # list 내용을 확인 sample 10개
@@ -46,9 +48,10 @@ define functions
 def get_label(file_path):
     # convert the path to a list of path components
     parts = tf.strings.split(file_path, os.path.sep)
+    print(parts)
     # The second to last is the class-directory
     # return parts[-2] == CLASS_NAMES
-    return parts.values[-2]
+    return parts[-2]
 
 
 def decode_img(img):
@@ -100,17 +103,18 @@ mapping = train_data_list.map(process_path, num_parallel_calls=AUTOTUNE)
 train_data = prepare_for_training(mapping)
 train_images, train_labels = next(iter(train_data))
 train_labels = one_hot_encoding(train_labels)
-print(train_images)
-print(train_labels)
+# print(train_images)
+# print(train_labels)
 
 '''
 define ALEX NET
+ALEX_NET keras ver - https://datascienceschool.net/view-notebook/d19e803640094f76b93f11b850b920a4/
 Conv2D - https://www.tensorflow.org/api_docs/python/tf/keras/layers/Conv2D
 MaxPool2D - https://www.tensorflow.org/api_docs/python/tf/keras/layers/MaxPool2D
 '''
 
 model = Sequential([
-    Conv2D(filters=96, kernel_size=(11, 11), strides=1, padding='same', activation='relu',
+    Conv2D(filters=96, kernel_size=(11, 11), strides=4, padding='same', activation='relu',
            input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
     MaxPooling2D(pool_size=(3, 3), strides=2),
     Conv2D(filters=256, kernel_size=(5, 5), strides=1, padding='same', activation='relu'),
@@ -135,5 +139,25 @@ model.compile(optimizer=optimizer,
 
 model.summary()
 
-result = model.fit(train_images, train_labels, epochs=10)
-print(result)
+result = model.fit(train_images, train_labels, epochs=25)
+
+test_image = cv2.imread('/home/barcelona/pervinco/datasets/predict/test_roses.jpg', cv2.IMREAD_COLOR)
+test_image = cv2.resize(test_image, (224, 224))
+test_image = tf.dtypes.cast(test_image, dtype=tf.float32)
+test_image = tf.reshape(test_image, [1, 224, 224, 3])
+predictions = model.predict(test_image)
+
+predict_label = np.argmax(predictions[0])
+print(predict_label)
+
+# ['daisy' 'dandelion' 'sunflowers' 'tulips' 'roses']
+if predict_label == 0:
+    print('daisy')
+elif predict_label == 1:
+    print('dandelion')
+elif predict_label == 2:
+    print('sunflowers')
+elif predict_label == 3:
+    print('tulips')
+elif predict_label == 4:
+    print('roses')
