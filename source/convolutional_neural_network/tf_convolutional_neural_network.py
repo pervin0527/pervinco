@@ -20,7 +20,7 @@ definition dataset
 consuming sets of files - https://www.tensorflow.org/guide/data#consuming_sets_of_files
 '''
 AUTOTUNE = tf.data.experimental.AUTOTUNE
-BATCH_SIZE = 2000
+BATCH_SIZE = 1500
 IMG_HEIGHT = 224
 IMG_WIDTH = 224
 
@@ -32,7 +32,7 @@ print(train_data_num)
 train_data_list = tf.data.Dataset.list_files(str(train_ds_dir/'*/*'))
 
 CLASS_NAMES = np.array([item.name for item in train_ds_dir.glob('*') if item.name != "LICENSE.txt"])
-print(CLASS_NAMES)
+# print(CLASS_NAMES)
 
 
 # list 내용을 확인 sample 10개
@@ -105,6 +105,8 @@ train_images, train_labels = next(iter(train_data))
 train_labels = one_hot_encoding(train_labels)
 # print(train_images)
 # print(train_labels)
+print(train_images.shpae)
+print(train_labels.shape)
 
 '''
 define ALEX NET
@@ -131,15 +133,21 @@ model = Sequential([
     Dense(5, activation='softmax')
 ])
 
-optimizer = optimizers.SGD(lr=0.01, decay=5e-5, momentum=0.9)
-model.compile(optimizer=optimizer,
+# optimizer = optimizers.SGD(lr=0.01, decay=5e-5, momentum=0.9)
+# model.compile(optimizer=optimizer,
+#               # loss='binary_crossentropy'
+#               loss='sparse_categorical_crossentropy',
+#               metrics=['accuracy'])
+
+
+model.compile(optimizer='adam',
               # loss='binary_crossentropy'
               loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
 
 model.summary()
 
-result = model.fit(train_images, train_labels, epochs=25)
+result = model.fit(train_images, train_labels, epochs=100)
 
 test_image = cv2.imread('/home/barcelona/pervinco/datasets/predict/test_roses.jpg', cv2.IMREAD_COLOR)
 test_image = cv2.resize(test_image, (224, 224))
@@ -148,16 +156,6 @@ test_image = tf.reshape(test_image, [1, 224, 224, 3])
 predictions = model.predict(test_image)
 
 predict_label = np.argmax(predictions[0])
-print(predict_label)
+print(CLASS_NAMES[predict_label])
 
-# ['daisy' 'dandelion' 'sunflowers' 'tulips' 'roses']
-if predict_label == 0:
-    print('daisy')
-elif predict_label == 1:
-    print('dandelion')
-elif predict_label == 2:
-    print('sunflowers')
-elif predict_label == 3:
-    print('tulips')
-elif predict_label == 4:
-    print('roses')
+
