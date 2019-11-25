@@ -18,7 +18,7 @@ AUTOTUNE = tf.data.experimental.AUTOTUNE
 BATCH_SIZE = 128
 IMG_HEIGHT = 224
 IMG_WIDTH = 224
-epochs = 30
+epochs = 250
 
 '''
 @brief - 데이터셋 다운로드 링크
