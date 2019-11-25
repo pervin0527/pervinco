@@ -20,7 +20,7 @@ definition dataset
 consuming sets of files - https://www.tensorflow.org/guide/data#consuming_sets_of_files
 '''
 AUTOTUNE = tf.data.experimental.AUTOTUNE
-BATCH_SIZE = 1500
+BATCH_SIZE = 1700
 IMG_HEIGHT = 224
 IMG_WIDTH = 224
 
@@ -105,8 +105,6 @@ train_images, train_labels = next(iter(train_data))
 train_labels = one_hot_encoding(train_labels)
 # print(train_images)
 # print(train_labels)
-print(train_images.shpae)
-print(train_labels.shape)
 
 '''
 define ALEX NET
