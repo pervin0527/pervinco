@@ -84,7 +84,8 @@ train_image_generator = ImageDataGenerator(rescale=1./255,
                                            width_shift_range=.15,
                                            height_shift_range=.15,
                                            horizontal_flip=True,
-                                           zoom_range=0.5)
+                                           zoom_range=0.5,
+                                           shear_range=0.2)
 
 '''
 @brief

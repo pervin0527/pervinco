@@ -1,4 +1,4 @@
-##[모두의 딥러닝 시즌2](https://deeplearningzerotoall.github.io/season2/)
+## [모두의 딥러닝 시즌2](https://deeplearningzerotoall.github.io/season2/)
 tensorflow coding을 하기 위해, 사용되는 용어들과 상세한 내용들을 공부하기 위한 길지 않으면서도 자세한 강의.
 
 ## [Tensorflow](https://tensorflow.org)
