@@ -24,6 +24,11 @@ BATCH_SIZE = 1700
 IMG_HEIGHT = 224
 IMG_WIDTH = 224
 
+'''
+@dataset download
+Dogs vs cats dataset : https://www.kaggle.com/c/dogs-vs-cats/data
+flower dataset : https://storage.googleapis.com/download.tensorflow.org/example_images/flower_photos.tgz
+'''
 train_ds_dir = pathlib.Path('/home/barcelona/pervinco/datasets/flower_photos')
 train_data_num = len(list(train_ds_dir.glob('*/*.jpg')))
 print(train_data_num)

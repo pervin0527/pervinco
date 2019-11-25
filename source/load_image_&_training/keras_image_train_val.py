@@ -11,6 +11,9 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 tf.executing_eagerly()
 
 '''
+Dogs vs cats dataset : https://www.kaggle.com/c/dogs-vs-cats/data
+flower dataset : https://storage.googleapis.com/download.tensorflow.org/example_images/flower_photos.tgz
+
 definition datas.
 train data = cats(1000) + dogs(1000)
 validation data = cats(500) + dogs(500)
