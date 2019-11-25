@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 '''
 @author 김민준
-@HACK accuracy가 높지 않음. predict 결과가 정확하지 못함.
+@HACK loss: 0.2951 - accuracy: 0.8958
 '''
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
@@ -18,7 +18,7 @@ AUTOTUNE = tf.data.experimental.AUTOTUNE
 BATCH_SIZE = 128
 IMG_HEIGHT = 224
 IMG_WIDTH = 224
-epochs = 250
+epochs = 1000
 
 '''
 @brief - 데이터셋 다운로드 링크
@@ -125,4 +125,6 @@ test_image = tf.reshape(test_image, [1, 224, 224, 3])
 predictions = model.predict(test_image)
 
 result = np.argmax(predictions[0])
+print('Categori : ', CLASS_NAMES)
+print('predict label number :', result)
 print('predict result is : ', CLASS_NAMES[result])
