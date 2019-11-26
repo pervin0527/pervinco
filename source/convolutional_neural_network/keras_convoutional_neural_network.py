@@ -1,24 +1,30 @@
 # -*- coding: utf-8 -*-
 '''
 @author 김민준
-@HACK loss: 0.2951 - accuracy: 0.8958
+@log
+        ---------------------------------default ver-------------------------------------------
+        epochs : 1000, loss: 0.2951, accuracy: 0.8958, predict result : False
+        ---------------------------------update 19.11.26 --------------------------------------
+        added batchnormalization layer, modify test data input format
+        epochs : 2000,
 '''
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
 import cv2
 import tensorflow as tf
 import pathlib
+import matplotlib.pyplot as plt
 import numpy as np
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Conv2D, Flatten, Dropout, MaxPooling2D
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.layers import Dense, Conv2D, Flatten, Dropout, MaxPooling2D, BatchNormalization
+from tensorflow.keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
 
 tf.executing_eagerly()
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 BATCH_SIZE = 128
 IMG_HEIGHT = 224
 IMG_WIDTH = 224
-epochs = 1000
+epochs = 2000
 
 '''
 @brief - 데이터셋 다운로드 링크
@@ -42,12 +48,13 @@ Conv2D - https://www.tensorflow.org/api_docs/python/tf/keras/layers/Conv2D
 MaxPool2D - https://www.tensorflow.org/api_docs/python/tf/keras/layers/MaxPool2D
 '''
 model = Sequential([
-    Conv2D(filters=96, kernel_size=(11, 11), strides=4, padding='same', activation='relu',
-           input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
-    MaxPooling2D(pool_size=(3, 3), strides=2),
+    Conv2D(filters=96, kernel_size=(11, 11), strides=4, padding='same', input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
     Conv2D(filters=256, kernel_size=(5, 5), strides=1, padding='same', activation='relu'),
+    #BatchNormalization(),
     MaxPooling2D(pool_size=(3, 3), strides=2),
     Conv2D(filters=384, kernel_size=(3, 3), strides=1, padding='same', activation='relu'),
+    #BatchNormalization(),
+    MaxPooling2D(pool_size=(3, 3), strides=2),
     Conv2D(filters=384, kernel_size=(3, 3), strides=1, padding='same', activation='relu'),
     Conv2D(filters=256, kernel_size=(3, 3), strides=1, padding='same', activation='relu'),
     MaxPooling2D(pool_size=(3, 3), strides=2),
@@ -114,15 +121,39 @@ history = model.fit_generator(
     epochs=epochs
 )
 
+acc = history.history['accuracy']
+loss = history.history['loss']
+
+epochs_range = range(epochs)
+
+plt.figure(figsize=(8, 8))
+plt.subplot(1, 2, 1)
+plt.plot(epochs_range, acc, label='Training Accuracy')
+plt.legend(loc='lower right')
+plt.title('Training Accuracy')
+
+plt.subplot(1, 2, 2)
+plt.plot(epochs_range, loss, label='Training Loss')
+plt.legend(loc='upper right')
+plt.title('Training Loss')
+plt.show()
+
+model.save('/home/barcelona/pervinco/model/ALEX_NET_TRAIN_MODEL.h5')
+
 '''
 @brief
 학습된 모델에 test 이미지를 넣고, 해당 이미지의 class를 정확하게 맞추는지 검증.
 '''
-test_image = cv2.imread('/home/barcelona/pervinco/datasets/predict/ddlion_test.jpg', cv2.IMREAD_COLOR)
-test_image = cv2.resize(test_image, (224, 224))
-test_image = tf.dtypes.cast(test_image, dtype=tf.float32)
-test_image = tf.reshape(test_image, [1, 224, 224, 3])
-predictions = model.predict(test_image)
+# test_image = cv2.imread('/home/barcelona/pervinco/datasets/predict/ddlion_test.jpg', cv2.IMREAD_COLOR)
+# test_image = cv2.resize(test_image, (224, 224))
+# test_image = tf.dtypes.cast(test_image, dtype=tf.float32)
+# test_image = tf.reshape(test_image, [1, 224, 224, 3])
+
+test_image = load_img('/home/barcelona/pervinco/datasets/predict/test_rose.jpg')
+test_img_arr = img_to_array(test_image)
+test_img_arr = test_img_arr.reshape((1,)+test_img_arr)
+
+predictions = model.predict(test_img_arr)
 
 result = np.argmax(predictions[0])
 print('Categori : ', CLASS_NAMES)

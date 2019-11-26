@@ -1,9 +1,10 @@
 ## [모두의 딥러닝 시즌2](https://deeplearningzerotoall.github.io/season2/)
-tensorflow coding을 하기 위해, 사용되는 용어들과 상세한 내용들을 공부하기 위한 길지 않으면서도 자세한 강의.
+Machine Learning, Deep Learning Lecture
 
 ## [Tensorflow](https://tensorflow.org)
 1. [install_guide](INSTALL.md)
 2. [Data input format + Batch](https://www.tensorflow.org/guide/data#top_of_page)
+3. [Data preprocessing](https://keras.io/ko/preprocessing/image/)
 
 ##  [git hub](https://github.com/pervin0527/pervinco) + [pycharm](https://www.jetbrains.com/pycharm/)
 1. undo commit in pycharm
