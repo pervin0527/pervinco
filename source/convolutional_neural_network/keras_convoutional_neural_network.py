@@ -155,6 +155,7 @@ history = model.fit_generator(
     validation_data=valid_generator,
     validation_steps=total_val_data//BATCH_SIZE,
     # callbacks=[keras.callbacks.EarlyStopping(monitor='val_loss', patience=3, verbose=1)]
+    callbacks=[tensorboard_callback]
 )
 
 acc = history.history['accuracy']
