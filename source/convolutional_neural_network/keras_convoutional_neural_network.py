@@ -2,13 +2,14 @@
 '''
 @author 김민준
 @log
-        ---------------------------------default ver-------------------------------------------
-        epochs : 1000, loss: 0.2951, accuracy: 0.8958, predict result : False
-        ---------------------------------update 19.11.26 --------------------------------------
-        modify test data input format
-        epochs : 2000, loss: 0.2216, accuracy: 0.92 predict result : 7개중 4개 정답.
-        ---------------------------------update 19.11.28---------------------------------------
-        training model ALEX_NET ---> tutorial model
+            ---------------------------------default ver-------------------------------------------
+            epochs : 1000, loss: 0.2951, accuracy: 0.8958, predict result : False
+            ---------------------------------update 19.11.26 --------------------------------------
+            modify test data input format
+            epochs : 2000, loss: 0.2216, accuracy: 0.92 predict result : 7개중 4개 정답.
+            ---------------------------------update 19.11.28---------------------------------------
+            training model ALEX_NET ---> tutorial model
+            add Early Stopping, Tensorboard
 '''
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
@@ -17,16 +18,19 @@ import tensorflow as tf
 import pathlib
 import matplotlib.pyplot as plt
 import numpy as np
+import datetime
+from tensorflow import keras
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Conv2D, Flatten, Dropout, MaxPooling2D, BatchNormalization
 from tensorflow.keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
+from keras.utils import np_utils
 
 tf.executing_eagerly()
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 BATCH_SIZE = 32
 IMG_HEIGHT = 224
 IMG_WIDTH = 224
-epochs = 200
+epochs = 500
 
 '''
 @brief - 데이터셋 다운로드 링크
@@ -64,7 +68,7 @@ model = Sequential([
     Flatten(),
     Dense(512, activation='relu'),
     Dense(5, activation='softmax')
-    ################################  ▲tutorial model  ▼ALEXNET  ####################################
+    ##  ▲tutorial model▲  ▼ALEXNET▼
     # Conv2D(filters=96, kernel_size=(11, 11), strides=4, padding='same', input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
     # Conv2D(filters=256, kernel_size=(5, 5), padding='same', activation='relu'),
     # MaxPooling2D(pool_size=(3, 3), strides=2),
@@ -115,7 +119,7 @@ valid_image_generator = ImageDataGenerator(rescale=1./255)
 아래 API에서 flow_from_directory 부분 참조.
 target_size = 모든 이미지의 크기를 재조정할 치수.
 class_mode = dataset과 분류 문제인지 회귀 문제인지에 따라 설정.
-    (categorical : 2D형태의 one-hot encoding된 label
+    (categorical : 2D형태의 one-hot encoding 된 label
      binary : 1D형태의 이진 label
      sparse : 1D형태의 정수 label)
 batch_size = 데이터 배치 크기
@@ -137,13 +141,20 @@ valid_generator = valid_image_generator.flow_from_directory(
     batch_size=BATCH_SIZE,
     class_mode='sparse'
 )
+'''
+@brief
+callback 정의 + Tensorboard를 이용하기 위한 log에 대한 정의.
+'''
+log_dir = '/home/barcelona/pervinco/model/logs' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
 history = model.fit_generator(
     train_generator,
     steps_per_epoch=total_train_data//BATCH_SIZE,
     epochs=epochs,
     validation_data=valid_generator,
-    validation_steps=total_val_data//BATCH_SIZE
+    validation_steps=total_val_data//BATCH_SIZE,
+    # callbacks=[keras.callbacks.EarlyStopping(monitor='val_loss', patience=3, verbose=1)]
 )
 
 acc = history.history['accuracy']

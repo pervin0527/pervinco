@@ -4,7 +4,10 @@ Machine Learning, Deep Learning Lecture
 ## [Tensorflow](https://tensorflow.org)
 1. [install_guide](INSTALL.md)
 2. [Data input format + Batch](https://www.tensorflow.org/guide/data#top_of_page)
-3. [Data preprocessing](https://keras.io/ko/preprocessing/image/)
+3. [Data preprocessing & Training](https://keras.io/ko/preprocessing/image/)
+4. [Model save, load](https://www.tensorflow.org/tutorials/keras/save_and_load#top_of_page)
+5. [callbacks Tensorboard](https://www.tensorflow.org/tensorboard/get_started)
+
 
 ##  [git hub](https://github.com/pervin0527/pervinco) + [pycharm](https://www.jetbrains.com/pycharm/)
 1. undo commit in pycharm
