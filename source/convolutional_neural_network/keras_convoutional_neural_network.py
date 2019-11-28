@@ -64,7 +64,7 @@ model = Sequential([
     Flatten(),
     Dense(512, activation='relu'),
     Dense(5, activation='softmax')
-
+    ################################  ▲tutorial model  ▼ALEXNET  ####################################
     # Conv2D(filters=96, kernel_size=(11, 11), strides=4, padding='same', input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
     # Conv2D(filters=256, kernel_size=(5, 5), padding='same', activation='relu'),
     # MaxPooling2D(pool_size=(3, 3), strides=2),

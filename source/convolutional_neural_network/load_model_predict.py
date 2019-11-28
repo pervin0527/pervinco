@@ -32,6 +32,7 @@ model = Sequential([
     # Flatten(),
     # Dense(512, activation='relu'),
     # Dense(5, activation='softmax')
+    ################################  ▲tutorial model  ▼ALEXNET  ####################################
     Conv2D(filters=96, kernel_size=(11, 11), strides=4, padding='same', input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
     Conv2D(filters=256, kernel_size=(5, 5), padding='same', activation='relu'),
     # BatchNormalization(),
@@ -57,18 +58,14 @@ model.compile(optimizer='adam',
 
 model.summary()
 
+'''
+@breif
+저장된 모델을 불러오는 load_weights
+https://www.tensorflow.org/tutorials/keras/save_and_load#top_of_page
+이때, train 된 모델을 그대로 위에 선언 되어 있어야 weight file이 load 될 수 있다.
+ex) training을 ALEX_NET으로 했다면 model.Sequentail에 ALEX_NET model이 구축되어 있어야 함.
+'''
 model.load_weights('/home/barcelona/pervinco/model/ALEX_NET_TRAIN_MODEL.h5')
-
-# eval_image = cv2.imread('/home/barcelona/pervinco/datasets/predict/test_sunflower2.jpg')
-# eval_image = cv2.resize(eval_image, (224, 224))
-# eval_image = tf.dtypes.cast(eval_image, dtype=tf.float32)
-# eval_image = tf.reshape(eval_image, [1, 224, 224, 3])
-#
-# predictions = model.predict(eval_image)
-# result = np.argmax(predictions[0])
-# print('Categori : ', CLASS_NAMES)
-# print('predict label number :', result)
-# print('predict result is : ', CLASS_NAMES[result])
 
 eval_dir = glob.glob('/home/barcelona/pervinco/datasets/predict/*.jpg')
 # print(eval_dir)
