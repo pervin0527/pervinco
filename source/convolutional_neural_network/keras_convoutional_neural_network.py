@@ -9,7 +9,7 @@
             epochs : 2000, loss: 0.2216, accuracy: 0.92 predict result : 7개중 4개 정답.
             ---------------------------------update 19.11.28---------------------------------------
             training model ALEX_NET ---> tutorial model
-            add Early Stopping, Tensorboard
+            added Early Stopping, Tensorboard
 '''
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
@@ -67,7 +67,9 @@ model = Sequential([
     Dropout(0.2),
     Flatten(),
     Dense(512, activation='relu'),
+    # Dense(512, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.0001)),
     Dense(5, activation='softmax')
+
     ##  ▲tutorial model▲  ▼ALEXNET▼
     # Conv2D(filters=96, kernel_size=(11, 11), strides=4, padding='same', input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
     # Conv2D(filters=256, kernel_size=(5, 5), padding='same', activation='relu'),
@@ -111,7 +113,8 @@ train_image_generator = ImageDataGenerator(rescale=1./255,
                                            height_shift_range=.15,
                                            horizontal_flip=True,
                                            zoom_range=0.5,
-                                           shear_range=0.2)
+                                           # shear_range=0.2
+                                           )
 
 valid_image_generator = ImageDataGenerator(rescale=1./255)
 '''
@@ -154,8 +157,7 @@ history = model.fit_generator(
     epochs=epochs,
     validation_data=valid_generator,
     validation_steps=total_val_data//BATCH_SIZE,
-    # callbacks=[keras.callbacks.EarlyStopping(monitor='val_loss', patience=3, verbose=1)]
-    callbacks=[tensorboard_callback]
+    callbacks=[keras.callbacks.EarlyStopping(monitor='val_loss', patience=200, verbose=1), tensorboard_callback]
 )
 
 acc = history.history['accuracy']
