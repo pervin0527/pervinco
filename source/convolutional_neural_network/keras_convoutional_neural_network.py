@@ -5,8 +5,10 @@
         ---------------------------------default ver-------------------------------------------
         epochs : 1000, loss: 0.2951, accuracy: 0.8958, predict result : False
         ---------------------------------update 19.11.26 --------------------------------------
-        added batchnormalization layer, modify test data input format
-        epochs : 2000,
+        modify test data input format
+        epochs : 2000, loss: 0.2216, accuracy: 0.92 predict result : 7개중 4개 정답.
+        ---------------------------------update 19.11.28---------------------------------------
+        training model ALEX_NET ---> tutorial model
 '''
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
@@ -21,10 +23,10 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator, array_to_im
 
 tf.executing_eagerly()
 AUTOTUNE = tf.data.experimental.AUTOTUNE
-BATCH_SIZE = 128
+BATCH_SIZE = 32
 IMG_HEIGHT = 224
 IMG_WIDTH = 224
-epochs = 2000
+epochs = 200
 
 '''
 @brief - 데이터셋 다운로드 링크
@@ -33,8 +35,10 @@ flower dataset : https://storage.googleapis.com/download.tensorflow.org/example_
 
 training dataset 경로 설정
 '''
-train_dir = pathlib.Path('/home/barcelona/pervinco/datasets/flower_photos')
+train_dir = pathlib.Path('/home/barcelona/AutoCrawler/dataset')
+valid_dir = pathlib.Path('/home/barcelona/pervinco/datasets/flower_photos')
 total_train_data = len(list(train_dir.glob('*/*.jpg')))
+total_val_data = len(list(valid_dir.glob('*/*.jpg')))
 print(total_train_data)
 CLASS_NAMES = np.array([item.name for item in train_dir.glob('*') if item.name != "LICENSE.txt"])
 
@@ -48,22 +52,33 @@ Conv2D - https://www.tensorflow.org/api_docs/python/tf/keras/layers/Conv2D
 MaxPool2D - https://www.tensorflow.org/api_docs/python/tf/keras/layers/MaxPool2D
 '''
 model = Sequential([
-    Conv2D(filters=96, kernel_size=(11, 11), strides=4, padding='same', input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
-    Conv2D(filters=256, kernel_size=(5, 5), strides=1, padding='same', activation='relu'),
-    #BatchNormalization(),
-    MaxPooling2D(pool_size=(3, 3), strides=2),
-    Conv2D(filters=384, kernel_size=(3, 3), strides=1, padding='same', activation='relu'),
-    #BatchNormalization(),
-    MaxPooling2D(pool_size=(3, 3), strides=2),
-    Conv2D(filters=384, kernel_size=(3, 3), strides=1, padding='same', activation='relu'),
-    Conv2D(filters=256, kernel_size=(3, 3), strides=1, padding='same', activation='relu'),
-    MaxPooling2D(pool_size=(3, 3), strides=2),
+    Conv2D(16, 3, padding='same', activation='relu',
+           input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
+    MaxPooling2D(),
+    Dropout(0.2),
+    Conv2D(32, 3, padding='same', activation='relu'),
+    MaxPooling2D(),
+    Conv2D(64, 3, padding='same', activation='relu'),
+    MaxPooling2D(),
+    Dropout(0.2),
     Flatten(),
-    Dense(4096, activation='relu'),
-    Dropout(0.5),
-    Dense(4096, activation='relu'),
-    Dropout(0.5),
+    Dense(512, activation='relu'),
     Dense(5, activation='softmax')
+
+    # Conv2D(filters=96, kernel_size=(11, 11), strides=4, padding='same', input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
+    # Conv2D(filters=256, kernel_size=(5, 5), padding='same', activation='relu'),
+    # MaxPooling2D(pool_size=(3, 3), strides=2),
+    # Conv2D(filters=384, kernel_size=(3, 3), padding='same', activation='relu'),
+    # MaxPooling2D(pool_size=(3, 3), strides=2),
+    # Conv2D(filters=384, kernel_size=(3, 3), padding='same', activation='relu'),
+    # Conv2D(filters=256, kernel_size=(3, 3), padding='same', activation='relu'),
+    # MaxPooling2D(pool_size=(3, 3), strides=2),
+    # Flatten(),
+    # Dense(4096, activation='relu'),
+    # Dropout(0.5),
+    # Dense(4096, activation='relu'),
+    # Dropout(0.5),
+    # Dense(5, activation='softmax')
 ])
 
 model.compile(optimizer='adam',
@@ -94,6 +109,7 @@ train_image_generator = ImageDataGenerator(rescale=1./255,
                                            zoom_range=0.5,
                                            shear_range=0.2)
 
+valid_image_generator = ImageDataGenerator(rescale=1./255)
 '''
 @brief
 아래 API에서 flow_from_directory 부분 참조.
@@ -115,47 +131,41 @@ train_generator = train_image_generator.flow_from_directory(
     class_mode='sparse',
 )
 
+valid_generator = valid_image_generator.flow_from_directory(
+    directory=valid_dir,
+    target_size=(IMG_HEIGHT, IMG_WIDTH),
+    batch_size=BATCH_SIZE,
+    class_mode='sparse'
+)
+
 history = model.fit_generator(
     train_generator,
     steps_per_epoch=total_train_data//BATCH_SIZE,
-    epochs=epochs
+    epochs=epochs,
+    validation_data=valid_generator,
+    validation_steps=total_val_data//BATCH_SIZE
 )
 
 acc = history.history['accuracy']
+val_acc = history.history['val_accuracy']
+
 loss = history.history['loss']
+val_loss = history.history['val_loss']
 
 epochs_range = range(epochs)
 
 plt.figure(figsize=(8, 8))
 plt.subplot(1, 2, 1)
 plt.plot(epochs_range, acc, label='Training Accuracy')
+plt.plot(epochs_range, val_acc, label='Validation Accuracy')
 plt.legend(loc='lower right')
-plt.title('Training Accuracy')
+plt.title('Training and Validation Accuracy')
 
 plt.subplot(1, 2, 2)
 plt.plot(epochs_range, loss, label='Training Loss')
+plt.plot(epochs_range, val_loss, label='Validation Loss')
 plt.legend(loc='upper right')
-plt.title('Training Loss')
+plt.title('Training and Validation Loss')
 plt.show()
 
-model.save('/home/barcelona/pervinco/model/ALEX_NET_TRAIN_MODEL.h5')
-
-'''
-@brief
-학습된 모델에 test 이미지를 넣고, 해당 이미지의 class를 정확하게 맞추는지 검증.
-'''
-# test_image = cv2.imread('/home/barcelona/pervinco/datasets/predict/ddlion_test.jpg', cv2.IMREAD_COLOR)
-# test_image = cv2.resize(test_image, (224, 224))
-# test_image = tf.dtypes.cast(test_image, dtype=tf.float32)
-# test_image = tf.reshape(test_image, [1, 224, 224, 3])
-
-test_image = load_img('/home/barcelona/pervinco/datasets/predict/test_rose.jpg')
-test_img_arr = img_to_array(test_image)
-test_img_arr = test_img_arr.reshape((1,)+test_img_arr)
-
-predictions = model.predict(test_img_arr)
-
-result = np.argmax(predictions[0])
-print('Categori : ', CLASS_NAMES)
-print('predict label number :', result)
-print('predict result is : ', CLASS_NAMES[result])
+model.save('/home/barcelona/pervinco/model/tutorial_network_flower.h5')
