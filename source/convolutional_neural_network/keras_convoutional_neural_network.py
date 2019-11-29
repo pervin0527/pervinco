@@ -8,10 +8,12 @@
             modify test data input format
             epochs : 2000, loss: 0.2216, accuracy: 0.92 predict result : 7개중 4개 정답.
             ---------------------------------update 19.11.28---------------------------------------
-            training model ALEX_NET ---> tutorial model
+            training model change ALEX_NET ---> tutorial model
             added Early Stopping, Tensorboard
-            epochs : 500/256 (early stopping) accuracy: 0.85 predict result : 7개중 2개 정답.
+            epochs : 256/500 (early stopping) accuracy: 0.85 predict result : 7개중 2개 정답.
             ---------------------------------update 19.11.29---------------------------------------
+            training model change Tutorial_model ------> ALEX_NET
+            epochs : 217/500 (early stopping) accuracy : 0.96 loss : 0.1131
 
 '''
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -24,16 +26,43 @@ import numpy as np
 import datetime
 from tensorflow import keras
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Conv2D, Flatten, Dropout, MaxPooling2D, BatchNormalization
+from tensorflow.keras.layers import Input, Dense, Conv2D, Flatten, Dropout, MaxPooling2D, BatchNormalization
 from tensorflow.keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
 from keras.utils import np_utils
 
 tf.executing_eagerly()
 AUTOTUNE = tf.data.experimental.AUTOTUNE
-BATCH_SIZE = 32
+BATCH_SIZE = 128
 IMG_HEIGHT = 224
 IMG_WIDTH = 224
-epochs = 500
+epochs = 300
+
+# def ALEX_NET():
+#     inputs = Input(shape=(224, 224, 3))
+#
+#     conv1 = Conv2D(filters=96, kernel_size=(11, 11), strides=4, padding='same', input_shape=(IMG_HEIGHT, IMG_WIDTH, 3),
+#            activation='relu')(inputs)
+#
+#     conv2 = Conv2D(filters=256, kernel_size=(5, 5), padding='same', activation='relu')(conv1)
+#     norm1 = tf.nn.local_response_normalization(conv2)
+#     pool1 = MaxPooling2D(pool_size=(3, 3), strides=2)(norm1)
+#
+#     conv3 = Conv2D(filters=384, kernel_size=(3, 3), padding='same', activation='relu')(pool1)
+#     norm2 = tf.nn.local_response_normalization(conv3)
+#     pool2 = MaxPooling2D(pool_size=(3, 3), strides=2)(norm2)
+#
+#     conv4 = Conv2D(filters=384, kernel_size=(3, 3), padding='same', activation='relu')(pool2)
+#     conv5 = Conv2D(filters=256, kernel_size=(3, 3), padding='same', activation='relu')(conv4)
+#     pool3 = MaxPooling2D(pool_size=(3, 3), strides=2)(conv5)
+#
+#     flat = Flatten()(pool3)
+#     dense1 = Dense(4096, activation='relu')(flat)
+#     drop1 = Dropout(0,5)(dense1)
+#     dense2 = Dense(4096, activation='relu')(drop1)
+#     drop2 = Dropout(0.5)(dense2)
+#     dense3 = Dense(5, activation='softmax')(drop2)
+
+
 
 '''
 @brief - 데이터셋 다운로드 링크
@@ -59,6 +88,7 @@ Conv2D - https://www.tensorflow.org/api_docs/python/tf/keras/layers/Conv2D
 MaxPool2D - https://www.tensorflow.org/api_docs/python/tf/keras/layers/MaxPool2D
 '''
 model = Sequential([
+    Input(shape=(224, 224, 3)),
     # Conv2D(16, 3, padding='same', activation='relu',
     #        input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
     # MaxPooling2D(),
@@ -74,14 +104,22 @@ model = Sequential([
     # Dense(5, activation='softmax')
 
     ##  ▲tutorial model▲  ▼ALEXNET▼
-    Conv2D(filters=96, kernel_size=(11, 11), strides=4, padding='same', input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
+
+    Conv2D(filters=96, kernel_size=(11, 11), strides=4, padding='same', input_shape=(IMG_HEIGHT, IMG_WIDTH, 3),
+           activation='relu'),
+
     Conv2D(filters=256, kernel_size=(5, 5), padding='same', activation='relu'),
+    # BatchNormalization(),
     MaxPooling2D(pool_size=(3, 3), strides=2),
+
     Conv2D(filters=384, kernel_size=(3, 3), padding='same', activation='relu'),
+    # BatchNormalization(),
     MaxPooling2D(pool_size=(3, 3), strides=2),
+
     Conv2D(filters=384, kernel_size=(3, 3), padding='same', activation='relu'),
     Conv2D(filters=256, kernel_size=(3, 3), padding='same', activation='relu'),
     MaxPooling2D(pool_size=(3, 3), strides=2),
+
     Flatten(),
     Dense(4096, activation='relu'),
     Dropout(0.5),
@@ -91,10 +129,10 @@ model = Sequential([
 ])
 
 
-optimizer = tf.keras.optimizers.SGD(learning_rate=0.01, decay=5e-5, momentum=0.9)
+# optimizer = tf.keras.optimizers.SGD(learning_rate=0.01, decay=5e-5, momentum=0.9)
 model.compile(
-    # optimizer='adam',
-    optimizer=optimizer,
+    optimizer='adam',
+    # optimizer=optimizer,
     # loss='binary_crossentropy'
     loss='categorical_crossentropy',
     metrics=['accuracy']
@@ -163,10 +201,10 @@ history = model.fit_generator(
     train_generator,
     steps_per_epoch=total_train_data//BATCH_SIZE,
     epochs=epochs,
+    verbose=1,
     validation_data=valid_generator,
     validation_steps=total_val_data//BATCH_SIZE,
-    callbacks=[keras.callbacks.EarlyStopping(monitor='val_loss', patience=200, verbose=1), tensorboard_callback],
-    verbose=2
+    callbacks=[keras.callbacks.EarlyStopping(monitor='val_loss', patience=50, verbose=1), tensorboard_callback]
 )
 
 # acc = history.history['accuracy']
@@ -191,4 +229,4 @@ history = model.fit_generator(
 # plt.title('Training and Validation Loss')
 # plt.show()
 
-model.save('/home/barcelona/pervinco/model/tutorial_network_flower.h5')
+model.save('/home/barcelona/pervinco/model/ALEX_reg_train.h5')
