@@ -22,35 +22,35 @@ IMG_HEIGHT = 224
 IMG_WIDTH = 224
 
 model = Sequential([
-    # Conv2D(16, 3, padding='same', activation='relu',
-    #        input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
-    # MaxPooling2D(),
-    # Dropout(0.2),
-    # Conv2D(32, 3, padding='same', activation='relu'),
-    # MaxPooling2D(),
-    # Conv2D(64, 3, padding='same', activation='relu'),
-    # MaxPooling2D(),
-    # Dropout(0.2),
-    # Flatten(),
-    # Dense(512, activation='relu'),
-    # Dense(5, activation='softmax')
-    ################################  ▲tutorial model  ▼ALEXNET  ####################################
-    Conv2D(filters=96, kernel_size=(11, 11), strides=4, padding='same', input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
-    Conv2D(filters=256, kernel_size=(5, 5), padding='same', activation='relu'),
-    # BatchNormalization(),
-    MaxPooling2D(pool_size=(3, 3), strides=2),
-    Conv2D(filters=384, kernel_size=(3, 3), padding='same', activation='relu'),
-    # BatchNormalization(),
-    MaxPooling2D(pool_size=(3, 3), strides=2),
-    Conv2D(filters=384, kernel_size=(3, 3), padding='same', activation='relu'),
-    Conv2D(filters=256, kernel_size=(3, 3), padding='same', activation='relu'),
-    MaxPooling2D(pool_size=(3, 3), strides=2),
+    Conv2D(16, 3, padding='same', activation='relu',
+           input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
+    MaxPooling2D(),
+    Dropout(0.2),
+    Conv2D(32, 3, padding='same', activation='relu'),
+    MaxPooling2D(),
+    Conv2D(64, 3, padding='same', activation='relu'),
+    MaxPooling2D(),
+    Dropout(0.2),
     Flatten(),
-    Dense(4096, activation='relu'),
-    Dropout(0.5),
-    Dense(4096, activation='relu'),
-    Dropout(0.5),
+    Dense(512, activation='relu'),
     Dense(5, activation='softmax')
+    ##  ▲tutorial model  ▼ALEXNET
+    # Conv2D(filters=96, kernel_size=(11, 11), strides=4, padding='same', input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
+    # Conv2D(filters=256, kernel_size=(5, 5), padding='same', activation='relu'),
+    # # BatchNormalization(),
+    # MaxPooling2D(pool_size=(3, 3), strides=2),
+    # Conv2D(filters=384, kernel_size=(3, 3), padding='same', activation='relu'),
+    # # BatchNormalization(),
+    # MaxPooling2D(pool_size=(3, 3), strides=2),
+    # Conv2D(filters=384, kernel_size=(3, 3), padding='same', activation='relu'),
+    # Conv2D(filters=256, kernel_size=(3, 3), padding='same', activation='relu'),
+    # MaxPooling2D(pool_size=(3, 3), strides=2),
+    # Flatten(),
+    # Dense(4096, activation='relu'),
+    # Dropout(0.5),
+    # Dense(4096, activation='relu'),
+    # Dropout(0.5),
+    # Dense(5, activation='softmax')
 ])
 
 model.compile(optimizer='adam',
@@ -67,7 +67,7 @@ https://www.tensorflow.org/tutorials/keras/save_and_load#top_of_page
 이때, train 된 모델을 그대로 위에 선언 되어 있어야 weight file이 load 될 수 있다.
 ex) training을 ALEX_NET으로 했다면 model.Sequentail에 ALEX_NET model이 구축되어 있어야 함.
 '''
-model.load_weights('/home/barcelona/pervinco/model/ALEX_NET_TRAIN_MODEL.h5')
+model.load_weights('/home/barcelona/pervinco/model/tutorial_network_flower.h5')
 
 eval_dir = glob.glob('/home/barcelona/pervinco/datasets/predict/*.jpg')
 # print(eval_dir)

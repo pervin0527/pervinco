@@ -6,8 +6,9 @@ Machine Learning, Deep Learning Lecture
 2. [Data input format + Batch](https://www.tensorflow.org/guide/data#top_of_page)
 3. [Data preprocessing & Training](https://keras.io/ko/preprocessing/image/)
 4. [Model save, load](https://www.tensorflow.org/tutorials/keras/save_and_load#top_of_page)
-5. [callbacks Tensorboard](https://www.tensorflow.org/tensorboard/get_started)
-
+5. [callbacks - EarlyStopping](https://www.tensorflow.org/guide/keras/train_and_evaluate#using_callbacks)
+6. [OverFitting & UnderFitting](https://www.tensorflow.org/tutorials/keras/overfit_and_underfit#combined_l2_dropout)
+7. [Tensorboard](https://www.tensorflow.org/tensorboard/get_started)
 
 ##  [git hub](https://github.com/pervin0527/pervinco) + [pycharm](https://www.jetbrains.com/pycharm/)
 1. undo commit in pycharm

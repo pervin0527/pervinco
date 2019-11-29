@@ -10,6 +10,9 @@
             ---------------------------------update 19.11.28---------------------------------------
             training model ALEX_NET ---> tutorial model
             added Early Stopping, Tensorboard
+            epochs : 500/256 (early stopping) accuracy: 0.85 predict result : 7개중 2개 정답.
+            ---------------------------------update 19.11.29---------------------------------------
+
 '''
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
@@ -56,41 +59,46 @@ Conv2D - https://www.tensorflow.org/api_docs/python/tf/keras/layers/Conv2D
 MaxPool2D - https://www.tensorflow.org/api_docs/python/tf/keras/layers/MaxPool2D
 '''
 model = Sequential([
-    Conv2D(16, 3, padding='same', activation='relu',
-           input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
-    MaxPooling2D(),
-    Dropout(0.2),
-    Conv2D(32, 3, padding='same', activation='relu'),
-    MaxPooling2D(),
-    Conv2D(64, 3, padding='same', activation='relu'),
-    MaxPooling2D(),
-    Dropout(0.2),
-    Flatten(),
-    Dense(512, activation='relu'),
-    # Dense(512, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.0001)),
-    Dense(5, activation='softmax')
+    # Conv2D(16, 3, padding='same', activation='relu',
+    #        input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
+    # MaxPooling2D(),
+    # Dropout(0.2),
+    # Conv2D(32, 3, padding='same', activation='relu'),
+    # MaxPooling2D(),
+    # Conv2D(64, 3, padding='same', activation='relu'),
+    # MaxPooling2D(),
+    # Dropout(0.2),
+    # Flatten(),
+    # Dense(512, activation='relu'),
+    # # Dense(512, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.0001)),
+    # Dense(5, activation='softmax')
 
     ##  ▲tutorial model▲  ▼ALEXNET▼
-    # Conv2D(filters=96, kernel_size=(11, 11), strides=4, padding='same', input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
-    # Conv2D(filters=256, kernel_size=(5, 5), padding='same', activation='relu'),
-    # MaxPooling2D(pool_size=(3, 3), strides=2),
-    # Conv2D(filters=384, kernel_size=(3, 3), padding='same', activation='relu'),
-    # MaxPooling2D(pool_size=(3, 3), strides=2),
-    # Conv2D(filters=384, kernel_size=(3, 3), padding='same', activation='relu'),
-    # Conv2D(filters=256, kernel_size=(3, 3), padding='same', activation='relu'),
-    # MaxPooling2D(pool_size=(3, 3), strides=2),
-    # Flatten(),
-    # Dense(4096, activation='relu'),
-    # Dropout(0.5),
-    # Dense(4096, activation='relu'),
-    # Dropout(0.5),
-    # Dense(5, activation='softmax')
+    Conv2D(filters=96, kernel_size=(11, 11), strides=4, padding='same', input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
+    Conv2D(filters=256, kernel_size=(5, 5), padding='same', activation='relu'),
+    MaxPooling2D(pool_size=(3, 3), strides=2),
+    Conv2D(filters=384, kernel_size=(3, 3), padding='same', activation='relu'),
+    MaxPooling2D(pool_size=(3, 3), strides=2),
+    Conv2D(filters=384, kernel_size=(3, 3), padding='same', activation='relu'),
+    Conv2D(filters=256, kernel_size=(3, 3), padding='same', activation='relu'),
+    MaxPooling2D(pool_size=(3, 3), strides=2),
+    Flatten(),
+    Dense(4096, activation='relu'),
+    Dropout(0.5),
+    Dense(4096, activation='relu'),
+    Dropout(0.5),
+    Dense(5, activation='softmax')
 ])
 
-model.compile(optimizer='adam',
-              # loss='binary_crossentropy'
-              loss='sparse_categorical_crossentropy',
-              metrics=['accuracy'])
+
+optimizer = tf.keras.optimizers.SGD(learning_rate=0.01, decay=5e-5, momentum=0.9)
+model.compile(
+    # optimizer='adam',
+    optimizer=optimizer,
+    # loss='binary_crossentropy'
+    loss='categorical_crossentropy',
+    metrics=['accuracy']
+)
 
 model.summary()
 
@@ -135,14 +143,14 @@ train_generator = train_image_generator.flow_from_directory(
     target_size=(IMG_HEIGHT, IMG_WIDTH),
     batch_size=BATCH_SIZE,
     shuffle=True,
-    class_mode='sparse',
+    class_mode='categorical',
 )
 
 valid_generator = valid_image_generator.flow_from_directory(
     directory=valid_dir,
     target_size=(IMG_HEIGHT, IMG_WIDTH),
     batch_size=BATCH_SIZE,
-    class_mode='sparse'
+    class_mode='categorical'
 )
 '''
 @brief
@@ -157,29 +165,30 @@ history = model.fit_generator(
     epochs=epochs,
     validation_data=valid_generator,
     validation_steps=total_val_data//BATCH_SIZE,
-    callbacks=[keras.callbacks.EarlyStopping(monitor='val_loss', patience=200, verbose=1), tensorboard_callback]
+    callbacks=[keras.callbacks.EarlyStopping(monitor='val_loss', patience=200, verbose=1), tensorboard_callback],
+    verbose=2
 )
 
-acc = history.history['accuracy']
-val_acc = history.history['val_accuracy']
-
-loss = history.history['loss']
-val_loss = history.history['val_loss']
-
-epochs_range = range(epochs)
-
-plt.figure(figsize=(8, 8))
-plt.subplot(1, 2, 1)
-plt.plot(epochs_range, acc, label='Training Accuracy')
-plt.plot(epochs_range, val_acc, label='Validation Accuracy')
-plt.legend(loc='lower right')
-plt.title('Training and Validation Accuracy')
-
-plt.subplot(1, 2, 2)
-plt.plot(epochs_range, loss, label='Training Loss')
-plt.plot(epochs_range, val_loss, label='Validation Loss')
-plt.legend(loc='upper right')
-plt.title('Training and Validation Loss')
-plt.show()
+# acc = history.history['accuracy']
+# val_acc = history.history['val_accuracy']
+#
+# loss = history.history['loss']
+# val_loss = history.history['val_loss']
+#
+# epochs_range = range(epochs)
+#
+# plt.figure(figsize=(8, 8))
+# plt.subplot(1, 2, 1)
+# plt.plot(epochs_range, acc, label='Training Accuracy')
+# plt.plot(epochs_range, val_acc, label='Validation Accuracy')
+# plt.legend(loc='lower right')
+# plt.title('Training and Validation Accuracy')
+#
+# plt.subplot(1, 2, 2)
+# plt.plot(epochs_range, loss, label='Training Loss')
+# plt.plot(epochs_range, val_loss, label='Validation Loss')
+# plt.legend(loc='upper right')
+# plt.title('Training and Validation Loss')
+# plt.show()
 
 model.save('/home/barcelona/pervinco/model/tutorial_network_flower.h5')
