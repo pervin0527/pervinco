@@ -37,33 +37,6 @@ IMG_HEIGHT = 224
 IMG_WIDTH = 224
 epochs = 300
 
-# def ALEX_NET():
-#     inputs = Input(shape=(224, 224, 3))
-#
-#     conv1 = Conv2D(filters=96, kernel_size=(11, 11), strides=4, padding='same', input_shape=(IMG_HEIGHT, IMG_WIDTH, 3),
-#            activation='relu')(inputs)
-#
-#     conv2 = Conv2D(filters=256, kernel_size=(5, 5), padding='same', activation='relu')(conv1)
-#     norm1 = tf.nn.local_response_normalization(conv2)
-#     pool1 = MaxPooling2D(pool_size=(3, 3), strides=2)(norm1)
-#
-#     conv3 = Conv2D(filters=384, kernel_size=(3, 3), padding='same', activation='relu')(pool1)
-#     norm2 = tf.nn.local_response_normalization(conv3)
-#     pool2 = MaxPooling2D(pool_size=(3, 3), strides=2)(norm2)
-#
-#     conv4 = Conv2D(filters=384, kernel_size=(3, 3), padding='same', activation='relu')(pool2)
-#     conv5 = Conv2D(filters=256, kernel_size=(3, 3), padding='same', activation='relu')(conv4)
-#     pool3 = MaxPooling2D(pool_size=(3, 3), strides=2)(conv5)
-#
-#     flat = Flatten()(pool3)
-#     dense1 = Dense(4096, activation='relu')(flat)
-#     drop1 = Dropout(0,5)(dense1)
-#     dense2 = Dense(4096, activation='relu')(drop1)
-#     drop2 = Dropout(0.5)(dense2)
-#     dense3 = Dense(5, activation='softmax')(drop2)
-
-
-
 '''
 @brief - 데이터셋 다운로드 링크
 Dogs vs cats dataset : https://www.kaggle.com/c/dogs-vs-cats/data

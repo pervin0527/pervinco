@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
 import cv2
@@ -7,20 +5,25 @@ import tensorflow as tf
 import pathlib
 import matplotlib.pyplot as plt
 import numpy as np
-import glob
+import datetime
 from tensorflow import keras
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Input, Dense, Conv2D, Flatten, Dropout, MaxPooling2D, BatchNormalization
 from tensorflow.keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
 
-train_dir = pathlib.Path('/home/barcelona/AutoCrawler/dataset')
-CLASS_NAMES = np.array([item.name for item in train_dir.glob('*') if item.name != "LICENSE.txt"])
-
-
 tf.executing_eagerly()
 AUTOTUNE = tf.data.experimental.AUTOTUNE
+BATCH_SIZE = 128
 IMG_HEIGHT = 224
 IMG_WIDTH = 224
+epochs = 300
+
+train_dir = pathlib.Path('/home/barcelona/AutoCrawler/dataset')
+valid_dir = pathlib.Path('/home/barcelona/pervinco/datasets/flower_photos')
+total_train_data = len(list(train_dir.glob('*/*.jpg')))
+total_val_data = len(list(valid_dir.glob('*/*.jpg')))
+print(total_train_data)
+CLASS_NAMES = np.array([item.name for item in train_dir.glob('*') if item.name != "LICENSE.txt"])
 
 def ALEX_NET():
     inputs = keras.Input(shape=(224, 224, 3))
@@ -54,6 +57,7 @@ def ALEX_NET():
 model = ALEX_NET()
 model.summary()
 
+
 optimizer = tf.keras.optimizers.SGD(learning_rate=0.01, decay=5e-5, momentum=0.9)
 model.compile(
     # optimizer='adam',
@@ -63,26 +67,44 @@ model.compile(
     metrics=['accuracy']
 )
 
-'''
-@breif
-저장된 모델을 불러오는 load_weights
-https://www.tensorflow.org/tutorials/keras/save_and_load#top_of_page
-이때, train 된 모델을 그대로 위에 선언 되어 있어야 weight file이 load 될 수 있다.
-ex) training을 ALEX_NET으로 했다면 model.Sequentail에 ALEX_NET model이 구축되어 있어야 함.
-'''
-model.load_weights('/home/barcelona/pervinco/model/ALEX.h5')
+train_image_generator = ImageDataGenerator(rescale=1./255,
+                                           rotation_range=45,
+                                           width_shift_range=.15,
+                                           height_shift_range=.15,
+                                           horizontal_flip=True,
+                                           zoom_range=0.5,
+                                           # shear_range=0.2
+                                           )
 
-eval_dir = glob.glob('/home/barcelona/pervinco/datasets/predict/*.jpg')
-# print(eval_dir)
-print('Categori : ', CLASS_NAMES)
-for img in eval_dir:
-    print('input image : ', img)
-    img = cv2.imread(img)
-    img = cv2.resize(img, (224, 224))
-    img = tf.dtypes.cast(img, dtype=tf.float32)
-    img = tf.reshape(img, [1, 224, 224, 3])
+valid_image_generator = ImageDataGenerator(rescale=1./255)
 
-    predictions = model.predict(img)
-    result = np.argmax(predictions[0])
-    # print('predict label number :', result)
-    print('predict result is : ', CLASS_NAMES[result])
+train_generator = train_image_generator.flow_from_directory(
+    directory=train_dir,
+    # resize train data
+    target_size=(IMG_HEIGHT, IMG_WIDTH),
+    batch_size=BATCH_SIZE,
+    shuffle=True,
+    class_mode='categorical',
+)
+
+valid_generator = valid_image_generator.flow_from_directory(
+    directory=valid_dir,
+    target_size=(IMG_HEIGHT, IMG_WIDTH),
+    batch_size=BATCH_SIZE,
+    class_mode='categorical'
+)
+
+log_dir = '/home/barcelona/pervinco/model/logs' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+
+history = model.fit_generator(
+    train_generator,
+    steps_per_epoch=total_train_data//BATCH_SIZE,
+    epochs=epochs,
+    verbose=1,
+    validation_data=valid_generator,
+    validation_steps=total_val_data//BATCH_SIZE,
+    callbacks=[keras.callbacks.EarlyStopping(monitor='val_loss', patience=50, verbose=1), tensorboard_callback]
+)
+
+model.save('/home/barcelona/pervinco/model/ALEX.h5')
