@@ -39,7 +39,7 @@ epochs = 300
 
 '''
 @brief - 데이터셋 다운로드 링크
-Dogs vs cats dataset : https://www.kaggle.com/c/dogs-vs-cats/data
+Dogs vs cats dataset : https://storage.googleapis.com/mledu-datasets/cats_and_dogs_filtered.zip
 flower dataset : https://storage.googleapis.com/download.tensorflow.org/example_images/flower_photos.tgz
 
 training dataset 경로 설정

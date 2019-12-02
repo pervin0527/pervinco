@@ -16,7 +16,7 @@ AUTOTUNE = tf.data.experimental.AUTOTUNE
 BATCH_SIZE = 128
 IMG_HEIGHT = 224
 IMG_WIDTH = 224
-epochs = 300
+epochs = 1200
 
 train_dir = pathlib.Path('/home/barcelona/pervinco/datasets/cats_and_dogs_filtered/train')
 valid_dir = pathlib.Path('/home/barcelona/pervinco/datasets/cats_and_dogs_filtered/validation')

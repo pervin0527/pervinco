@@ -14,7 +14,7 @@ from tensorflow.keras.layers import Input, Dense, Conv2D, Flatten, Dropout, MaxP
 from tensorflow.keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
 
 train_dir = pathlib.Path('/home/barcelona/pervinco/datasets/cats_and_dogs_filtered/train')
-CLASS_NAMES = np.array([item.name for item in train_dir.glob('*') if item.name != "LICENSE.txt"])
+CLASS_NAMES = sorted(np.array([item.name for item in train_dir.glob('*') if item.name != "LICENSE.txt"]))
 
 
 tf.executing_eagerly()
@@ -72,7 +72,7 @@ ex) training을 ALEX_NET으로 했다면 model.Sequentail에 ALEX_NET model이 �
 '''
 model.load_weights('/home/barcelona/pervinco/model/ALEX_cat_dog.h5')
 
-eval_dir = glob.glob('/home/barcelona/pervinco/datasets/predict/*.jpg')
+eval_dir = glob.glob('/home/barcelona/pervinco/datasets/predict/cat_dog/*.jpg')
 # print(eval_dir)
 print('Categori : ', CLASS_NAMES)
 for img in eval_dir:
@@ -85,4 +85,5 @@ for img in eval_dir:
     predictions = model.predict(img)
     print(predictions)
     result = np.argmax(predictions[0])
-    print('predict label number :', result)
+    # print('predict label number :', result)
+    print(CLASS_NAMES[result])
