@@ -18,8 +18,8 @@ IMG_HEIGHT = 224
 IMG_WIDTH = 224
 epochs = 300
 
-train_dir = pathlib.Path('/home/barcelona/AutoCrawler/dataset')
-valid_dir = pathlib.Path('/home/barcelona/pervinco/datasets/flower_photos')
+train_dir = pathlib.Path('/home/barcelona/pervinco/datasets/cats_and_dogs_filtered/train')
+valid_dir = pathlib.Path('/home/barcelona/pervinco/datasets/cats_and_dogs_filtered/validation')
 total_train_data = len(list(train_dir.glob('*/*.jpg')))
 total_val_data = len(list(valid_dir.glob('*/*.jpg')))
 print(total_train_data)
@@ -49,9 +49,8 @@ def ALEX_NET():
     drop1 = keras.layers.Dropout(0.5)(dense1)
     dense2 = keras.layers.Dense(4096, activation='relu')(drop1)
     drop2 = keras.layers.Dropout(0.5)(dense2)
-    dense3 = keras.layers.Dense(5, activation='softmax')(drop2)
+    dense3 = keras.layers.Dense(2, activation='softmax')(drop2)
     return keras.Model(inputs=inputs, outputs=dense3)
-
 
 
 model = ALEX_NET()
@@ -104,7 +103,7 @@ history = model.fit_generator(
     verbose=1,
     validation_data=valid_generator,
     validation_steps=total_val_data//BATCH_SIZE,
-    callbacks=[keras.callbacks.EarlyStopping(monitor='val_loss', patience=50, verbose=1), tensorboard_callback]
+    callbacks=[keras.callbacks.EarlyStopping(monitor='val_loss', patience=100, verbose=1), tensorboard_callback]
 )
 
-model.save('/home/barcelona/pervinco/model/ALEX.h5')
+model.save('/home/barcelona/pervinco/model/ALEX_cat_dog.h5')

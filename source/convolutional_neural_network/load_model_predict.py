@@ -13,7 +13,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Input, Dense, Conv2D, Flatten, Dropout, MaxPooling2D, BatchNormalization
 from tensorflow.keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
 
-train_dir = pathlib.Path('/home/barcelona/AutoCrawler/dataset')
+train_dir = pathlib.Path('/home/barcelona/pervinco/datasets/cats_and_dogs_filtered/train')
 CLASS_NAMES = np.array([item.name for item in train_dir.glob('*') if item.name != "LICENSE.txt"])
 
 
@@ -46,7 +46,7 @@ def ALEX_NET():
     drop1 = keras.layers.Dropout(0.5)(dense1)
     dense2 = keras.layers.Dense(4096, activation='relu')(drop1)
     drop2 = keras.layers.Dropout(0.5)(dense2)
-    dense3 = keras.layers.Dense(5, activation='softmax')(drop2)
+    dense3 = keras.layers.Dense(2, activation='softmax')(drop2)
     return keras.Model(inputs=inputs, outputs=dense3)
 
 
@@ -70,7 +70,7 @@ https://www.tensorflow.org/tutorials/keras/save_and_load#top_of_page
 이때, train 된 모델을 그대로 위에 선언 되어 있어야 weight file이 load 될 수 있다.
 ex) training을 ALEX_NET으로 했다면 model.Sequentail에 ALEX_NET model이 구축되어 있어야 함.
 '''
-model.load_weights('/home/barcelona/pervinco/model/ALEX.h5')
+model.load_weights('/home/barcelona/pervinco/model/ALEX_cat_dog.h5')
 
 eval_dir = glob.glob('/home/barcelona/pervinco/datasets/predict/*.jpg')
 # print(eval_dir)
@@ -83,6 +83,6 @@ for img in eval_dir:
     img = tf.reshape(img, [1, 224, 224, 3])
 
     predictions = model.predict(img)
+    print(predictions)
     result = np.argmax(predictions[0])
-    # print('predict label number :', result)
-    print('predict result is : ', CLASS_NAMES[result])
+    print('predict label number :', result)
