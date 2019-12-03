@@ -106,4 +106,4 @@ history = model.fit_generator(
     callbacks=[keras.callbacks.EarlyStopping(monitor='val_loss', patience=150, verbose=1), tensorboard_callback]
 )
 
-model.save('/home/barcelona/pervinco/model/training_12_3.h5')
+model.save('/home/barcelona/pervinco/model/'+ datetime.datetime.now().strftime("%Y%m%d-%H%M%S")+'.h5')
