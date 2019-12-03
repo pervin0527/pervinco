@@ -81,6 +81,7 @@ for img in eval_dir:
     img = Image.open(img)
     img = img.resize((224, 224))
     img = np.array(img)
+    img = img / 225.0
     img = tf.dtypes.cast(img, dtype=tf.float32)
     img = tf.reshape(img, [1, 224, 224, 3])
 
