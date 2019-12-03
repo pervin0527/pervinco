@@ -103,7 +103,7 @@ history = model.fit_generator(
     verbose=1,
     validation_data=valid_generator,
     validation_steps=total_val_data//BATCH_SIZE,
-    callbacks=[keras.callbacks.EarlyStopping(monitor='val_loss', patience=100, verbose=1), tensorboard_callback]
+    callbacks=[keras.callbacks.EarlyStopping(monitor='val_loss', patience=150, verbose=1), tensorboard_callback]
 )
 
-model.save('/home/barcelona/pervinco/model/ALEX_cat_dog.h5')
+model.save('/home/barcelona/pervinco/model/training_12_3.h5')

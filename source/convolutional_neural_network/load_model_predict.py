@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
 import cv2
@@ -9,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import glob
 from tensorflow import keras
+from PIL import Image
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Input, Dense, Conv2D, Flatten, Dropout, MaxPooling2D, BatchNormalization
 from tensorflow.keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
@@ -72,18 +72,27 @@ ex) training을 ALEX_NET으로 했다면 model.Sequentail에 ALEX_NET model이 �
 '''
 model.load_weights('/home/barcelona/pervinco/model/ALEX_cat_dog.h5')
 
-eval_dir = glob.glob('/home/barcelona/pervinco/datasets/predict/cat_dog/*.jpg')
+eval_dir = glob.glob('/home/barcelona/pervinco/datasets/cats_and_dogs_filtered/train/cats/*.jpg')
 # print(eval_dir)
 print('Categori : ', CLASS_NAMES)
+count = 0
 for img in eval_dir:
     print('input image : ', img)
-    img = cv2.imread(img)
-    img = cv2.resize(img, (224, 224))
+    img = Image.open(img)
+    img = img.resize((224, 224))
+    img = np.array(img)
     img = tf.dtypes.cast(img, dtype=tf.float32)
     img = tf.reshape(img, [1, 224, 224, 3])
 
     predictions = model.predict(img)
     print(predictions)
     result = np.argmax(predictions[0])
-    # print('predict label number :', result)
+    print('predict label :', result)
     print(CLASS_NAMES[result])
+
+    if result == 0:
+        count += 1
+    else:
+        pass
+
+print(count)
