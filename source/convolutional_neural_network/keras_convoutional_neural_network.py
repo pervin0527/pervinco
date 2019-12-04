@@ -27,6 +27,7 @@
             epochs 380/1200
             train_loss : 0.06839 train_acc : 97.44
             valid_loss : 0.3677 valid_acc : 90.18
+            loss: 0.0912 - accuracy: 0.9678 - val_loss: 0.3810 - val_accuracy: 0.8806
 
 '''
 from __future__ import absolute_import, division, print_function, unicode_literals
