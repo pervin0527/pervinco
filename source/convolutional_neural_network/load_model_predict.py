@@ -70,9 +70,9 @@ https://www.tensorflow.org/tutorials/keras/save_and_load#top_of_page
 이때, train 된 모델을 그대로 위에 선언 되어 있어야 weight file이 load 될 수 있다.
 ex) training을 ALEX_NET으로 했다면 model.Sequentail에 ALEX_NET model이 구축되어 있어야 함.
 '''
-model.load_weights('/home/barcelona/pervinco/model/ALEX_cat_dog.h5')
+model.load_weights('/home/barcelona/pervinco/model/20191203-200208.h5')
 
-eval_dir = glob.glob('/home/barcelona/pervinco/datasets/cats_and_dogs_filtered/train/cats/*.jpg')
+eval_dir = glob.glob('/home/barcelona/pervinco/datasets/predict/cat_dog/*.jpg')
 # print(eval_dir)
 print('Categori : ', CLASS_NAMES)
 count = 0

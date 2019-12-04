@@ -1,3 +1,12 @@
+'''
+            ---------------------------------update 19.12.03 --------------------------------------
+            training model : ALEX_NET
+            epochs 380/1200
+            train_loss : 0.06839 train_acc : 97.44
+            valid_loss : 0.3677 valid_acc : 90.18
+            ---------------------------------------------------------------------------------------
+'''
+
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
 import cv2
