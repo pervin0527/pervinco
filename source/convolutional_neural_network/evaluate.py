@@ -80,7 +80,7 @@ tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram
 
 history = model.evaluate_generator(
     valid_generator,
-    steps=total_val_data//BATCH_SIZE`,
+    steps=total_val_data//BATCH_SIZE,
     callbacks=[tensorboard_callback],
     verbose = 1
 )
