@@ -60,45 +60,86 @@ def data_to_np(train_dir, valid_dir):
 
 
 def ALEX_NET():
-    inputs = keras.Input(shape=(224, 224, 3))
+    model = tf.keras.models.Sequential([
+        # layer 1
+        tf.keras.layers.Conv2D(filters=96,
+                               kernel_size=(11, 11),
+                               strides=4,
+                               padding="same",
+                               input_shape=(224, 224, 3)),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.ReLU(),
 
-    conv1 = keras.layers.Conv2D(filters=96, kernel_size=(11, 11), strides=4, padding='same',
-                                input_shape=(IMG_HEIGHT, IMG_WIDTH, 3),
-                                activation='relu')(inputs)
+        tf.keras.layers.MaxPool2D(pool_size=(3, 3),
+                                  strides=2,
+                                  padding="same"),
 
-    conv2 = keras.layers.Conv2D(filters=256, kernel_size=(5, 5), padding='same', kernel_initializer='he_uniform',
-                                activation='relu')(conv1)
-    norm1 = tf.nn.local_response_normalization(conv2)
-    # norm1 = keras.layers.BatchNormalization()(conv2)
-    pool1 = keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2)(norm1)
+        # layer 2
+        tf.keras.layers.Conv2D(filters=256,
+                               kernel_size=(5, 5),
+                               strides=1,
+                               padding="same"),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.ReLU(),
+        tf.keras.layers.MaxPool2D(pool_size=(3, 3),
+                                  strides=2,
+                                  padding="same"),
 
-    conv3 = keras.layers.Conv2D(filters=384, kernel_size=(3, 3), padding='same', kernel_initializer='he_uniform',
-                                activation='relu')(pool1)
-    norm2 = tf.nn.local_response_normalization(conv3)
-    # norm2 = keras.layers.BatchNormalization()(conv3)
-    pool2 = keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2)(norm2)
+        # layer 3
+        tf.keras.layers.Conv2D(filters=384,
+                               kernel_size=(3, 3),
+                               strides=1,
+                               padding="same"),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.ReLU(),
 
-    conv4 = keras.layers.Conv2D(filters=384, kernel_size=(3, 3), padding='same', kernel_initializer='he_uniform',
-                                activation='relu')(pool2)
-    conv5 = keras.layers.Conv2D(filters=256, kernel_size=(3, 3), padding='same', kernel_initializer='he_uniform',
-                                activation='relu')(conv4)
-    pool3 = keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2)(conv5)
+        # layer 4
+        tf.keras.layers.Conv2D(filters=384,
+                               kernel_size=(3, 3),
+                               strides=1,
+                               padding="same"),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.ReLU(),
 
-    flat = keras.layers.Flatten()(pool3)
-    dense1 = keras.layers.Dense(4096, activation='relu', kernel_initializer='he_uniform')(flat)
-    drop1 = keras.layers.Dropout(0.5)(dense1)
-    dense2 = keras.layers.Dense(4096, activation='relu', kernel_initializer='he_uniform')(drop1)
-    drop2 = keras.layers.Dropout(0.5)(dense2)
-    dense3 = keras.layers.Dense(2, activation='softmax')(drop2)
-    return keras.Model(inputs=inputs, outputs=dense3)
+        # layer 5
+        tf.keras.layers.Conv2D(filters=256,
+                               kernel_size=(3, 3),
+                               strides=1,
+                               padding="same"),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.ReLU(),
+
+        tf.keras.layers.MaxPool2D(pool_size=(3, 3),
+                                  strides=2,
+                                  padding="same"),
+        # layer 6
+        tf.keras.layers.Flatten(),
+
+        tf.keras.layers.Dense(units=4096),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.ReLU(),
+        tf.keras.layers.Dropout(rate=0.4),
+
+        # layer 7
+        tf.keras.layers.Dense(units=4096),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.ReLU(),
+        tf.keras.layers.Dropout(rate=0.4),
+
+        # layer 8
+        tf.keras.layers.Dense(units=2,
+                              activation="softmax")
+    ])
+    model.summary()
+    return model
 
 
 if __name__ == '__main__':
-    train_dir = pathlib.Path('/home/tae/data/pervinco/datasets/cats_and_dogs_filtered/train')
+    train_dir = pathlib.Path('/home/barcelona/pervinco/datasets/cats_and_dogs_filtered/train')
     total_train_data = len(list(train_dir.glob('*/*.jpg')))
     print('total train data : ', total_train_data)
 
-    valid_dir = pathlib.Path('/home/tae/data/pervinco/datasets/cats_and_dogs_filtered/validation')
+    valid_dir = pathlib.Path('/home/barcelona/pervinco/datasets/cats_and_dogs_filtered/validation')
     total_valid_Data = len(list(valid_dir.glob('*/*.jpg')))
     print('total validation data : ', total_valid_Data)
 
@@ -116,37 +157,26 @@ if __name__ == '__main__':
     print(x_train.shape, y_train.shape)
     print(x_test.shape, y_test.shape)
 
-    train_image_generator = ImageDataGenerator(rotation_range=45,
-                                               width_shift_range=.15,
-                                               height_shift_range=.15,
-                                               horizontal_flip=True,
-                                               zoom_range=0.5,
-                                               # shear_range=0.2
-                                               )
-
-    train_generator = train_image_generator.flow(x_train, y_train, batch_size=BATCH_SIZE)
     model = ALEX_NET()
-    model.summary()
-
     optimizer = tf.keras.optimizers.SGD(learning_rate=0.01, decay=5e-5, momentum=0.9)
     model.compile(
-        # optimizer='rmsprop',
         optimizer=optimizer,
-        # loss='binary_crossentropy'
         loss='categorical_crossentropy',
         metrics=['accuracy']
     )
 
-    log_dir = '/home/tae/data/pervinco/model/logs' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
-
-    history = model.fit_generator(
-        train_generator,
-        steps_per_epoch=total_train_data // BATCH_SIZE,
-        epochs=epochs,
-        shuffle=True,
-        verbose=1,
-        validation_data=(x_test, y_test),
-        callbacks=[keras.callbacks.EarlyStopping(monitor='val_loss', patience=100, verbose=1),
-                   tensorboard_callback]
+    train_image_generator = tf.keras.preprocessing.image.ImageDataGenerator(
+        rotation_range=45,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
+        horizontal_flip=True,
+        zoom_range=0.5,
+        featurewise_center=True,
+        featurewise_std_normalization=True
+        # shear_range=0.2
     )
+
+    model.fit_generator(train_image_generator.flow(x_train, y_train, batch_size=BATCH_SIZE),
+                        steps_per_epoch=len(x_train) / BATCH_SIZE, epochs=epochs,
+                        callbacks=[keras.callbacks.EarlyStopping(monitor='val_loss', patience=150, verbose=1)],
+                        verbose=1)

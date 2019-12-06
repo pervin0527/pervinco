@@ -4,6 +4,11 @@
             epochs 380/1200
             train_loss : 0.06839 train_acc : 97.44
             valid_loss : 0.3677 valid_acc : 90.18
+            --------------------------------update 19.12.06----------------------------------------
+            training model : ALEX_NET
+            training data inceresed 3900
+            train_loss: 0.0475 - train_accuracy: 0.9828
+            val_loss: 0.3382 - val_accuracy: 0.9040
             ---------------------------------------------------------------------------------------
 '''
 
@@ -16,9 +21,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import datetime
 from tensorflow import keras
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Input, Dense, Conv2D, Flatten, Dropout, MaxPooling2D, BatchNormalization
-from tensorflow.keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
+
 
 tf.executing_eagerly()
 AUTOTUNE = tf.data.experimental.AUTOTUNE
@@ -75,16 +78,17 @@ model.compile(
     metrics=['accuracy']
 )
 
-train_image_generator = ImageDataGenerator(rescale=1./255,
-                                           rotation_range=45,
-                                           width_shift_range=.15,
-                                           height_shift_range=.15,
-                                           horizontal_flip=True,
-                                           zoom_range=0.5,
-                                           # shear_range=0.2
-                                           )
+train_image_generator = tf.keras.preprocessing.image.ImageDataGenerator(
+                                                                        rescale=1./255,
+                                                                        rotation_range=45,
+                                                                        width_shift_range=.15,
+                                                                        height_shift_range=.15,
+                                                                        horizontal_flip=True,
+                                                                        zoom_range=0.5
+                                                                        # shear_range=0.2
+)
 
-valid_image_generator = ImageDataGenerator(rescale=1./255)
+valid_image_generator = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255)
 
 train_generator = train_image_generator.flow_from_directory(
     directory=train_dir,
@@ -102,9 +106,11 @@ valid_generator = valid_image_generator.flow_from_directory(
     class_mode='categorical'
 )
 
-log_dir = '/home/barcelona/pervinco/model/logs' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+start_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
+log_dir = '/home/barcelona/pervinco/model/logs' + start_time
+tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+early_stopping_callback = keras.callbacks.EarlyStopping(monitor='val_loss', patience=150, verbose=1)
 history = model.fit_generator(
     train_generator,
     steps_per_epoch=total_train_data//BATCH_SIZE,
@@ -112,7 +118,7 @@ history = model.fit_generator(
     verbose=1,
     validation_data=valid_generator,
     validation_steps=total_val_data//BATCH_SIZE,
-    callbacks=[keras.callbacks.EarlyStopping(monitor='val_loss', patience=150, verbose=1), tensorboard_callback]
+    callbacks=[early_stopping_callback, tensorboard_callback]
 )
 
-model.save('/home/barcelona/pervinco/model/'+ datetime.datetime.now().strftime("%Y%m%d-%H%M%S")+'.h5')
+model.save('/home/barcelona/pervinco/model/'+start_time+'.h5')
