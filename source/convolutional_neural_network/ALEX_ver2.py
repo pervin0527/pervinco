@@ -1,7 +1,8 @@
 from PIL import Image
 import tensorflow as tf
 from tensorflow import keras
-from keras.utils import normalize, to_categorical
+import numpy as np
+from keras.utils import normalize, to_categorical, np_utils
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Input, Dense, Conv2D, Flatten, Dropout, MaxPooling2D, BatchNormalization
 from tensorflow.keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
@@ -127,8 +128,7 @@ def ALEX_NET():
         tf.keras.layers.Dropout(rate=0.4),
 
         # layer 8
-        tf.keras.layers.Dense(units=2,
-                              activation="softmax")
+        tf.keras.layers.Dense(units=2, activation="softmax")
     ])
     model.summary()
     return model
@@ -140,8 +140,8 @@ if __name__ == '__main__':
     print('total train data : ', total_train_data)
 
     valid_dir = pathlib.Path('/home/barcelona/pervinco/datasets/cats_and_dogs_filtered/validation')
-    total_valid_Data = len(list(valid_dir.glob('*/*.jpg')))
-    print('total validation data : ', total_valid_Data)
+    total_valid_data = len(list(valid_dir.glob('*/*.jpg')))
+    print('total validation data : ', total_valid_data)
 
     (x_train, y_train), (x_test, y_test) = data_to_np(train_dir, valid_dir)
     # (x_train, y_train), (x_test, y_test) = cifar10.load_data()
@@ -149,13 +149,36 @@ if __name__ == '__main__':
     print('train images, labels', x_train.shape, y_train.shape)
     print('validation images, labels', x_test.shape, y_test.shape)
 
-    x_train = normalize(x_train, axis=1)
-    y_train = to_categorical(y_train)
-    x_test = normalize(x_test, axis=1)
-    y_test = to_categorical(y_test)
+    # x_train = normalize(x_train, axis=1)
+    # y_train = to_categorical(y_train)
+    # x_test = normalize(x_test, axis=1)
+    # y_test = to_categorical(y_test)
+    y_train = np_utils.to_categorical(y_train, 2)
+    y_test = np_utils.to_categorical(y_test, 2)
 
     print(x_train.shape, y_train.shape)
     print(x_test.shape, y_test.shape)
+
+    train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
+    valid_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test))
+
+    SHUFFLE_BUFFER_SIZE = 1000
+
+    train_dataset = train_dataset.shuffle(SHUFFLE_BUFFER_SIZE).batch(BATCH_SIZE)
+    train_image_generator = tf.keras.preprocessing.image.ImageDataGenerator(
+        rescale=1. / 255,
+        rotation_range=45,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
+        horizontal_flip=True,
+        zoom_range=0.5
+        # shear_range=0.2
+    )
+
+    valid_dataset = valid_dataset.batch(BATCH_SIZE)
+    valid_image_generator = tf.keras.preprocessing.image.ImageDataGenerator(
+        rescale=1. / 255
+    )
 
     model = ALEX_NET()
     optimizer = tf.keras.optimizers.SGD(learning_rate=0.01, decay=5e-5, momentum=0.9)
@@ -165,18 +188,18 @@ if __name__ == '__main__':
         metrics=['accuracy']
     )
 
-    train_image_generator = tf.keras.preprocessing.image.ImageDataGenerator(
-        rotation_range=45,
-        width_shift_range=0.2,
-        height_shift_range=0.2,
-        horizontal_flip=True,
-        zoom_range=0.5,
-        featurewise_center=True,
-        featurewise_std_normalization=True
-        # shear_range=0.2
+    start_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_dir = '/home/barcelona/pervinco/model/logs' + start_time
+
+    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+    early_stopping_callback = keras.callbacks.EarlyStopping(monitor='val_loss', patience=150, verbose=1)
+
+    model.fit_generator(
+        train_image_generator.flow(x_train, y_train, batch_size=BATCH_SIZE),
+        validation_data=valid_image_generator.flow(x_test, y_test, batch_size=BATCH_SIZE),
+        epochs=epochs,
+        callbacks=[tensorboard_callback, early_stopping_callback]
     )
 
-    model.fit_generator(train_image_generator.flow(x_train, y_train, batch_size=BATCH_SIZE),
-                        steps_per_epoch=len(x_train) / BATCH_SIZE, epochs=epochs,
-                        callbacks=[keras.callbacks.EarlyStopping(monitor='val_loss', patience=150, verbose=1)],
-                        verbose=1)
+    model.save('/home/barcelona/pervinco/model/' + start_time + '.h5')
+
