@@ -26,9 +26,9 @@ from tensorflow import keras
 tf.executing_eagerly()
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 BATCH_SIZE = 128
-IMG_HEIGHT = 224
-IMG_WIDTH = 224
-epochs = 1200
+IMG_HEIGHT = 227
+IMG_WIDTH = 227
+epochs = 2000
 
 train_dir = pathlib.Path('/home/barcelona/pervinco/datasets/cats_and_dogs_filtered/train')
 valid_dir = pathlib.Path('/home/barcelona/pervinco/datasets/cats_and_dogs_filtered/validation')
@@ -38,7 +38,7 @@ print(total_train_data)
 CLASS_NAMES = np.array([item.name for item in train_dir.glob('*') if item.name != "LICENSE.txt"])
 
 def ALEX_NET():
-    inputs = keras.Input(shape=(224, 224, 3))
+    inputs = keras.Input(shape=(IMG_HEIGHT, IMG_WIDTH, 3))
 
     conv1 = keras.layers.Conv2D(filters=96, kernel_size=(11, 11), strides=4, padding='same',
                                 input_shape=(IMG_HEIGHT, IMG_WIDTH, 3),
@@ -106,9 +106,9 @@ valid_generator = valid_image_generator.flow_from_directory(
     class_mode='categorical'
 )
 
-start_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+start_time = 'ALEX1_2class_'+ datetime.datetime.now().strftime("%Y.%m.%d_%H:%M:%S")
 
-log_dir = '/home/barcelona/pervinco/model/logs' + start_time
+log_dir = '/home/barcelona/pervinco/model/' + start_time
 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 early_stopping_callback = keras.callbacks.EarlyStopping(monitor='val_loss', patience=150, verbose=1)
 history = model.fit_generator(
@@ -121,4 +121,4 @@ history = model.fit_generator(
     callbacks=[early_stopping_callback, tensorboard_callback]
 )
 
-model.save('/home/barcelona/pervinco/model/'+start_time+'.h5')
+model.save(log_dir+'/'+start_time+'.h5')

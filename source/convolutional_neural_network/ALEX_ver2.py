@@ -13,8 +13,8 @@ import glob
 import datetime
 import pathlib
 
-IMG_HEIGHT = 224
-IMG_WIDTH = 224
+IMG_HEIGHT = 227
+IMG_WIDTH = 227
 BATCH_SIZE = 128
 epochs = 2000
 
@@ -67,13 +67,7 @@ def ALEX_NET():
                                kernel_size=(11, 11),
                                strides=4,
                                padding="same",
-                               input_shape=(224, 224, 3)),
-        tf.keras.layers.BatchNormalization(),
-        tf.keras.layers.ReLU(),
-
-        tf.keras.layers.MaxPool2D(pool_size=(3, 3),
-                                  strides=2,
-                                  padding="same"),
+                               input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
 
         # layer 2
         tf.keras.layers.Conv2D(filters=256,
@@ -99,7 +93,6 @@ def ALEX_NET():
                                kernel_size=(3, 3),
                                strides=1,
                                padding="same"),
-        tf.keras.layers.BatchNormalization(),
         tf.keras.layers.ReLU(),
 
         # layer 5
@@ -107,7 +100,6 @@ def ALEX_NET():
                                kernel_size=(3, 3),
                                strides=1,
                                padding="same"),
-        tf.keras.layers.BatchNormalization(),
         tf.keras.layers.ReLU(),
 
         tf.keras.layers.MaxPool2D(pool_size=(3, 3),
@@ -117,15 +109,13 @@ def ALEX_NET():
         tf.keras.layers.Flatten(),
 
         tf.keras.layers.Dense(units=4096),
-        tf.keras.layers.BatchNormalization(),
         tf.keras.layers.ReLU(),
-        tf.keras.layers.Dropout(rate=0.4),
+        tf.keras.layers.Dropout(rate=0.5),
 
         # layer 7
         tf.keras.layers.Dense(units=4096),
-        tf.keras.layers.BatchNormalization(),
         tf.keras.layers.ReLU(),
-        tf.keras.layers.Dropout(rate=0.4),
+        tf.keras.layers.Dropout(rate=0.5),
 
         # layer 8
         tf.keras.layers.Dense(units=2, activation="softmax")
@@ -135,11 +125,11 @@ def ALEX_NET():
 
 
 if __name__ == '__main__':
-    train_dir = pathlib.Path('/home/barcelona/pervinco/datasets/cats_and_dogs_filtered/train')
+    train_dir = pathlib.Path('/home/tae/data/pervinco/datasets/cats_and_dogs_filtered/train')
     total_train_data = len(list(train_dir.glob('*/*.jpg')))
     print('total train data : ', total_train_data)
 
-    valid_dir = pathlib.Path('/home/barcelona/pervinco/datasets/cats_and_dogs_filtered/validation')
+    valid_dir = pathlib.Path('/home/tae/data/pervinco/datasets/cats_and_dogs_filtered/validation')
     total_valid_data = len(list(valid_dir.glob('*/*.jpg')))
     print('total validation data : ', total_valid_data)
 
@@ -188,8 +178,8 @@ if __name__ == '__main__':
         metrics=['accuracy']
     )
 
-    start_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_dir = '/home/barcelona/pervinco/model/logs' + start_time
+    start_time = 'ALEX2_' + datetime.datetime.now().strftime("%Y.%m.%d_%H:%M:%S")
+    log_dir = '/home/tae/data/pervinco/model/logs/' + start_time
 
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
     early_stopping_callback = keras.callbacks.EarlyStopping(monitor='val_loss', patience=150, verbose=1)
@@ -201,5 +191,5 @@ if __name__ == '__main__':
         callbacks=[tensorboard_callback, early_stopping_callback]
     )
 
-    model.save('/home/barcelona/pervinco/model/' + start_time + '.h5')
+    model.save(log_dir + '/' + start_time + '.h5')
 
