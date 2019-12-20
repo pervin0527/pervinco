@@ -13,11 +13,8 @@
 '''
 
 from __future__ import absolute_import, division, print_function, unicode_literals
-import os
-import cv2
 import tensorflow as tf
 import pathlib
-import matplotlib.pyplot as plt
 import numpy as np
 import datetime
 from tensorflow import keras
@@ -25,6 +22,7 @@ from tensorflow import keras
 
 tf.executing_eagerly()
 AUTOTUNE = tf.data.experimental.AUTOTUNE
+
 BATCH_SIZE = 128
 IMG_HEIGHT = 227
 IMG_WIDTH = 227
@@ -36,6 +34,9 @@ total_train_data = len(list(train_dir.glob('*/*.jpg')))
 total_val_data = len(list(valid_dir.glob('*/*.jpg')))
 print(total_train_data)
 CLASS_NAMES = np.array([item.name for item in train_dir.glob('*') if item.name != "LICENSE.txt"])
+
+start_time = 'ALEX1_2class_'+ datetime.datetime.now().strftime("%Y.%m.%d_%H:%M:%S")
+log_dir = '/home/barcelona/pervinco/model/' + start_time
 
 def ALEX_NET():
     inputs = keras.Input(shape=(IMG_HEIGHT, IMG_WIDTH, 3))
@@ -106,11 +107,8 @@ valid_generator = valid_image_generator.flow_from_directory(
     class_mode='categorical'
 )
 
-start_time = 'ALEX1_2class_'+ datetime.datetime.now().strftime("%Y.%m.%d_%H:%M:%S")
-
-log_dir = '/home/barcelona/pervinco/model/' + start_time
 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
-early_stopping_callback = keras.callbacks.EarlyStopping(monitor='val_loss', patience=150, verbose=1)
+early_stopping_callback = keras.callbacks.EarlyStopping(monitor='val_loss', patience=30, verbose=1)
 history = model.fit_generator(
     train_generator,
     steps_per_epoch=total_train_data//BATCH_SIZE,
@@ -119,6 +117,7 @@ history = model.fit_generator(
     validation_data=valid_generator,
     validation_steps=total_val_data//BATCH_SIZE,
     callbacks=[early_stopping_callback, tensorboard_callback]
+    # callbacks=[tensorboard_callback]
 )
 
 model.save(log_dir+'/'+start_time+'.h5')

@@ -1,13 +1,5 @@
 from PIL import Image
 import tensorflow as tf
-from tensorflow import keras
-import numpy as np
-from keras.utils import normalize, to_categorical, np_utils
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Input, Dense, Conv2D, Flatten, Dropout, MaxPooling2D, BatchNormalization
-from tensorflow.keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
-from tensorflow.keras.datasets import cifar10
-
 import numpy as np
 import glob
 import datetime
@@ -61,75 +53,40 @@ def data_to_np(train_dir, valid_dir):
 
 
 def ALEX_NET():
-    model = tf.keras.models.Sequential([
-        # layer 1
-        tf.keras.layers.Conv2D(filters=96,
-                               kernel_size=(11, 11),
-                               strides=4,
-                               padding="same",
-                               input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
+    inputs = tf.keras.Input(shape=(IMG_HEIGHT, IMG_WIDTH, 3))
 
-        # layer 2
-        tf.keras.layers.Conv2D(filters=256,
-                               kernel_size=(5, 5),
-                               strides=1,
-                               padding="same"),
-        tf.keras.layers.BatchNormalization(),
-        tf.keras.layers.ReLU(),
-        tf.keras.layers.MaxPool2D(pool_size=(3, 3),
-                                  strides=2,
-                                  padding="same"),
+    conv1 = tf.keras.layers.Conv2D(filters=96, kernel_size=(11, 11), strides=4, padding='same',
+                                   input_shape=(IMG_HEIGHT, IMG_WIDTH, 3))(inputs)
 
-        # layer 3
-        tf.keras.layers.Conv2D(filters=384,
-                               kernel_size=(3, 3),
-                               strides=1,
-                               padding="same"),
-        tf.keras.layers.BatchNormalization(),
-        tf.keras.layers.ReLU(),
+    conv2 = tf.keras.layers.Conv2D(filters=256, kernel_size=(5, 5), padding='same', use_bias=False,
+                                   activation='relu')(conv1)
+    norm1 = tf.keras.layers.BatchNormalization()(conv2)
+    pool1 = tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2)(norm1)
 
-        # layer 4
-        tf.keras.layers.Conv2D(filters=384,
-                               kernel_size=(3, 3),
-                               strides=1,
-                               padding="same"),
-        tf.keras.layers.ReLU(),
+    conv3 = tf.keras.layers.Conv2D(filters=384, kernel_size=(3, 3), padding='same', use_bias=False,
+                                   activation='relu')(pool1)
+    norm2 = tf.keras.layers.BatchNormalization()(conv3)
+    pool2 = tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2)(norm2)
 
-        # layer 5
-        tf.keras.layers.Conv2D(filters=256,
-                               kernel_size=(3, 3),
-                               strides=1,
-                               padding="same"),
-        tf.keras.layers.ReLU(),
+    conv4 = tf.keras.layers.Conv2D(filters=384, kernel_size=(3, 3), padding='same', activation='relu')(pool2)
+    conv5 = tf.keras.layers.Conv2D(filters=256, kernel_size=(3, 3), padding='same', activation='relu')(conv4)
+    pool3 = tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2)(conv5)
 
-        tf.keras.layers.MaxPool2D(pool_size=(3, 3),
-                                  strides=2,
-                                  padding="same"),
-        # layer 6
-        tf.keras.layers.Flatten(),
-
-        tf.keras.layers.Dense(units=4096),
-        tf.keras.layers.ReLU(),
-        tf.keras.layers.Dropout(rate=0.5),
-
-        # layer 7
-        tf.keras.layers.Dense(units=4096),
-        tf.keras.layers.ReLU(),
-        tf.keras.layers.Dropout(rate=0.5),
-
-        # layer 8
-        tf.keras.layers.Dense(units=2, activation="softmax")
-    ])
-    model.summary()
-    return model
+    flat = tf.keras.layers.Flatten()(pool3)
+    dense1 = tf.keras.layers.Dense(4096, activation='relu')(flat)
+    drop1 = tf.keras.layers.Dropout(0.5)(dense1)
+    dense2 = tf.keras.layers.Dense(4096, activation='relu')(drop1)
+    drop2 = tf.keras.layers.Dropout(0.5)(dense2)
+    outputs = tf.keras.layers.Dense(2, activation='softmax')(drop2)
+    return tf.keras.Model(inputs=inputs, outputs=outputs)
 
 
 if __name__ == '__main__':
-    train_dir = pathlib.Path('/home/tae/data/pervinco/datasets/cats_and_dogs_filtered/train')
+    train_dir = pathlib.Path('/home/tae/ssd_300/datasets/cats_and_dogs_filtered/train')
     total_train_data = len(list(train_dir.glob('*/*.jpg')))
     print('total train data : ', total_train_data)
 
-    valid_dir = pathlib.Path('/home/tae/data/pervinco/datasets/cats_and_dogs_filtered/validation')
+    valid_dir = pathlib.Path('/home/tae/ssd_300/datasets/cats_and_dogs_filtered/validation')
     total_valid_data = len(list(valid_dir.glob('*/*.jpg')))
     print('total validation data : ', total_valid_data)
 
@@ -143,8 +100,8 @@ if __name__ == '__main__':
     # y_train = to_categorical(y_train)
     # x_test = normalize(x_test, axis=1)
     # y_test = to_categorical(y_test)
-    y_train = np_utils.to_categorical(y_train, 2)
-    y_test = np_utils.to_categorical(y_test, 2)
+    y_train = tf.keras.utils.to_categorical(y_train, 2)
+    y_test = tf.keras.utils.to_categorical(y_test, 2)
 
     print(x_train.shape, y_train.shape)
     print(x_test.shape, y_test.shape)
@@ -171,6 +128,7 @@ if __name__ == '__main__':
     )
 
     model = ALEX_NET()
+    model.summary()
     optimizer = tf.keras.optimizers.SGD(learning_rate=0.01, decay=5e-5, momentum=0.9)
     model.compile(
         optimizer=optimizer,
@@ -179,17 +137,18 @@ if __name__ == '__main__':
     )
 
     start_time = 'ALEX2_' + datetime.datetime.now().strftime("%Y.%m.%d_%H:%M:%S")
-    log_dir = '/home/tae/data/pervinco/model/logs/' + start_time
+    log_dir = '/home/tae/ssd_300/model/logs/' + start_time
 
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
-    early_stopping_callback = keras.callbacks.EarlyStopping(monitor='val_loss', patience=150, verbose=1)
+    early_stopping_callback = keras.callbacks.EarlyStopping(monitor='val_loss', patience=10, verbose=1)
 
     model.fit_generator(
         train_image_generator.flow(x_train, y_train, batch_size=BATCH_SIZE),
         validation_data=valid_image_generator.flow(x_test, y_test, batch_size=BATCH_SIZE),
         epochs=epochs,
-        callbacks=[tensorboard_callback, early_stopping_callback]
+        #callbacks=[tensorboard_callback, early_stopping_callback]
+        callbacks=[early_stopping_callback]
     )
 
-    model.save(log_dir + '/' + start_time + '.h5')
+    #model.save(log_dir + '/' + start_time + '.h5')
 

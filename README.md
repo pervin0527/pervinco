@@ -1,5 +1,9 @@
+## [CS230 2018 Fall Season Lecture](http://cs230.stanford.edu/lecture/)
+Stanford Univ Machine Learning Lecture.
 ## [모두의 딥러닝 시즌2](https://deeplearningzerotoall.github.io/season2/)
-Machine Learning, Deep Learning Lecture
+Machine Learning, Deep Learning Lecture.
+
+## [딥러닝 최신 트랜드 확인하기!!](http://www.guide2research.com/topconf/)
 
 ## [Tensorflow](https://tensorflow.org)
 1. [install_guide](INSTALL.md)
