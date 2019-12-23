@@ -140,7 +140,7 @@ if __name__ == '__main__':
     log_dir = '/home/tae/ssd_300/model/logs/' + start_time
 
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
-    early_stopping_callback = keras.callbacks.EarlyStopping(monitor='val_loss', patience=10, verbose=1)
+    early_stopping_callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10, verbose=1)
 
     model.fit_generator(
         train_image_generator.flow(x_train, y_train, batch_size=BATCH_SIZE),

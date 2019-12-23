@@ -25,6 +25,9 @@ Machine Learning, Deep Learning Lecture.
 ## OVERFITTING,UNDERFITTING
 [과대적합과 과소적합에 대해](https://www.tensorflow.org/tutorials/keras/overfit_and_underfit?hl=ko#%EC%9E%91%EC%9D%80_%EB%AA%A8%EB%8D%B8_%EB%A7%8C%EB%93%A4%EA%B8%B0)
 
+## TensorSpace Playground
+[TensorSpace](https://tensorspace.org/html/playground/alexnet.html)
+
 ##  [git hub](https://github.com/pervin0527/pervinco) + [pycharm](https://www.jetbrains.com/pycharm/)
 1. undo commit in pycharm
 pycharm 왼쪽 하단에 있는 version control의 log 탭에서 잘못 commit한 로그에서 마우스 우클릭.
