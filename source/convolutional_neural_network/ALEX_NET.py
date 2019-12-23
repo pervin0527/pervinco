@@ -10,6 +10,12 @@
             train_loss: 0.0475 - train_accuracy: 0.9828
             val_loss: 0.3382 - val_accuracy: 0.9040
             ---------------------------------------------------------------------------------------
+            -------------------------------update 19.12.23-----------------------------------------
+            training model : ALEX_NET
+            training data : 25000
+            train_loss : 0.03785 train accuracy : 0.9852
+            val_loss : 4.6249e-3 val accuracy : 0.9978
+            ---------------------------------------------------------------------------------------
 '''
 
 from __future__ import absolute_import, division, print_function, unicode_literals

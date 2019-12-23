@@ -12,8 +12,8 @@ from tensorflow import keras
 tf.executing_eagerly()
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 BATCH_SIZE = 128
-IMG_HEIGHT = 224
-IMG_WIDTH = 224
+IMG_HEIGHT = 227
+IMG_WIDTH = 227
 epochs = 1200
 
 valid_dir = pathlib.Path('/home/barcelona/pervinco/datasets/cats_and_dogs_filtered/validation')
@@ -21,7 +21,8 @@ total_val_data = len(list(valid_dir.glob('*/*.jpg')))
 print(total_val_data)
 CLASS_NAMES = np.array([item.name for item in valid_dir.glob('*') if item.name != "LICENSE.txt"])
 
-model = tf.keras.models.load_model('/home/barcelona/pervinco/model/good/ALEX1_20191205-163759/20191205-163759.h5')
+model = tf.keras.models.load_model('/home/barcelona/pervinco/model/good/'
+                                   'max99_2class_2019.12.20_16:03:04/ALEX1_2class_2019.12.20_16:03:04.h5')
 # optimizer = tf.keras.optimizers.SGD(learning_rate=0.01, decay=5e-5, momentum=0.9)
 # model.compile(
 #     # optimizer='adam',
