@@ -7,6 +7,7 @@ IMG_HEIGHT = 227
 IMG_WIDTH = 227
 CHANNEL = 3
 
+
 def load_image(test_path, target_size):
     img = tf.keras.preprocessing.image.load_img(test_path, target_size=target_size)
     img_tensor=tf.keras.preprocessing.image.img_to_array(img)
