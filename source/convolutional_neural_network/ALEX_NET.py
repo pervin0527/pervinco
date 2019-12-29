@@ -44,35 +44,40 @@ CLASS_NAMES = np.array([item.name for item in train_dir.glob('*') if item.name !
 start_time = 'ALEX1_2class_'+ datetime.datetime.now().strftime("%Y.%m.%d_%H:%M:%S")
 log_dir = '/home/barcelona/pervinco/model/' + start_time
 
-def ALEX_NET():
-    inputs = keras.Input(shape=(IMG_HEIGHT, IMG_WIDTH, 3))
 
-    conv1 = keras.layers.Conv2D(filters=96, kernel_size=(11, 11), strides=4, padding='same',
-                                input_shape=(IMG_HEIGHT, IMG_WIDTH, 3),
-                                activation='relu')(inputs)
+def model():
+    inputs = tf.keras.Input(shape=(IMG_HEIGHT, IMG_WIDTH, 3))
 
-    conv2 = keras.layers.Conv2D(filters=256, kernel_size=(5, 5), padding='same', activation='relu')(conv1)
-    norm1 = tf.nn.local_response_normalization(conv2)
-    pool1 = keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2)(norm1)
+    conv1 = tf.keras.layers.Conv2D(filters=96, kernel_size=(11, 11), strides=4, padding='valid',
+                                   activation='relu',
+                                   input_shape=(IMG_HEIGHT, IMG_WIDTH, 3))(inputs)
+    norm1 = tf.nn.local_response_normalization(conv1)
+    pool1 = tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2)(norm1)
 
-    conv3 = keras.layers.Conv2D(filters=384, kernel_size=(3, 3), padding='same', activation='relu')(pool1)
-    norm2 = tf.nn.local_response_normalization(conv3)
-    pool2 = keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2)(norm2)
+    conv2 = tf.keras.layers.Conv2D(filters=256, kernel_size=(5, 5),
+                                   padding='same', activation='relu')(pool1)
+    norm2 = tf.nn.local_response_normalization(conv2)
+    pool2 = tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2)(norm2)
 
-    conv4 = keras.layers.Conv2D(filters=384, kernel_size=(3, 3), padding='same', activation='relu')(pool2)
-    conv5 = keras.layers.Conv2D(filters=256, kernel_size=(3, 3), padding='same', activation='relu')(conv4)
-    pool3 = keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2)(conv5)
+    conv3 = tf.keras.layers.Conv2D(filters=384, kernel_size=(3, 3),
+                                   padding='same', activation='relu')(pool2)
+    conv4 = tf.keras.layers.Conv2D(filters=384, kernel_size=(3, 3),
+                                   padding='same', activation='relu')(conv3)
+    conv5 = tf.keras.layers.Conv2D(filters=256, kernel_size=(3, 3),
+                                   padding='same', activation='relu')(conv4)
 
-    flat = keras.layers.Flatten()(pool3)
-    dense1 = keras.layers.Dense(4096, activation='relu')(flat)
-    drop1 = keras.layers.Dropout(0.5)(dense1)
-    dense2 = keras.layers.Dense(4096, activation='relu')(drop1)
-    drop2 = keras.layers.Dropout(0.5)(dense2)
-    dense3 = keras.layers.Dense(2, activation='softmax')(drop2)
-    return keras.Model(inputs=inputs, outputs=dense3)
+    pool5 = tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2)(conv5)
+
+    flat = tf.keras.layers.Flatten()(pool5)
+    dense1 = tf.keras.layers.Dense(4096, activation='relu')(flat)
+    drop1 = tf.keras.layers.Dropout(0.5)(dense1)
+    dense2 = tf.keras.layers.Dense(4096, activation='relu')(drop1)
+    drop2 = tf.keras.layers.Dropout(0.5)(dense2)
+    outputs = tf.keras.layers.Dense(2, activation='softmax')(drop2)
+    return tf.keras.Model(inputs=inputs, outputs=outputs)
 
 
-model = ALEX_NET()
+model = model()
 model.summary()
 
 

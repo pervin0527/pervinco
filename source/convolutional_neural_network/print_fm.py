@@ -10,7 +10,7 @@ import argparse
 import sys, os
 import matplotlib
 from PIL import Image
-np.seterr(divide='ignore', invalid='ignore')
+# np.seterr(divide='ignore', invalid='ignore')
 np.set_printoptions(threshold=sys.maxsize)
 
 
@@ -142,7 +142,7 @@ if __name__ == '__main__':
     model = model()
     model.summary()
 
-    optimizer = tf.keras.optimizers.Adam(learning_rate=0.01)
+    optimizer = tf.keras.optimizers.SGD(learning_rate=0.01, decay=5e-5, momentum=0.9)
     model.compile(
         optimizer=optimizer,
         loss='categorical_crossentropy',
