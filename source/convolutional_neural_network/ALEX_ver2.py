@@ -52,27 +52,30 @@ def data_to_np(train_dir, valid_dir):
     return (train_images, train_labels), (valid_images, valid_labels)
 
 
-def ALEX_NET():
+def model():
     inputs = tf.keras.Input(shape=(IMG_HEIGHT, IMG_WIDTH, 3))
 
-    conv1 = tf.keras.layers.Conv2D(filters=96, kernel_size=(11, 11), strides=4, padding='same',
+    conv1 = tf.keras.layers.Conv2D(filters=96, kernel_size=(11, 11), strides=4, padding='valid',
+                                   activation='relu',
                                    input_shape=(IMG_HEIGHT, IMG_WIDTH, 3))(inputs)
-
-    conv2 = tf.keras.layers.Conv2D(filters=256, kernel_size=(5, 5), padding='same', use_bias=False,
-                                   activation='relu')(conv1)
-    norm1 = tf.keras.layers.BatchNormalization()(conv2)
+    norm1 = tf.nn.local_response_normalization(conv1)
     pool1 = tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2)(norm1)
 
-    conv3 = tf.keras.layers.Conv2D(filters=384, kernel_size=(3, 3), padding='same', use_bias=False,
-                                   activation='relu')(pool1)
-    norm2 = tf.keras.layers.BatchNormalization()(conv3)
+    conv2 = tf.keras.layers.Conv2D(filters=256, kernel_size=(5, 5),
+                                   padding='same', activation='relu')(pool1)
+    norm2 = tf.nn.local_response_normalization(conv2)
     pool2 = tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2)(norm2)
 
-    conv4 = tf.keras.layers.Conv2D(filters=384, kernel_size=(3, 3), padding='same', activation='relu')(pool2)
-    conv5 = tf.keras.layers.Conv2D(filters=256, kernel_size=(3, 3), padding='same', activation='relu')(conv4)
-    pool3 = tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2)(conv5)
+    conv3 = tf.keras.layers.Conv2D(filters=384, kernel_size=(3, 3),
+                                   padding='same', activation='relu')(pool2)
+    conv4 = tf.keras.layers.Conv2D(filters=384, kernel_size=(3, 3),
+                                   padding='same', activation='relu')(conv3)
+    conv5 = tf.keras.layers.Conv2D(filters=256, kernel_size=(3, 3),
+                                   padding='same', activation='relu')(conv4)
 
-    flat = tf.keras.layers.Flatten()(pool3)
+    pool5 = tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2)(conv5)
+
+    flat = tf.keras.layers.Flatten()(pool5)
     dense1 = tf.keras.layers.Dense(4096, activation='relu')(flat)
     drop1 = tf.keras.layers.Dropout(0.5)(dense1)
     dense2 = tf.keras.layers.Dense(4096, activation='relu')(drop1)
@@ -82,11 +85,11 @@ def ALEX_NET():
 
 
 if __name__ == '__main__':
-    train_dir = pathlib.Path('/home/tae/ssd_300/datasets/cats_and_dogs_filtered/train')
+    train_dir = pathlib.Path('/home/barcelona/pervinco/datasets/cats_and_dogs_small_set/train')
     total_train_data = len(list(train_dir.glob('*/*.jpg')))
     print('total train data : ', total_train_data)
 
-    valid_dir = pathlib.Path('/home/tae/ssd_300/datasets/cats_and_dogs_filtered/validation')
+    valid_dir = pathlib.Path('/home/barcelona/pervinco/datasets/cats_and_dogs_small_set/validation')
     total_valid_data = len(list(valid_dir.glob('*/*.jpg')))
     print('total validation data : ', total_valid_data)
 
@@ -127,7 +130,7 @@ if __name__ == '__main__':
         rescale=1. / 255
     )
 
-    model = ALEX_NET()
+    model = model()
     model.summary()
     optimizer = tf.keras.optimizers.SGD(learning_rate=0.01, decay=5e-5, momentum=0.9)
     model.compile(
@@ -137,7 +140,7 @@ if __name__ == '__main__':
     )
 
     start_time = 'ALEX2_' + datetime.datetime.now().strftime("%Y.%m.%d_%H:%M:%S")
-    log_dir = '/home/tae/ssd_300/model/logs/' + start_time
+    log_dir = '/home/barcelona/pervinco/model/logs/' + start_time
 
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
     early_stopping_callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10, verbose=1)
