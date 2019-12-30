@@ -154,4 +154,3 @@ if __name__ == '__main__':
     )
 
     #model.save(log_dir + '/' + start_time + '.h5')
-
