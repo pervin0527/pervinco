@@ -73,15 +73,12 @@ model.compile(
     metrics=['accuracy']
 )
 
-train_image_generator = tf.keras.preprocessing.image.ImageDataGenerator(
-                                                                        rescale=1./255,
-                                                                        rotation_range=45,
-                                                                        width_shift_range=.15,
-                                                                        height_shift_range=.15,
+train_image_generator = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255,
+                                                                        rotation_range=10,
+                                                                        width_shift_range=0.2,
+                                                                        height_shift_range=0.2,
                                                                         horizontal_flip=True,
-                                                                        zoom_range=0.5
-                                                                        # shear_range=0.2
-)
+                                                                        zoom_range=0.2)
 
 valid_image_generator = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255)
 

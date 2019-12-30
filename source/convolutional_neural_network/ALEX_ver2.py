@@ -28,8 +28,6 @@ def make_np(data_list, class_label):
     np_images = np.array(images)
     np_labels = np.array(labels)
     np_labels = np_labels.reshape(len(labels), 1)
-    # print('image np : ', np_images.shape)
-    # print('label np : ', np_labels.shape)
 
     return np_images, np_labels
 
@@ -94,7 +92,6 @@ if __name__ == '__main__':
     print('total validation data : ', total_valid_data)
 
     (x_train, y_train), (x_test, y_test) = data_to_np(train_dir, valid_dir)
-    # (x_train, y_train), (x_test, y_test) = cifar10.load_data()
 
     print('train images, labels', x_train.shape, y_train.shape)
     print('validation images, labels', x_test.shape, y_test.shape)
@@ -115,20 +112,15 @@ if __name__ == '__main__':
     SHUFFLE_BUFFER_SIZE = 1000
 
     train_dataset = train_dataset.shuffle(SHUFFLE_BUFFER_SIZE).batch(BATCH_SIZE)
-    train_image_generator = tf.keras.preprocessing.image.ImageDataGenerator(
-        rescale=1. / 255,
-        rotation_range=45,
-        width_shift_range=0.2,
-        height_shift_range=0.2,
-        horizontal_flip=True,
-        zoom_range=0.5
-        # shear_range=0.2
-    )
+    train_image_generator = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1. / 255,
+                                                                            width_shift_range=0.2,
+                                                                            height_shift_range=0.2,
+                                                                            horizontal_flip=True,
+                                                                            zoom_range=0.1,
+                                                                            shear_range=0.2)
 
     valid_dataset = valid_dataset.batch(BATCH_SIZE)
-    valid_image_generator = tf.keras.preprocessing.image.ImageDataGenerator(
-        rescale=1. / 255
-    )
+    valid_image_generator = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1. / 255)
 
     model = model()
     model.summary()
@@ -149,8 +141,8 @@ if __name__ == '__main__':
         train_image_generator.flow(x_train, y_train, batch_size=BATCH_SIZE),
         validation_data=valid_image_generator.flow(x_test, y_test, batch_size=BATCH_SIZE),
         epochs=epochs,
-        #callbacks=[tensorboard_callback, early_stopping_callback]
+        # callbacks=[tensorboard_callback, early_stopping_callback]
         callbacks=[early_stopping_callback]
     )
 
-    #model.save(log_dir + '/' + start_time + '.h5')
+    # model.save(log_dir + '/' + start_time + '.h5')
