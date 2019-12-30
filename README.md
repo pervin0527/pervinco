@@ -1,15 +1,3 @@
-## ML, DL LECTURES
-- [CS230 2018 Fall Season Lecture](http://cs230.stanford.edu/lecture/)
-Stanford Univ Machine Learning Lecture.
-
-- [cs231 2019 spring Season Lecture](http://cs231n.github.io/)
-
-- [모두의 딥러닝 시즌2](https://deeplearningzerotoall.github.io/season2/)
-Machine Learning, Deep Learning Lecture.
-
-
-## [딥러닝 최신 트랜드 확인하기!!](http://www.guide2research.com/topconf/)
-
 ## [Tensorflow](https://tensorflow.org)
 1. [install_guide](INSTALL.md)
 2. [Data input format + Batch](https://www.tensorflow.org/guide/data#top_of_page)
@@ -27,16 +15,17 @@ Machine Learning, Deep Learning Lecture.
 1. [Cats and Dogs Dataset](https://storage.googleapis.com/mledu-datasets/cats_and_dogs_filtered.zip)
 2. [Flowers Dataset](https://storage.googleapis.com/download.tensorflow.org/example_images/flower_photos.tgz)
 
-## OVERFITTING,UNDERFITTING
-[과대적합과 과소적합에 대해](https://www.tensorflow.org/tutorials/keras/overfit_and_underfit?hl=ko#%EC%9E%91%EC%9D%80_%EB%AA%A8%EB%8D%B8_%EB%A7%8C%EB%93%A4%EA%B8%B0)
-
 ## Visualization
 1. [TensorSpace](https://tensorspace.org/html/playground/alexnet.html)
 2. [CODE](https://pythonkim.tistory.com/164?category=698204)
 
-##  [git hub](https://github.com/pervin0527/pervinco) + [pycharm](https://www.jetbrains.com/pycharm/)
-1. undo commit in pycharm
-pycharm 왼쪽 하단에 있는 version control의 log 탭에서 잘못 commit한 로그에서 마우스 우클릭.
-undo commit을 하면 삭제된다.
+## Machine Learning, Deep Learning Lecture.
+- [CS230 2018 Fall Season Lecture](http://cs230.stanford.edu/lecture/)
 
-      참조 - https://www.php79.com/541
+- [cs231 2019 spring Season Lecture](http://cs231n.github.io/)
+
+- [모두의 딥러닝 시즌2](https://deeplearningzerotoall.github.io/season2/)
+  * source code - https://github.com/deeplearningzerotoall/TensorFlow 
+
+
+## [DL Trend](http://www.guide2research.com/topconf/)
