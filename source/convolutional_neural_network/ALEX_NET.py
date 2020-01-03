@@ -33,30 +33,30 @@ def model():
 
     conv1 = tf.keras.layers.Conv2D(filters=96, kernel_size=(11, 11), strides=4, padding='valid',
                                    activation='relu',
-                                   input_shape=(IMG_HEIGHT, IMG_WIDTH, 3))(inputs)
+                                   input_shape=(IMG_HEIGHT, IMG_WIDTH, 3), name='conv1')(inputs)
     norm1 = tf.nn.local_response_normalization(conv1)
-    pool1 = tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2)(norm1)
+    pool1 = tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2, name='pool1')(norm1)
 
     conv2 = tf.keras.layers.Conv2D(filters=256, kernel_size=(5, 5),
-                                   padding='same', activation='relu')(pool1)
+                                   padding='same', activation='relu', name='conv2')(pool1)
     norm2 = tf.nn.local_response_normalization(conv2)
-    pool2 = tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2)(norm2)
+    pool2 = tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2, name='pool2')(norm2)
 
     conv3 = tf.keras.layers.Conv2D(filters=384, kernel_size=(3, 3),
-                                   padding='same', activation='relu')(pool2)
+                                   padding='same', activation='relu', name='conv3')(pool2)
     conv4 = tf.keras.layers.Conv2D(filters=384, kernel_size=(3, 3),
-                                   padding='same', activation='relu')(conv3)
+                                   padding='same', activation='relu', name='conv4')(conv3)
     conv5 = tf.keras.layers.Conv2D(filters=256, kernel_size=(3, 3),
-                                   padding='same', activation='relu')(conv4)
+                                   padding='same', activation='relu', name='conv5')(conv4)
 
-    pool5 = tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2)(conv5)
+    pool5 = tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2, name='pool5')(conv5)
 
     flat = tf.keras.layers.Flatten()(pool5)
-    dense1 = tf.keras.layers.Dense(4096, activation='relu')(flat)
+    dense1 = tf.keras.layers.Dense(4096, activation='relu', name='dense1')(flat)
     drop1 = tf.keras.layers.Dropout(0.5)(dense1)
-    dense2 = tf.keras.layers.Dense(4096, activation='relu')(drop1)
+    dense2 = tf.keras.layers.Dense(4096, activation='relu', name='dense2')(drop1)
     drop2 = tf.keras.layers.Dropout(0.5)(dense2)
-    outputs = tf.keras.layers.Dense(2, activation='softmax')(drop2)
+    outputs = tf.keras.layers.Dense(2, activation='softmax', name='dense3')(drop2)
     return tf.keras.Model(inputs=inputs, outputs=outputs)
 
 
@@ -99,7 +99,7 @@ valid_generator = valid_image_generator.flow_from_directory(
 )
 
 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
-early_stopping_callback = keras.callbacks.EarlyStopping(monitor='val_loss', patience=30, verbose=1)
+early_stopping_callback = keras.callbacks.EarlyStopping(monitor='val_loss', patience=10, verbose=1)
 history = model.fit_generator(
     train_generator,
     steps_per_epoch=total_train_data//BATCH_SIZE,
