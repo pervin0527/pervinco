@@ -36,3 +36,13 @@ train을 할때는 mini-batch마다 gamma와 beta를 구하고 그 값을 저장
 test때는 학습시 mini-batch마다 구했던 gamma와 beta의 평균을 사용한다.
 
 ![gamma&beta](doc_imgs/BN.png)
+
+마지막으로 CNN에 Batch Normalization을 적용하는 방식은 조금 다르다.
+conv2d layer에서 activation function에 입력되기 전에 WX+b로 weight가 적용되었을 때,
+b의 역할을 Beta가 완벽히 대신 할 수 있기 때문에 b를 삭제한다.
+또한, CNN의 경우 convolution의 성질을 유지시키고 싶기 때문에, 각 channel을 기준으로 각각의 γ, β 를 만든다. 
+예를 들어 mini-batch size 가 m, channel size 가 n 인 Convolution Layer에서 Batch Normalization을 적용하면, 
+convolution을 적용한 후의 feature map의 사이즈가 p x q 일 경우, 
+각 channel 에 대해 m x p x q 개의 스칼라 값(즉, n x m x p x q 개의 스칼라 값)에 대해 평균과 분산을 구한다.) 
+최종적으로 γ, β 는 각 channel 에 대해 한개 씩, 총 n개의 독립적인 Batch Normalization 변수쌍이 생기게 된다.
+
