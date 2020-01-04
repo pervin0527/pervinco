@@ -4,7 +4,7 @@ Deep Learning Study
 ### Check out trends in deep learning 
  - <http://www.guide2research.com/topconf/>
 
-###Data Normalize
+### Data Normalize
 내가 주로 이용하는 image data는 pixel map을 구성하는 각각의 pixel은 0 ~ 255 사이 값을 가진다. 
 이를 255로 나누어 주면 0 ~ 1사이 값들로 구성되게 된다.
 
