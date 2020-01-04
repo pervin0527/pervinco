@@ -21,6 +21,18 @@ Deep Learning Study
 위 이미지에서 보이는 것처럼 Unnormalized data는 학습하는 과정이 매우 복잡하고 길다.
 단순하게 생각해도 값이 0 ~ 255 사이 값이니까.
 
-Normalize를 적용해주면 0 ~ 1사이 값이니 학습이 간결해지고, 추가적으로 **local optimum** 에빠지게 될 가능성도 줄이는 효과가 있다.
+Normalize를 적용해주면 0 ~ 1사이 값이니 학습이 간결해지고, 추가적으로 **local optimum**에 빠지게 될 가능성도 줄이는 효과가 있다.
 
 ![local_minimum](doc_imgs/local_minimum.png "local_minum")
+
+### Batch Normalization
+mini-batch(X1 ~ Xm) 단위로 normalization을 실행하는데, 이에 대한 평균과 분산을 구하여 **normalize**하고,
+gamma와 beta 값을 통해 **scale and shift**한다.
+
+![gamma&beta](doc_imgs/BN2.png)
+
+추가로 Batch Normalization은 train, test 각각 동작 방식이 조금 다르다.
+train을 할때는 mini-batch마다 gamma와 beta를 구하고 그 값을 저장해 둔다.
+test때는 학습시 mini-batch마다 구했던 gamma와 beta의 평균을 사용한다.
+
+![gamma&beta](doc_imgs/BN.png)
