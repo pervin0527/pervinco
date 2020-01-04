@@ -17,11 +17,4 @@
 - [Training Resume](https://www.tensorflow.org/guide/checkpoint#restore_and_continue_training)
 - [Decreased learning rate during training](https://www.tensorflow.org/api_docs/python/tf/keras/callbacks/ReduceLROnPlateau)
 
-### ML, DL LECTURES
-- [CS230 2018 Fall Season Lecture](http://cs230.stanford.edu/lecture/)
-
-- [cs231 2019 spring Season Lecture](http://cs231n.github.io/)
-
-- [모두의 딥러닝 시즌2](https://deeplearningzerotoall.github.io/season2/)
-
 ### [DL Study](DL_study.md)

@@ -26,7 +26,6 @@ IMG_HEIGHT = 150
 IMG_WIDTH = 150
 STEPS_PER_EPOCH = np.ceil(train_data_num / BATCH_SIZE)
 
-
 def get_label(file_path):
     # convert the path to a list of path components
     parts = tf.strings.split([file_path], '/')

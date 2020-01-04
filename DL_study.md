@@ -1,10 +1,17 @@
 Deep Learning Study
 ===================
 
-### Check out trends in deep learning 
+## Check out trends in deep learning 
  - <http://www.guide2research.com/topconf/>
+ 
+## ML, DL LECTURES
+- [CS230 2018 Fall Season Lecture](http://cs230.stanford.edu/lecture/)
 
-### Mathematics
+- [cs231 2019 spring Season Lecture](http://cs231n.github.io/)
+
+- [모두의 딥러닝 시즌2](https://deeplearningzerotoall.github.io/season2/)
+
+## Mathematics
 딥러닝을 하면서 필요한 수학적인 개념들을 정리해 보았다.
 
 첫번째로 평균(mean), 분산(variance), 편차(deviation), 표준편차(standard deviation) 이다.
