@@ -17,4 +17,14 @@
 - [Training Resume](https://www.tensorflow.org/guide/checkpoint#restore_and_continue_training)
 - [Decreased learning rate during training](https://www.tensorflow.org/api_docs/python/tf/keras/callbacks/ReduceLROnPlateau)
 
+### tensorflow code reference
+https://www.datacamp.com/community/tutorials/cnn-tensorflow-python
+
+https://towardsdatascience.com/tensorflow-2-0-create-and-train-a-vanilla-cnn-on-google-colab-c7a0ac86d61b
+
+https://cv-tricks.com/tensorflow-tutorial/training-convolutional-neural-network-for-image-classification/
+
 ### [DL Study](DL_study.md)
+
+### Reference
+[Tensor2tensor](https://github.com/tensorflow/tensor2tensor)
