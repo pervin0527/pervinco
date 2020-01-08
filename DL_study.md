@@ -53,3 +53,6 @@ conv2d layer에서 activation function에 입력되기 전에 WX+b로 weight가 
 <br>각 channel 에 대해 m x p x q 개의 스칼라 값(즉, n x m x p x q 개의 스칼라 값)에 대해 평균과 분산을 구한다.) 
 <br>최종적으로 γ, β 는 각 channel 에 대해 한개 씩, 총 n개의 독립적인 Batch Normalization 변수쌍이 생기게 된다.
 
+## BN의 문제점
+https://subinium.github.io/introduction-to-normalization/
+
