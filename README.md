@@ -24,6 +24,10 @@ https://towardsdatascience.com/tensorflow-2-0-create-and-train-a-vanilla-cnn-on-
 
 https://cv-tricks.com/tensorflow-tutorial/training-convolutional-neural-network-for-image-classification/
 
+https://jsideas.net/grad_cam/
+ 1. https://github.com/junkwhinger/grad_cam/blob/master/resnet_cam.ipynb
+ 2. https://github.com/junkwhinger/grad_cam/blob/master/pred_grad-cam-resnet50.ipynb
+
 ### [DL Study](DL_study.md)
 
 ### Reference
