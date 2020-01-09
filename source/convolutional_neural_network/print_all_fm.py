@@ -10,14 +10,14 @@ CHANNEL = 3
 
 def load_image(test_path, target_size):
     img = tf.keras.preprocessing.image.load_img(test_path, target_size=target_size)
-    img_tensor=tf.keras.preprocessing.image.img_to_array(img)
+    img_tensor = tf.keras.preprocessing.image.img_to_array(img)
 
     return img_tensor[np.newaxis]/255
 
 
 def show_first_feature_map(loaded_model, img_path):
     first_output = loaded_model.layers[1].output
-    # print(first_output.shape, first_output.dtype)
+    print('first_output', first_output.shape, first_output.dtype)
 
     model = tf.keras.models.Model(inputs=loaded_model.input, outputs=first_output)
     target_size = (loaded_model.input.shape[1], loaded_model.input.shape[2])
