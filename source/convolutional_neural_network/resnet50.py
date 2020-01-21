@@ -9,7 +9,7 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 img_width, img_height, img_channel = 224, 224, 3
 batch_size = 32
 epochs = 100
-num_classes = 28
+num_classes = 6
 early_stop_patience = 5
 
 # base_model = resnet50.ResNet50(include_top=False, input_shape=(img_width, img_height, img_channel), weights=None)
@@ -33,25 +33,26 @@ tl_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['ac
 # tl_model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
 # es = EarlyStopping(patience=10, monitor='val_acc')
-tb = TensorBoard(log_dir='/home/barcelona/pervinco/im_test/aug_model/tensorboard/')
-filepath="/home/barcelona/pervinco/im_test/aug_model/weights/weights-improvement-{epoch:02d}-{val_accuracy:.2f}.hdf5"
+tb = TensorBoard(log_dir='/home/barcelona/pervinco/model/face_classification/tensorboard/')
+filepath="/home/barcelona/pervinco/model/face_classification/weights/weights-improvement-{epoch:02d}-{val_accuracy:.2f}.hdf5"
 cp = ModelCheckpoint(filepath, monitor='val_accuracy', verbose=1, save_best_only=True, mode='max')
 er = EarlyStopping(monitor='val_loss', patience=early_stop_patience)
 rl = ReduceLROnPlateau(monitor='val_accuracy', factor=0.01, patience=3, mode='max', cool_down=1)
 
-train_data_dir = '/home/barcelona/pervinco/im_test/datasets/train_aug'
+train_data_dir = '/home/barcelona/pervinco/datasets/face_gender_glass/train'
 # train_data_dir = '/home/barcelona/pervinco/datasets/face_gender_glass/train'
-validation_data_dir = '/home/barcelona/pervinco/im_test/datasets/train_aug'
+validation_data_dir = '/home/barcelona/pervinco/datasets/face_gender_glass/validation'
 # validation_data_dir = '/home/barcelona/pervinco/datasets/face_gender_glass/validation'
 # test_data_dir = '/home/barcelona/pervinco/im_test/datasets/test'
 
 # datagen = tf.keras.preprocessing.image.ImageDataGenerator(preprocessing_function=preprocess_input)
 datagen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255,
-                                                          rotation_range=90,
-                                                          horizontal_flip=True,
-                                                          vertical_flip=True,
-                                                          width_shift_range=0.2,
-                                                          height_shift_range=0.2)
+                                                          # rotation_range=90,
+                                                          horizontal_flip=True
+                                                          # vertical_flip=True,
+                                                          # width_shift_range=0.2,
+                                                          # height_shift_range=0.2
+                                                          )
 
 train_generator = datagen.flow_from_directory(
     train_data_dir,

@@ -33,7 +33,7 @@ model = load_model(JSON_PATH, H5_PATH)
 testset = glob.glob('/home/barcelona/pervinco/im_test/datasets/cam/*.jpg')
 
 samples = []
-class_indices = ['2000000228464', '2000000228471', '2000000292618', '2000000303017', '2000000303048', '2000000398792', '8809261539333']
+class_indices = ['2000000228464', '2000000228471', '2000000292618', '2000000303017', '2000000303048', '2000000398792', '8809261539333', '8809261539494']
 # class_indices = ['8809261539333']
 
 for idx, ci in enumerate(class_indices):
@@ -112,7 +112,7 @@ def generate_bbox(img, cam, threshold):
     return props
 
 
-fig, axes = plt.subplots(4, 7, figsize=(20, 20))
+fig, axes = plt.subplots(4, 8, figsize=(20, 20))
 
 for i, s in enumerate(samples):
     img_set = s['target']
