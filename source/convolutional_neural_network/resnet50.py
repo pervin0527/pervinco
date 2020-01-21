@@ -1,4 +1,5 @@
 import tensorflow as tf
+import datetime
 from tensorflow.keras.applications.resnet50 import preprocess_input
 from tensorflow.keras.applications import resnet50
 from tensorflow.keras.layers import Dense, GlobalAveragePooling2D, Conv2D, ZeroPadding2D
@@ -7,13 +8,15 @@ from tensorflow.keras.callbacks import EarlyStopping, TensorBoard, ModelCheckpoi
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 img_width, img_height, img_channel = 224, 224, 3
-batch_size = 32
+batch_size = 64
 epochs = 100
-num_classes = 6
+num_classes = 11
 early_stop_patience = 5
+log_dir = '/home/barcelona/pervinco/model/face_classification'
+time = 'None_weight_' + datetime.datetime.now().strftime("%Y.%m.%d_%H:%M")
 
-# base_model = resnet50.ResNet50(include_top=False, input_shape=(img_width, img_height, img_channel), weights=None)
-base_model = resnet50.ResNet50(include_top=False, input_shape=(img_width, img_height, img_channel), weights='imagenet')
+base_model = resnet50.ResNet50(include_top=False, input_shape=(img_width, img_height, img_channel), weights=None)
+# base_model = resnet50.ResNet50(include_top=False, input_shape=(img_width, img_height, img_channel), weights='imagenet')
 base_model.outputs = [base_model.layers[-1].output]
 
 last = base_model.outputs[0]
@@ -33,11 +36,11 @@ tl_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['ac
 # tl_model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
 # es = EarlyStopping(patience=10, monitor='val_acc')
-tb = TensorBoard(log_dir='/home/barcelona/pervinco/model/face_classification/tensorboard/')
-filepath="/home/barcelona/pervinco/model/face_classification/weights/weights-improvement-{epoch:02d}-{val_accuracy:.2f}.hdf5"
+tb = TensorBoard(log_dir + '/' + str(time) + '/')
+filepath = log_dir + '/' + str(time) + '/weights-improvement-{epoch:02d}-{val_accuracy:.2f}.hdf5'
 cp = ModelCheckpoint(filepath, monitor='val_accuracy', verbose=1, save_best_only=True, mode='max')
 er = EarlyStopping(monitor='val_loss', patience=early_stop_patience)
-rl = ReduceLROnPlateau(monitor='val_accuracy', factor=0.01, patience=3, mode='max', cool_down=1)
+# rl = ReduceLROnPlateau(monitor='val_accuracy', factor=0.01, patience=3, mode='max', cool_down=1)
 
 train_data_dir = '/home/barcelona/pervinco/datasets/face_gender_glass/train'
 # train_data_dir = '/home/barcelona/pervinco/datasets/face_gender_glass/train'
@@ -81,4 +84,4 @@ tl_model.fit_generator(generator=train_generator,
                        steps_per_epoch=train_generator.n // batch_size,
                        validation_data=validation_generator,
                        validation_steps=validation_generator.n // batch_size,
-                       callbacks=[tb, cp, rl])
+                       callbacks=[tb, cp])
