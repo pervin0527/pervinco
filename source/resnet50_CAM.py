@@ -1,10 +1,16 @@
 # -*- coding: utf-8 -*-
+'''
+학습된 resnet50에서 나온 weight파일을 이용해 test image를 input 하였을때,
+last conv layer에서 나온 결과와 원본 이미지를 합친 이미지를 보여주도록 하는 코드입니다.
+
+'''
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from PIL import Image as pil_image
 import cv2
 import glob
+import random
 import tensorflow as tf
 from tensorflow.python.keras.models import model_from_json
 from tensorflow.python.keras import backend as K
@@ -13,9 +19,27 @@ import scipy
 from scipy import ndimage
 from skimage.measure import label, regionprops
 
-H5_PATH = "/home/barcelona/pervinco/model/cats_and_dogs/2020.01.22_11:26/CAM.h5"
-JSON_PATH = "/home/barcelona/pervinco/model/cats_and_dogs/2020.01.22_11:26/CAM.json"
-IMG_SIZE = 299
+# tf.compat.v1.disable_eager_execution()
+H5_PATH = "/home/barcelona/pervinco/model/four_shapes/2020.01.28_12:22/CAM.h5"
+JSON_PATH = "/home/barcelona/pervinco/model/four_shapes/2020.01.28_12:22/CAM.json"
+img_path = "/home/barcelona/pervinco/datasets/four_shapes/test/*"
+class_len = len(glob.glob(img_path))
+print(class_len)
+IMG_SIZE = 224
+threshold = 0.8
+
+
+def choice_img(img_path):
+    img_list = []
+    labels = glob.glob(img_path) # output : /dir/label
+    print(len(labels))
+    for label in labels:
+        imgs = glob.glob(label + '/*.png')
+        print('images num :', len(imgs))
+        img = random.choice(imgs)
+        print(img)
+        img_list.append(img)
+    return img_list
 
 
 def load_model(json_path, h5_path):
@@ -29,8 +53,11 @@ def load_model(json_path, h5_path):
 
 
 def preprocess_input(img_path):
-    img = pil_image.open(img_path).resize((IMG_SIZE, IMG_SIZE))
-    img_arr = np.asarray(img)[:, :, :3] / 255.
+    # img = pil_image.open(img_path).resize((IMG_SIZE, IMG_SIZE))
+    img = cv2.imread(img_path)
+    img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
+    # img_arr = np.asarray(img)[:, :, :3] / 255.
+    img_arr = img / 255.
     img_tensor = np.expand_dims(img_arr, 0)
 
     return img_arr, img_tensor
@@ -71,17 +98,24 @@ if __name__ == "__main__":
 
     # 2. image sources
     samples = []
-    class_indices = ['cat', 'dog']
+    # for idx, ci in enumerate(class_indices):
+    #     print(ci, idx)
+    #     tmp_dict = {}
+    #     tmp_dict['target'] = ci
+    #     tmp_dict['img_path'] = img_path + ci + '.png'
+    #     tmp_dict['class_idx'] = idx
+    #     samples.append(tmp_dict)
 
-    for idx, ci in enumerate(class_indices):
-        print(ci, idx)
+    img_list = choice_img(img_path)
+
+    for idx, ci in enumerate(img_list):
         tmp_dict = {}
         tmp_dict['target'] = ci
-        tmp_dict['img_path'] = '/home/barcelona/pervinco/datasets/cats_and_dogs_small_set/test/' + ci + '.jpg'
+        tmp_dict['img_path'] = ci
         tmp_dict['class_idx'] = idx
         samples.append(tmp_dict)
 
-    fig, axes = plt.subplots(4, 2, figsize=(20, 20))
+    fig, axes = plt.subplots(4, int(class_len), figsize=(20, 20))
 
     for i, s in enumerate(samples):
         img_set = s['target']
@@ -91,7 +125,7 @@ if __name__ == "__main__":
         pred_values = np.squeeze(predictions, 0)
         top1 = np.argmax(pred_values)
         top1_value = round(float(pred_values[top1]), 3)
-        props = generate_bbox(img, cam, 0.7)
+        props = generate_bbox(img, cam, threshold)
 
         axes[0, i].imshow(img)
         axes[1, i].imshow(cam)

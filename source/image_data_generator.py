@@ -3,8 +3,8 @@ import numpy as np
 import glob
 import os
 
-path = sorted(glob.glob('/home/barcelona/pervinco/im_test/datasets/original/original_crop_dataset/*'))
-output_path = '/home/barcelona/pervinco/im_test/datasets/augment_test_path/'
+path = sorted(glob.glob('/home/barcelona/pervinco/datasets/four_shapes/train_no_bg/*'))
+output_path = '/home/barcelona/pervinco/datasets/four_shapes/train_no_bg_aug/'
 print('label num : ', len(path))
 
 data_generator = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255,
@@ -14,7 +14,7 @@ data_generator = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255,
                                                                  zoom_range=0.1)
 
 
-path = sorted(glob.glob('/home/barcelona/pervinco/im_test/datasets/original/original_crop_dataset/*/*.jpg'))
+path = sorted(glob.glob('/home/barcelona/pervinco/datasets/four_shapes/train_no_bg/*/*.png'))
 print(len(path))
 
 for image in path:
@@ -22,12 +22,12 @@ for image in path:
     print('processing', folder, image)
     image = tf.keras.preprocessing.image.load_img(image)
     image = tf.keras.preprocessing.image.img_to_array(image)
-    image = tf.image.resize(image, (299, 299))
+    image = tf.image.resize(image, (224, 224))
     image = np.expand_dims(image, 0)
     data_generator.fit(image)
 
     if not (os.path.isdir(output_path + folder)):
         os.makedirs(output_path + folder)
 
-    for x, val in zip(data_generator.flow(image, save_to_dir=output_path + folder, save_prefix=folder, save_format='jpg'), range(3)):
+    for x, val in zip(data_generator.flow(image, save_to_dir=output_path + folder, save_prefix=folder, save_format='jpg'), range(30)):
         pass
