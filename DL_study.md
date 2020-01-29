@@ -11,6 +11,8 @@ Deep Learning Study
 
 - [모두의 딥러닝 시즌2](https://deeplearningzerotoall.github.io/season2/)
 
+- [Book](http://d2l.ai/chapter_preface/index.html)
+
 ## Mathematics
 딥러닝을 하면서 필요한 수학적인 개념들을 정리해 보았다.
 
