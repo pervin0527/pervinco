@@ -18,6 +18,7 @@ NUM_CLASSES = 6
 train_dir = '/home/barcelona/pervinco/datasets/face_gender_glass/train'
 valid_dir = '/home/barcelona/pervinco/datasets/face_gender_glass/validation'
 model_name = 'face_gender_glass'
+
 CHANNELS = 3
 IMAGE_RESIZE = 224
 # EARLY_STOP_PATIENCE must be < NUM_EPOCHS
@@ -25,6 +26,7 @@ NUM_EPOCHS = 50
 EARLY_STOP_PATIENCE = 5
 BATCH_SIZE_TRAINING = 32
 BATCH_SIZE_VALIDATION = 32
+saved_path = '/home/barcelona/pervinco/source/weights'
 
 '''
 train model define
@@ -73,4 +75,4 @@ fit_history = model.fit_generator(
     # callbacks=[cb_early_stopper]
 )
 
-model.save('/home/barcelona/pervinco/source/weights/' + model_name + '.h5')
+model.save(saved_path + model_name + '.h5')

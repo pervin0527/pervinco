@@ -15,12 +15,20 @@ from tensorflow.python.keras.layers import Dense
 
 IMAGE_RESIZE = 224
 BATCH_SIZE_TESTING = 1
+saved_path = '/home/barcelona/pervinco/source/weights/'
+model_name = 'face_gender_glass_ver2'
 
-model = tf.keras.models.load_model('/home/barcelona/pervinco/source/cam/Grad-CAM-tensorflow/train/face_gender_glass.h5')
+test_img_dir = '/home/barcelona/pervinco/datasets/face_gender_glass/predict'
+class_label = glob.glob('/home/barcelona/pervinco/datasets/face_gender_glass/train/*')
+
+test_img_len = len(glob.glob(test_img_dir + '/test/*'))
+
+
+model = tf.keras.models.load_model(saved_path + model_name + '.h5')
 data_generator = ImageDataGenerator(preprocessing_function=preprocess_input)
 
 test_generator = data_generator.flow_from_directory(
-    directory='/home/barcelona/pervinco/datasets/face_gender_glass/predict',
+    directory=test_img_dir,
     target_size=(IMAGE_RESIZE, IMAGE_RESIZE),
     batch_size=BATCH_SIZE_TESTING,
     class_mode=None,
@@ -38,8 +46,7 @@ predicted_class_indices = np.argmax(pred, axis=1)
 # print(predicted_class_indices)
 
 
-TEST_DIR = '/home/barcelona/pervinco/datasets/face_gender_glass/predict/'
-class_label = glob.glob('/home/barcelona/pervinco/datasets/face_gender_glass/train/*')
+TEST_DIR = test_img_dir + '/'
 # print(class_label)
 labels = []
 
@@ -65,11 +72,10 @@ print(labels)
 #
 # plt.show()
 
-for i in range(0, 6):
-    print(test_generator.filenames[i])
+for i in range(0, test_img_len):
     img = cv2.imread(TEST_DIR + test_generator.filenames[i])
     predicted_class = labels[predicted_class_indices[i]]
-    print(predicted_class)
+    print(test_generator.filenames[i], 'predict result : ', predicted_class)
 
 
 
