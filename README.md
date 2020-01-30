@@ -18,19 +18,21 @@
 - [Decreased learning rate during training](https://www.tensorflow.org/api_docs/python/tf/keras/callbacks/ReduceLROnPlateau)
 
 ### tensorflow code reference
-https://www.datacamp.com/community/tutorials/cnn-tensorflow-python
+ - https://github.com/tensorflow/docs/blob/master/site/en/r1/tutorials/load_data/images.ipynb
 
-https://towardsdatascience.com/tensorflow-2-0-create-and-train-a-vanilla-cnn-on-google-colab-c7a0ac86d61b
+ - https://www.datacamp.com/community/tutorials/cnn-tensorflow-python
 
-https://cv-tricks.com/tensorflow-tutorial/training-convolutional-neural-network-for-image-classification/
+ - https://towardsdatascience.com/tensorflow-2-0-create-and-train-a-vanilla-cnn-on-google-colab-c7a0ac86d61b
+
+ - https://cv-tricks.com/tensorflow-tutorial/training-convolutional-neural-network-for-image-classification/
 
 ##### class activation mapping
-https://jsideas.net/grad_cam/
- 1. https://github.com/junkwhinger/grad_cam/blob/master/resnet_cam.ipynb
- 2. https://github.com/junkwhinger/grad_cam/blob/master/pred_grad-cam-resnet50.ipynb
+ - https://jsideas.net/grad_cam/
+   1. https://github.com/junkwhinger/grad_cam/blob/master/resnet_cam.ipynb
+   2. https://github.com/junkwhinger/grad_cam/blob/master/pred_grad-cam-resnet50.ipynb
  
 ##### google teachablemachine
-https://github.com/googlecreativelab/teachablemachine-community
+ - https://github.com/googlecreativelab/teachablemachine-community
 
 ### [DL Study](DL_study.md)
 
