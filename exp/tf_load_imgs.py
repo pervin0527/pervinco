@@ -9,32 +9,32 @@ import matplotlib.pyplot as plt
 import os
 import pathlib
 
+tf.enable_eager_execution()
+
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 IMG_HEIGHT, IMG_WIDTH = 192, 192
 BATCH_SIZE = 32
 
-data_dir = '/home/barcelona/pervinco/datasets/four_shapes/train'
+data_dir = '/home/barcelona/pervinco/datasets/cats_and_dogs_small_set/train'
 data_dir = pathlib.Path(data_dir)
 
 
-image_count = len(list(data_dir.glob('*/*.png')))
+image_count = len(list(data_dir.glob('*/*.jpg')))
 print(image_count)
 
-CLASS_NAMES = np.array([item.name for item in data_dir.glob('*') if item.name != "LICENSE.txt"])
+CLASS_NAMES = sorted(np.array([item.name for item in data_dir.glob('*')]))
 print(CLASS_NAMES)
 
 list_ds = tf.data.Dataset.list_files(str(data_dir/'*/*'))
 
-for f in list_ds.take(5):
-    print(f.numpy())
-
 
 def get_label(file_path):
     # convert the path to a list of path components
-    parts = tf.strings.split(file_path, os.path.sep)
+    parts = tf.strings.split([file_path], '/')
+    # parts = tf.strings.split([file_path], '/')
     # The second to last is the class-directory
-    return parts[-2] == CLASS_NAMES
-
+    return parts.values[-2] == CLASS_NAMES
+    # return parts.values[-2]
 
 def decode_img(img):
     # convert the compressed string to a 3D uint8 tensor
@@ -108,5 +108,4 @@ model.compile(optimizer='adam',
 model.summary()
 
 model.fit(train_ds, epochs=10, steps_per_epoch=10)
-
 

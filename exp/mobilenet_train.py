@@ -15,9 +15,9 @@ EPOCHS = 10
 STEPS_PER_EPOCHS = 3
 
 AUTOTUNE = tf.data.experimental.AUTOTUNE
-data_root = pathlib.Path('/home/barcelona/pervinco/datasets/face_gender_glass/train')
+data_root = pathlib.Path('/home/barcelona/pervinco/datasets/cats_and_dogs_small_set/train')
 saved_path = '/home/barcelona/pervinco/exp/weights/'
-model_name = 'test_face'
+model_name = 'test_cat_dog'
 print(data_root)
 
 all_image_paths = list(data_root.glob('*/*'))
@@ -74,7 +74,7 @@ ds = ds.prefetch(buffer_size=AUTOTUNE)
 
 
 mobile_net = tf.keras.applications.MobileNetV2(input_shape=(IMG_HEIGHT, IMG_WIDTH, 3), include_top=False)
-mobile_net.trainable = True
+mobile_net.trainable = False
 
 keras_ds = ds.map(change_range)
 
@@ -82,8 +82,7 @@ keras_ds = ds.map(change_range)
 image_batch, label_batch = next(iter(keras_ds))
 
 feature_map_batch = mobile_net(image_batch)
-# print(feature_map_batch.shape)
-
+# print(feature_map_batch.shape)                                                                   
 
 model = tf.keras.Sequential([
   mobile_net,
