@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import cv2
 import os
+import tensorflow as tf
 from tensorflow.python.keras.applications import ResNet50
 from keras.applications.resnet50 import preprocess_input
 from keras.preprocessing.image import ImageDataGenerator
@@ -23,11 +24,10 @@ valid_dir = '/home/barcelona/pervinco/datasets/' + dataset_name + '/valid'
 CHANNELS = 3
 IMAGE_RESIZE = 224
 # EARLY_STOP_PATIENCE must be < NUM_EPOCHS
-NUM_EPOCHS = 10
+NUM_EPOCHS = 100
 EARLY_STOP_PATIENCE = 5
-BATCH_SIZE_TRAINING = 32
-BATCH_SIZE_VALIDATION = 32
-saved_path = '/home/barcelona/pervinco/source/weights'
+BATCH_SIZE = 32
+saved_path = '/home/barcelona/pervinco/source/weights/'
 
 '''
 train model define
@@ -40,8 +40,9 @@ model.add(Dense(NUM_CLASSES, activation='softmax'))
 model.layers[0].trainable = True
 model.summary()
 
-sgd = optimizers.SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
-model.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=['accuracy'])
+# optimizer = optimizers.SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
+optimizer = optimizers.Adam()
+model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
 '''
 image data generator define
@@ -51,13 +52,13 @@ data_generator = ImageDataGenerator(preprocessing_function=preprocess_input)
 train_generator = data_generator.flow_from_directory(
     train_dir,
     target_size=(IMAGE_RESIZE, IMAGE_RESIZE),
-    batch_size=BATCH_SIZE_TRAINING,
+    batch_size=BATCH_SIZE,
     class_mode='categorical')
 
 validation_generator = data_generator.flow_from_directory(
     valid_dir,
     target_size=(IMAGE_RESIZE, IMAGE_RESIZE),
-    batch_size=BATCH_SIZE_VALIDATION,
+    batch_size=BATCH_SIZE,
     class_mode='categorical')
 
 '''
@@ -69,10 +70,10 @@ cb_checkpointer = ModelCheckpoint(filepath='./train/product.hdf5', monitor='val_
 
 fit_history = model.fit_generator(
     train_generator,
-    steps_per_epoch=train_generator.n / BATCH_SIZE_TRAINING,
+    steps_per_epoch=train_generator.n / BATCH_SIZE,
     epochs=NUM_EPOCHS,
     validation_data=validation_generator,
-    validation_steps=validation_generator.n / BATCH_SIZE_VALIDATION,
+    validation_steps=validation_generator.n / BATCH_SIZE,
     # callbacks=[cb_early_stopper]
 )
 

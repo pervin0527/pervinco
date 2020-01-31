@@ -15,11 +15,13 @@ from tensorflow.python.keras.layers import Dense
 
 IMAGE_RESIZE = 224
 BATCH_SIZE_TESTING = 1
-saved_path = '/home/barcelona/pervinco/source/weights/'
 model_name = 'face_gender_glass_ver2'
+dataset_name = 'face_gender_glass'
 
-test_img_dir = '/home/barcelona/pervinco/datasets/face_gender_glass/predict'
-class_label = glob.glob('/home/barcelona/pervinco/datasets/face_gender_glass/train/*')
+saved_path = '/home/barcelona/pervinco/source/weights/'
+
+test_img_dir = '/home/barcelona/pervinco/datasets/' + dataset_name + '/predict'
+class_label = glob.glob('/home/barcelona/pervinco/datasets/' + dataset_name + '/train/*')
 
 test_img_len = len(glob.glob(test_img_dir + '/test/*'))
 
