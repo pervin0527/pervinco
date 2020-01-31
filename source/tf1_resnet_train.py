@@ -15,14 +15,15 @@ from tensorflow.python.keras.layers import Dense
 parameter values  
 '''
 NUM_CLASSES = 6
-train_dir = '/home/barcelona/pervinco/datasets/face_gender_glass/train'
-valid_dir = '/home/barcelona/pervinco/datasets/face_gender_glass/validation'
-model_name = 'face_gender_glass'
+dataset_name = 'face_gender_glass'
+model_name = 'face'
+train_dir = '/home/barcelona/pervinco/datasets/' + dataset_name + '/train'
+valid_dir = '/home/barcelona/pervinco/datasets/' + dataset_name + '/valid'
 
 CHANNELS = 3
 IMAGE_RESIZE = 224
 # EARLY_STOP_PATIENCE must be < NUM_EPOCHS
-NUM_EPOCHS = 50
+NUM_EPOCHS = 10
 EARLY_STOP_PATIENCE = 5
 BATCH_SIZE_TRAINING = 32
 BATCH_SIZE_VALIDATION = 32
