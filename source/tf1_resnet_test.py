@@ -18,7 +18,7 @@ BATCH_SIZE_TESTING = 1
 model_name = 'face_gender_glass_ver2'
 dataset_name = 'face_gender_glass'
 
-saved_path = '/home/barcelona/pervinco/source/weights/'
+saved_path = '/home/barcelona/pervinco/test_code/weights/'
 
 test_img_dir = '/home/barcelona/pervinco/datasets/' + dataset_name + '/predict'
 class_label = glob.glob('/home/barcelona/pervinco/datasets/' + dataset_name + '/train/*')

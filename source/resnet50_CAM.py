@@ -20,9 +20,9 @@ from scipy import ndimage
 from skimage.measure import label, regionprops
 
 # tf.compat.v1.disable_eager_execution()
-H5_PATH = "/home/barcelona/pervinco/model/four_shapes/2020.01.28_12:22/CAM.h5"
-JSON_PATH = "/home/barcelona/pervinco/model/four_shapes/2020.01.28_12:22/CAM.json"
-img_path = "/home/barcelona/pervinco/datasets/four_shapes/test/*"
+H5_PATH = "/home/barcelona/pervinco/model/face_gender_glass/2020.01.31_17:57/CAM.h5"
+JSON_PATH = "/home/barcelona/pervinco/model/face_gender_glass/2020.01.31_17:57/CAM.json"
+img_path = "/home/barcelona/pervinco/datasets/face_gender_glass/predict/*"
 class_len = len(glob.glob(img_path))
 print(class_len)
 IMG_SIZE = 224
@@ -47,6 +47,7 @@ def load_model(json_path, h5_path):
         loaded_model_json = f.read()
 
     tl_model = model_from_json(loaded_model_json)
+    tl_model.summary()
     tl_model.load_weights(h5_path)
 
     return tl_model
