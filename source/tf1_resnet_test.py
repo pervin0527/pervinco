@@ -15,10 +15,10 @@ from tensorflow.python.keras.layers import Dense
 
 IMAGE_RESIZE = 224
 BATCH_SIZE_TESTING = 1
-model_name = 'face_gender_glass_ver2'
-dataset_name = 'face_gender_glass'
+model_name = 'dog_cls'
+dataset_name = model_name
 
-saved_path = '/home/barcelona/pervinco/test_code/weights/'
+saved_path = '/home/barcelona/pervinco/model/dog_cls/2020.02.03_14:49/'
 
 test_img_dir = '/home/barcelona/pervinco/datasets/' + dataset_name + '/predict'
 class_label = glob.glob('/home/barcelona/pervinco/datasets/' + dataset_name + '/train/*')
@@ -27,6 +27,7 @@ test_img_len = len(glob.glob(test_img_dir + '/test/*'))
 
 
 model = tf.keras.models.load_model(saved_path + model_name + '.h5')
+model.load_weights('/home/barcelona/pervinco/model/dog_cls/2020.02.03_14:49/08-0.93.hdf5')
 data_generator = ImageDataGenerator(preprocessing_function=preprocess_input)
 
 test_generator = data_generator.flow_from_directory(

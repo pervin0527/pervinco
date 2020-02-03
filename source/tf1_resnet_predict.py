@@ -19,7 +19,7 @@ img_resize = 224
 if __name__ == '__main__':
     model = tf.keras.models.load_model(model_path)
     img = cv2.imread(img_path)
-    img = cv2.resize(img , (img_resize, img_resize))
+    img = cv2.resize(img, (img_resize, img_resize))
     img_arr = img / 2
     img_tensor = np.expand_dims(img_arr, 0)
     

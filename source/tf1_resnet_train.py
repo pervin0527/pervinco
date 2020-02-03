@@ -17,8 +17,8 @@ from tensorflow.python.keras.layers import Dense
 '''
 parameter values  
 '''
-dataset_name = 'face_gender_glass'
-model_name = 'face_cls'
+dataset_name = 'dog_cls'
+model_name = dataset_name
 train_dir = '/home/barcelona/pervinco/datasets/' + dataset_name + '/train'
 valid_dir = '/home/barcelona/pervinco/datasets/' + dataset_name + '/valid'
 NUM_CLASSES = len(glob.glob(train_dir + '/*'))
@@ -26,8 +26,8 @@ NUM_CLASSES = len(glob.glob(train_dir + '/*'))
 CHANNELS = 3
 IMAGE_RESIZE = 224
 # EARLY_STOP_PATIENCE must be < NUM_EPOCHS
-NUM_EPOCHS = 100
-EARLY_STOP_PATIENCE = 10
+NUM_EPOCHS = 10
+EARLY_STOP_PATIENCE = 5
 BATCH_SIZE = 32
 
 saved_path = '/home/barcelona/pervinco/model/'
