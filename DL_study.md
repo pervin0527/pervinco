@@ -1,4 +1,5 @@
 Deep Learning Study
+블로그 주소 https://pervin0527.github.io/rise/
 ===================
 
 ## Check out trends in deep learning 
