@@ -38,4 +38,3 @@
 
 ### Reference
 [Tensor2tensor](https://github.com/tensorflow/tensor2tensor)
- - vscode 테스트 임니당.
