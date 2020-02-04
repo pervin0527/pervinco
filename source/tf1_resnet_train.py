@@ -39,7 +39,6 @@ if not(os.path.isdir(saved_path + dataset_name + '/' + time)):
 else:
     pass
 
-
 '''
 train model define
 '''
