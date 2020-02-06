@@ -87,7 +87,7 @@ if __name__ == '__main__':
     total_train_data = len(list(train_dir.glob('*/*.jpg')))
     print('total train data : ', total_train_data)
 
-    valid_dir = pathlib.Path('/home/barcelona/pervinco/datasets/cats_and_dogs_small_set/validation')
+    valid_dir = pathlib.Path('/home/barcelona/pervinco/datasets/cats_and_dogs_small_set/valid')
     total_valid_data = len(list(valid_dir.glob('*/*.jpg')))
     print('total validation data : ', total_valid_data)
 
