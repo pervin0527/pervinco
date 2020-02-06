@@ -19,10 +19,10 @@ from tensorflow.keras.layers import Dense
 
 DATASET_NAME = 'dog_cls'
 IMG_TYPE = '.jpg'
+BATCH_SIZE = 32
 
 IMG_HEIGHT = 227
 IMG_WIDTH = 227
-BATCH_SIZE = 32
 EPOCHS = 50
 EARLY_STOP_PATIENCE = 5
 saved_path = '/home/barcelona/perinco/model/'
@@ -110,7 +110,6 @@ if __name__ == '__main__':
     resnet_weights_path = '/home/barcelona/pervinco/source/weights/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
 
     model = Sequential()
-    # model.add(ResNet50(include_top=False, pooling='avg', weights=None)) # loss: 0.1611 - accuracy: 0.9441 - val_loss: 1.2939 - val_accuracy: 0.6944
     model.add(ResNet50(include_top=False, pooling='avg', weights=resnet_weights_path))
     model.add(Dense(NUM_CLASSES, activation='softmax'))
     model.layers[0].trainable = True
