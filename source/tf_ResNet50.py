@@ -130,7 +130,7 @@ if __name__ == '__main__':
         validation_data=data_generator.flow(x_test, y_test, batch_size=BATCH_SIZE),
         epochs=EPOCHS,
         # callbacks=[tensorboard_callback, early_stopping_callback]
-        callbacks=[EARLY_STOP_PATIENCE]
+        callbacks=[cb_early_stopper]
     )
 
     model.save(saved_path + DATASET_NAME + '/' + time + '/' + model_name + '.h5')
