@@ -25,7 +25,7 @@ IMG_HEIGHT = 227
 IMG_WIDTH = 227
 EPOCHS = 50
 EARLY_STOP_PATIENCE = 5
-saved_path = '/home/barcelona/perinco/model/'
+saved_path = '/home/barcelona/pervinco/model/'
 time = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M")
 model_name = DATASET_NAME
 weight_file_name = '{epoch:02d}-{val_acc:.2f}.hdf5'
@@ -71,6 +71,11 @@ def data_to_np(train_dir, valid_dir):
 
 
 if __name__ == '__main__':
+    if not(os.path.isdir(saved_path + DATASET_NAME + '/' + time)):
+        os.makedirs(os.path.join(saved_path + DATASET_NAME + '/' + time))
+    else:
+        pass
+
     train_dir = pathlib.Path('/home/barcelona/pervinco/datasets/' + DATASET_NAME + '/train')
     total_train_data = len(list(train_dir.glob('*/*' + IMG_TYPE)))
     print('total train data : ', total_train_data)
@@ -114,24 +119,21 @@ if __name__ == '__main__':
     model.add(Dense(NUM_CLASSES, activation='softmax'))
     model.layers[0].trainable = True
     model.summary()
+    
     optimizer = tf.keras.optimizers.SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
-    model.compile(
-        optimizer=optimizer,
-        loss='categorical_crossentropy',
-        metrics=['accuracy']
-    )
+    model.compile(optimizer=optimizer,
+                  loss='categorical_crossentropy',
+                  metrics=['accuracy'])
 
     # tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
     cb_early_stopper = EarlyStopping(monitor='val_loss', patience=EARLY_STOP_PATIENCE)
     cb_checkpointer = ModelCheckpoint(filepath=saved_path + DATASET_NAME + '/' + time + '/' + weight_file_name,
-                                  monitor='val_acc', save_best_only=True, mode='auto')
-    model.fit_generator(
-        data_generator.flow(x_train, y_train, batch_size=BATCH_SIZE),
-        validation_data=data_generator.flow(x_test, y_test, batch_size=BATCH_SIZE),
-        epochs=EPOCHS,
-        # callbacks=[tensorboard_callback, early_stopping_callback]
-        callbacks=[cb_early_stopper]
-    )
+                                      monitor='val_acc', save_best_only=True, mode='auto')
+
+    model.fit_generator(data_generator.flow(x_train, y_train, batch_size=BATCH_SIZE),
+                        validation_data=data_generator.flow(x_test, y_test, batch_size=BATCH_SIZE),
+                        epochs=EPOCHS,
+                        callbacks=[cb_early_stopper, cb_checkpointer])
 
     model.save(saved_path + DATASET_NAME + '/' + time + '/' + model_name + '.h5')
 
