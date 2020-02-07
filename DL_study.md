@@ -1,10 +1,13 @@
 Deep Learning Study
-블로그 주소 https://pervin0527.github.io/rise/
 ===================
+
+## 블로그 주소 https://pervin0527.github.io/rise/
 
 ## Check out trends in deep learning 
  - <http://www.guide2research.com/topconf/>
- 
+
+## classification, detection, segmentation
+ - http://research.sualab.com/introduction/2017/11/29/image-recognition-overview-1.html 
 ## ML, DL LECTURES
 - [CS230 2018 Fall Season Lecture](http://cs230.stanford.edu/lecture/)
 
