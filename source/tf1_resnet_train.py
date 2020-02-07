@@ -19,7 +19,7 @@ from tensorflow.python.keras.layers import Dense
 '''
 parameter values  
 '''
-dataset_name = 'face_gender_glass'
+dataset_name = 'product2'
 model_name = dataset_name
 train_dir = '/home/barcelona/pervinco/datasets/' + dataset_name + '/train'
 valid_dir = '/home/barcelona/pervinco/datasets/' + dataset_name + '/valid'
@@ -33,7 +33,7 @@ EARLY_STOP_PATIENCE = 5
 BATCH_SIZE = 32
 
 saved_path = '/home/barcelona/pervinco/model/'
-time = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M")
+time = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M") + '_keras'
 weight_file_name = '{epoch:02d}-{val_acc:.2f}.hdf5'
 
 if not(os.path.isdir(saved_path + dataset_name + '/' + time)):
@@ -61,17 +61,15 @@ image data generator define
 '''
 data_generator = ImageDataGenerator(preprocessing_function=preprocess_input)
 
-train_generator = data_generator.flow_from_directory(
-    train_dir,
-    target_size=(IMAGE_RESIZE, IMAGE_RESIZE),
-    batch_size=BATCH_SIZE,
-    class_mode='categorical')
+train_generator = data_generator.flow_from_directory(train_dir,
+                                                     target_size=(IMAGE_RESIZE, IMAGE_RESIZE),
+                                                     batch_size=BATCH_SIZE,
+                                                     class_mode='categorical')
 
-validation_generator = data_generator.flow_from_directory(
-    valid_dir,
-    target_size=(IMAGE_RESIZE, IMAGE_RESIZE),
-    batch_size=BATCH_SIZE,
-    class_mode='categorical')
+validation_generator = data_generator.flow_from_directory(valid_dir,
+                                                          target_size=(IMAGE_RESIZE, IMAGE_RESIZE),
+                                                          batch_size=BATCH_SIZE,
+                                                          class_mode='categorical')
 
 '''
 training callbacks define
@@ -80,14 +78,12 @@ cb_early_stopper = EarlyStopping(monitor='val_loss', patience=EARLY_STOP_PATIENC
 cb_checkpointer = ModelCheckpoint(filepath=saved_path + dataset_name + '/' + time + '/' + weight_file_name,
                                   monitor='val_acc', save_best_only=True, mode='auto')
 
-fit_history = model.fit_generator(
-    train_generator,
-    steps_per_epoch=train_generator.n / BATCH_SIZE,
-    epochs=NUM_EPOCHS,
-    validation_data=validation_generator,
-    validation_steps=validation_generator.n / BATCH_SIZE,
-    callbacks=[cb_early_stopper, cb_checkpointer]
-)
+fit_history = model.fit_generator(train_generator,
+                                  steps_per_epoch=train_generator.n / BATCH_SIZE,
+                                  epochs=NUM_EPOCHS,
+                                  validation_data=validation_generator,
+                                  validation_steps=validation_generator.n / BATCH_SIZE,
+                                  callbacks=[cb_early_stopper, cb_checkpointer])
 # train_generator.n / BATCH_SIZE
 # validation_generator.n / BATCH_SIZE
 

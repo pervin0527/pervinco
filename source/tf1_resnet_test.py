@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import cv2
 import os
 import tensorflow as tf
+import sys
 import glob
 from tensorflow.python.keras.applications import ResNet50
 from keras.applications.resnet50 import preprocess_input
@@ -17,33 +18,25 @@ from tensorflow.python.keras.layers import Dense
 
 IMAGE_RESIZE = 224
 BATCH_SIZE_TESTING = 1
-model_name = 'dog_cls'
-dataset_name = model_name
-
-saved_path = '/home/barcelona/pervinco/model/dog_cls/2020.02.03_14:49/'
-
+model_path = sys.argv[1]
+dataset_name = model_path.split('/')[-3]
 test_img_dir = '/home/barcelona/pervinco/datasets/' + dataset_name + '/predict'
 class_label = glob.glob('/home/barcelona/pervinco/datasets/' + dataset_name + '/train/*')
 
 test_img_len = len(glob.glob(test_img_dir + '/test/*'))
 
-
-model = tf.keras.models.load_model(saved_path + model_name + '.h5')
-model.load_weights('/home/barcelona/pervinco/model/dog_cls/2020.02.03_14:49/08-0.93.hdf5')
 data_generator = ImageDataGenerator(preprocessing_function=preprocess_input)
 
-test_generator = data_generator.flow_from_directory(
-    directory=test_img_dir,
-    target_size=(IMAGE_RESIZE, IMAGE_RESIZE),
-    batch_size=BATCH_SIZE_TESTING,
-    class_mode=None,
-    shuffle=False,
-    seed=123
-)
+test_generator = data_generator.flow_from_directory(directory=test_img_dir,
+                                                    target_size=(IMAGE_RESIZE, IMAGE_RESIZE),
+                                                    batch_size=BATCH_SIZE_TESTING,
+                                                    class_mode=None,
+                                                    shuffle=False,
+                                                    seed=123)
 
 
 test_generator.reset()
-
+model = tf.keras.models.load_model(model_path)
 pred = model.predict_generator(test_generator, steps=len(test_generator), verbose=1)
 # print(pred)
 

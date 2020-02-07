@@ -21,12 +21,12 @@ DATASET_NAME = 'dog_cls'
 IMG_TYPE = '.jpg'
 BATCH_SIZE = 32
 
-IMG_HEIGHT = 227
-IMG_WIDTH = 227
-EPOCHS = 50
+IMG_HEIGHT = 224
+IMG_WIDTH = 224
+EPOCHS = 10
 EARLY_STOP_PATIENCE = 5
 saved_path = '/home/barcelona/pervinco/model/'
-time = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M")
+time = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M") + '_tf'
 model_name = DATASET_NAME
 weight_file_name = '{epoch:02d}-{val_acc:.2f}.hdf5'
 
@@ -62,6 +62,7 @@ def data_to_np(train_dir, valid_dir):
     for i in range(0, len(train_label_list)):
         class_label.append(train_label_list[i].split('/')[-1])
 
+    class_label = sorted(class_label)
     print('Dataset Label : ', class_label)
 
     train_images, train_labels = make_np(train_data_list, class_label)
@@ -80,7 +81,7 @@ if __name__ == '__main__':
     total_train_data = len(list(train_dir.glob('*/*' + IMG_TYPE)))
     print('total train data : ', total_train_data)
 
-    valid_dir = pathlib.Path('/home/barcelona/pervinco/datasets/' + DATASET_NAME + '/test')
+    valid_dir = pathlib.Path('/home/barcelona/pervinco/datasets/' + DATASET_NAME + '/valid')
     total_valid_data = len(list(valid_dir.glob('*/*' + IMG_TYPE)))
     print('total validation data : ', total_valid_data)
 
@@ -89,10 +90,6 @@ if __name__ == '__main__':
     print('train images, labels', x_train.shape, y_train.shape)
     print('validation images, labels', x_test.shape, y_test.shape)
 
-    # x_train = normalize(x_train, axis=1)
-    # y_train = to_categorical(y_train)
-    # x_test = normalize(x_test, axis=1)
-    # y_test = to_categorical(y_test)
     y_train = tf.keras.utils.to_categorical(y_train, NUM_CLASSES)
     y_test = tf.keras.utils.to_categorical(y_test, NUM_CLASSES)
 
@@ -131,7 +128,9 @@ if __name__ == '__main__':
                                       monitor='val_acc', save_best_only=True, mode='auto')
 
     model.fit_generator(data_generator.flow(x_train, y_train, batch_size=BATCH_SIZE),
+                        steps_per_epoch=total_train_data / BATCH_SIZE,
                         validation_data=data_generator.flow(x_test, y_test, batch_size=BATCH_SIZE),
+                        validation_steps=total_valid_data / BATCH_SIZE,
                         epochs=EPOCHS,
                         callbacks=[cb_early_stopper, cb_checkpointer])
 

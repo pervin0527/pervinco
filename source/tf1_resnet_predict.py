@@ -1,28 +1,48 @@
 import tensorflow as tf
 import cv2
 import glob
+import sys
 import numpy as np
+from PIL import Image
+from tensorflow.keras.applications.resnet50 import preprocess_input
 
-model_path = '/home/barcelona/pervinco/source/weights/product11.h5'
-img_path = '/home/barcelona/pervinco/source/etc/cam_num_0_1579498371.84_crop.jpg'
-dataset_path = glob.glob('/home/barcelona/nb_classification/datasets/original/original_raw/*')
-class_list = []
+IMG_RESIZE = 224
+data_generator = tf.keras.preprocessing.image.ImageDataGenerator(preprocessing_function=preprocess_input)
+MODEL_PATH = sys.argv[1]
+DATASET_NAME = MODEL_PATH.split('/')[-3]
+print(DATASET_NAME)
+img_path = sorted(glob.glob('/home/barcelona/pervinco/datasets/' + DATASET_NAME + '/predict/test/*'))
+CLASS_NAMES = sorted(glob.glob('/home/barcelona/pervinco/datasets/' + DATASET_NAME + '/train/*'))
+print('num of testset : ', len(img_path))
 
-for l in dataset_path:
-    label = l.split('/')[-1]
-    class_list.append(label)
+labels = []
+for i in CLASS_NAMES:
+    label = i.split('/')[-1]
+    labels.append(label)
 
-class_list = sorted(class_list)
+print(len(labels))
 
-img_resize = 224
+if __name__ == "__main__":
+    model = tf.keras.models.load_model(MODEL_PATH)
 
-if __name__ == '__main__':
-    model = tf.keras.models.load_model(model_path)
-    img = cv2.imread(img_path)
-    img = cv2.resize(img, (img_resize, img_resize))
-    img_arr = img / 2
-    img_tensor = np.expand_dims(img_arr, 0)
-    
-    predictions = model.predict(img_tensor)
-    print('label number : ', np.argmax(predictions[0]), 'label name : ', class_list[np.argmax(predictions[0])])
+    for image in img_path:
+        file_info = image.split('/')[-1]
+        # using cv2
+        # image = cv2.imread(image)
+        # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        # image = cv2.resize(image, (IMG_RESIZE, IMG_RESIZE))
+
+        # using PIL
+        image = Image.open(image).convert('RGB')
+        image = image.resize((IMG_RESIZE, IMG_RESIZE))
+        image = np.array(image)
+
+        image = np.expand_dims(image, axis=0)
+        # data_generator.fit(image)
+        image = data_generator.flow(image)
+        predictions = model.predict(image, steps=1)
+        score = np.argmax(predictions[0])
+        
+        # print('answer :', answer)
+        print("Input file : ", file_info, 'predict result :', labels[score])
 
