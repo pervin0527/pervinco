@@ -3,19 +3,19 @@ import numpy as np
 import glob
 import os
 
-path = sorted(glob.glob('/home/barcelona/pervinco/datasets/four_shapes/train_no_bg/*'))
-output_path = '/home/barcelona/pervinco/datasets/four_shapes/train_no_bg_aug/'
+DATASET_NAME = ''
+path = sorted(glob.glob('/home/barcelona/pervinco/datasets/'+ DATASET_NAME + '/train/*/*'))
+output_path = '/home/barcelona/pervinco/datasets/' + DATASET_NAME + '/aug/'
 print('label num : ', len(path))
 
-data_generator = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255,
-                                                                 rotation_range=360,
+data_generator = tf.keras.preprocessing.image.ImageDataGenerator(rotation_range=360,
                                                                  width_shift_range=0.2,
                                                                  height_shift_range=0.2,
                                                                  zoom_range=0.1)
 
 
-path = sorted(glob.glob('/home/barcelona/pervinco/datasets/four_shapes/train_no_bg/*/*.png'))
-print(len(path))
+# path = sorted(glob.glob('/home/barcelona/pervinco/datasets/four_shapes/predict/*/*.png'))
+# print(len(path))
 
 for image in path:
     folder = image.split('/')[-2]

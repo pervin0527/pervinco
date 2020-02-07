@@ -11,7 +11,7 @@ data_generator = tf.keras.preprocessing.image.ImageDataGenerator(preprocessing_f
 MODEL_PATH = sys.argv[1]
 DATASET_NAME = MODEL_PATH.split('/')[-3]
 print(DATASET_NAME)
-img_path = sorted(glob.glob('/home/barcelona/pervinco/datasets/' + DATASET_NAME + '/predict/test/*'))
+img_path = sorted(glob.glob('/home/barcelona/pervinco/datasets/' + DATASET_NAME + '/predict/*/*'))
 CLASS_NAMES = sorted(glob.glob('/home/barcelona/pervinco/datasets/' + DATASET_NAME + '/train/*'))
 print('num of testset : ', len(img_path))
 
