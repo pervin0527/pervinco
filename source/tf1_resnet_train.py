@@ -19,7 +19,7 @@ from tensorflow.python.keras.layers import Dense
 '''
 parameter values  
 '''
-dataset_name = 'product2'
+dataset_name = 'cu50'
 model_name = dataset_name
 train_dir = '/home/barcelona/pervinco/datasets/' + dataset_name + '/train'
 valid_dir = '/home/barcelona/pervinco/datasets/' + dataset_name + '/valid'
