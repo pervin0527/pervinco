@@ -3,8 +3,8 @@ import numpy as np
 import glob
 import os
 
-DATASET_NAME = 'cu50'
-path = sorted(glob.glob('/home/barcelona/pervinco/datasets/'+ DATASET_NAME + '/train/*/*'))
+DATASET_NAME = 'cu502'
+path = sorted(glob.glob('/home/barcelona/pervinco/datasets/'+ DATASET_NAME + '/valid2/*/*'))
 output_path = '/home/barcelona/pervinco/datasets/' + DATASET_NAME + '/aug/'
 print('label num : ', len(path))
 

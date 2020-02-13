@@ -19,7 +19,7 @@ from tensorflow.python.keras.layers import Dense
 '''
 parameter values  
 '''
-dataset_name = 'cu50'
+dataset_name = 'cu502'
 model_name = dataset_name
 train_dir = '/home/barcelona/pervinco/datasets/' + dataset_name + '/train'
 valid_dir = '/home/barcelona/pervinco/datasets/' + dataset_name + '/valid'
@@ -43,6 +43,9 @@ else:
 
 '''
 train model define
+Out intention in this kernel is Transfer Learning by using ResNet50 pre-trained weights except its TOP layer, 
+i.e., the xyz_tf_kernels_NOTOP.h5 weights... 
+Use this weights as initial weight for training new layer using train images
 '''
 resnet_weights_path = '/home/barcelona/pervinco/source/weights/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
 
