@@ -1,6 +1,7 @@
 import tensorflow as tf
 import cv2
 import glob
+import csv
 import sys
 import numpy as np
 from PIL import Image
@@ -21,6 +22,13 @@ for i in CLASS_NAMES:
     labels.append(label)
 
 print(len(labels))
+
+
+def write_csv(file_info, labels, anw):
+    with open('/home/barcelona/pervinco/test_code/cls_result.csv', 'a') as df:
+        write = csv.writer(df, delimiter=',')
+        write.writerow([file_info, labels, anw])
+
 
 if __name__ == "__main__":
     model = tf.keras.models.load_model(MODEL_PATH)
@@ -46,4 +54,13 @@ if __name__ == "__main__":
         
         # print('answer :', answer)
         print("Input file : ", file_info, 'predict result :', labels[score])
+        file_info = file_info.split('_')[0]
+        # print(file_info)
+
+        if file_info == str(labels[score]):
+            anw = 1
+            write_csv(file_info, labels[score], anw)
+        else:
+            anw = 0
+            write_csv(file_info, labels[score], anw)
 

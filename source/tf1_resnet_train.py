@@ -48,6 +48,7 @@ i.e., the xyz_tf_kernels_NOTOP.h5 weights...
 Use this weights as initial weight for training new layer using train images
 '''
 resnet_weights_path = '/home/barcelona/pervinco/source/weights/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
+# resnet_weights_path = '/home/barcelona/다운로드/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
 
 model = Sequential()
 model.add(ResNet50(include_top=False, pooling='avg', weights=resnet_weights_path))
