@@ -11,7 +11,7 @@ data_generator = tf.keras.preprocessing.image.ImageDataGenerator(preprocessing_f
 MODEL_PATH = sys.argv[1]
 DATASET_NAME = MODEL_PATH.split('/')[-3]
 print(DATASET_NAME)
-img_path = sorted(glob.glob('/home/barcelona/pervinco/datasets/' + DATASET_NAME + '/predict/*/*'))
+img_path = sorted(glob.glob('/home/barcelona/pervinco/datasets/' + DATASET_NAME + '/valid/*/*'))
 CLASS_NAMES = sorted(glob.glob('/home/barcelona/pervinco/datasets/' + DATASET_NAME + '/train/*'))
 print('num of testset : ', len(img_path))
 
@@ -39,7 +39,8 @@ if __name__ == "__main__":
 
         image = np.expand_dims(image, axis=0)
         # data_generator.fit(image)
-        image = data_generator.flow(image)
+        # image = data_generator.flow(image)
+        image = preprocess_input(image)
         predictions = model.predict(image, steps=1)
         score = np.argmax(predictions[0])
         
