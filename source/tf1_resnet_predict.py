@@ -6,6 +6,19 @@ import sys
 import numpy as np
 from PIL import Image
 from tensorflow.keras.applications.resnet50 import preprocess_input
+from  keras.backend.tensorflow_backend import set_session
+
+gpus = tf.config.experimental.list_physical_devices('GPU')
+
+def set_gpu_option(which_gpu, fraction_memory):
+    config = tf.ConfigProto()
+    config.gpu_options.per_process_gpu_memory_fraction = fraction_memory
+    config.gpu_options.visible_device_list = which_gpu
+    set_session(tf.Session(config=config))
+    return
+
+
+set_gpu_option("0", 0.5)
 
 IMG_RESIZE = 224
 data_generator = tf.keras.preprocessing.image.ImageDataGenerator(preprocessing_function=preprocess_input)
