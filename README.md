@@ -16,7 +16,7 @@
     + [Tensorflow code](https://pythonkim.tistory.com/164?category=698204)
 - [Training Resume](https://www.tensorflow.org/guide/checkpoint#restore_and_continue_training)
 - [Decreased learning rate during training](https://www.tensorflow.org/api_docs/python/tf/keras/callbacks/ReduceLROnPlateau)
-
+- [GPU restricton](https://stackoverflow.com/questions/40069883/how-to-set-specific-gpu-in-tensorflow)
 ### tensorflow code reference
  - https://github.com/tensorflow/docs/blob/master/site/en/r1/tutorials/load_data/images.ipynb
 
@@ -40,3 +40,5 @@
 [Tensor2tensor](https://github.com/tensorflow/tensor2tensor)
 
 [Git hub Blog](https://devinlife.com/howto%20github%20pages/new-pages/)
+
+https://github.com/tensorflow/tensorflow/issues/33024#issuecomment-564725970
