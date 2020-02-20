@@ -10,6 +10,7 @@ from  keras.backend.tensorflow_backend import set_session
 
 gpus = tf.config.experimental.list_physical_devices('GPU')
 
+
 def set_gpu_option(which_gpu, fraction_memory):
     config = tf.ConfigProto()
     config.gpu_options.per_process_gpu_memory_fraction = fraction_memory
