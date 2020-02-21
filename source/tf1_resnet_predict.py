@@ -6,9 +6,7 @@ import sys
 import numpy as np
 from PIL import Image
 from tensorflow.keras.applications.resnet50 import preprocess_input
-from  keras.backend.tensorflow_backend import set_session
-
-gpus = tf.config.experimental.list_physical_devices('GPU')
+from keras.backend.tensorflow_backend import set_session
 
 
 def set_gpu_option(which_gpu, fraction_memory):
@@ -21,27 +19,24 @@ def set_gpu_option(which_gpu, fraction_memory):
 
 set_gpu_option("0", 0.5)
 
+with open('/home/barcelona/pervinco/cu50_mapping.csv') as df:
+    reader = csv.reader(df)
+    CLASS_NAMES = list(reader)
+    # print(CLASS_NAMES)
+
 IMG_RESIZE = 224
 data_generator = tf.keras.preprocessing.image.ImageDataGenerator(preprocessing_function=preprocess_input)
 MODEL_PATH = sys.argv[1]
 DATASET_NAME = MODEL_PATH.split('/')[-3]
 print(DATASET_NAME)
-img_path = sorted(glob.glob('/home/barcelona/pervinco/datasets/' + DATASET_NAME + '/valid/*/*'))
-CLASS_NAMES = sorted(glob.glob('/home/barcelona/pervinco/datasets/' + DATASET_NAME + '/train/*'))
+img_path = sorted(glob.glob('/home/barcelona/pervinco/datasets/' + DATASET_NAME + '/valid3/*/*'))
 print('num of testset : ', len(img_path))
 
-labels = []
-for i in CLASS_NAMES:
-    label = i.split('/')[-1]
-    labels.append(label)
 
-print(len(labels))
-
-
-def write_csv(file_info, labels, anw):
+def write_csv(file_info, labels, labels_h, anw):
     with open('/home/barcelona/pervinco/test_code/cls_result.csv', 'a') as df:
         write = csv.writer(df, delimiter=',')
-        write.writerow([file_info, labels, anw])
+        write.writerow([file_info, labels, labels_h, anw])
 
 
 if __name__ == "__main__":
@@ -65,16 +60,14 @@ if __name__ == "__main__":
         image = preprocess_input(image)
         predictions = model.predict(image, steps=1)
         score = np.argmax(predictions[0])
-        
-        # print('answer :', answer)
-        print("Input file : ", file_info, 'predict result :', labels[score])
-        file_info = file_info.split('_')[0]
-        # print(file_info)
 
-        if file_info == str(labels[score]):
+        # print("Input file : ", file_info, 'predict result :', CLASS_NAMES[score][1])
+        file_info = file_info.split('_')[0]
+
+        if file_info == str(CLASS_NAMES[score][0]):
             anw = 1
-            write_csv(file_info, labels[score], anw)
+            write_csv(file_info, CLASS_NAMES[score][0], str(CLASS_NAMES[score][1]), anw)
         else:
             anw = 0
-            write_csv(file_info, labels[score], anw)
+            write_csv(file_info, CLASS_NAMES[score][0], str(CLASS_NAMES[score][1]), anw)
 
