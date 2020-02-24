@@ -9,15 +9,15 @@ from tensorflow.keras.applications.resnet50 import preprocess_input
 from keras.backend.tensorflow_backend import set_session
 
 
-def set_gpu_option(which_gpu, fraction_memory):
-    config = tf.ConfigProto()
-    config.gpu_options.per_process_gpu_memory_fraction = fraction_memory
-    config.gpu_options.visible_device_list = which_gpu
-    set_session(tf.Session(config=config))
-    return
-
-
-set_gpu_option("0", 0.5)
+# def set_gpu_option(which_gpu, fraction_memory):
+#     config = tf.ConfigProto()
+#     config.gpu_options.per_process_gpu_memory_fraction = fraction_memory
+#     config.gpu_options.visible_device_list = which_gpu
+#     set_session(tf.Session(config=config))
+#     return
+#
+#
+# set_gpu_option("0", 0.5)
 
 with open('/home/barcelona/pervinco/cu50_mapping.csv') as df:
     reader = csv.reader(df)
@@ -34,7 +34,7 @@ print('num of testset : ', len(img_path))
 
 
 def write_csv(file_info, labels, labels_h, anw):
-    with open('/home/barcelona/pervinco/test_code/cls_result.csv', 'a') as df:
+    with open('/home/barcelona/pervinco/test_code/result_tf2.csv', 'a') as df:
         write = csv.writer(df, delimiter=',')
         write.writerow([file_info, labels, labels_h, anw])
 
@@ -45,14 +45,14 @@ if __name__ == "__main__":
     for image in img_path:
         file_info = image.split('/')[-1]
         # using cv2
-        # image = cv2.imread(image)
-        # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        # image = cv2.resize(image, (IMG_RESIZE, IMG_RESIZE))
+        image = cv2.imread(image)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image = cv2.resize(image, (IMG_RESIZE, IMG_RESIZE))
 
         # using PIL
-        image = Image.open(image).convert('RGB')
-        image = image.resize((IMG_RESIZE, IMG_RESIZE))
-        image = np.array(image)
+        # image = Image.open(image).convert('RGB')
+        # image = image.resize((IMG_RESIZE, IMG_RESIZE))
+        # image = np.array(image)
 
         image = np.expand_dims(image, axis=0)
         # data_generator.fit(image)
@@ -63,6 +63,7 @@ if __name__ == "__main__":
 
         # print("Input file : ", file_info, 'predict result :', CLASS_NAMES[score][1])
         file_info = file_info.split('_')[0]
+        print(file_info)
 
         if file_info == str(CLASS_NAMES[score][0]):
             anw = 1
