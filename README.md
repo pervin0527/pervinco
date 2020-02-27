@@ -42,3 +42,5 @@
 [Git hub Blog](https://devinlife.com/howto%20github%20pages/new-pages/)
 
 https://github.com/tensorflow/tensorflow/issues/33024#issuecomment-564725970
+https://randomgeekery.org/2017/11/24/drawing-grids-with-python-and-pillow/
+https://www.youtube.com/watch?v=Zsd_HCvdrRA&feature=youtu.be
