@@ -21,8 +21,8 @@ parameter values
 '''
 dataset_name = 'cu50'
 model_name = dataset_name
-train_dir = '/home/barcelona/pervinco/datasets/' + dataset_name + '/train3'
-valid_dir = '/home/barcelona/pervinco/datasets/' + dataset_name + '/valid3'
+train_dir = '/home/barcelona/pervinco/datasets/' + dataset_name + '/train4'
+valid_dir = '/home/barcelona/pervinco/datasets/' + dataset_name + '/valid4'
 NUM_CLASSES = len(glob.glob(train_dir + '/*'))
 
 CHANNELS = 3

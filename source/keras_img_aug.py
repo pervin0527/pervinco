@@ -4,7 +4,7 @@ import glob
 import os
 
 DATASET_NAME = 'cu50'
-path = sorted(glob.glob('/home/barcelona/pervinco/datasets/'+ DATASET_NAME + '/train3/*/*'))
+path = sorted(glob.glob('/home/barcelona/pervinco/datasets/'+ DATASET_NAME + '/valid4/*/*'))
 output_path = '/home/barcelona/pervinco/datasets/' + DATASET_NAME + '/aug/'
 print('label num : ', len(path))
 
