@@ -37,12 +37,16 @@
 ### [DL Study](DL_study.md)
 
 ### Reference
-[Tensor2tensor](https://github.com/tensorflow/tensor2tensor)
+ - [Tensor2tensor](https://github.com/tensorflow/tensor2tensor)
 
-[Git hub Blog](https://devinlife.com/howto%20github%20pages/new-pages/)
+ - [Git hub Blog](https://devinlife.com/howto%20github%20pages/new-pages/)
 
-https://github.com/tensorflow/tensorflow/issues/33024#issuecomment-564725970
-https://randomgeekery.org/2017/11/24/drawing-grids-with-python-and-pillow/
-https://www.youtube.com/watch?v=Zsd_HCvdrRA&feature=youtu.be
-https://www.kaggle.com/hmendonca/mask-rcnn-and-coco-transfer-learning-lb-0-155
-https://www.kaggle.com/c/open-images-2019-instance-segmentation/discussion/114942
+ - https://github.com/tensorflow/tensorflow/issues/33024#issuecomment-564725970
+
+ - https://randomgeekery.org/2017/11/24/drawing-grids-with-python-and-pillow/
+
+ - https://www.youtube.com/watch?v=Zsd_HCvdrRA&feature=youtu.be
+
+ - https://www.kaggle.com/hmendonca/mask-rcnn-and-coco-transfer-learning-lb-0-155
+
+ - https://www.kaggle.com/c/open-images-2019-instance-segmentation/discussion/114942
