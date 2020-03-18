@@ -4,7 +4,7 @@ import glob
 import os
 
 DATASET_NAME = 'cu50'
-path = sorted(glob.glob('/home/barcelona/pervinco/datasets/'+ DATASET_NAME + '/valid4/*/*'))
+path = sorted(glob.glob('/home/barcelona/pervinco/datasets/'+ DATASET_NAME + '/added/*/*'))
 output_path = '/home/barcelona/pervinco/datasets/' + DATASET_NAME + '/aug/'
 print('label num : ', len(path))
 
@@ -29,5 +29,5 @@ for image in path:
     if not (os.path.isdir(output_path + folder)):
         os.makedirs(output_path + folder)
 
-    for x, val in zip(data_generator.flow(image, save_to_dir=output_path + folder, save_prefix=folder, save_format='jpg'), range(30)):
+    for x, val in zip(data_generator.flow(image, save_to_dir=output_path + folder, save_prefix=folder, save_format='jpg'), range(60)):
         pass

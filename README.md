@@ -50,3 +50,11 @@
  - https://www.kaggle.com/hmendonca/mask-rcnn-and-coco-transfer-learning-lb-0-155
 
  - https://www.kaggle.com/c/open-images-2019-instance-segmentation/discussion/114942
+ 
+ - about generator http://schoolofweb.net/blog/posts/%ED%8C%8C%EC%9D%B4%EC%8D%AC-%EC%A0%9C%EB%84%88%EB%A0%88%EC%9D%B4%ED%84%B0-generator/
+ 
+ - https://www.tensorflow.org/community
+ 
+ - https://blog.tensorflow.org/2020/03/higher-accuracy-on-vision-models-with-efficientnet-lite.html
+ 
+ - https://www.kaggle.com/philculliton/a-simple-tf-2-1-notebook
