@@ -35,10 +35,20 @@
 # Reference
  - [Tensorflow Latest News](https://www.tensorflow.org/community)
       - [Tensorflow Image Data Loader](https://github.com/tensorflow/examples/blob/master/tensorflow_examples/lite/model_maker/core/data_util/image_dataloader.py)
+      
       - [Tensorflow 2.0 object detection](https://www.youtube.com/watch?v=Zsd_HCvdrRA&feature=youtu.be)
+      
       - [Mask_RCNN tutorial](https://www.kaggle.com/hmendonca/mask-rcnn-and-coco-transfer-learning-lb-0-155)
+      
       - [Google Teachable Machine](https://github.com/googlecreativelab/teachablemachine-community)
+      
       - [EfficientNet](https://blog.tensorflow.org/2020/03/higher-accuracy-on-vision-models-with-efficientnet-lite.html)
+      
+            sudo pip3 install -U git+https://github.com/qubvel/efficientnet
+          - [Git](https://github.com/qubvel/efficientnet)
+          - [EfficientNet Tutorial #1](https://www.kaggle.com/rsmits/keras-efficientnet-b3-training-inference/data) 
+          - [EfficientNet Tutorial #2](https://www.kaggle.com/laksh171998/98-keras-efficientnet-b3)
+      
       - [Tensorflow 2.1 Implement](https://www.kaggle.com/philculliton/a-simple-tf-2-1-notebook)
   
  - [Tensor2tensor](https://github.com/tensorflow/tensor2tensor)
