@@ -1,9 +1,9 @@
-### DATASET
+# DATASET
 [About datasets](https://3months.tistory.com/118)
  - [Cats and Dogs Dataset](https://storage.googleapis.com/mledu-datasets/cats_and_dogs_filtered.zip)
  - [Flowers Dataset](https://storage.googleapis.com/download.tensorflow.org/example_images/flower_photos.tgz)
 
-### [Tensorflow](https://tensorflow.org) tutorials 
+# [Tensorflow](https://tensorflow.org) Tutorials 
 - [install_guide](INSTALL.md)
 - [Data input format + Batch](https://www.tensorflow.org/guide/data#top_of_page)
 - [Data preprocessing & Training](https://keras.io/ko/preprocessing/image/)
@@ -17,44 +17,36 @@
 - [Training Resume](https://www.tensorflow.org/guide/checkpoint#restore_and_continue_training)
 - [Decreased learning rate during training](https://www.tensorflow.org/api_docs/python/tf/keras/callbacks/ReduceLROnPlateau)
 - [GPU restricton](https://stackoverflow.com/questions/40069883/how-to-set-specific-gpu-in-tensorflow)
-### tensorflow code reference
- - https://github.com/tensorflow/docs/blob/master/site/en/r1/tutorials/load_data/images.ipynb
 
- - https://www.datacamp.com/community/tutorials/cnn-tensorflow-python
+    ### tensorflow code reference
+    - https://github.com/tensorflow/docs/blob/master/site/en/r1/tutorials/load_data/images.ipynb
+    
+    - https://www.datacamp.com/community/tutorials/cnn-tensorflow-python
+    
+    - https://towardsdatascience.com/tensorflow-2-0-create-and-train-a-vanilla-cnn-on-google-colab-c7a0ac86d61b
+    
+    - https://cv-tricks.com/tensorflow-tutorial/training-convolutional-neural-network-for-image-classification/
 
- - https://towardsdatascience.com/tensorflow-2-0-create-and-train-a-vanilla-cnn-on-google-colab-c7a0ac86d61b
+    #### class activation mapping
+     - https://jsideas.net/grad_cam/
+     1. https://github.com/junkwhinger/grad_cam/blob/master/resnet_cam.ipynb
+     2. https://github.com/junkwhinger/grad_cam/blob/master/pred_grad-cam-resnet50.ipynb
 
- - https://cv-tricks.com/tensorflow-tutorial/training-convolutional-neural-network-for-image-classification/
-
-##### class activation mapping
- - https://jsideas.net/grad_cam/
-   1. https://github.com/junkwhinger/grad_cam/blob/master/resnet_cam.ipynb
-   2. https://github.com/junkwhinger/grad_cam/blob/master/pred_grad-cam-resnet50.ipynb
- 
-##### google teachablemachine
- - https://github.com/googlecreativelab/teachablemachine-community
-
-### [DL Study](DL_study.md)
-
-### Reference
+# Reference
+ - [Tensorflow Latest News](https://www.tensorflow.org/community)
+      - [Tensorflow Image Data Loader](https://github.com/tensorflow/examples/blob/master/tensorflow_examples/lite/model_maker/core/data_util/image_dataloader.py)
+      - [Tensorflow 2.0 object detection](https://www.youtube.com/watch?v=Zsd_HCvdrRA&feature=youtu.be)
+      - [Mask_RCNN tutorial](https://www.kaggle.com/hmendonca/mask-rcnn-and-coco-transfer-learning-lb-0-155)
+      - [Google Teachable Machine](https://github.com/googlecreativelab/teachablemachine-community)
+      - [EfficientNet](https://blog.tensorflow.org/2020/03/higher-accuracy-on-vision-models-with-efficientnet-lite.html)
+      - [Tensorflow 2.1 Implement](https://www.kaggle.com/philculliton/a-simple-tf-2-1-notebook)
+  
  - [Tensor2tensor](https://github.com/tensorflow/tensor2tensor)
 
  - [Git hub Blog](https://devinlife.com/howto%20github%20pages/new-pages/)
 
- - https://github.com/tensorflow/tensorflow/issues/33024#issuecomment-564725970
+ - [fit_generator is Broken](https://github.com/tensorflow/tensorflow/issues/33024#issuecomment-564725970)
 
- - https://randomgeekery.org/2017/11/24/drawing-grids-with-python-and-pillow/
-
- - https://www.youtube.com/watch?v=Zsd_HCvdrRA&feature=youtu.be
-
- - https://www.kaggle.com/hmendonca/mask-rcnn-and-coco-transfer-learning-lb-0-155
-
- - https://www.kaggle.com/c/open-images-2019-instance-segmentation/discussion/114942
+ - [make grid for obj detect](https://randomgeekery.org/2017/11/24/drawing-grids-with-python-and-pillow/)
  
- - about generator http://schoolofweb.net/blog/posts/%ED%8C%8C%EC%9D%B4%EC%8D%AC-%EC%A0%9C%EB%84%88%EB%A0%88%EC%9D%B4%ED%84%B0-generator/
- 
- - https://www.tensorflow.org/community
- 
- - https://blog.tensorflow.org/2020/03/higher-accuracy-on-vision-models-with-efficientnet-lite.html
- 
- - https://www.kaggle.com/philculliton/a-simple-tf-2-1-notebook
+ - [about python generator](http://schoolofweb.net/blog/posts/%ED%8C%8C%EC%9D%B4%EC%8D%AC-%EC%A0%9C%EB%84%88%EB%A0%88%EC%9D%B4%ED%84%B0-generator/)
