@@ -1,4 +1,4 @@
-# [Tensorflow](https://tensorflow.org) Tutorials 
+## [Tensorflow](https://tensorflow.org) Tutorials 
 - [install_guide](INSTALL.md)
 - [Data input format + Batch](https://www.tensorflow.org/guide/data#top_of_page)
 - [Data preprocessing & Training](https://keras.io/ko/preprocessing/image/)
@@ -13,16 +13,16 @@
 - [Decreased learning rate during training](https://www.tensorflow.org/api_docs/python/tf/keras/callbacks/ReduceLROnPlateau)
 - [GPU restricton](https://stackoverflow.com/questions/40069883/how-to-set-specific-gpu-in-tensorflow)
 
-    ### tensorflow code reference
-    - https://github.com/tensorflow/docs/blob/master/site/en/r1/tutorials/load_data/images.ipynb
-    
-    - https://www.datacamp.com/community/tutorials/cnn-tensorflow-python
-    
-    - https://towardsdatascience.com/tensorflow-2-0-create-and-train-a-vanilla-cnn-on-google-colab-c7a0ac86d61b
-    
-    - https://cv-tricks.com/tensorflow-tutorial/training-convolutional-neural-network-for-image-classification/
+## Tensorflow code reference
+- https://github.com/tensorflow/docs/blob/master/site/en/r1/tutorials/load_data/images.ipynb
 
-    #### class activation mapping
-     - https://jsideas.net/grad_cam/
-     1. https://github.com/junkwhinger/grad_cam/blob/master/resnet_cam.ipynb
-     2. https://github.com/junkwhinger/grad_cam/blob/master/pred_grad-cam-resnet50.ipynb
+- https://www.datacamp.com/community/tutorials/cnn-tensorflow-python
+
+- https://towardsdatascience.com/tensorflow-2-0-create-and-train-a-vanilla-cnn-on-google-colab-c7a0ac86d61b
+
+- https://cv-tricks.com/tensorflow-tutorial/training-convolutional-neural-network-for-image-classification/
+
+## Class Activation Mapping
+ - https://jsideas.net/grad_cam/
+    1. https://github.com/junkwhinger/grad_cam/blob/master/resnet_cam.ipynb
+   2. https://github.com/junkwhinger/grad_cam/blob/master/pred_grad-cam-resnet50.ipynb
