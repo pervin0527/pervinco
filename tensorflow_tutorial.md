@@ -25,4 +25,10 @@
 ## Class Activation Mapping
  - https://jsideas.net/grad_cam/
     1. https://github.com/junkwhinger/grad_cam/blob/master/resnet_cam.ipynb
-   2. https://github.com/junkwhinger/grad_cam/blob/master/pred_grad-cam-resnet50.ipynb
+    2. https://github.com/junkwhinger/grad_cam/blob/master/pred_grad-cam-resnet50.ipynb
+    
+## TFrecord
+ - https://www.tensorflow.org/tutorials/load_data/tfrecord#write_the_tfrecord_file
+ - https://androidkt.com/create-cnn-input-pipeline-using-tfrecord-and-dataset-api/
+ - https://colab.research.google.com/drive/1gDk1Whx8MHTRFTHg_y4qZ8Ds7JHBRlRx
+ - [code](source/Create_tfrecord.ipynb)

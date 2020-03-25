@@ -19,10 +19,10 @@ from tensorflow.python.keras.layers import Dense
 '''
 parameter values  
 '''
-dataset_name = 'cu50'
+dataset_name = 'beverage'
 model_name = dataset_name
-train_dir = '/home/barcelona/pervinco/datasets/' + dataset_name + '/train5'
-valid_dir = '/home/barcelona/pervinco/datasets/' + dataset_name + '/valid5'
+train_dir = '/home/barcelona/pervinco/datasets/' + dataset_name + '/train'
+valid_dir = '/home/barcelona/pervinco/datasets/' + dataset_name + '/valid'
 NUM_CLASSES = len(glob.glob(train_dir + '/*'))
 
 CHANNELS = 3
