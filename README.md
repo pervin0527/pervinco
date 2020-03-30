@@ -5,5 +5,5 @@ Projects
 
 Reference
 -----
- - [reference for useful develop](/home/barcelona/pervinco/README.md)
+ - [Useful materials for development](https://github.com/pervin0527/pervinco/blob/master/reference.md)
  - [Tensorflow Guide Book](https://github.com/pervin0527/pervinco/blob/master/tensorflow_tutorial.md)
