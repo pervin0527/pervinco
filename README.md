@@ -1,6 +1,3 @@
-Welcome to my workspace
-========================
-
 Projects
 -----
 1. [ImageClassification using Tensorflow & Keras](https://github.com/pervin0527/ImageClassification)
