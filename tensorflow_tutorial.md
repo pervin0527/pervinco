@@ -14,13 +14,10 @@
 - [GPU restricton](https://stackoverflow.com/questions/40069883/how-to-set-specific-gpu-in-tensorflow)
 
 ## Tensorflow code reference
-- https://github.com/tensorflow/docs/blob/master/site/en/r1/tutorials/load_data/images.ipynb
+- [coursera tensorflow2 lec](https://www.coursera.org/learn/getting-started-with-tensor-flow2?fbclid=IwAR161ykS1B5dtFrn8gOzd5LfG9N8sG0fhSuYFk16q_egKKBFSFA-HyOVBJM#syllabus)
+- [freecodecamp tensorflow2 lec](https://www.freecodecamp.org/news/massive-tensorflow-2-0-free-course/?fbclid=IwAR3zU2Os-NsShrCxIurDMItITmpoQ3aF8cJ6holAXcNJWNd7ViaXwwNr3iE)
+- [Tensorflow git - images](https://github.com/tensorflow/docs/blob/master/site/en/r1/tutorials/load_data/images.ipynb)
 
-- https://www.datacamp.com/community/tutorials/cnn-tensorflow-python
-
-- https://towardsdatascience.com/tensorflow-2-0-create-and-train-a-vanilla-cnn-on-google-colab-c7a0ac86d61b
-
-- https://cv-tricks.com/tensorflow-tutorial/training-convolutional-neural-network-for-image-classification/
 
 ## Class Activation Mapping
  - https://jsideas.net/grad_cam/
@@ -28,7 +25,31 @@
     2. https://github.com/junkwhinger/grad_cam/blob/master/pred_grad-cam-resnet50.ipynb
     
 ## TFrecord
- - https://www.tensorflow.org/tutorials/load_data/tfrecord#write_the_tfrecord_file
+ - [code](source/Create_tfrecord.ipynb)
+ - [Tensorflow tfrecord tutorial](https://www.tensorflow.org/tutorials/load_data/tfrecord#write_the_tfrecord_file)
  - https://androidkt.com/create-cnn-input-pipeline-using-tfrecord-and-dataset-api/
  - https://colab.research.google.com/drive/1gDk1Whx8MHTRFTHg_y4qZ8Ds7JHBRlRx
- - [code](source/Create_tfrecord.ipynb)
+ - [dict type append](https://thispointer.com/python-how-to-add-append-key-value-pairs-in-dictionary-using-dict-update/)
+
+## Tensorflow News
+ - [Tensorflow Latest News](https://www.tensorflow.org/community)
+ 
+ - [Tensorflow Image Data Loader](https://github.com/tensorflow/examples/blob/master/tensorflow_examples/lite/model_maker/core/data_util/image_dataloader.py)
+      
+- [Tensorflow 2.0 object detection](https://www.youtube.com/watch?v=Zsd_HCvdrRA&feature=youtu.be)
+      
+- [Mask_RCNN tutorial](https://www.kaggle.com/hmendonca/mask-rcnn-and-coco-transfer-learning-lb-0-155)
+      
+- [Google Teachable Machine](https://github.com/googlecreativelab/teachablemachine-community)
+      
+- [EfficientNet](https://blog.tensorflow.org/2020/03/higher-accuracy-on-vision-models-with-efficientnet-lite.html)
+      
+        sudo pip3 install -U git+https://github.com/qubvel/efficientnet
+    - [EfficientNet Git](https://github.com/qubvel/efficientnet)
+    - [PyPi](https://pypi.org/project/efficientnet/#installation)
+    - [EfficientNet Tutorial #1](https://www.kaggle.com/rsmits/keras-efficientnet-b3-training-inference/data) 
+    - [EfficientNet Tutorial #2](https://www.kaggle.com/laksh171998/98-keras-efficientnet-b3)
+    - [EfficientNet Tutorial #3](https://www.kaggle.com/rsmits/keras-efficientnet-b2-starter-code)
+      
+- [Tensorflow 2.1 Implement](https://www.kaggle.com/philculliton/a-simple-tf-2-1-notebook)
+  
