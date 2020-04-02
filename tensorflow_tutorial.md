@@ -53,3 +53,5 @@
       
 - [Tensorflow 2.1 Implement](https://www.kaggle.com/philculliton/a-simple-tf-2-1-notebook)
   
+- [EfficientDet](https://github.com/signatrix/efficientdet)
+    - [efficientnet-pytorch](https://github.com/lukemelas/EfficientNet-PyTorch) 
