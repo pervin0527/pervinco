@@ -1,6 +1,6 @@
 # Projects
 1. [ImageClassification using Tensorflow & Keras](https://github.com/pervin0527/ImageClassification)
-2. Google Automl/EfficientDet
+2. [Google Automl/EfficientDet](https://github.com/google/automl/tree/master/efficientdet)  
    사용기를 작성한 것이기 때문에 Repo보다 Blog post 사용.
    1. [Install, Pretrained_Inference, Train](https://pervin0527.github.io/efficientdet/)
    2. [Train model inference](https://pervin0527.github.io/efficientdet2/)

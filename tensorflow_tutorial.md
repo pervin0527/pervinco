@@ -54,6 +54,7 @@
 - [Tensorflow 2.1 Implement](https://www.kaggle.com/philculliton/a-simple-tf-2-1-notebook)
   
 - [EfficientDet](https://github.com/signatrix/efficientdet)
+    - [Google Automl/EfficientDet](https://github.com/google/automl/tree/master/efficientdet)
     - [efficientnet-pytorch](https://github.com/lukemelas/EfficientNet-PyTorch) 
     
 
