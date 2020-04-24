@@ -82,4 +82,5 @@
    - https://towardsdatascience.com/ensembling-convnets-using-keras-237d429157eb
    - https://hwiyong.tistory.com/100
    - https://www.kaggle.com/mgiraygokirmak/keras-cnn-multi-model-ensemble-with-voting/data
+   - https://inspiringpeople.github.io/data%20analysis/Ensemble_Keras/
 
