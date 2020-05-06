@@ -1,4 +1,12 @@
+#-*- coding: utf-8 -*-
+# load weight은 model을 선언한 다음 가중치를 넣어줄 수 있게끔 사용
+# load model은 model + weight가 저장된 형태 그대로 불러서 사용
+# https://www.tensorflow.org/tutorials/keras/save_and_load?hl=ko#%EB%AA%A8%EB%8D%B8_%EC%A0%84%EC%B2%B4%EB%A5%BC_%EC%A0%80%EC%9E%A5%ED%95%98%EA%B8%B0
+
+# Reference
 # https://www.tensorflow.org/versions/r2.0/api_docs/python/tf/keras/Model#fit_generator
+# https://towardsdatascience.com/ensembling-convnets-using-keras-237d429157eb
+# https://medium.com/randomai/ensemble-and-store-models-in-keras-2-x-b881a6d7693f
 import os
 import cv2
 import glob
