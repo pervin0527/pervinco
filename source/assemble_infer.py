@@ -1,4 +1,7 @@
 #-*- coding: utf-8 -*-
+# https://www.tensorflow.org/api_docs/python/tf/keras/applications/resnet/preprocess_input?version=nightly#raises
+# https://www.tensorflow.org/api_docs/python/tf/keras/applications/mobilenet/preprocess_input?hl=ko&version=nightly#returns
+# resnet preprocess_input 이랑 mobilenet preprocess_input return 값이 다르기 때문에 preprocess_input을 어떻게 적용해야함??
 import tensorflow as tf
 import glob
 import cv2
