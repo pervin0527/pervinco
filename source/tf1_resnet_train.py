@@ -69,7 +69,7 @@ model.summary()
 
 optimizer = optimizers.SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
 # optimizer = optimizers.Adam()
-model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
+model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
 '''
 image data generator define
@@ -85,15 +85,7 @@ validation_generator = data_generator.flow_from_directory(valid_dir,
                                                           target_size=(IMAGE_RESIZE, IMAGE_RESIZE),
                                                           batch_size=BATCH_SIZE,
                                                           class_mode='categorical')
-
-'''
-training callbacks define
-'''
-cb_early_stopper = EarlyStopping(monitor='val_loss', patience=EARLY_STOP_PATIENCE)
-cb_checkpointer = ModelCheckpoint(filepath=saved_path + dataset_name + '/' + time + '/' + weight_file_name,
-                                  monitor='val_acc', save_best_only=True, mode='auto')
-
-fit_history = model.fit_generator(train_generator,
+binary
                                   steps_per_epoch=train_generator.n / BATCH_SIZE,
                                   epochs=NUM_EPOCHS,
                                   validation_data=validation_generator,
