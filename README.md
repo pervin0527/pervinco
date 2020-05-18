@@ -7,6 +7,8 @@
    2. [Train model inference](https://pervin0527.github.io/efficientdet2/)
 
 3. [Image Dataset Augmentation](https://github.com/pervin0527/Image_augmentation)
+   1. [Albumentation Tutorial](https://github.com/pervin0527/Image_augmentation/blob/master/source/albumentation_test.py)
+   2. [Keras ImageDataGenerator Tutorial](https://github.com/pervin0527/Image_augmentation/blob/master/source/keras_img_aug.py)
 
 4. [Model Ensemble](https://pervin0527.github.io/ensemble/)
    - [Tensorflow keras Ensemble](https://www.tensorflow.org/guide/keras/functional)
@@ -17,7 +19,10 @@
     - Source Code
       1. [Training](https://github.com/pervin0527/pervinco/blob/master/source/multi_label_train.py)
       2. [Predict](https://github.com/pervin0527/pervinco/blob/master/source/multi_label_predict.py)
-  
+
+6. [Tensorflow 2.x tf.data](https://pervin0527.github.io/tf2-data/)
+   1. [Tutorial](https://gist.github.com/pervin0527/e9af4e0faab83243cb7f26990cac77f8)
+   2. [Pretrained model training with tf.data](https://github.com/pervin0527/pervinco/blob/master/source/tf2_data.py)
 
 # Useful Resource
  - [Useful materials for development](https://github.com/pervin0527/pervinco/blob/master/reference.md)
