@@ -103,11 +103,11 @@ if __name__ == "__main__":
     model.compile(loss="categorical_crossentropy", optimizer=optimizer, metrics=["accuracy"])
 
     cb_early_stopper = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
-    cb_checkpointer = tf.keras.callbacks.ModelCheckpoint(filepath=saved_path + dataset_name + '/'
-                                                                  + time + '/' + weight_file_name,
-                                                                  monitor='val_accuracy',
-                                                                  save_best_only=True,
-                                                                  mode='auto')
+    checkpoint_path = saved_path + dataset_name + '/' + time + '/' + weight_file_name
+    cb_checkpointer = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
+                                                         monitor='val_accuracy',
+                                                         save_best_only=True,
+                                                         mode='auto')
 
     history = model.fit(train_ds,
                         epochs=10,
