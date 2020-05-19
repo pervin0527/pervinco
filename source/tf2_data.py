@@ -73,7 +73,7 @@ if __name__ == "__main__":
     VALID_STEP_PER_EPOCH = tf.math.ceil(valid_images_len / BATCH_SIZE).numpy()
 
     saved_path = '/data/backup/pervinco_2020/model/'
-    time = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M") + '_keras'
+    time = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M") + '_tf2'
     weight_file_name = '{epoch:02d}-{val_accuracy:.2f}.hdf5'
 
     if not(os.path.isdir(saved_path + dataset_name + '/' + time)):
