@@ -12,7 +12,7 @@
 
 4. [Model Ensemble](https://pervin0527.github.io/ensemble/)
    - [Tensorflow keras Ensemble](https://www.tensorflow.org/guide/keras/functional)
-   - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/models_assemble.py)
+   - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/assemble_train.py)
 
 5. [Multi Label ImageClassification](https://pervin0527.github.io/multilabelclassification/)
     - [Multi label classification](https://www.analyticsvidhya.com/blog/2019/04/build-first-multi-label-image-classification-model-python/)
