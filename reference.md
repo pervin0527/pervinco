@@ -14,3 +14,5 @@
  - [Docker Guide](https://programmingsummaries.tistory.com/391)
 
  - [YOLO v4](https://github.com/AlexeyAB/darknet)
+
+ - [ML, DL reference](https://flonelin.wordpress.com/)

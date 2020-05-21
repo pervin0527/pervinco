@@ -28,7 +28,7 @@
    - [Multi-label classification](https://pervin0527.github.io/tf2-data2/)
 
 # Useful Resource
- - [Useful materials for development](https://github.com/pervin0527/pervinco/blob/master/reference.md)
+ - [Reference](https://github.com/pervin0527/pervinco/blob/master/reference.md)
  - [Tensorflow Guide Book](https://github.com/pervin0527/pervinco/blob/master/tensorflow_tutorial.md)
 
 # Additional Topics
