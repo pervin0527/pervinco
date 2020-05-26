@@ -45,6 +45,7 @@
     - [Eng Note](https://www.analyticsvidhya.com/blog/2019/04/introduction-image-segmentation-techniques-python/)
 
     - [Korean Note](https://medium.com/hyunjulie/1%ED%8E%B8-semantic-segmentation-%EC%B2%AB%EA%B1%B8%EC%9D%8C-4180367ec9cb)
+    - [Korean Note2](https://devkor.tistory.com/entry/%EB%94%A5%EB%9F%AC%EB%8B%9D%EC%9D%84-%ED%86%B5%ED%95%9C-Image-Segmentation-%EC%9E%85%EB%AC%B8)
 
  2. [lecture](https://www.youtube.com/watch?v=vWs_yGtw7-g)
    
@@ -52,6 +53,8 @@
 
  4. Codes
     - [Tensorflow Tutorial](https://www.tensorflow.org/tutorials/images/segmentation#what_is_image_segmentation)
+    
+    - [Using Image Segmentation Keras](https://github.com/divamgupta/image-segmentation-keras) 
   
     - [it will be most useful](https://yann-leguilly.gitlab.io/post/2019-12-14-tensorflow-tfdata-segmentation/)
 
