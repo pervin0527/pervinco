@@ -38,3 +38,25 @@
 ### 2. Anomaly Detection for UNlabeled_data
   - http://research.sualab.com/introduction/review/2020/01/30/anomaly-detection-overview-1.html
   - http://research.sualab.com/introduction/review/2020/02/20/anomaly-detection-overview-2.html?fbclid=IwAR28minKN6h7n_-QoJPDV22MVG41-cZYtvbk8BnHdRNZAo1NtRGjf2dF5-I
+
+### 3. Image Segmentation with Tensorflow 2.x
+ 1. concept
+  
+    - [Eng Note](https://www.analyticsvidhya.com/blog/2019/04/introduction-image-segmentation-techniques-python/)
+
+    - [Korean Note](https://medium.com/hyunjulie/1%ED%8E%B8-semantic-segmentation-%EC%B2%AB%EA%B1%B8%EC%9D%8C-4180367ec9cb)
+
+ 2. [lecture](https://www.youtube.com/watch?v=vWs_yGtw7-g)
+   
+ 3. [Notice - Conv2DTranspose](https://hwiyong.tistory.com/46)
+
+ 4. Codes
+    - [Tensorflow Tutorial](https://www.tensorflow.org/tutorials/images/segmentation#what_is_image_segmentation)
+  
+    - [it will be most useful](https://yann-leguilly.gitlab.io/post/2019-12-14-tensorflow-tfdata-segmentation/)
+
+    - [Kaggle Notebook](https://www.kaggle.com/advaitsave/tensorflow-2-nuclei-segmentation-unet#Make-predictions)
+
+    - [It is doubtful]( https://towardsdatascience.com/cityscape-segmentation-with-tensorflow-2-0-b320b6605cbf)
+
+    - [Tensorflow 1.x](http://research.sualab.com/practice/2018/11/23/image-segmentation-deep-learning.html)
