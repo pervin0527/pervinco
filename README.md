@@ -1,4 +1,5 @@
 # Projects
+
 1. [ImageClassification using Tensorflow & Keras](https://github.com/pervin0527/ImageClassification)
    
 2. [Google Automl/EfficientDet Github](https://github.com/google/automl/tree/master/efficientdet)  
@@ -26,6 +27,8 @@
    - [Tutorial](https://gist.github.com/pervin0527/e9af4e0faab83243cb7f26990cac77f8)  
    - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/tf2_data.py)
    - [Multi-label classification](https://pervin0527.github.io/tf2-data2/)
+
+7. [Hands on Machine-Learning 2](https://github.com/pervin0527/Hands_on_ML)
 
 # Useful Resource
  - [Reference](https://github.com/pervin0527/pervinco/blob/master/reference.md)
