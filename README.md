@@ -19,13 +19,13 @@
     - [Multi label classification](https://www.analyticsvidhya.com/blog/2019/04/build-first-multi-label-image-classification-model-python/)
     - Source Code  
       [Training](https://github.com/pervin0527/pervinco/blob/master/source/multi_label_train.py)  
-      [Predict](https://github.com/pervin0527/pervinco/blob/master/source/multi_label_predict.py)  
-      [Using tf.data training](https://github.com/pervin0527/pervinco/blob/master/source/tf_multi_label_train.py)
+      [Predict](https://github.com/pervin0527/pervinco/blob/master/source/tf2_multi_label_predict.py)  
+      [Using tf.data training](https://github.com/pervin0527/pervinco/blob/master/source/tf2_multi_label_classification.py)
 
 6. [Tensorflow 2.x tf.data](https://pervin0527.github.io/tf2-data/)
 
    - [Tutorial](https://gist.github.com/pervin0527/e9af4e0faab83243cb7f26990cac77f8)  
-   - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/tf2_data.py)
+   - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/tf2_image_classification.py)
    - [Multi-label classification](https://pervin0527.github.io/tf2-data2/)
 
 7. [Hands on Machine-Learning 2](https://github.com/pervin0527/Hands_on_ML)
