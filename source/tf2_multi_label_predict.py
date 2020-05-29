@@ -24,13 +24,13 @@ if gpus:
 
 # classes = ['111', '112', '113', '114', '115', 
 #            '221', '222', '223', '224', '225']
-classes=['소스통', '왕뚜껑', '카카오', '고래밥', '마린', '불스원샷']
+classes=['desert', 'sunset', 'trees', 'mountains', 'sea']
 print(classes)
 
 model = Sequential()
 model.add(InceptionResNetV2(include_top=False, pooling='avg', weights='imagenet'))
 # model.add(Dense(10, activation='sigmoid'))
-model.add(Dense(6, activation='sigmoid'))
+model.add(Dense(len(classes), activation='sigmoid'))
 model.layers[0].trainable = True
 model.summary()
 
