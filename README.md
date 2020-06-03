@@ -34,7 +34,7 @@
  - [Reference](https://github.com/pervin0527/pervinco/blob/master/reference.md)
  - [Tensorflow Guide Book](https://github.com/pervin0527/pervinco/blob/master/tensorflow_tutorial.md)
 
-# Additional Topics
+<!-- # Additional Topics
 ### 1. GAN for make more data
    - http://research.sualab.com/introduction/practice/2019/05/08/generative-adversarial-network.html
   
@@ -65,4 +65,4 @@
 
     - [It is doubtful]( https://towardsdatascience.com/cityscape-segmentation-with-tensorflow-2-0-b320b6605cbf)
 
-    - [Tensorflow 1.x](http://research.sualab.com/practice/2018/11/23/image-segmentation-deep-learning.html)
+    - [Tensorflow 1.x](http://research.sualab.com/practice/2018/11/23/image-segmentation-deep-learning.html) -->
