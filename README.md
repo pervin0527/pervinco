@@ -50,9 +50,3 @@
   
  - [Reference](https://github.com/pervin0527/pervinco/blob/master/reference.md)
  - [Tensorflow Guide Book](https://github.com/pervin0527/pervinco/blob/master/tensorflow_tutorial.md)
-
-# Challenge
- - [Kaggle](https://www.kaggle.com/)
- - [Kakao Arena](https://arena.kakao.com/)
- - [DACON](https://dacon.io/)
- - [Programmers](https://programmers.co.kr/competitions)
