@@ -30,6 +30,12 @@
 
 7. [Hands on Machine-Learning 2](https://github.com/pervin0527/Hands_on_ML)
 
+8. [plant_pathology](https://github.com/pervin0527/pervinco/blob/master/plant_pathology_2020.ipynb)
+   - Image data 분석에 좋은 예제
+   - Visualization에 대한 참고
+   - Dataset 구성에 따른 Tensorflow 적용 
+
+
 # Resource
   - Open Datasets
      - 유명한 공개 데이터 저장소
