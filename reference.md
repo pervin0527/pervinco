@@ -7,10 +7,16 @@
  3. [Docker Guide](https://programmingsummaries.tistory.com/391)
 
  4. [SUALAB Reaserch Blog](https://research.sualab.com/)
+    - [Bag of Tricks for Image Classification with CNN](https://hoya012.github.io/blog/Bag-of-Tricks-for-Image-Classification-with-Convolutional-Neural-Networks-Review/)
+    - [CutMix](https://arxiv.org/pdf/1905.04899.pdf)
 
  5. [DATA RABBIT](https://flonelin.wordpress.com/)
 
  6. [PaperwithCode - Trending Research](https://www.paperswithcode.com/?fbclid=IwAR19b6ZIyTziVRwT1-XhNrNMwkfVGI63IdY52BFoYL5xVO1UTeQ0Wn68J4c)
+
+ 7. [Google Developers Blog](https://developers-kr.googleblog.com/)
+    -[About Bit](https://developers-kr.googleblog.com/2020/06/open-sourcing-bit-exploring-large-scale.html)
+    - [BiT Git-hub](https://github.com/google-research/big_transfer)
 
 
 # Additional Topics
