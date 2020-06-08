@@ -141,3 +141,6 @@
 # Hands on Machine-Learning 2
    - [Chapter 1](https://github.com/pervin0527/pervinco/blob/master/hands_on_ml_2/chapter1.ipynb)
    - [Chapter 2](https://github.com/pervin0527/pervinco/blob/master/hands_on_ml_2/chapter2.ipynb)
+
+# InterMinds Projects
+  1. [SmartCheckout Table](https://github.com/pervin0527/pervinco/blob/master/SCO.md)
