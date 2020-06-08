@@ -39,7 +39,7 @@ def basic_processing(ds_path, is_training):
 def preprocess_image(image):
     image = tf.image.decode_jpeg(image, channels=3)
     image = tf.image.resize(image, [224, 224])
-    image = keras.applications.xception.preprocess_input(image)
+    image = preprocess_input(image)
 
     return image
 
