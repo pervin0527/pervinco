@@ -83,6 +83,17 @@
           - [What does mean p??](https://github.com/albumentations-team/albumentations/issues/586#issue-596422426)
   
           - [What is CLAHE?](https://opencv-python.readthedocs.io/en/latest/doc/20.imageHistogramEqualization/imageHistogramEqualization.html#clahe-contrast-limited-adaptive-histogram-equalization)
+      -  Performance
+         Augmentation options
+         - Shift (limit=0.2)
+         - Rotate (range=360)
+
+         Tools | 100 augmented images per sec
+         ----- | ------------
+         Keras Aug | 0.02068s
+         Albumentation | 0.00211s
+
+         Albumentation is 9.8 times faster than Keras_augmentation.
 
 4. [Model Ensemble](https://pervin0527.github.io/ensemble/)
    - [Tensorflow keras Ensemble](https://www.tensorflow.org/guide/keras/functional)
