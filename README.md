@@ -111,10 +111,6 @@
    - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/tf2_image_classification.py)
    - [Multi-label classification](https://pervin0527.github.io/tf2-data2/)
 
-### 7. Hands on Machine-Learning 2
-   - [Chapter 1](https://github.com/pervin0527/pervinco/blob/master/hands_on_ml_2/chapter1.ipynb)
-   - [Chapter 2](https://github.com/pervin0527/pervinco/blob/master/hands_on_ml_2/chapter2.ipynb)
-
 ### 8. [plant_pathology](https://github.com/pervin0527/pervinco/blob/master/plant_pathology_2020.ipynb)
    - Image data 분석에 좋은 예제
    - Visualization에 대한 참고
@@ -141,3 +137,7 @@
   
  - [Reference](https://github.com/pervin0527/pervinco/blob/master/reference.md)
  - [Tensorflow Guide Book](https://github.com/pervin0527/pervinco/blob/master/tensorflow_tutorial.md)
+
+# Hands on Machine-Learning 2
+   - [Chapter 1](https://github.com/pervin0527/pervinco/blob/master/hands_on_ml_2/chapter1.ipynb)
+   - [Chapter 2](https://github.com/pervin0527/pervinco/blob/master/hands_on_ml_2/chapter2.ipynb)
