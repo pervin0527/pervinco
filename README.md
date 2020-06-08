@@ -1,6 +1,67 @@
+# Environment + Installation
+-----------------------
+|NAME|Version|Version|
+|------|---|---|
+|Ubuntu| 18.04 LTS |
+|Python|2.7|3.6|
+|Opencv|4.1.0|4.1.1|
+|Tensorflow|1.13.1|2.0.0|
+|Keras|2.2.4|2.3.1|
+
+
+ - python-opencv
+ 
+        pip install opencv-python
+ 
+ - Tensorflow 2.x
+ 
+        pip install tensorflow 
+ 
+ - Tensorflow 1.x  
+ 
+        pip install tensorflow==1.13.1
+        
+ - Keras
+ 
+        pip install keras==2.2.4
+        
+      or
+        
+        pip install keras==2.3.1
+
+  - EfficientNet [https://github.com/qubvel/efficientnet](https://github.com/qubvel/efficientnet)
+
+        sudo pip3 install -U git+https://github.com/qubvel/efficientnet
+    install test
+
+        import efficientnet.keras as efn
+
+      or  
+
+        from efficientnet.tfkeras import EfficientNetB0, preprocess_input
+
+    2020.06.08 UPDATE
+      - EfficientNet **Noisy Student** weights [released](https://www.kaggle.com/c/bengaliai-cv19/discussion/132894)
+
+            import efficientnet.keras as eff
+            model = eff.EfficientNetB0(weights='noisy-student')
+
+
 # Projects
 
 1. [ImageClassification using Tensorflow & Keras](https://github.com/pervin0527/ImageClassification)
+   - Concept
+      - [About image recognition](http://research.sualab.com/introduction/2017/11/29/image-recognition-overview-1.html)
+      - [Various models Review](https://hoya012.github.io/blog/deeplearning-classification-guidebook-1/)
+      - [Example inference](http://research.sualab.com/practice/2018/01/17/image-classification-deep-learning.html)
+
+   - Tensorflow
+      - [Tensorflow tutorial](https://github.com/pervin0527/pervinco/blob/master/tensorflow_tutorial.md)
+      - [Tensorflow 2.1 simple example](https://www.kaggle.com/philculliton/a-simple-tf-2-1-notebook)
+
+   - Source Code
+     - [ResNet with Keras Imagedatagenerator](https://github.com/pervin0527/pervinco/blob/master/source/keras_resnet50_train.py)
+     - [EfficientNet with tf.data](https://github.com/pervin0527/pervinco/blob/master/source/Efnet_tf_data_train.py)
    
 2. [Google Automl/EfficientDet Github](https://github.com/google/automl/tree/master/efficientdet)  
    
@@ -8,8 +69,20 @@
    - [Train model inference](https://pervin0527.github.io/efficientdet2/)
 
 3. [Image Dataset Augmentation](https://github.com/pervin0527/Image_augmentation)
-   - [Albumentation Tutorial](https://github.com/pervin0527/Image_augmentation/blob/master/source/albumentation_test.py)
-   - [Keras ImageDataGenerator Tutorial](https://github.com/pervin0527/Image_augmentation/blob/master/source/keras_img_aug.py)
+     - Keras ImageDataGenerator  
+       - [Tensorflow API - Generate batches of tensor image data with real-time data augmentation.](https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image/ImageDataGenerator?version=nightly)
+
+       - [Source Code - keras_img_aug.py](https://github.com/pervin0527/pervinco/blob/master/source/keras_img_aug.py)
+      
+     - Albumentation  
+        - [Albumentations Git_Repo](https://github.com/albumentations-team/albumentations)
+        - [Albumentations API ](https://albumentations.readthedocs.io/en/latest/api/augmentations.html#module-albumentations.augmentations.functional)
+        - [Source Code - albumentation_test.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug2.py)
+      
+      - Note
+          - [What does mean p??](https://github.com/albumentations-team/albumentations/issues/586#issue-596422426)
+  
+          - [What is CLAHE?](https://opencv-python.readthedocs.io/en/latest/doc/20.imageHistogramEqualization/imageHistogramEqualization.html#clahe-contrast-limited-adaptive-histogram-equalization)
 
 4. [Model Ensemble](https://pervin0527.github.io/ensemble/)
    - [Tensorflow keras Ensemble](https://www.tensorflow.org/guide/keras/functional)
