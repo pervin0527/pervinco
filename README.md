@@ -1,5 +1,4 @@
 # Environment + Installation
------------------------
 |NAME|Version|Version|
 |------|---|---|
 |Ubuntu| 18.04 LTS |
@@ -49,7 +48,7 @@
 
 # Projects
 
-### 1. [ImageClassification using Tensorflow & Keras](https://github.com/pervin0527/ImageClassification)
+### 1. ImageClassification using Tensorflow & Keras
    - Concept
       - [About image recognition](http://research.sualab.com/introduction/2017/11/29/image-recognition-overview-1.html)
       - [Various models Review](https://hoya012.github.io/blog/deeplearning-classification-guidebook-1/)
@@ -68,7 +67,7 @@
    - [Install, Pretrained_Inference, Train](https://pervin0527.github.io/efficientdet/)
    - [Train model inference](https://pervin0527.github.io/efficientdet2/)
 
-### 3. [Image Dataset Augmentation](https://github.com/pervin0527/Image_augmentation)
+### 3. Image Dataset Augmentation
    - Keras ImageDataGenerator  
      - [Tensorflow API - Generate batches of tensor image data with real-time data augmentation.](https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image/ImageDataGenerator?version=nightly)
 
