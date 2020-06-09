@@ -76,7 +76,7 @@
    - Albumentation  
       - [Albumentations Git_Repo](https://github.com/albumentations-team/albumentations)
       - [Albumentations API ](https://albumentations.readthedocs.io/en/latest/api/augmentations.html#module-albumentations.augmentations.functional)
-      - [Source Code - albumentation_test.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug2.py)
+      - [Source Code - albumentation_augmentation.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_augmentation.py)
     
   - Note
       - [What does mean p??](https://github.com/albumentations-team/albumentations/issues/586#issue-596422426)
@@ -143,4 +143,4 @@
    - [Chapter 2](https://github.com/pervin0527/pervinco/blob/master/hands_on_ml_2/chapter2.ipynb)
 
 # InterMinds Projects
-  1. [SmartCheckout Table](https://github.com/pervin0527/pervinco/blob/master/SCO.md)
+  1. [SmartCheckout Table](https://github.com/pervin0527/pervinco/blob/master/SCO.md) 2019.05 ~ 2019.12 Fin.
