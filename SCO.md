@@ -14,7 +14,7 @@ Smart Checkout Table이라는 이름으로, 현재 대형마트에서 적용한 
 
 # System Architecture
 먼저 전체 시스템 구조도에 대해 그림을 통해 살펴보자.  
-![](./doc_img/Untitled%20Diagram.jpg)
+![](./doc_imgs/Untitled%20Diagram.jpg)
 
 1. 사용자가 구매하려는 제품을 테이블 위에 펼쳐놓는다.
 2. Web cam을 위에서 아래로 테이블을 내려다보는 형태로 설치하고, 지속적으로 Frame을 받도록한다.
@@ -29,7 +29,7 @@ Smart Checkout Table이라는 이름으로, 현재 대형마트에서 적용한 
     Object Detction을 위해 적용한 모델은 [**Yolo V3**](https://pjreddie.com/darknet/yolo/)이다. Vision Deep Learning을 하는 사람이라면 누구나 한번쯤 접해보았을 모델이다. 성능도 당시 준수했으며, 누구나 쉽게 이용 가능한 장점이 있다고 생각한다.  
 
     하지만 아쉽게도, Yolo V3를 비롯한 대부분의 Object Detection model은 Train, Validation dataset을 구축할 때, Annotation 작업으로 인해 상품의 변동사항에 유연하게 대처할 수 없다는 단점이 있다.
-    ![](./doc_img/demo3.jpg)
+    ![](./doc_imgs/demo3.jpg)
         
     **내가 적용하는 분야는 Retail부분으로**   
         1. <U>신제품이 자주 출시되어</U> 새로운 image 촬영과 label추가 annotation작업을 해야하는 경우  
@@ -41,7 +41,7 @@ Smart Checkout Table이라는 이름으로, 현재 대형마트에서 적용한 
     이러한 이유들로 인해, Object Detection 모델 내에서 모든 label들을 적용해서 학습시키는 것은 서비스 측면에서 비효율적이라 판단하여, **Product라는 1개의 label로 모든 제품들을 labeling하였다.**
 
     Detection에서 "Product" 단일 label로 학습시킨 모델을 inference test한 이미지이다.  
-    ![](./doc_img/detection_infer.png)
+    ![](./doc_imgs/detection_infer.png)
 
 - ### BBox Classification
     상대적으로 Image labeling 및 Preprocessing에 투자되는 시간이 짧으면서 제품이 추가되거나 변동되어도 Update가 적용하기 용이한 Image Classification model에서는 각각 제품마다의 label을 지정해 학습시켰다.
@@ -53,7 +53,7 @@ Smart Checkout Table이라는 이름으로, 현재 대형마트에서 적용한 
         - Rotate(360도 limit)
         - Width_Shift, Height_Shift  
 
-    ![](./doc_img/images/products.png)
+    ![](./doc_imgs/images/products.png)
 
     사용한 Model은 ResNet50으로 Tensorflow Keras 프레임워크에서 사용하였다.  
     소스코드는 아래 링크를 통해 볼 수 있다.  
@@ -61,12 +61,12 @@ Smart Checkout Table이라는 이름으로, 현재 대형마트에서 적용한 
 
     Detection Inference에서 얻은 Bounding Box의 수는 5가지. 출력된 label명은 전부 product임을 볼 수 있다.  
     그 다음 Classification model에 각 Bounding Box들을 input으로 사용해 Classification을 진행해 해당 상품이 무엇인지 분류하는 작업을 한다.  
-    ![](./doc_img/classification_infer.png)
+    ![](./doc_imgs/classification_infer.png)
 
     
  - ### User Interface
     이후 사용자에게 UI를 통해 결과물을 보여주도록 한다.
-    ![](./doc_img/2.png)
+    ![](./doc_imgs/2.png)
 
 전체 Source Code는 다음 링크에서 확인할 수 있다.
 [https://gist.github.com/pervin0527/e65de5a3d73a4a4b76b5b805ea761399](https://gist.github.com/pervin0527/e65de5a3d73a4a4b76b5b805ea761399)
