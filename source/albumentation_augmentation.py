@@ -67,6 +67,26 @@ def img_distribution(path):
     plt.show()
 
 
+def show_aug_sampels(path):
+    imgs = glob.glob(path + '/*/*.jpg')
+    idx = random.randint(0, len(imgs))
+
+    for i in range(0, 10):
+        image = cv2.imread(imgs[idx])
+        aug = aug_options(p=1)
+        aug_img = apply_aug(aug, image)
+
+        numpy_horizontal = np.hstack((image, aug_img))
+        numpy_horizontal_concat = np.concatenate((image, aug_img), axis=1)
+        numpy_horizontal_concat = cv2.resize(numpy_horizontal_concat, (1280, 720))
+
+        cv2.imshow('Original / Augmentation', numpy_horizontal_concat)
+        cv2.waitKey(300)
+
+    
+
+
+
 if __name__ == "__main__":
     path = '/data/backup/pervinco_2020/datasets/smart_shelf_beverage'
     dataset_name = path.split('/')[-1]
@@ -76,6 +96,8 @@ if __name__ == "__main__":
     dataset_path = sorted(glob.glob(path + '/*'))
 
     print("Num of Labels : ", len(dataset_path))
+
+    show_aug_sampels(path)
 
     for labels in dataset_path:
         imgs = sorted(glob.glob(labels + '/*.jpg'))
