@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import pandas as pd
 import numpy as np
 import time
 import cv2
@@ -6,6 +7,7 @@ import random
 import glob
 import shutil
 import os
+from sklearn.model_selection import train_test_split
 from matplotlib import pyplot as plt
 from albumentations import (
     HorizontalFlip, IAAPerspective, ShiftScaleRotate, CLAHE, RandomRotate90, RandomGamma, VerticalFlip,
@@ -44,30 +46,52 @@ def apply_aug(aug, image):
     return image
 
 
-def img_distribution(path):
-    labels = sorted(os.listdir(path))
-    # print(labels)
+def show_img_distribution(img_df):
+    print(img_df)
+    print(img_df['label'].value_counts().sort_index())
 
-    imgs = []
-    for i in labels:
-        # print(i)
-        num_imgs = sorted(glob.glob(path + '/' + i + '/*.jpg'))
-        imgs.append(len(num_imgs))
-
-    # print(imgs)
-
-    avg = int(sum(imgs, 0.0) / len(imgs))
-    print(avg)
-
-    plt.figure(figsize=(14,6))
-    plt.barh(labels, imgs)
-    plt.title('Num of images Distribution')
+    # plt.figure(figsize=(14, 6))
+    img_df['label'].value_counts().sort_index().plot.barh(figsize=(14,10), title='Num of images Distribution')
     plt.xlabel('NUM OF IMAGES')
     plt.ylabel('CLASS_NAMES')
     plt.show()
 
+    os.system("clear")
+
+def show_splited_datasets(train_set, valid_set):
+    labels = train_set['label'].sort_index()
+    train_set_imgs = train_set['label'].value_counts().sort_index()
+    valid_set_imgs = valid_set['label'].value_counts().sort_index()
+
+    print("Train Set Distribution \n", train_set_imgs)
+    print('=======================================================================')
+    print("Validation Set Distribution \n", valid_set_imgs)
+
+    index = []
+    for l in labels:
+        if l in index:
+            pass
+        else:
+            index.append(l)
+
+    train_imgs_num = []
+    valid_imgs_num = []
+
+    for i in train_set_imgs:
+        train_imgs_num.append(i)
+
+    for i in valid_set_imgs:
+        valid_imgs_num.append(i)
+
+    df = pd.DataFrame({'train imgs':train_imgs_num, 'valid imgs':valid_imgs_num}, index=index)
+
+    df.plot.barh(title='Num of images Distribution', figsize=(14, 10))
+    plt.show()
+    
+
 
 def show_aug_sampels(path):
+    print("Show augmented image samples")
     imgs = glob.glob(path + '/*/*.jpg')
     idx = random.randint(0, len(imgs))
 
@@ -82,45 +106,32 @@ def show_aug_sampels(path):
 
         cv2.imshow('Original / Augmentation', numpy_horizontal_concat)
         cv2.waitKey(300)
+    cv2.destroyAllWindows()
 
-    
+    os.system('clear')
 
-
-
+     
 if __name__ == "__main__":
+    # Dataset Path define
     path = '/data/backup/pervinco_2020/datasets/smart_shelf_beverage'
     dataset_name = path.split('/')[-1]
-    output_path = '/data/backup/pervinco_2020/datasets/Auged_dataset/' + dataset_name
+    output_path = '/data/backup/pervinco_2020/Auged_dataset/' + dataset_name
 
-    img_distribution(path)
-    dataset_path = sorted(glob.glob(path + '/*'))
+    # Dataset Load & visualization
+    result = []
+    idx = 0
+    label_list = sorted(os.listdir(path))
 
-    print("Num of Labels : ", len(dataset_path))
+    for label in label_list:
+        file_list = glob.glob(os.path.join(path,label,'*'))
+        
+        for file in file_list:
+            result.append([idx, label, file])
+            idx += 1
+            
+    img_df = pd.DataFrame(result, columns=['idx','label','image_path'])
+    show_img_distribution(img_df)
 
-    show_aug_sampels(path)
-
-    for labels in dataset_path:
-        imgs = sorted(glob.glob(labels + '/*.jpg'))
-
-        for img in imgs:
-            file_name = img.split('/')[-1]
-            label = img.split('/')[-2]
-
-            image = cv2.imread(img)
-            aug = aug_options(p=1)
-
-            idx = 0
-            for i in range(0, 10):
-                aug_image = apply_aug(aug, image)
-                # cv2.imshow('test', aug_image)
-                # cv2.imshow('original', image)
-                # cv2.waitKey(200)
-
-                if not(os.path.isdir(output_path + '/' + label)):
-                    os.makedirs(os.path.join(output_path + '/' + label))
-
-                else:
-                    pass
-                # print(file_name, idx)
-                cv2.imwrite(output_path + '/' + label + '/aug_' + str(idx) + '_' + file_name, aug_image)
-                idx += 1
+    # Split Train set, Validation set
+    train_set, test_set = train_test_split(img_df, test_size=0.2, shuffle=True)
+    show_splited_datasets(train_set, test_set)

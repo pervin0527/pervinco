@@ -3,12 +3,23 @@ import glob
 import os
 import datetime
 from tensorflow.keras.applications.resnet50 import preprocess_input
+from keras.backend.tensorflow_backend import set_session
 
-DATASET_NAME = 'cu50'
+def set_gpu_option(which_gpu, fraction_memory):
+    config = tf.ConfigProto()
+    config.gpu_options.per_process_gpu_memory_fraction = fraction_memory
+    config.gpu_options.visible_device_list = which_gpu
+    set_session(tf.Session(config=config))
+    return
+
+
+set_gpu_option("0", 0.8)
+
+DATASET_NAME = 'beverage'
 MODEL_NAME = DATASET_NAME
 
-train_dir = '/home/barcelona/pervinco/datasets/' + DATASET_NAME + '/train3'
-valid_dir = '/home/barcelona/pervinco/datasets/' + DATASET_NAME + '/valid3'
+train_dir = '/data/backup/pervinco_2020/Auged_dataset/' + DATASET_NAME + '/train'
+valid_dir = '/data/backup/pervinco_2020/Auged_dataset/' + DATASET_NAME + '/valid'
 NUM_CLASSES = len(glob.glob(train_dir + '/*'))
 
 CHANNELS = 3
@@ -17,19 +28,19 @@ NUM_EPOCHS = 10
 BATCH_SIZE = 32
 EARLY_STOP_PATIENCE = 5
 
-saved_path = '/home/barcelona/pervinco/model/'
-time = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M") + '_keras2'
-weight_file_name = '{epoch:02d}-{val_accuracy:.2f}.hdf5'
+saved_path = '/data/backup/pervinco_2020/model/'
+time = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M") + '_keras'
+weight_file_name = '{epoch:02d}-{val_acc:.2f}.hdf5'
 
 if not (os.path.isdir(saved_path + DATASET_NAME + '/' + time)):
     os.makedirs(os.path.join(saved_path + DATASET_NAME + '/' + time))
 else:
     pass
 
-resnet_weights_path = '/home/barcelona/pervinco/source/weights/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
+resnet_weights_path = '/data/backup/pervinco_2020/source/weights/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
 
 model = tf.keras.models.Sequential()
-model.add(tf.keras.applications.ResNet50(include_top=False, pooling='avg', weights=None))
+model.add(tf.keras.applications.ResNet50(include_top=False, pooling='avg', weights=resnet_weights_path))
 model.add(tf.keras.layers.Dense(NUM_CLASSES, activation='softmax'))
 model.layers[0].trainable = True
 model.summary()
@@ -55,7 +66,7 @@ valid_generator = data_generator.flow_from_directory(valid_dir,
 cb_early_stopper = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=EARLY_STOP_PATIENCE)
 cb_checkpointer = tf.keras.callbacks.ModelCheckpoint(filepath=saved_path + DATASET_NAME + '/' +
                                                               time + '/' + weight_file_name,
-                                                     monitor='val_accuracy', save_best_only=True, mode='auto')
+                                                     monitor='val_acc', save_best_only=True, mode='auto')
 
 fit_history = model.fit(train_generator,
                         steps_per_epoch=train_generator.n / BATCH_SIZE,
