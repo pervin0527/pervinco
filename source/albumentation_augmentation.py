@@ -89,7 +89,6 @@ def show_splited_datasets(train_set, valid_set):
     plt.show()
     
 
-
 def show_aug_sampels(path):
     print("Show augmented image samples")
     imgs = glob.glob(path + '/*/*.jpg')
@@ -110,10 +109,38 @@ def show_aug_sampels(path):
 
     os.system('clear')
 
-     
+
+def aug_processing(data_set, output_path, is_train):
+    img_path = data_set['image_path'].sort_index()
+
+    if is_train == True:
+        output_path = output_path + '/train'
+
+    else:
+        output_path = output_path + '/valid'
+    
+    for img in img_path:
+        file_name = img.split('/')[-1]
+        class_name = img.split('/')[-2]
+
+        print(class_name, file_name)
+        image = cv2.imread(img)
+        aug = aug_options(p=1)
+
+        if not (os.path.isdir(output_path + '/' + class_name)):
+            os.makedirs(output_path + '/' + class_name)
+
+        else:
+            pass
+
+        idx = 0
+        for i in range(0, 10):
+            aug_img = apply_aug(aug, image)
+            cv2.imwrite(output_path + '/' + class_name + '/' + str(idx) + '_' + file_name , aug_img)
+
 if __name__ == "__main__":
     # Dataset Path define
-    path = '/data/backup/pervinco_2020/datasets/smart_shelf_beverage'
+    path = '/data/backup/pervinco_2020/datasets/test'
     dataset_name = path.split('/')[-1]
     output_path = '/data/backup/pervinco_2020/Auged_dataset/' + dataset_name
 
@@ -132,6 +159,11 @@ if __name__ == "__main__":
     img_df = pd.DataFrame(result, columns=['idx','label','image_path'])
     show_img_distribution(img_df)
 
-    # Split Train set, Validation set
+    # Split Train set, Validation set + Visualization
     train_set, test_set = train_test_split(img_df, test_size=0.2, shuffle=True)
     show_splited_datasets(train_set, test_set)
+
+    aug_processing(train_set, output_path, is_train=True)
+    aug_processing(test_set, output_path, is_train=False)
+
+    
