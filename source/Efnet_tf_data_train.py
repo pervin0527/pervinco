@@ -114,7 +114,7 @@ if __name__ == "__main__":
                                                          mode='auto')
 
     history = model.fit(train_ds,
-                        epochs=10,
+                        epochs=NUM_EPOCHS,
                         steps_per_epoch=TRAIN_STEP_PER_EPOCH,
                         shuffle=False,
                         validation_data=valid_ds,
