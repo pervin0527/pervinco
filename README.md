@@ -61,7 +61,8 @@
    - Source Code
      - [ResNet with Keras Imagedatagenerator](https://github.com/pervin0527/pervinco/blob/master/source/keras_resnet50_train.py)
      - [EfficientNet with tf.data](https://github.com/pervin0527/pervinco/blob/master/source/Efnet_tf_data_train.py)
-   
+     - [Test with Model](https://github.com/pervin0527/pervinco/blob/master/source/tf2_model_test.py)
+     - 
 ### 2. [Google Automl/EfficientDet Github](https://github.com/google/automl/tree/master/efficientdet)  
    
    - [Install, Pretrained_Inference, Train](https://pervin0527.github.io/efficientdet/)
