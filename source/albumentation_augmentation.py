@@ -22,20 +22,20 @@ def aug_options(p=1):
         Resize(224, 224),
 RandomCrop(224,224, p=0.5),  # 위에꺼랑 세트
         
-        OneOf([
-        RandomContrast(p=1, limit=(-0.5,2)),   # -0.5 ~ 2 까지가 현장과 가장 비슷함  -- RandomBrightnessContrast
-        RandomBrightness(p=1, limit=(-0.2,0.4)),
-        RandomGamma(p=1, gamma_limit=(80,200)),
-        ], p=0.6),
+        # OneOf([
+        # RandomContrast(p=1, limit=(-0.5,2)),   # -0.5 ~ 2 까지가 현장과 가장 비슷함  -- RandomBrightnessContrast
+        # RandomBrightness(p=1, limit=(-0.2,0.4)),
+        # RandomGamma(p=1, gamma_limit=(80,200)),
+        # ], p=0.6),
             
         OneOf([
-            Rotate(limit=30, p=0.3),
+            Rotate(limit=(180, 180), p=0.3),
             RandomRotate90(p=0.3),
-            VerticalFlip(p=0.3)
-        ], p=0.3),
+            # VerticalFlip(p=0.3)
+        ], p=0.5),
     
-        MotionBlur(p=0.2),   # 움직일때 흔들리는 것 같은 이미지
-        ShiftScaleRotate(shift_limit=0.001, scale_limit=0.1, rotate_limit=30, p=0.3, border_mode=1),
+        # MotionBlur(p=0.2),   # 움직일때 흔들리는 것 같은 이미지
+        ShiftScaleRotate(shift_limit=0.001, scale_limit=0.1, rotate_limit=180, p=0.3, border_mode=1),
         Resize(224,224, p=1),
         ],
         p=p)
@@ -92,14 +92,16 @@ def show_splited_datasets(train_set, valid_set):
 def show_aug_sampels(path):
     print("Show augmented image samples")
     imgs = glob.glob(path + '/*/*.jpg')
+    print(len(imgs))
     idx = random.randint(0, len(imgs))
 
     for i in range(0, 10):
         image = cv2.imread(imgs[idx])
+        image = cv2.resize(image, (224, 224))
         aug = aug_options(p=1)
         aug_img = apply_aug(aug, image)
 
-        numpy_horizontal = np.hstack((image, aug_img))
+        # numpy_horizontal = np.hstack((image, aug_img))
         numpy_horizontal_concat = np.concatenate((image, aug_img), axis=1)
         numpy_horizontal_concat = cv2.resize(numpy_horizontal_concat, (1280, 720))
 
@@ -107,7 +109,7 @@ def show_aug_sampels(path):
         cv2.waitKey(300)
     cv2.destroyAllWindows()
 
-    os.system('clear')
+    # os.system('clear')
 
 
 def aug_processing(data_set, output_path, is_train):
@@ -140,7 +142,7 @@ def aug_processing(data_set, output_path, is_train):
 
 if __name__ == "__main__":
     # Dataset Path define
-    path = '/data/backup/pervinco_2020/datasets/test'
+    path = '/data/backup/pervinco_2020/datasets/walkin_beverage'
     dataset_name = path.split('/')[-1]
     output_path = '/data/backup/pervinco_2020/Auged_dataset/' + dataset_name
 
@@ -163,7 +165,20 @@ if __name__ == "__main__":
     train_set, test_set = train_test_split(img_df, test_size=0.2, shuffle=True)
     show_splited_datasets(train_set, test_set)
 
-    aug_processing(train_set, output_path, is_train=True)
-    aug_processing(test_set, output_path, is_train=False)
+    show_aug_sampels(path)
 
-    
+    while True:
+        print("Start Aug Process??? Press y or n")
+        a = input()
+        
+        if a == 'y':
+            aug_processing(train_set, output_path, is_train=True)
+            aug_processing(test_set, output_path, is_train=False)
+            break
+
+        elif a == 'n':
+            break
+
+        else:
+            print("Please press y or n")
+            continue
