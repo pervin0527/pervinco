@@ -150,5 +150,5 @@
    - [Chapter 2](https://github.com/pervin0527/pervinco/blob/master/hands_on_ml_2/chapter2.ipynb)
 
 # InterMinds Projects
-  1. [Smart Checkout Table](https://github.com/pervin0527/pervinco/blob/master/SCO.md) - 2019.05 ~ 2019.12 Fin.
+  1. [Smart Checkout Table](https://pervin0527.github.io/SCO/) - 2019.05 ~ 2019.12 Fin.
   2. Smart Shelf - 2020.01 ~ This project is currently in progress.
