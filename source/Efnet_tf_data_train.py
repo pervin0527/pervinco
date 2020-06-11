@@ -150,4 +150,4 @@ if __name__ == "__main__":
     f = open(saved_path + dataset_name + '/' + time + '/README.txt', 'w')
     f.write(train_dataset_path + '\n')
     f.write(valid_dataset_path + '\n')
-    f.write("Model : " + , model_name)
+    f.write("Model : " +  model_name)
