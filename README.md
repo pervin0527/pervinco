@@ -61,8 +61,11 @@
    - Source Code
      - [ResNet with Keras Imagedatagenerator](https://github.com/pervin0527/pervinco/blob/master/source/keras_resnet50_train.py)
      - [EfficientNet with tf.data](https://github.com/pervin0527/pervinco/blob/master/source/Efnet_tf_data_train.py)
+       - **2020.06.11 UPDATE**
+         - Learning Rate Schedule Callback function Added
      - [Test with Model](https://github.com/pervin0527/pervinco/blob/master/source/tf2_model_test.py)
-     - 
+     
+ 
 ### 2. [Google Automl/EfficientDet Github](https://github.com/google/automl/tree/master/efficientdet)  
    
    - [Install, Pretrained_Inference, Train](https://pervin0527.github.io/efficientdet/)
@@ -78,33 +81,36 @@
       - [Albumentations Git_Repo](https://github.com/albumentations-team/albumentations)
       - [Albumentations API ](https://albumentations.readthedocs.io/en/latest/api/augmentations.html#module-albumentations.augmentations.functional)
       - [Source Code - albumentation_augmentation.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_augmentation.py)
+        - **2020.06.10 UPDATE**
+          - Dataset Visualization Function
     
-  - Note
-      - [What does mean p??](https://github.com/albumentations-team/albumentations/issues/586#issue-596422426)
+        - Note
+            - [What does mean p??](https://github.com/albumentations-team/albumentations/issues/586#issue-596422426)
 
-      - [What is CLAHE?](https://opencv-python.readthedocs.io/en/latest/doc/20.imageHistogramEqualization/imageHistogramEqualization.html#clahe-contrast-limited-adaptive-histogram-equalization)
-  -  Performance
-     Augmentation options
-     - Shift (limit=0.2)
-     - Rotate (range=360)
+            - [What is CLAHE?](https://opencv-python.readthedocs.io/en/latest/doc/20.imageHistogramEqualization/imageHistogramEqualization.html#clahe-contrast-limited-adaptive-histogram-equalization)
+            - 
+      -  Performance
+         Augmentation options
+         - Shift (limit=0.2)
+         - Rotate (range=360)
 
-     Tools | 100 augmented images per sec
-     ----- | ------------
-     Keras Aug | 0.02068s
-     Albumentation | 0.00211s
+         Tools | 100 augmented images per sec
+         ----- | ------------
+         Keras Aug | 0.02068s
+         Albumentation | 0.00211s
 
-     Albumentation is 9.8 times faster than Keras_augmentation.
+         Albumentation is 9.8 times faster than Keras_augmentation.
 
 ### 4. [Model Ensemble](https://pervin0527.github.io/ensemble/)
    - [Tensorflow keras Ensemble](https://www.tensorflow.org/guide/keras/functional)
    - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/assemble_train.py)
 
 ### 5. [Multi Label ImageClassification](https://pervin0527.github.io/multilabelclassification/)
-  - [Multi label classification](https://www.analyticsvidhya.com/blog/2019/04/build-first-multi-label-image-classification-model-python/)
+  - [Multi label classification Concept](https://www.analyticsvidhya.com/blog/2019/04/build-first-multi-label-image-classification-model-python/)
   - Source Code  
-    [Training](https://github.com/pervin0527/pervinco/blob/master/source/multi_label_train.py)  
-    [Predict](https://github.com/pervin0527/pervinco/blob/master/source/tf2_multi_label_predict.py)  
-    [Using tf.data training](https://github.com/pervin0527/pervinco/blob/master/source/tf2_multi_label_classification.py)
+     - [Training](https://github.com/pervin0527/pervinco/blob/master/source/multi_label_train.py)  
+     - [Predict](https://github.com/pervin0527/pervinco/blob/master/source/tf2_multi_label_predict.py)  
+     - [Using tf.data training](https://github.com/pervin0527/pervinco/blob/master/source/tf2_multi_label_classification.py)
 
 ### 6. [Tensorflow 2.x tf.data](https://pervin0527.github.io/tf2-data/)
 
@@ -144,4 +150,5 @@
    - [Chapter 2](https://github.com/pervin0527/pervinco/blob/master/hands_on_ml_2/chapter2.ipynb)
 
 # InterMinds Projects
-  1. [SmartCheckout Table](https://github.com/pervin0527/pervinco/blob/master/SCO.md) 2019.05 ~ 2019.12 Fin.
+  1. [Smart Checkout Table](https://github.com/pervin0527/pervinco/blob/master/SCO.md) - 2019.05 ~ 2019.12 Fin.
+  2. Smart Shelf - 2020.01 ~ This project is currently in progress.
