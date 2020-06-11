@@ -15,11 +15,14 @@ test_img_path = '/data/backup/pervinco_2020/datasets/' + dataset_name + '/test/*
 
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
-    try:
-        print("True")
-        tf.config.experimental.set_memory_growth(gpus[0], True)
-    except RuntimeError as e:
-        print(e)
+  # 텐서플로가 첫 번째 GPU에 1GB 메모리만 할당하도록 제한
+  try:
+    tf.config.experimental.set_virtual_device_configuration(
+        gpus[0],
+        [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=5000)])
+  except RuntimeError as e:
+    # 프로그램 시작시에 가상 장치가 설정되어야만 합니다
+    print(e)
 
 model = tf.keras.models.load_model(model_path)
 
@@ -33,10 +36,10 @@ for img in test_imgs:
     file_name = img.split('/')[-1]
     image = cv2.imread(img)
     image = cv2.resize(image, (224, 224))
-    image = cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
-    # image = preprocess_input(image)
-    image = preprocess_input(image)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     image = np.expand_dims(image, axis=0)
+    image = preprocess_input(image)
+    
 
     predictions = model.predict(image, steps=1)
     index = np.argmax(predictions[0])
