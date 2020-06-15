@@ -1,30 +1,18 @@
 # Environment + Installation
-|NAME|Version|Version|
-|------|---|---|
-|Ubuntu| 18.04 LTS |
-|Python|2.7|3.6|
-|Opencv|4.1.0|4.1.1|
-|Tensorflow|1.13.1|2.0.0|
-|Keras|2.2.4|2.3.1|
+ - Using Docker-Tensorflow
+   
+   1. [Tensorflow Docker](https://www.tensorflow.org/install/docker?hl=ko)
+   2. [Docker Hub Tensorflow](https://hub.docker.com/r/tensorflow/tensorflow/)
+   3. Install Tensorflow 2.1-gpu-py3-jupyter  
+   
+          docker pull tensorflow/tensorflow:2.1.0-gpu-py3-jupyter
 
 
- - python-opencv
+ - opencv-python
  
         pip install opencv-python
- 
- - Tensorflow 2.x
- 
-        pip install tensorflow 
- 
- - Tensorflow 1.x  
- 
-        pip install tensorflow==1.13.1
-        
+         
  - Keras
- 
-        pip install keras==2.2.4
-        
-      or
         
         pip install keras==2.3.1
 
