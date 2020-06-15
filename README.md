@@ -29,6 +29,7 @@
         pip install keras==2.3.1
 
   - EfficientNet [https://github.com/qubvel/efficientnet](https://github.com/qubvel/efficientnet)
+    ![](doc_imgs/efficientnet.png)
 
         sudo pip3 install -U git+https://github.com/qubvel/efficientnet
     install test
