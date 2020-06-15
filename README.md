@@ -142,3 +142,5 @@
 # InterMinds Projects
   1. [Smart Checkout Table](https://pervin0527.github.io/SCO/) - 2019.05 ~ 2019.12 Fin.
   2. Smart Shelf - 2020.01 ~ This project is currently in progress.
+
+# [Reference](https://github.com/pervin0527/pervinco/blob/master/reference.md)
