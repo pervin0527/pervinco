@@ -4,30 +4,39 @@ from tensorflow import keras
 import numpy as np
 import cv2
 import os
-from efficientnet.tfkeras import EfficientNetB0, preprocess_input
+from efficientnet.tfkeras import preprocess_input
 # from tensorflow.keras.applications.resnet50 import preprocess_input
 
+model_path = '/data/backup/pervinco_2020/model/total_split/2020.06.12_16:39_tf2/total_split.h5'
+# model_path = '/data/backup/pervinco_2020/model/walkin_beverage/2020.06.11_17:41_tf2/walkin_beverage.h5'
+# model_path = '/data/backup/pervinco_2020/model/beverage/best_model/softmax_beverage.h5'
 
-dataset_name = 'beverage'
-class_path = '/data/backup/pervinco_2020/datasets/' + dataset_name + '/train'
-model_path = '/data/backup/pervinco_2020/model/beverage/2020.06.09_11:42_tf2/efn_beverage.h5'
-test_img_path = '/data/backup/pervinco_2020/datasets/' + dataset_name + '/test/*.jpg'
+dataset_name = model_path.split('/')[-3]
+test_img_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/test/*.jpg'
+class_path = '/data/backup/pervinco_2020/datasets/' + dataset_name
+
+# gpus = tf.config.experimental.list_physical_devices('GPU')
+# if gpus:
+#   try:
+#     tf.config.experimental.set_virtual_device_configuration(
+#         gpus[0],
+#         [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=7000)])
+#   except RuntimeError as e:
+#     print(e)
 
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
-  # 텐서플로가 첫 번째 GPU에 1GB 메모리만 할당하도록 제한
   try:
-    tf.config.experimental.set_virtual_device_configuration(
-        gpus[0],
-        [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=5000)])
+    tf.config.experimental.set_memory_growth(gpus[0], True)
   except RuntimeError as e:
-    # 프로그램 시작시에 가상 장치가 설정되어야만 합니다
     print(e)
 
 model = tf.keras.models.load_model(model_path)
+model.summary()
 
 CLASS_NAMES = sorted(os.listdir(class_path))
 print(CLASS_NAMES)
+print(len(CLASS_NAMES))
 
 test_imgs = sorted(glob.glob(test_img_path))
 print(len(test_imgs))
