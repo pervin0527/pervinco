@@ -61,6 +61,7 @@
    - [Install, Pretrained_Inference, Train](https://pervin0527.github.io/efficientdet/)
    - [Train model inference](https://pervin0527.github.io/efficientdet2/)
 
+
 ### 3. Image Dataset Augmentation
    - Keras ImageDataGenerator  
      - [Tensorflow API - Generate batches of tensor image data with real-time data augmentation.](https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image/ImageDataGenerator?version=nightly)
@@ -78,7 +79,7 @@
             - [What does mean p??](https://github.com/albumentations-team/albumentations/issues/586#issue-596422426)
 
             - [What is CLAHE?](https://opencv-python.readthedocs.io/en/latest/doc/20.imageHistogramEqualization/imageHistogramEqualization.html#clahe-contrast-limited-adaptive-histogram-equalization)
-            - 
+  
       -  Performance
          Augmentation options
          - Shift (limit=0.2)
@@ -91,9 +92,11 @@
 
          Albumentation is 9.8 times faster than Keras_augmentation.
 
+
 ### 4. [Model Ensemble](https://pervin0527.github.io/ensemble/)
    - [Tensorflow keras Ensemble](https://www.tensorflow.org/guide/keras/functional)
    - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/assemble_train.py)
+
 
 ### 5. [Multi Label ImageClassification](https://pervin0527.github.io/multilabelclassification/)
   - [Multi label classification Concept](https://www.analyticsvidhya.com/blog/2019/04/build-first-multi-label-image-classification-model-python/)
@@ -102,17 +105,21 @@
      - [Predict](https://github.com/pervin0527/pervinco/blob/master/source/tf2_multi_label_predict.py)  
      - [Using tf.data training](https://github.com/pervin0527/pervinco/blob/master/source/tf2_multi_label_classification.py)
 
+
 ### 6. [Tensorflow 2.x tf.data](https://pervin0527.github.io/tf2-data/)
 
    - [Tutorial](https://gist.github.com/pervin0527/e9af4e0faab83243cb7f26990cac77f8)  
    - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/tf2_image_classification.py)
    - [Multi-label classification](https://pervin0527.github.io/tf2-data2/)
 
+
 ### 7. Plant_pathology from Kaggle
-   - [https://github.com/pervin0527/pervinco/blob/master/plant_pathology_2020.ipynb](https://github.com/pervin0527/pervinco/blob/master/plant_pathology_2020.ipynb)
+   - [Official](https://www.kaggle.com/tarunpaparaju/plant-pathology-2020-eda-models/)
+   - [Custom Training](https://github.com/pervin0527/pervinco/blob/master/plant_pathology_2020.ipynb)
    - Image data 분석에 좋은 예제
    - Visualization에 대한 참고
    - Dataset 구성에 따른 Tensorflow 적용 
+
 
 ### 8. Yolo v4
    - [Official](https://github.com/AlexeyAB/darknet)
