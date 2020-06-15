@@ -15,18 +15,19 @@ def set_gpu_option(which_gpu, fraction_memory):
 
 set_gpu_option("0", 0.8)
 
-DATASET_NAME = 'beverage'
+DATASET_NAME = 'total_split'
 MODEL_NAME = DATASET_NAME
+model_name = "ResNet50"
 
-train_dir = '/data/backup/pervinco_2020/Auged_dataset/' + DATASET_NAME + '/train'
-valid_dir = '/data/backup/pervinco_2020/Auged_dataset/' + DATASET_NAME + '/valid'
+train_dir = '/data/backup/pervinco_2020/Auged_datasets/' + DATASET_NAME + '/train_2'
+valid_dir = '/data/backup/pervinco_2020/Auged_datasets/' + DATASET_NAME + '/valid_2'
 NUM_CLASSES = len(glob.glob(train_dir + '/*'))
 
 CHANNELS = 3
 IMAGE_RESIZE = 224
-NUM_EPOCHS = 10
+NUM_EPOCHS = 30
 BATCH_SIZE = 32
-EARLY_STOP_PATIENCE = 5
+EARLY_STOP_PATIENCE = 3
 
 saved_path = '/data/backup/pervinco_2020/model/'
 time = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M") + '_keras'
@@ -77,3 +78,8 @@ fit_history = model.fit(train_generator,
                         callbacks=[cb_early_stopper, cb_checkpointer])
 
 model.save(saved_path + DATASET_NAME + '/' + time + '/' + MODEL_NAME + '.h5')
+
+f = open(saved_path + DATASET_NAME + '/' + time + '/README.txt', 'w')
+f.write(train_dir + '\n')
+f.write(valid_dir + '\n')
+f.write("Model : " + model_name)
