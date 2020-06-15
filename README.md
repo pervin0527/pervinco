@@ -1,9 +1,10 @@
 # Environment + Installation
- - Using Docker-Tensorflow
-   
-   1. [Tensorflow Docker](https://www.tensorflow.org/install/docker?hl=ko)
-   2. [Docker Hub Tensorflow](https://hub.docker.com/r/tensorflow/tensorflow/)
-   3. Install Tensorflow 2.1-gpu-py3-jupyter  
+ - Using Docker-Tensorflow  
+  
+   1. [Docker(Version : 19.03.11) Install Guide](https://pervin0527.github.io/docker/)
+   2. [Tensorflow Docker](https://www.tensorflow.org/install/docker?hl=ko)
+   3. [Docker Hub Tensorflow](https://hub.docker.com/r/tensorflow/tensorflow/)
+   4. Install Tensorflow 2.1-gpu-py3-jupyter  
    
           docker pull tensorflow/tensorflow:2.1.0-gpu-py3-jupyter
 
