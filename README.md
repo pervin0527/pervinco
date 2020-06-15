@@ -108,7 +108,8 @@
    - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/tf2_image_classification.py)
    - [Multi-label classification](https://pervin0527.github.io/tf2-data2/)
 
-### 7. [plant_pathology](https://github.com/pervin0527/pervinco/blob/master/plant_pathology_2020.ipynb)
+### 7. Plant_pathology from Kaggle
+   - [https://github.com/pervin0527/pervinco/blob/master/plant_pathology_2020.ipynb](https://github.com/pervin0527/pervinco/blob/master/plant_pathology_2020.ipynb)
    - Image data 분석에 좋은 예제
    - Visualization에 대한 참고
    - Dataset 구성에 따른 Tensorflow 적용 
