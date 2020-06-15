@@ -1,29 +1,25 @@
-# Reference topic
- 1. [MarkDown](https://heropy.blog/2017/09/30/markdown/)
-    - [make table](https://steemit.com/kr/@antares007/-201787t14245290z)
+# DL Reference Site
 
- 2. [Git hub Blog](https://devinlife.com/howto%20github%20pages/new-pages/)
- 
- 3. [Docker Guide](https://programmingsummaries.tistory.com/391)
-
- 4. SUALAB Reaserch Blog
+ 1. SUALAB Reaserch Blog
     - [https://research.sualab.com/](https://research.sualab.com/)
     - [https://hoya012.github.io/](https://hoya012.github.io/)
     - [Bag of Tricks for Image Classification with CNN](https://hoya012.github.io/blog/Bag-of-Tricks-for-Image-Classification-with-Convolutional-Neural-Networks-Review/)
     - [CutMix](https://arxiv.org/pdf/1905.04899.pdf)
 
- 5. [DATA RABBIT](https://flonelin.wordpress.com/)
+ 2. [DATA RABBIT](https://flonelin.wordpress.com/)
 
- 6. [PaperwithCode - Trending Research](https://www.paperswithcode.com/?fbclid=IwAR19b6ZIyTziVRwT1-XhNrNMwkfVGI63IdY52BFoYL5xVO1UTeQ0Wn68J4c)
+ 3. [PaperwithCode - Trending Research](https://www.paperswithcode.com/?fbclid=IwAR19b6ZIyTziVRwT1-XhNrNMwkfVGI63IdY52BFoYL5xVO1UTeQ0Wn68J4c)
 
- 7. [Google Developers Blog](https://developers-kr.googleblog.com/)
+ 4. [Google Developers Blog](https://developers-kr.googleblog.com/)
     -[About Bit](https://developers-kr.googleblog.com/2020/06/open-sourcing-bit-exploring-large-scale.html)
     - [BiT Git-hub](https://github.com/google-research/big_transfer)
 
-8. [Reddit - Machine Learning](https://www.reddit.com/r/MachineLearning/)
+ 5. [Reddit - Machine Learning](https://www.reddit.com/r/MachineLearning/)
+
+ 6. [Facebook AI Blog](https://ai.facebook.com/blog/)
 
 
-# Additional Topics
+# Additional DL Topics
 ### 1. GAN for make more data
    - http://research.sualab.com/introduction/practice/2019/05/08/generative-adversarial-network.html
   
@@ -66,3 +62,11 @@
  - [Kakao Arena](https://arena.kakao.com/)
  - [DACON](https://dacon.io/)
  - [Programmers](https://programmers.co.kr/competitions)
+
+# ETC Refer
+ 1. [MarkDown](https://heropy.blog/2017/09/30/markdown/)
+    - [make table](https://steemit.com/kr/@antares007/-201787t14245290z)
+
+ 2. [Git hub Blog](https://devinlife.com/howto%20github%20pages/new-pages/)
+ 
+ 3. [Docker Guide](https://programmingsummaries.tistory.com/391)
