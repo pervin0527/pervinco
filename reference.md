@@ -20,6 +20,8 @@
     -[About Bit](https://developers-kr.googleblog.com/2020/06/open-sourcing-bit-exploring-large-scale.html)
     - [BiT Git-hub](https://github.com/google-research/big_transfer)
 
+8. [Reddit - Machine Learning](https://www.reddit.com/r/MachineLearning/)
+
 
 # Additional Topics
 ### 1. GAN for make more data
@@ -53,6 +55,10 @@
     - [It is doubtful]( https://towardsdatascience.com/cityscape-segmentation-with-tensorflow-2-0-b320b6605cbf)
 
     - [Tensorflow 1.x](http://research.sualab.com/practice/2018/11/23/image-segmentation-deep-learning.html)
+
+### 4. TUNIT
+   - Git-Hub : [https://github.com/clovaai/tunit?fbclid=IwAR072Dj6pqgP9fTXdHxUSMELGRg-HlTINDffQ-xPkEiWHe4SS8gA5ZljwBc](https://github.com/clovaai/tunit?fbclid=IwAR072Dj6pqgP9fTXdHxUSMELGRg-HlTINDffQ-xPkEiWHe4SS8gA5ZljwBc)
+   - ArXiv : [https://arxiv.org/abs/2006.06500](https://arxiv.org/abs/2006.06500)
 
 
 # Challenge
