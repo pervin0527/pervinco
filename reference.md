@@ -6,7 +6,9 @@
  
  3. [Docker Guide](https://programmingsummaries.tistory.com/391)
 
- 4. [SUALAB Reaserch Blog](https://research.sualab.com/)
+ 4. SUALAB Reaserch Blog
+    - [https://research.sualab.com/](https://research.sualab.com/)
+    - [https://hoya012.github.io/](https://hoya012.github.io/)
     - [Bag of Tricks for Image Classification with CNN](https://hoya012.github.io/blog/Bag-of-Tricks-for-Image-Classification-with-Convolutional-Neural-Networks-Review/)
     - [CutMix](https://arxiv.org/pdf/1905.04899.pdf)
 
