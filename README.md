@@ -108,10 +108,22 @@
    - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/tf2_image_classification.py)
    - [Multi-label classification](https://pervin0527.github.io/tf2-data2/)
 
-### 8. [plant_pathology](https://github.com/pervin0527/pervinco/blob/master/plant_pathology_2020.ipynb)
+### 7. [plant_pathology](https://github.com/pervin0527/pervinco/blob/master/plant_pathology_2020.ipynb)
    - Image data 분석에 좋은 예제
    - Visualization에 대한 참고
    - Dataset 구성에 따른 Tensorflow 적용 
+
+### 8. Yolo v4
+   - [Official](https://github.com/AlexeyAB/darknet)
+     - [Requirements](https://github.com/AlexeyAB/darknet#requirements)
+     - [Compile using make](https://github.com/AlexeyAB/darknet#how-to-compile-on-linux-using-make)
+     - Demo  
+    
+           ./darknet detector test cfg/coco.data cfg/yolov4.cfg yolov4.weights -thresh 0.25
+
+     - [How to Train](https://github.com/AlexeyAB/darknet#how-to-train-to-detect-your-custom-objects)
+
+  - [How to Use + Codes](https://pervin0527.github.io/YOLOv4/)
 
 
 # Resource
