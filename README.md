@@ -72,14 +72,20 @@
    - Albumentation  
       - [Albumentations Git_Repo](https://github.com/albumentations-team/albumentations)
       - [Albumentations API ](https://albumentations.readthedocs.io/en/latest/api/augmentations.html#module-albumentations.augmentations.functional)
-      - [Source Code - albumentation_augmentation.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_augmentation.py)
-        - **2020.06.10 UPDATE**
-          - Dataset Visualization Function
-    
-        - Note
-            - [What does mean p??](https://github.com/albumentations-team/albumentations/issues/586#issue-596422426)
+      - [Source Code - albumentation_aug1.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug1.py)  
+        클래스마다 전체 이미지에 for 루프를 통한 Augmentation 진행.
 
-            - [What is CLAHE?](https://opencv-python.readthedocs.io/en/latest/doc/20.imageHistogramEqualization/imageHistogramEqualization.html#clahe-contrast-limited-adaptive-histogram-equalization)
+      - **2020.06.10 UPDATE**
+        - Dataset Visualization Function
+
+      - **2020.06.22 UPDATE**
+          -  [Source Code - albumentation_aug2.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug2.py)  
+        사용자가 입력한 총 갯수 만큼 클래스마다 이미지 Augmentation. ex)클래스당 3000장이 필요한 경우 
+    
+      - Note
+          - [What does mean p??](https://github.com/albumentations-team/albumentations/issues/586#issue-596422426)
+
+          - [What is CLAHE?](https://opencv-python.readthedocs.io/en/latest/doc/20.imageHistogramEqualization/imageHistogramEqualization.html#clahe-contrast-limited-adaptive-histogram-equalization)
   
       -  Performance
          Augmentation options
