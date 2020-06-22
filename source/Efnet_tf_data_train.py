@@ -81,9 +81,9 @@ def build_lrfn(lr_start=0.00001, lr_max=0.00005,
 
 if __name__ == "__main__":
     model_name = "EfficientNet-B1"
-    dataset_name = 'walkin_beverage'
-    train_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/train_3'
-    valid_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/valid_3'
+    dataset_name = 'final_pog_list_cls_data_noise'
+    train_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/train'
+    valid_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/valid'
 
     train_images, train_labels, train_images_len, train_labels_len = basic_processing(train_dataset_path, True)
     valid_images, valid_labels, valid_images_len, valid_labels_len = basic_processing(valid_dataset_path, False)
@@ -150,4 +150,4 @@ if __name__ == "__main__":
     f = open(saved_path + dataset_name + '/' + time + '/README.txt', 'w')
     f.write(train_dataset_path + '\n')
     f.write(valid_dataset_path + '\n')
-    f.write("Model : " +  model_name)
+    f.write("Model : " + model_name)
