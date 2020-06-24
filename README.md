@@ -73,7 +73,7 @@
       - [Albumentations Git_Repo](https://github.com/albumentations-team/albumentations)
       - [Albumentations API ](https://albumentations.readthedocs.io/en/latest/api/augmentations.html#module-albumentations.augmentations.functional)
       - [Source Code - albumentation_aug1.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug1.py)  
-          - Just simple iteration per image.
+          - Augmentation is performed by using a loop on each image in the class.
 
           - Before applying augmentation.  number of seed images
           ![](doc_imgs/alb_graph1.png)  
