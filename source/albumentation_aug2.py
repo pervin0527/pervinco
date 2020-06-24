@@ -23,20 +23,21 @@ def aug_options(p=1):
 RandomCrop(224,224, p=0.5),  # 위에꺼랑 세트
         
         OneOf([
-        RandomContrast(p=1, limit=(-0.5,1)),   # -0.5 ~ 2 까지가 현장과 가장 비슷함  -- RandomBrightnessContrast
-        RandomBrightness(p=1, limit=(-0.2,0.1)),
+        # RandomContrast(p=1, limit=(-0.5,1)),   # -0.5 ~ 2 까지가 현장과 가장 비슷함  -- RandomBrightnessContrast
+        # RandomBrightness(p=1, limit=(-0.2,0.1)),
         # RandomGamma(p=1, gamma_limit=(80,200)),
         ], p=0.6),
             
         OneOf([
-            Rotate(limit=(180, 180), p=0.3),
-            RandomRotate90(p=0.3),
-            VerticalFlip(p=0.3),
-            MotionBlur(p=0.1)
+            # Rotate(limit=(180, 180), p=0.3),
+            # RandomRotate90(p=0.3),
+            # VerticalFlip(p=0.4),
+            HorizontalFlip(p=0.4)
+            # MotionBlur(p=0.1)
         ], p=0.5),
     
         # MotionBlur(p=0.2),   # 움직일때 흔들리는 것 같은 이미지
-        ShiftScaleRotate(shift_limit=0.001, scale_limit=0.1, rotate_limit=180, p=0.3, border_mode=1),
+        # ShiftScaleRotate(shift_limit=0.001, scale_limit=0.1, rotate_limit=180, p=0.3, border_mode=1),
         Resize(224,224, p=1),
         ],
         p=p)
@@ -120,10 +121,10 @@ def aug_processing(data_set, output_path, aug_num, is_train):
     img_path = data_set['image_path'].sort_index()
 
     if is_train == True:
-        output_path = output_path + '/train_test'
+        output_path = output_path + '/train'
 
     else:
-        output_path = output_path + '/valid_test'
+        output_path = output_path + '/valid'
     
     for img in img_path:
         file_name = img.split('/')[-1]
@@ -146,11 +147,30 @@ def aug_processing(data_set, output_path, aug_num, is_train):
 
         else:
             pass
+
+    return output_path
                 
+
+def make_df(path):
+    result = []
+    idx = 0
+    label_list = sorted(os.listdir(path))
+
+    for label in label_list:
+        file_list = glob.glob(os.path.join(path,label,'*'))
+        
+        for file in file_list:
+            result.append([idx, label, file])
+            idx += 1
+            
+    img_df = pd.DataFrame(result, columns=['idx','label','image_path'])
+
+    return img_df
+
 
 if __name__ == "__main__":
     # Dataset Path define
-    path = '/data/backup/pervinco_2020/datasets/empty'
+    path = '/data/backup/pervinco_2020/datasets/test'
     dataset_name = path.split('/')[-1]
     output_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name
 
@@ -182,8 +202,14 @@ if __name__ == "__main__":
         if a == 'y':
             print('How many augmentation do you want?')
             aug_num = float(input())
-            aug_processing(train_set, output_path, int(aug_num), is_train=True)
-            aug_processing(test_set, output_path, int(aug_num * 0.2), is_train=False)
+
+            output_train = aug_processing(train_set, output_path, int(aug_num), is_train=True)
+            output_train_df = make_df(output_train)
+
+            output_valid = aug_processing(test_set, output_path, int(aug_num * 0.2), is_train=False)
+            output_valid_df = make_df(output_valid)
+
+            show_splited_datasets(output_train_df, output_valid_df)
             break
 
         elif a == 'n':

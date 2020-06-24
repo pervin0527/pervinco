@@ -22,16 +22,17 @@ def aug_options(p=1):
         Resize(224, 224),
 RandomCrop(224,224, p=0.5),  # 위에꺼랑 세트
         
-        # OneOf([
-        # RandomContrast(p=1, limit=(-0.5,2)),   # -0.5 ~ 2 까지가 현장과 가장 비슷함  -- RandomBrightnessContrast
-        # RandomBrightness(p=1, limit=(-0.2,0.4)),
+        OneOf([
+        RandomContrast(p=1, limit=(-0.5,1)),   # -0.5 ~ 2 까지가 현장과 가장 비슷함  -- RandomBrightnessContrast
+        RandomBrightness(p=1, limit=(-0.2,0.1)),
         # RandomGamma(p=1, gamma_limit=(80,200)),
-        # ], p=0.6),
+        ], p=0.6),
             
         OneOf([
             Rotate(limit=(180, 180), p=0.3),
             RandomRotate90(p=0.3),
-            # VerticalFlip(p=0.3)
+            VerticalFlip(p=0.3),
+            MotionBlur(p=0.1)
         ], p=0.5),
     
         # MotionBlur(p=0.2),   # 움직일때 흔들리는 것 같은 이미지
@@ -49,7 +50,7 @@ def apply_aug(aug, image):
 def show_img_distribution(img_df):
     print(img_df)
     print(img_df['label'].value_counts().sort_index())
-
+    print("Min : ", img_df['label'].value_counts().min())
     # plt.figure(figsize=(14, 6))
     img_df['label'].value_counts().sort_index().plot.barh(figsize=(14,10), title='Num of images Distribution')
     plt.xlabel('NUM OF IMAGES')
@@ -57,6 +58,7 @@ def show_img_distribution(img_df):
     plt.show()
 
     os.system("clear")
+
 
 def show_splited_datasets(train_set, valid_set):
     labels = train_set['label'].sort_index()
@@ -87,15 +89,17 @@ def show_splited_datasets(train_set, valid_set):
 
     df.plot.barh(title='Num of images Distribution', figsize=(14, 10))
     plt.show()
+
+    os.system("clear")
     
 
 def show_aug_sampels(path):
     print("Show augmented image samples")
     imgs = glob.glob(path + '/*/*.jpg')
-    print(len(imgs))
+    # print(len(imgs))
     idx = random.randint(0, len(imgs))
 
-    for i in range(0, 10):
+    for i in range(0, 30):
         image = cv2.imread(imgs[idx])
         image = cv2.resize(image, (224, 224))
         aug = aug_options(p=1)
@@ -136,15 +140,35 @@ def aug_processing(data_set, output_path, is_train):
             pass
 
         idx = 0
-        for i in range(0, 10):
+        for i in range(0, 2):
             aug_img = apply_aug(aug, image)
             cv2.imwrite(output_path + '/' + class_name + '/' + str(idx) + '_' + file_name , aug_img)
+            idx+=1
+
+    return output_path
+
+
+def make_df(path):
+    result = []
+    idx = 0
+    label_list = sorted(os.listdir(path))
+
+    for label in label_list:
+        file_list = glob.glob(os.path.join(path,label,'*'))
+        
+        for file in file_list:
+            result.append([idx, label, file])
+            idx += 1
+            
+    img_df = pd.DataFrame(result, columns=['idx','label','image_path'])
+
+    return img_df
 
 if __name__ == "__main__":
     # Dataset Path define
-    path = '/data/backup/pervinco_2020/datasets/walkin_beverage'
+    path = '/data/backup/pervinco_2020/datasets/test'
     dataset_name = path.split('/')[-1]
-    output_path = '/data/backup/pervinco_2020/Auged_dataset/' + dataset_name
+    output_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name
 
     # Dataset Load & visualization
     result = []
@@ -172,8 +196,14 @@ if __name__ == "__main__":
         a = input()
         
         if a == 'y':
-            aug_processing(train_set, output_path, is_train=True)
-            aug_processing(test_set, output_path, is_train=False)
+            output_train = aug_processing(train_set, output_path, is_train=True)
+            output_train_df = make_df(output_train)
+
+            output_valid = aug_processing(test_set, output_path, is_train=False)
+            output_valid_df = make_df(output_valid)
+
+
+            show_splited_datasets(output_train_df, output_valid_df)
             break
 
         elif a == 'n':
