@@ -73,17 +73,17 @@
       - [Albumentations Git_Repo](https://github.com/albumentations-team/albumentations)
       - [Albumentations API ](https://albumentations.readthedocs.io/en/latest/api/augmentations.html#module-albumentations.augmentations.functional)
       - [Source Code - albumentation_aug1.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug1.py)  
-          - 클래스마다 전체 이미지에 loop를 통한 Augmentation 진행.
+          - Just simple iteration per image.
 
-          - Augmentation 하기 전. Seed Image 수
-            ![](doc_imgs/alb_graph1.png)  
-            ![](doc_imgs/alb_graph2.png)
+          - Before applying augmentation.  number of seed images
+          ![](doc_imgs/alb_graph1.png)  
+          ![](doc_imgs/alb_graph2.png)
 
-          - Augmentation 적용 후. 증가된 Image dataset 수
-            ![](doc_imgs/alb_graph3.png) 
+          - After applying augmentation.
+          ![](doc_imgs/alb_graph3.png) 
 
       -  [Source Code - albumentation_aug2.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug2.py)  
-          - 사용자가 입력한 총 갯수 만큼 클래스마다 Image Augmentation. ex) class당 3000장이 필요한 경우
+          - The number of images in classes are same as the number entered by the user.
             ![](doc_imgs/alb_graph4.png)  
     
       - Note
