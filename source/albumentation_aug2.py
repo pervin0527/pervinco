@@ -58,7 +58,7 @@ def show_img_distribution(img_df):
     plt.ylabel('CLASS_NAMES')
     plt.show()
 
-    # os.system("clear")
+    os.system("clear")
 
 
 def show_splited_datasets(train_set, valid_set):
@@ -91,7 +91,7 @@ def show_splited_datasets(train_set, valid_set):
     df.plot.barh(title='Num of images Distribution', figsize=(14, 10))
     plt.show()
 
-    # os.system("clear")
+    os.system("clear")
     
 
 def show_aug_sampels(path):
@@ -99,11 +99,11 @@ def show_aug_sampels(path):
     imgs = glob.glob(path + '/*/*.jpg')
     # print(len(imgs))
     idx = random.randint(0, len(imgs))
+    aug = aug_options(p=1)
 
     for i in range(0, 30):
         image = cv2.imread(imgs[idx])
         image = cv2.resize(image, (224, 224))
-        aug = aug_options(p=1)
         aug_img = apply_aug(aug, image)
 
         # numpy_horizontal = np.hstack((image, aug_img))
@@ -114,13 +114,16 @@ def show_aug_sampels(path):
         cv2.waitKey(300)
     cv2.destroyAllWindows()
 
-    # os.system('clear')
+    os.system('clear')
 
 
 def aug_processing(data_set, label_list, output_path, aug_num, is_train):
     img_path = data_set['image_path'].sort_index()
-    # print(img_path)
+    labels = data_set['label'].value_counts().sort_index()
 
+    # print(img_path)
+    # print(labels)
+    
     if is_train == True:
         output_path = output_path + '/train'
 
@@ -128,7 +131,11 @@ def aug_processing(data_set, label_list, output_path, aug_num, is_train):
         output_path = output_path + '/valid'
 
     for path in img_path:
+        file_name = path.split('/')[-1]
         label = path.split('/')[-2]
+        avg = int(round(aug_num / labels[label]))
+
+        aug = aug_options(p=1)
         image = cv2.imread(path)
 
         if not(os.path.isdir(output_path + '/' + label)):
@@ -140,17 +147,9 @@ def aug_processing(data_set, label_list, output_path, aug_num, is_train):
         num_of_imgs = len(glob.glob(output_path + '/' + label + '/*.jpg'))
         today = datetime.today().strftime('%Y-%m-%d-%H:%M:%S')
 
-        if num_of_imgs <= aug_num:
-            idx = random.randint(1, 100)
-            cnt = 0
-            for i in range(idx):
-                aug = aug_options(p=1)
-                aug_img = apply_aug(aug, image)
-                cv2.imwrite(output_path + '/' + label + '/' + today + '_' + str(cnt) + '.jpg', aug_img)
-                cnt+=1
-
-        else:
-            pass
+        for i in range(avg):
+            aug_img = apply_aug(aug, image)
+            cv2.imwrite(output_path + '/' + label + '/' + file_name + '_' + str(i) + '.jpg', aug_img)
 
             
     return output_path
@@ -200,7 +199,7 @@ if __name__ == "__main__":
     train_set, test_set = train_test_split(img_df, test_size=0.2, shuffle=True)
     show_splited_datasets(train_set, test_set)
 
-    # show_aug_sampels(path)
+    show_aug_sampels(path)
 
     while True:
         print("Start Aug Process??? Press y or n")
