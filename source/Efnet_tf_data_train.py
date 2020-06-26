@@ -81,7 +81,7 @@ def build_lrfn(lr_start=0.00001, lr_max=0.00005,
 
 if __name__ == "__main__":
     model_name = "EfficientNet-B1"
-    dataset_name = 'final_pog_list_cls_data_noise'
+    dataset_name = 'final_pog_list_cls_data_ver4'
     train_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/train'
     valid_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/valid'
 
@@ -113,7 +113,7 @@ if __name__ == "__main__":
     valid_ds = valid_ds.prefetch(1)
 
     base_model = EfficientNetB1(input_shape=(IMG_SIZE, IMG_SIZE, 3),
-                                weights="imagenet",
+                                weights="imagenet", # noisy-student
                                 include_top=False)
     avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
     output = tf.keras.layers.Dense(train_labels_len, activation="softmax")(avg)
