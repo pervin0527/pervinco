@@ -17,28 +17,33 @@ from albumentations import (
     IAASharpen, IAAEmboss, Flip, OneOf, Compose, Rotate, RandomContrast, RandomBrightness, RandomCrop, Resize, OpticalDistortion
 )
 
+IMG_RESIZE = 512
 
 def aug_options(p=1):
     return Compose([
-        Resize(224, 224),
-RandomCrop(224,224, p=0.5),  # 위에꺼랑 세트
+        # Resize(IMG_RESIZE, IMG_RESIZE),
+
+        # RandomCrop(IMG_RESIZE, IMG_RESIZE, p=0.5),  # 위에꺼랑 세트
         
         OneOf([
         RandomContrast(p=1, limit=(-0.5,1)),   # -0.5 ~ 2 까지가 현장과 가장 비슷함  -- RandomBrightnessContrast
         RandomBrightness(p=1, limit=(-0.2,0.1)),
-        # RandomGamma(p=1, gamma_limit=(80,200)),
         ], p=0.6),
             
         OneOf([
             Rotate(limit=(180, 180), p=0.3),
             RandomRotate90(p=0.3),
             VerticalFlip(p=0.3),
-            MotionBlur(p=0.1)
         ], p=0.5),
-    
-        # MotionBlur(p=0.2),   # 움직일때 흔들리는 것 같은 이미지
+
+        OneOf([
+            IAASharpen(alpha=(0.2, 0.5), lightness=(0.1, 0.5), always_apply=False, p=0.5),
+            MotionBlur(p=0.1),
+            HorizontalFlip(p=0.4)
+        ], p=0.5),
+
         ShiftScaleRotate(shift_limit=0.001, scale_limit=0.1, rotate_limit=180, p=0.3, border_mode=1),
-        Resize(224,224, p=1),
+        Resize(IMG_RESIZE, IMG_RESIZE, p=1),
         ],
         p=p)
 
@@ -103,12 +108,12 @@ def show_aug_sampels(path):
 
     for i in range(0, 30):
         image = cv2.imread(imgs[idx])
-        image = cv2.resize(image, (224, 224))
+        image = cv2.resize(image, (IMG_RESIZE, IMG_RESIZE))
         aug_img = apply_aug(aug, image)
 
         # numpy_horizontal = np.hstack((image, aug_img))
         numpy_horizontal_concat = np.concatenate((image, aug_img), axis=1)
-        numpy_horizontal_concat = cv2.resize(numpy_horizontal_concat, (1280, 720))
+        # numpy_horizontal_concat = cv2.resize(numpy_horizontal_concat, (1280, 720))
 
         cv2.imshow('Original / Augmentation', numpy_horizontal_concat)
         cv2.waitKey(300)

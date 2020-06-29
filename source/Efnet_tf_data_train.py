@@ -10,6 +10,11 @@ from efficientnet.tfkeras import EfficientNetB1, preprocess_input
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 strategy = tf.distribute.experimental.CentralStorageStrategy()
 
+BATCH_SIZE = 32
+IMG_SIZE = 224
+NUM_EPOCHS = 30
+EARLY_STOP_PATIENCE = 3
+
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
     try:
@@ -38,7 +43,7 @@ def basic_processing(ds_path, is_training):
 
 def preprocess_image(image):
     image = tf.image.decode_jpeg(image, channels=3)
-    image = tf.image.resize(image, [224, 224])
+    image = tf.image.resize(image, [IMG_SIZE, IMG_SIZE])
     image = preprocess_input(image)
 
     return image
@@ -88,10 +93,6 @@ if __name__ == "__main__":
     train_images, train_labels, train_images_len, train_labels_len = basic_processing(train_dataset_path, True)
     valid_images, valid_labels, valid_images_len, valid_labels_len = basic_processing(valid_dataset_path, False)
 
-    BATCH_SIZE = 32
-    IMG_SIZE = 224
-    NUM_EPOCHS = 30
-    EARLY_STOP_PATIENCE = 3
     TRAIN_STEP_PER_EPOCH = int(tf.math.ceil(train_images_len / BATCH_SIZE).numpy())
     VALID_STEP_PER_EPOCH = int(tf.math.ceil(valid_images_len / BATCH_SIZE).numpy())
 
@@ -151,3 +152,4 @@ if __name__ == "__main__":
     f.write(train_dataset_path + '\n')
     f.write(valid_dataset_path + '\n')
     f.write("Model : " + model_name)
+    f.close()
