@@ -54,6 +54,8 @@
        - **2020.06.11 UPDATE**
          - Learning Rate Schedule Callback function Added
      - [Test with Model](https://github.com/pervin0527/pervinco/blob/master/source/tf2_model_test.py)
+     - **2020. 06.29 UPDATE**
+       - [Train with Multi_GPU](https://github.com/pervin0527/pervinco/blob/master/source/Efnet_multi_gpu_train.py)
      
  
 ### 2. Google Automl/EfficientDet  
