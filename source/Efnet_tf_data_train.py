@@ -5,7 +5,7 @@ import random
 import os
 import datetime
 import time
-from efficientnet.tfkeras import EfficientNetB1, preprocess_input
+from efficientnet.tfkeras import EfficientNetB3, preprocess_input
 
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 strategy = tf.distribute.experimental.CentralStorageStrategy()
@@ -94,7 +94,7 @@ def build_lrfn(lr_start=0.00001, lr_max=0.00005,
 
 
 if __name__ == "__main__":
-    model_name = "EfficientNet-B1"
+    model_name = "EfficientNet-B3"
     dataset_name = 'final_pog_list_cls_data_ver4'
     train_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/train'
     valid_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/valid'
@@ -124,11 +124,11 @@ if __name__ == "__main__":
     valid_ds = make_tf_dataset(valid_images, valid_labels)
 
     train_ds = train_ds.repeat().batch(BATCH_SIZE)
-    train_ds = train_ds.prefetch(1)
+    train_ds = train_ds.prefetch(AUTOTUNE)
     valid_ds = valid_ds.repeat().batch(BATCH_SIZE)
-    valid_ds = valid_ds.prefetch(1)
+    valid_ds = valid_ds.prefetch(AUTOTUNE)
 
-    base_model = EfficientNetB1(input_shape=(IMG_SIZE, IMG_SIZE, 3),
+    base_model = EfficientNetB3(input_shape=(IMG_SIZE, IMG_SIZE, 3),
                                 weights="imagenet", # noisy-student
                                 include_top=False)
     avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
