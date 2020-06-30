@@ -8,8 +8,6 @@ from efficientnet.tfkeras import preprocess_input
 # from tensorflow.keras.applications.resnet50 import preprocess_input
 
 model_path = '/data/backup/pervinco_2020/model/total_split/2020.06.12_16:39_tf2/total_split.h5'
-# model_path = '/data/backup/pervinco_2020/model/walkin_beverage/2020.06.11_17:41_tf2/walkin_beverage.h5'
-# model_path = '/data/backup/pervinco_2020/model/beverage/best_model/softmax_beverage.h5'
 
 dataset_name = model_path.split('/')[-3]
 test_img_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/test/*.jpg'

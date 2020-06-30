@@ -22,6 +22,15 @@ if gpus:
     except RuntimeError as e:
         print(e)
 
+# gpus = tf.config.experimental.list_physical_devices('GPU')
+# if gpus:
+#   try:
+#     tf.config.experimental.set_virtual_device_configuration(
+#         gpus[0],
+#         [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=9000)])
+#   except RuntimeError as e:
+#     print(e)
+
 def basic_processing(ds_path, is_training):
     ds_path = pathlib.Path(ds_path)
 
@@ -102,6 +111,12 @@ if __name__ == "__main__":
 
     if not(os.path.isdir(saved_path + dataset_name + '/' + time)):
         os.makedirs(os.path.join(saved_path + dataset_name + '/' + time))
+        f = open(saved_path + dataset_name + '/' + time + '/README.txt', 'w')
+        f.write(train_dataset_path + '\n')
+        f.write(valid_dataset_path + '\n')
+        f.write("Model : " + model_name)
+        f.close()
+        
     else:
         pass
 
@@ -147,9 +162,3 @@ if __name__ == "__main__":
                         callbacks=[cb_early_stopper, cb_checkpointer, lr_schedule])
 
     model.save(saved_path + dataset_name + '/' + time + '/' + dataset_name + '.h5')
-
-    f = open(saved_path + dataset_name + '/' + time + '/README.txt', 'w')
-    f.write(train_dataset_path + '\n')
-    f.write(valid_dataset_path + '\n')
-    f.write("Model : " + model_name)
-    f.close()
