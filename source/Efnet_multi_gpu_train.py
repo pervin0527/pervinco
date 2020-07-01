@@ -4,10 +4,9 @@ import pathlib
 import random
 import os
 import datetime
+import json
 import time
-from efficientnet.tfkeras import EfficientNetB5, preprocess_input
-
-AUTOTUNE = tf.data.experimental.AUTOTUNE
+from efficientnet.tfkeras import EfficientNetB3, preprocess_input
 
 def basic_processing(ds_path, is_training):
     ds_path = pathlib.Path(ds_path)
@@ -71,81 +70,91 @@ def build_lrfn(lr_start=0.00001, lr_max=0.00005,
     return lrfn
 
 
-if __name__ == "__main__":
-    model_name = "EfficientNet-B5"
-    dataset_name = 'final_pog_list_cls_data_ver4'
-    train_dataset_path = './datasets/' + dataset_name + '/train_2'
-    valid_dataset_path = './datasets/' + dataset_name + '/valid_2'
+def build_model():
+    base_model = EfficientNetB3(input_shape=(IMG_SIZE, IMG_SIZE, 3),
+                                weights="imagenet", # noisy-student
+                                include_top=False)
+    avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
+    output = tf.keras.layers.Dense(train_labels_len, activation="softmax")(avg)
+    model = tf.keras.Model(inputs=base_model.input, outputs=output)
 
-    train_images, train_labels, train_images_len, train_labels_len = basic_processing(train_dataset_path, True)
-    valid_images, valid_labels, valid_images_len, valid_labels_len = basic_processing(valid_dataset_path, False)
+    for layer in base_model.layers:
+        layer.trainable = True
 
-    BATCH_SIZE = 64
-    IMG_SIZE = 224
-    NUM_EPOCHS = 30
-    EARLY_STOP_PATIENCE = 3
-    TRAIN_STEP_PER_EPOCH = int(tf.math.ceil(train_images_len / BATCH_SIZE).numpy())
-    VALID_STEP_PER_EPOCH = int(tf.math.ceil(valid_images_len / BATCH_SIZE).numpy())
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
-    saved_path = './model/'
-    time = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M") + '_tf2'
-    weight_file_name = '{epoch:02d}-{val_accuracy:.2f}.hdf5'
+    return model
 
-    if not(os.path.isdir(saved_path + dataset_name + '/' + time)):
-        os.makedirs(os.path.join(saved_path + dataset_name + '/' + time))
 
-        f = open(saved_path + dataset_name + '/' + time + '/README.txt', 'w')
-        f.write('IMG_SIZE = ' + str(IMG_SIZE) + '\n')
-        f.write(train_dataset_path + '\n')
-        f.write(valid_dataset_path + '\n')
-        f.write("Model : " + model_name)
-        f.close()
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+  try:
+    for gpu in gpus:
+        tf.config.experimental.set_virtual_device_configuration(
+            gpus, [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=10000)])
+  except RuntimeError as e:
+    # 프로그램 시작시에 메모리 증가가 설정되어야만 합니다
+    print(e)
 
-    else:
-        pass
+model_name = "EfficientNet-B3"
+dataset_name = 'final_pog_list_cls_data_ver4'
+train_dataset_path = './datasets/' + dataset_name + '/train_3'
+valid_dataset_path = './datasets/' + dataset_name + '/valid_3'
 
-    train_ds = make_tf_dataset(train_images, train_labels)
-    valid_ds = make_tf_dataset(valid_images, valid_labels)
+train_images, train_labels, train_images_len, train_labels_len = basic_processing(train_dataset_path, True)
+valid_images, valid_labels, valid_images_len, valid_labels_len = basic_processing(valid_dataset_path, False)
 
-    train_ds = train_ds.repeat().batch(BATCH_SIZE)
-    train_ds = train_ds.prefetch(AUTOTUNE)
-    valid_ds = valid_ds.repeat().batch(BATCH_SIZE)
-    valid_ds = valid_ds.prefetch(AUTOTUNE)
+strategy = tf.distribute.MirroredStrategy(cross_device_ops=tf.distribute.HierarchicalCopyAllReduce())
+AUTOTUNE = tf.data.experimental.AUTOTUNE
+BATCH_SIZE = 16 * strategy.num_replicas_in_sync
+IMG_SIZE = 224
+NUM_EPOCHS = 30
+EARLY_STOP_PATIENCE = 3
+TRAIN_STEP_PER_EPOCH = int(tf.math.ceil(train_images_len / BATCH_SIZE).numpy())
+VALID_STEP_PER_EPOCH = int(tf.math.ceil(valid_images_len / BATCH_SIZE).numpy())
 
-    strategy = tf.distribute.MirroredStrategy()
-    with strategy.scope():
-        
-        base_model = EfficientNetB5(input_shape=(IMG_SIZE, IMG_SIZE, 3),
-                                    weights="imagenet", # noisy-student
-                                    include_top=False)
-        avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
-        output = tf.keras.layers.Dense(train_labels_len, activation="softmax")(avg)
-        model = tf.keras.Model(inputs=base_model.input, outputs=output)
+saved_path = './model/'
+time = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M") + '_tf2'
+weight_file_name = '{epoch:02d}-{val_accuracy:.2f}.hdf5'
 
-        for layer in base_model.layers:
-            layer.trainable = True
+if not(os.path.isdir(saved_path + dataset_name + '/' + time)):
+    os.makedirs(os.path.join(saved_path + dataset_name + '/' + time))
 
-        # optimizer = tf.keras.optimizers.SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
-        # model.compile(loss="categorical_crossentropy", optimizer=optimizer, metrics=["accuracy"])
-        model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-        model.summary()
+    f = open(saved_path + dataset_name + '/' + time + '/README.txt', 'w')
+    f.write('IMG_SIZE = ' + str(IMG_SIZE) + '\n')
+    f.write(train_dataset_path + '\n')
+    f.write(valid_dataset_path + '\n')
+    f.write("Model : " + model_name)
+    f.close()
 
-        cb_early_stopper = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
-        checkpoint_path = saved_path + dataset_name + '/' + time + '/' + weight_file_name
-        cb_checkpointer = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
-                                                            monitor='val_accuracy',
-                                                            save_best_only=True,
-                                                            mode='max')
-        lrfn = build_lrfn()
-        lr_schedule = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1)    
+else:
+    pass
 
-        history = model.fit(train_ds,
-                            epochs=NUM_EPOCHS,
-                            steps_per_epoch=TRAIN_STEP_PER_EPOCH,
-                            shuffle=False,
-                            validation_data=valid_ds,
-                            validation_steps=VALID_STEP_PER_EPOCH,
-                            verbose=1,
-                            callbacks=[cb_early_stopper, cb_checkpointer, lr_schedule])
+train_ds = make_tf_dataset(train_images, train_labels)
+valid_ds = make_tf_dataset(valid_images, valid_labels)
 
-        model.save(saved_path + dataset_name + '/' + time + '/' + dataset_name + '.h5')
+train_ds = train_ds.cache().repeat().batch(BATCH_SIZE).prefetch(AUTOTUNE)
+valid_ds = valid_ds.cache().repeat().batch(BATCH_SIZE).prefetch(AUTOTUNE)
+
+with strategy.scope():
+    model = build_model()
+
+cb_early_stopper = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
+checkpoint_path = saved_path + dataset_name + '/' + time + '/' + weight_file_name
+cb_checkpointer = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
+                                                    monitor='val_accuracy',
+                                                    save_best_only=True,
+                                                    mode='max')
+lrfn = build_lrfn()
+lr_schedule = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1)    
+
+history = model.fit(train_ds,
+                    epochs=NUM_EPOCHS,
+                    steps_per_epoch=TRAIN_STEP_PER_EPOCH,
+                    shuffle=False,
+                    validation_data=valid_ds,
+                    validation_steps=VALID_STEP_PER_EPOCH,
+                    verbose=1,
+                    callbacks=[cb_early_stopper, cb_checkpointer, lr_schedule])
+
+model.save(saved_path + dataset_name + '/' + time + '/' + dataset_name + '.h5')
