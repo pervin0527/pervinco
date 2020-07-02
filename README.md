@@ -18,7 +18,7 @@
         pip install keras==2.3.1
 
   - EfficientNet [https://github.com/qubvel/efficientnet](https://github.com/qubvel/efficientnet)
-    ![](doc_imgs/efficientnet.png)
+    <p align="center"><img src="/doc_imgs/efficientnet.png"></p>
 
         sudo pip3 install -U git+https://github.com/qubvel/efficientnet
     install test
@@ -60,7 +60,7 @@
  
 ### 2. Google Automl/EfficientDet    
    - [Automl/EfficientDet GitHub](https://github.com/google/automl/tree/master/efficientdet)
-   <p align="center"><img src="/doc_imgs/efficientnet.png"></p>
+   <p align="center"><img src="/doc_imgs/efficientdet.png"></p>
    - Blog post
      1. [Install, Pretrained_Inference, Train](https://pervin0527.github.io/efficientdet/)
      2. [Train model inference](https://pervin0527.github.io/efficientdet2/)
