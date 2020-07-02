@@ -58,8 +58,8 @@
        - [EfficientNet Train with Multi_GPU](https://github.com/pervin0527/pervinco/blob/master/source/Efnet_multi_gpu_train.py)
      
  
-### 2. Google Automl/EfficientDet  
-   ![](doc_imgs/efficientdet0.png)
+### 2. Google Automl/EfficientDet    
+  ![](doc_imgs/efficientdet0.png)
    - [Automl/EfficientDet GitHub](https://github.com/google/automl/tree/master/efficientdet)
    - Blog post
      1. [Install, Pretrained_Inference, Train](https://pervin0527.github.io/efficientdet/)
