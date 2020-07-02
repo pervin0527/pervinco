@@ -60,7 +60,7 @@
  
 ### 2. Google Automl/EfficientDet    
    - [Automl/EfficientDet GitHub](https://github.com/google/automl/tree/master/efficientdet)
-   ![](doc_imgs/efficientdet0.png)
+   ![](doc_imgs/efficientdet.png)
    - Blog post
      1. [Install, Pretrained_Inference, Train](https://pervin0527.github.io/efficientdet/)
      2. [Train model inference](https://pervin0527.github.io/efficientdet2/)
