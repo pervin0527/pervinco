@@ -140,6 +140,7 @@
       </td>
    </tr>
    </table>
+   
   - [Blog post](https://pervin0527.github.io/multilabelclassification/)
   - [Reference](https://www.analyticsvidhya.com/blog/2019/04/build-first-multi-label-image-classification-model-python/)
   - Source Code  
