@@ -85,6 +85,7 @@
      - [Source Code - keras_img_aug.py](https://github.com/pervin0527/pervinco/blob/master/source/keras_img_aug.py)
     
    - Albumentation  
+       <p align="center"><img src="/doc_imgs/albumentation.jpeg"></p>
       - [Albumentations Git_Repo](https://github.com/albumentations-team/albumentations)
       - [Albumentations API ](https://albumentations.readthedocs.io/en/latest/api/augmentations.html#module-albumentations.augmentations.functional)
       - [Source Code - albumentation_aug1.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug1.py)  
@@ -126,6 +127,16 @@
 
 
 ### 5. Multi Label ImageClassification
+   <table border="0">
+   <tr>
+      <td>
+      <img src="./doc_imgs/mlc.jpeg" width="100%" />
+      </td>
+      <td>
+      <img src="./doc_imgs/mlc2.png", width="100%" />
+      </td>
+   </tr>
+   </table>
   - [Blog post](https://pervin0527.github.io/multilabelclassification/)
   - [Reference](https://www.analyticsvidhya.com/blog/2019/04/build-first-multi-label-image-classification-model-python/)
   - Source Code  
