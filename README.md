@@ -38,7 +38,7 @@
 
 # Projects
 
-### 1. ImageClassification using Tensorflow & Keras
+## 1. ImageClassification using Tensorflow & Keras
    <table border="0">
    <tr>
       <td>
@@ -69,7 +69,7 @@
        - [EfficientNet Train with Multi_GPU](https://github.com/pervin0527/pervinco/blob/master/source/Efnet_multi_gpu_train.py)
      
  
-### 2. Google Automl/EfficientDet    
+## 2. Google Automl/EfficientDet    
    - [Automl/EfficientDet GitHub](https://github.com/google/automl/tree/master/efficientdet)
     
    <p align="center"><img src="/doc_imgs/efficientdet.png"></p>  
@@ -79,7 +79,7 @@
      2. [Train model inference](https://pervin0527.github.io/efficientdet2/)
 
 
-### 3. Image Dataset Augmentation
+## 3. Image Dataset Augmentation
    - Keras ImageDataGenerator  
      - [Tensorflow API - Generate batches of tensor image data with real-time data augmentation.](https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image/ImageDataGenerator?version=nightly)
 
@@ -123,13 +123,13 @@
          Albumentation is 9.8 times faster than Keras_augmentation.
 
 
-### 4. Model Ensemble
+## 4. Model Ensemble
    - [Blog post](https://pervin0527.github.io/ensemble/)
    - [Tensorflow keras Ensemble](https://www.tensorflow.org/guide/keras/functional)
    - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/assemble_train.py)
 
 
-### 5. Multi Label ImageClassification
+## 5. Multi Label ImageClassification
    <table border="0">
    <tr>
       <td>
@@ -140,7 +140,7 @@
       </td>
    </tr>
    </table>
-   
+
   - [Blog post](https://pervin0527.github.io/multilabelclassification/)
   - [Reference](https://www.analyticsvidhya.com/blog/2019/04/build-first-multi-label-image-classification-model-python/)
   - Source Code  
@@ -149,14 +149,14 @@
      - [Using tf.data training](https://github.com/pervin0527/pervinco/blob/master/source/tf2_multi_label_classification.py)
 
 
-### 6. Tensorflow 2.x tf.data
+## 6. Tensorflow 2.x tf.data
    - [Blog post](https://pervin0527.github.io/tf2-data/)
    - [Tutorial](https://gist.github.com/pervin0527/e9af4e0faab83243cb7f26990cac77f8)  
    - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/tf2_image_classification.py)
    - [Multi-label classification](https://pervin0527.github.io/tf2-data2/)
 
 
-### 7. Plant_pathology from Kaggle
+## 7. Plant_pathology from Kaggle
    - [Official](https://www.kaggle.com/tarunpaparaju/plant-pathology-2020-eda-models/)
    - [Custom Training](https://github.com/pervin0527/pervinco/blob/master/plant_pathology_2020.ipynb)
    - Image data 분석에 좋은 예제
@@ -164,7 +164,7 @@
    - Dataset 구성에 따른 Tensorflow 적용 
 
 
-### 8. Yolo v4
+## 8. Yolo v4
    - [Official](https://github.com/AlexeyAB/darknet)
      - [Requirements](https://github.com/AlexeyAB/darknet#requirements)
      - [Compile using make](https://github.com/AlexeyAB/darknet#how-to-compile-on-linux-using-make)
