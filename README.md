@@ -71,6 +71,7 @@
  
 ### 2. Google Automl/EfficientDet    
    - [Automl/EfficientDet GitHub](https://github.com/google/automl/tree/master/efficientdet)
+    
    <p align="center"><img src="/doc_imgs/efficientdet.png"></p>  
    
    - Blog post  
@@ -85,7 +86,9 @@
      - [Source Code - keras_img_aug.py](https://github.com/pervin0527/pervinco/blob/master/source/keras_img_aug.py)
     
    - Albumentation  
+    
        <p align="center"><img src="/doc_imgs/albumentation.jpeg"></p>
+
       - [Albumentations Git_Repo](https://github.com/albumentations-team/albumentations)
       - [Albumentations API ](https://albumentations.readthedocs.io/en/latest/api/augmentations.html#module-albumentations.augmentations.functional)
       - [Source Code - albumentation_aug1.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug1.py)  
