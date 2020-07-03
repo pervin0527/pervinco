@@ -39,6 +39,17 @@
 # Projects
 
 ### 1. ImageClassification using Tensorflow & Keras
+   <table border="0">
+   <tr>
+      <td>
+      <img src="./doc_imgs/img_0004.jpg" width="100%" />
+      </td>
+      <td>
+      <img src="./doc_imgs/img_0002.jpg", width="100%" />
+      </td>
+   </tr>
+   </table>
+
    - Concept
       - [About image recognition](http://research.sualab.com/introduction/2017/11/29/image-recognition-overview-1.html)
       - [Various models Review](https://hoya012.github.io/blog/deeplearning-classification-guidebook-1/)
