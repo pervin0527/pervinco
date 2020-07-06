@@ -39,6 +39,7 @@
 # Projects
 
 ## 1. ImageClassification using Tensorflow & Keras
+
    <table border="0">
    <tr>
       <td>
@@ -130,6 +131,7 @@
 
 
 ## 5. Multi Label ImageClassification
+
    <table border="0">
    <tr>
       <td>
@@ -157,6 +159,9 @@
 
 
 ## 7. Plant_pathology from Kaggle
+
+   <p align="center"><img src="/doc_imgs/plant.jpg"></p>
+
    - [Official](https://www.kaggle.com/tarunpaparaju/plant-pathology-2020-eda-models/)
    - [Custom Training](https://github.com/pervin0527/pervinco/blob/master/plant_pathology_2020.ipynb)
    - Image data 분석에 좋은 예제
@@ -165,6 +170,9 @@
 
 
 ## 8. Yolo v4
+
+   <p align="center"><img src="/doc_imgs/yolov4.png"></p>
+
    - [Official](https://github.com/AlexeyAB/darknet)
      - [Requirements](https://github.com/AlexeyAB/darknet#requirements)
      - [Compile using make](https://github.com/AlexeyAB/darknet#how-to-compile-on-linux-using-make)
