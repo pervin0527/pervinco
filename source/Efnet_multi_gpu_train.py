@@ -6,7 +6,7 @@ import os
 import datetime
 import json
 import time
-from efficientnet.tfkeras import EfficientNetB3, preprocess_input
+from efficientnet.tfkeras import EfficientNetB5, preprocess_input
 
 def basic_processing(ds_path, is_training):
     ds_path = pathlib.Path(ds_path)
@@ -71,7 +71,7 @@ def build_lrfn(lr_start=0.00001, lr_max=0.00005,
 
 
 def build_model():
-    base_model = EfficientNetB3(input_shape=(IMG_SIZE, IMG_SIZE, 3),
+    base_model = EfficientNetB5(input_shape=(IMG_SIZE, IMG_SIZE, 3),
                                 weights="imagenet", # noisy-student
                                 include_top=False)
     avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
@@ -86,17 +86,17 @@ def build_model():
     return model
 
 
-gpus = tf.config.experimental.list_physical_devices('GPU')
-if gpus:
-  try:
-    for gpu in gpus:
-        tf.config.experimental.set_virtual_device_configuration(
-            gpus, [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=10000)])
-  except RuntimeError as e:
-    # 프로그램 시작시에 메모리 증가가 설정되어야만 합니다
-    print(e)
+# gpus = tf.config.experimental.list_physical_devices('GPU')
+# if gpus:
+#   try:
+#     for gpu in gpus:
+#         # tf.config.experimental.set_virtual_device_configuration(
+#         #     gpu, [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=9000)])
+#         tf.config.experimental.set_memory_growth(gpu, True)
+#   except RuntimeError as e:
+#     # 프로그램 시작시에 메모리 증가가 설정되어야만 합니다
+#     print(e)
 
-model_name = "EfficientNet-B3"
 dataset_name = 'final_pog_list_cls_data_ver4'
 train_dataset_path = './datasets/' + dataset_name + '/train_3'
 valid_dataset_path = './datasets/' + dataset_name + '/valid_3'
@@ -104,9 +104,9 @@ valid_dataset_path = './datasets/' + dataset_name + '/valid_3'
 train_images, train_labels, train_images_len, train_labels_len = basic_processing(train_dataset_path, True)
 valid_images, valid_labels, valid_images_len, valid_labels_len = basic_processing(valid_dataset_path, False)
 
-strategy = tf.distribute.MirroredStrategy(cross_device_ops=tf.distribute.HierarchicalCopyAllReduce())
+strategy = tf.distribute.MirroredStrategy()
 AUTOTUNE = tf.data.experimental.AUTOTUNE
-BATCH_SIZE = 16 * strategy.num_replicas_in_sync
+BATCH_SIZE = 8 * strategy.num_replicas_in_sync
 IMG_SIZE = 224
 NUM_EPOCHS = 30
 EARLY_STOP_PATIENCE = 3
@@ -121,6 +121,7 @@ if not(os.path.isdir(saved_path + dataset_name + '/' + time)):
     os.makedirs(os.path.join(saved_path + dataset_name + '/' + time))
 
     f = open(saved_path + dataset_name + '/' + time + '/README.txt', 'w')
+    model_name = "EfficientNet-B5"
     f.write('IMG_SIZE = ' + str(IMG_SIZE) + '\n')
     f.write(train_dataset_path + '\n')
     f.write(valid_dataset_path + '\n')
@@ -133,8 +134,8 @@ else:
 train_ds = make_tf_dataset(train_images, train_labels)
 valid_ds = make_tf_dataset(valid_images, valid_labels)
 
-train_ds = train_ds.cache().repeat().batch(BATCH_SIZE).prefetch(AUTOTUNE)
-valid_ds = valid_ds.cache().repeat().batch(BATCH_SIZE).prefetch(AUTOTUNE)
+train_ds = train_ds.cache().repeat().batch(BATCH_SIZE).prefetch(1)
+valid_ds = valid_ds.cache().repeat().batch(BATCH_SIZE).prefetch(1)
 
 with strategy.scope():
     model = build_model()
