@@ -155,7 +155,7 @@
    <p align="center"><img src="/doc_imgs/plant.jpg" width="640" height="480"></p>
 
    - [Official](https://www.kaggle.com/tarunpaparaju/plant-pathology-2020-eda-models/)
-   - [Custom Training](https://github.com/pervin0527/pervinco/blob/master/source/plant_pathology_2020.ipynb)
+   - [Custom Training](https://github.com/pervin0527/pervinco/blob/master/plant_pathology_2020.ipynb)
    - Image data 분석에 좋은 예제
    - Visualization에 대한 참고
    - Dataset 구성에 따른 Tensorflow 적용 
