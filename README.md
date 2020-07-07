@@ -46,8 +46,9 @@
      
      <p align="center"><img src="/doc_imgs/efficientnet.png"></p>
 
-        sudo pip3 install -U git+https://github.com/qubvel/efficientnet
-    install test
+         sudo pip3 install -U git+https://github.com/qubvel/efficientnet
+    
+      import EfficientNet
 
          import efficientnet.keras as efn
 
