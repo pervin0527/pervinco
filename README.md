@@ -7,15 +7,7 @@
    4. Install Tensorflow 2.1-gpu-py3-jupyter  
    
           docker pull tensorflow/tensorflow:2.1.0-gpu-py3-jupyter
-
-
- - opencv-python
- 
-        pip install opencv-python
          
- - Keras
-        
-        pip install keras==2.3.1
 
 # Projects
 
