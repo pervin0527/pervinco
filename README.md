@@ -17,25 +17,6 @@
         
         pip install keras==2.3.1
 
-  - EfficientNet [https://github.com/qubvel/efficientnet](https://github.com/qubvel/efficientnet)
-    <p align="center"><img src="/doc_imgs/efficientnet.png"></p>
-
-        sudo pip3 install -U git+https://github.com/qubvel/efficientnet
-    install test
-
-        import efficientnet.keras as efn
-
-      or  
-
-        from efficientnet.tfkeras import EfficientNetB0, preprocess_input
-
-    2020.06.08 UPDATE
-      - EfficientNet **Noisy Student** weights [released](https://www.kaggle.com/c/bengaliai-cv19/discussion/132894)
-
-            import efficientnet.keras as eff
-            model = eff.EfficientNetB0(weights='noisy-student')
-
-
 # Projects
 
 ## 1. ImageClassification using Tensorflow & Keras
@@ -61,6 +42,25 @@
 
    - Source Code
      - [ResNet with Keras Imagedatagenerator](https://github.com/pervin0527/pervinco/blob/master/source/keras_resnet50_train.py)
+     - EfficientNet [https://github.com/qubvel/efficientnet](https://github.com/qubvel/efficientnet)
+     
+     <p align="center"><img src="/doc_imgs/efficientnet.png"></p>
+
+        sudo pip3 install -U git+https://github.com/qubvel/efficientnet
+    install test
+
+         import efficientnet.keras as efn
+
+        or  
+
+         from efficientnet.tfkeras import EfficientNetB0, preprocess_input
+
+      - 2020.06.08 UPDATE
+        - EfficientNet **Noisy Student** weights [released](https://www.kaggle.com/c/bengaliai-cv19/discussion/132894)
+
+              import efficientnet.keras as eff
+              model = eff.EfficientNetB0(weights='noisy-student')
+
      - [EfficientNet with tf.data](https://github.com/pervin0527/pervinco/blob/master/source/Efnet_tf_data_train.py)
      - **2020.06.11 UPDATE**
        - [Learning Rate Schedule Callback function Added](https://github.com/pervin0527/pervinco/blob/05ba90f7a1921ddc84c79f3be8c232119de0b0e6/source/Efnet_tf_data_train.py#L147)
