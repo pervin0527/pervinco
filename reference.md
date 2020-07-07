@@ -32,6 +32,8 @@
 
 # Challenge
  - [Kaggle](https://www.kaggle.com/)
+   - [reference - Bengali winner's solution](https://www.kaggle.com/c/bengaliai-cv19/discussion/135984)
+   ![](doc_imgs/bengali.png) 
  - [Kakao Arena](https://arena.kakao.com/)
  - [DACON](https://dacon.io/)
  - [Programmers](https://programmers.co.kr/competitions)
