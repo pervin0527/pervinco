@@ -53,7 +53,6 @@
 
    - Concept
       - [About image recognition](http://research.sualab.com/introduction/2017/11/29/image-recognition-overview-1.html)
-      - [Various models Review](https://hoya012.github.io/blog/deeplearning-classification-guidebook-1/)
       - [Example inference](http://research.sualab.com/practice/2018/01/17/image-classification-deep-learning.html)
 
    - Tensorflow
@@ -163,7 +162,7 @@
    <p align="center"><img src="/doc_imgs/plant.jpg" width="640" height="480"></p>
 
    - [Official](https://www.kaggle.com/tarunpaparaju/plant-pathology-2020-eda-models/)
-   - [Custom Training](https://github.com/pervin0527/pervinco/blob/master/plant_pathology_2020.ipynb)
+   - [Custom Training](https://github.com/pervin0527/pervinco/blob/master/source/plant_pathology_2020.ipynb)
    - Image data 분석에 좋은 예제
    - Visualization에 대한 참고
    - Dataset 구성에 따른 Tensorflow 적용 
