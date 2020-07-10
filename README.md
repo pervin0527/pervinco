@@ -24,15 +24,15 @@
    </tr>
    </table>
 
-   - Concept
+   - ### Concept
       - [About image recognition](http://research.sualab.com/introduction/2017/11/29/image-recognition-overview-1.html)
       - [Example inference](http://research.sualab.com/practice/2018/01/17/image-classification-deep-learning.html)
 
-   - Tensorflow
+   - ### Tensorflow
       - [Tensorflow tutorial](https://github.com/pervin0527/pervinco/blob/master/tensorflow_tutorial.md)
       - [Tensorflow 2.1 simple example](https://www.kaggle.com/philculliton/a-simple-tf-2-1-notebook)
 
-   - Source Code
+   - ### Source Code
      - [ResNet with Keras Imagedatagenerator](https://github.com/pervin0527/pervinco/blob/master/source/keras_resnet50_train.py)
      - EfficientNet [https://github.com/qubvel/efficientnet](https://github.com/qubvel/efficientnet)
      
@@ -48,7 +48,7 @@
 
          from efficientnet.tfkeras import EfficientNetB0, preprocess_input
 
-      - 2020.06.08 UPDATE
+      - ### 2020.06.08 UPDATE
         - EfficientNet **Noisy Student** weights [released](https://www.kaggle.com/c/bengaliai-cv19/discussion/132894)
 
               import efficientnet.keras as eff
@@ -63,28 +63,28 @@
      
  
 ## 2. Google Automl/EfficientDet    
-   - [Automl/EfficientDet GitHub](https://github.com/google/automl/tree/master/efficientdet)
+   - ### [Automl/EfficientDet GitHub](https://github.com/google/automl/tree/master/efficientdet)
     
    <p align="center"><img src="/doc_imgs/efficientdet.png"></p>  
    
-   - Blog post  
+   - ### Blog post  
      1. [Install, Pretrained_Inference, Train](https://pervin0527.github.io/efficientdet/)  
      2. [Train model inference](https://pervin0527.github.io/efficientdet2/)
 
 
 ## 3. Image Dataset Augmentation
-   - Keras ImageDataGenerator  
+   - ### Keras ImageDataGenerator  
      - [Tensorflow API - Generate batches of tensor image data with real-time data augmentation.](https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image/ImageDataGenerator?version=nightly)
 
      - [Source Code - keras_img_aug.py](https://github.com/pervin0527/pervinco/blob/master/source/keras_img_aug.py)
     
-   - Albumentation  
+   - ### Albumentation  
     
        <p align="center"><img src="/doc_imgs/albumentation.jpeg"></p>
 
-      - [Albumentations Git_Repo](https://github.com/albumentations-team/albumentations)
-      - [Albumentations API ](https://albumentations.readthedocs.io/en/latest/api/augmentations.html#module-albumentations.augmentations.functional)
-      - [Source Code - albumentation_aug1.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug1.py)  
+      - ### [Albumentations Git_Repo](https://github.com/albumentations-team/albumentations)
+      - ### [Albumentations API ](https://albumentations.readthedocs.io/en/latest/api/augmentations.html#module-albumentations.augmentations.functional)
+      - ### [Source Code - albumentation_aug1.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug1.py)  
           - Augmentation is performed by using a loop on each image in the class.
 
           - Before applying augmentation.  number of seed images
@@ -102,11 +102,11 @@
           - After applying augmentation.
           <p align="left"><img src="/doc_imgs/alb_graph3.png" width=90%></p> 
 
-      -  [Source Code - albumentation_aug2.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug2.py)  
+      -  ### [Source Code - albumentation_aug2.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug2.py)  
           - The number of images in classes are same as the number entered by the user.
             <p align="left"><img src="/doc_imgs/alb_graph4.png" width=90%></p>  
     
-      - Note
+      - ### Note
           - [What does mean p??](https://github.com/albumentations-team/albumentations/issues/586#issue-596422426)
 
           - [What is CLAHE?](https://opencv-python.readthedocs.io/en/latest/doc/20.imageHistogramEqualization/imageHistogramEqualization.html#clahe-contrast-limited-adaptive-histogram-equalization)
