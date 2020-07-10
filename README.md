@@ -179,7 +179,7 @@
     
            ./darknet detector test cfg/coco.data cfg/yolov4.cfg yolov4.weights -thresh 0.25
 
-     - #### [How to Train](https://github.com/AlexeyAB/darknet#how-to-train-to-detect-your-custom-objects)
+     -  [How to Train](https://github.com/AlexeyAB/darknet#how-to-train-to-detect-your-custom-objects)
 
   - #### [Blog post + Codes](https://pervin0527.github.io/YOLOv4/)
 
