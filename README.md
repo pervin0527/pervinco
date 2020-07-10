@@ -64,22 +64,22 @@
      
  
 ## 2. Google Automl/EfficientDet    
-   - ### [Automl/EfficientDet GitHub](https://github.com/google/automl/tree/master/efficientdet)
+   - #### [Automl/EfficientDet GitHub](https://github.com/google/automl/tree/master/efficientdet)
     
    <p align="center"><img src="/doc_imgs/efficientdet.png"></p>  
    
-   - ### Blog post  
+   - #### Blog post  
      1. [Install, Pretrained_Inference, Train](https://pervin0527.github.io/efficientdet/)  
      2. [Train model inference](https://pervin0527.github.io/efficientdet2/)
 
 
 ## 3. Image Dataset Augmentation
-   - ### Keras ImageDataGenerator  
+   - #### Keras ImageDataGenerator  
      - [Tensorflow API - Generate batches of tensor image data with real-time data augmentation.](https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image/ImageDataGenerator?version=nightly)
 
      - [Source Code - keras_img_aug.py](https://github.com/pervin0527/pervinco/blob/master/source/keras_img_aug.py)
     
-   - ### Albumentation  
+   - #### Albumentation  
     
        <p align="center"><img src="/doc_imgs/albumentation.jpeg"></p>
 
@@ -89,19 +89,10 @@
           - Augmentation is performed by using a loop on each image in the class.
 
           - Before applying augmentation.  number of seed images
-            <table border="0">
-            <tr>
-               <td>
-               <img src="/doc_imgs/alb_graph1.png" width="200%" />
-               </td>
-               <td>
-               <img src="/doc_imgs/alb_graph2.png", width="200%" />
-               </td>
-            </tr>
-            </table>
+            <p align="left"><img src="/doc_imgs/alb_graph2.png" width=90%></p>
 
           - After applying augmentation.
-          <p align="left"><img src="/doc_imgs/alb_graph3.png" width=90%></p> 
+            <p align="left"><img src="/doc_imgs/alb_graph3.png" width=90%></p> 
 
       - [Source Code - albumentation_aug2.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug2.py)  
           - The number of images in classes are same as the number entered by the user.
@@ -114,6 +105,18 @@
   
 
       - [Source Code - albumentation_voc_aug.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_voc_aug.py)
+
+         <table border="0">
+         <tr>
+            <td>
+            <img src="./doc_imgs/voc_aug1.png" width="200%" />
+            </td>
+            <td>
+            <img src="./doc_imgs/voc_aug2.png", width="200%" />
+            </td>
+         </tr>
+         </table> 
+
         -  Augmentation for VOC PASCAL dataset.
         -  Save the augmented image and xml file.
         -  **This code only applies to voc pascal foramt.**
@@ -122,23 +125,8 @@
                   ./VOC2012/JPEGImages \     # Image dataset path
                   ./VOC2012/Annotations \    # Annotation dataset path 
                   ./VOC2012/Augmentations    # Path to save augmentation applied file
-        
-      <table border="0">
-      <tr>
-         <td>
-         <img src="./doc_imgs/voc_aug1.png" width="200%" />
-         </td>
-         <td>
-         <img src="./doc_imgs/voc_aug2.png", width="200%" />
-         </td>
-      </tr>
-      </table>
-  
-      -  Performance
-         Augmentation options
-         - Shift (limit=0.2)
-         - Rotate (range=360)
-
+         
+      -  **Performance**
          Tools | 100 augmented images per sec
          ----- | ------------
          Keras Aug | 0.02068s
@@ -148,9 +136,9 @@
 
 
 ## 4. Model Ensemble
-   - [Blog post](https://pervin0527.github.io/ensemble/)
-   - [Tensorflow keras Ensemble](https://www.tensorflow.org/guide/keras/functional)
-   - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/assemble_train.py)
+   - #### [Blog post](https://pervin0527.github.io/ensemble/)
+   - #### [Tensorflow keras Ensemble](https://www.tensorflow.org/guide/keras/functional)
+   - #### [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/assemble_train.py)
 
 
 ## 5. Multi Label ImageClassification
@@ -166,34 +154,34 @@
    </tr>
    </table>
 
-  - [Blog post](https://pervin0527.github.io/multilabelclassification/)
-  - [Reference](https://www.analyticsvidhya.com/blog/2019/04/build-first-multi-label-image-classification-model-python/)
-  - Source Code  
+   - #### [Blog post](https://pervin0527.github.io/multilabelclassification/)
+   - #### [Reference](https://www.analyticsvidhya.com/blog/2019/04/build-first-multi-label-image-classification-model-python/)
+   - #### Source Code  
      - [Training](https://github.com/pervin0527/pervinco/blob/master/source/multi_label_train.py)  
      - [Predict](https://github.com/pervin0527/pervinco/blob/master/source/tf2_multi_label_predict.py)  
      - [Using tf.data training](https://github.com/pervin0527/pervinco/blob/master/source/tf2_multi_label_classification.py)
 
 
 ## 6. Tensorflow 2.x tf.data
-   - [Blog post](https://pervin0527.github.io/tf2-data/)
-   - [Tutorial](https://gist.github.com/pervin0527/e9af4e0faab83243cb7f26990cac77f8)  
-   - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/tf2_image_classification.py)
-   - [Multi-label classification](https://pervin0527.github.io/tf2-data2/)
+   - #### [Blog post](https://pervin0527.github.io/tf2-data/)
+   - #### [Tutorial](https://gist.github.com/pervin0527/e9af4e0faab83243cb7f26990cac77f8)  
+   - #### [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/tf2_image_classification.py)
+   - #### [Multi-label classification](https://pervin0527.github.io/tf2-data2/)
 
 ## 7. Yolo v4
 
    <p align="center"><img src="/doc_imgs/yolov4.png"></p>
 
-   - [Official](https://github.com/AlexeyAB/darknet)
-     - [Requirements](https://github.com/AlexeyAB/darknet#requirements)
-     - [Compile using make](https://github.com/AlexeyAB/darknet#how-to-compile-on-linux-using-make)
-     - Demo  
+   - #### [Official](https://github.com/AlexeyAB/darknet)
+     - #### [Requirements](https://github.com/AlexeyAB/darknet#requirements)
+     - #### [Compile using make](https://github.com/AlexeyAB/darknet#how-to-compile-on-linux-using-make)
+     - #### Demo  
     
            ./darknet detector test cfg/coco.data cfg/yolov4.cfg yolov4.weights -thresh 0.25
 
-     - [How to Train](https://github.com/AlexeyAB/darknet#how-to-train-to-detect-your-custom-objects)
+     - #### [How to Train](https://github.com/AlexeyAB/darknet#how-to-train-to-detect-your-custom-objects)
 
-  - [Blog post + Codes](https://pervin0527.github.io/YOLOv4/)
+  - #### [Blog post + Codes](https://pervin0527.github.io/YOLOv4/)
 
 
 # Resource
