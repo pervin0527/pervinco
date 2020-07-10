@@ -91,10 +91,10 @@
             <table border="0">
             <tr>
                <td>
-               <img src="./doc_imgs/alb_graph1.png.png" width="200%" />
+               <img src="/doc_imgs/alb_graph1.png.png" width="200%" />
                </td>
                <td>
-               <img src="./doc_imgs/alb_graph2.png.png", width="200%" />
+               <img src="/doc_imgs/alb_graph2.png.png", width="200%" />
                </td>
             </tr>
             </table>
