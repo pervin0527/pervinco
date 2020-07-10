@@ -166,5 +166,3 @@ if __name__ == "__main__":
             visualize(augmented, category_id_to_name)
             cv2.imwrite(output_path + '/images/' + image_name + '_' + str(i) + '.jpg', augmented['image'])
             modify_coordinate(output_path, augmented, xml, i)
-
-        break
