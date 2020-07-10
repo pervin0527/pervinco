@@ -173,9 +173,9 @@
    <p align="center"><img src="/doc_imgs/yolov4.png"></p>
 
    - #### [Official](https://github.com/AlexeyAB/darknet)
-     - #### [Requirements](https://github.com/AlexeyAB/darknet#requirements)
-     - #### [Compile using make](https://github.com/AlexeyAB/darknet#how-to-compile-on-linux-using-make)
-     - #### Demo  
+     - [Requirements](https://github.com/AlexeyAB/darknet#requirements)
+     - [Compile using make](https://github.com/AlexeyAB/darknet#how-to-compile-on-linux-using-make)
+     - Demo  
     
            ./darknet detector test cfg/coco.data cfg/yolov4.cfg yolov4.weights -thresh 0.25
 
