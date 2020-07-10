@@ -2,6 +2,7 @@ import os
 import numpy as np
 import cv2
 import glob
+import sys
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
@@ -31,13 +32,14 @@ def read_image(img_path):
 
 def modify_coordinate(output_path, augmented, xml, idx):
     filename = xml.split('/')[-1]
+    filename = filename.split('.')[0]
 
     tree = ET.parse(xml)
     root = tree.getroot()
     obj_xml = root.findall('object')
     
     bbox_mod = augmented['bboxes']
-    # print(bbox_mod)
+    print(bbox_mod)
 
     for obj in obj_xml:
         bbox_original = obj.find('bndbox')
@@ -48,7 +50,7 @@ def modify_coordinate(output_path, augmented, xml, idx):
 
         del bbox_mod[0]
 
-    tree.write(output_path + '/xmls/' + str(idx) + '_' + filename)
+    tree.write(output_path + '/xmls/' + filename + '_' + str(idx) + '.xml')
 
 def get_boxes(label_path):
     # print(label_path)
@@ -94,7 +96,7 @@ def visualize(annotations, category_id_to_name):
     for idx, bbox in enumerate(annotations['bboxes']):
         img = visualize_bbox(img, bbox, annotations['category_id'][idx], category_id_to_name)
 
-    resized = cv2.resize(img, (1920, 1080))
+    resized = cv2.resize(img, (1280, 720))
     # cv2.imshow('test', resized)
     # cv2.waitKey(0)
 
@@ -127,20 +129,28 @@ def make_categori_id(str_label):
 
 
 if __name__ == "__main__":
-    image_set_path = '/data/backup/pervinco_2020/test_code/VOC2007/JPEGImages/*'
+    image_set_path = sys.argv[1] + '/*'
     image_list = sorted(glob.glob(image_set_path))
 
-    xml_set_path = '/data/backup/pervinco_2020/test_code/VOC2007/Annotations/*'
+    xml_set_path = sys.argv[2] + '/*'
     xml_list = sorted(glob.glob(xml_set_path))
 
-    output_path = '/data/backup/pervinco_2020/test_code/VOC2007/Augmentation'
+    output_path = sys.argv[3]
+
+    if not(os.path.isdir(output_path + '/images')) and not(os.path.isdir(output_path + '/xml')):
+        os.makedirs(os.path.join(output_path + '/images'))
+        os.makedirs(os.path.join(output_path + '/xmls'))
+
+    else:
+        pass
 
 
     for image, xml in zip(image_list, xml_list):
         print(image, xml)
         
         image_name = image.split('/')[-1]
-        # print(image_name)
+        image_name = image_name.split('.')[0]
+        print(image_name)
         image = read_image(image)
         bbox, str_label, category_id = get_boxes(xml)
         category_id_to_name = make_categori_id(str_label)
@@ -151,10 +161,10 @@ if __name__ == "__main__":
 
         aug = get_aug()
         
-        for i in range(5):
+        for i in range(10):
             augmented = aug(**annotations)
-            # print(augmented)
             visualize(augmented, category_id_to_name)
-            # print(output_path + '/' + str(i) + '_' + image_name)
-            cv2.imwrite(output_path + '/images/' + str(i) + '_' + image_name, augmented['image'])
+            cv2.imwrite(output_path + '/images/' + image_name + '_' + str(i) + '.jpg', augmented['image'])
             modify_coordinate(output_path, augmented, xml, i)
+
+        break

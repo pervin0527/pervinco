@@ -88,15 +88,15 @@
           - Augmentation is performed by using a loop on each image in the class.
 
           - Before applying augmentation.  number of seed images
-          ![](doc_imgs/alb_graph1.png)  
-          ![](doc_imgs/alb_graph2.png)
+          <p align="center"><img src="/doc_imgs/alb_graph1.png" width=70%></p>  
+          <p align="center"><img src="/doc_imgs/alb_graph2.png" width=70%></p>
 
           - After applying augmentation.
-          ![](doc_imgs/alb_graph3.png) 
+          <p align="center"><img src="/doc_imgs/alb_graph3.png" width=70%></p> 
 
       -  [Source Code - albumentation_aug2.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug2.py)  
           - The number of images in classes are same as the number entered by the user.
-            ![](doc_imgs/alb_graph4.png)  
+            <p align="center"><img src="/doc_imgs/alb_graph4.png" width=70%></p>  
     
       - Note
           - [What does mean p??](https://github.com/albumentations-team/albumentations/issues/586#issue-596422426)
@@ -107,17 +107,23 @@
       - [Source Code - albumentation_voc_aug.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_voc_aug.py)
         -  Augmentation for VOC PASCAL dataset.
         -  Save the augmented image and xml file.
+        -  **This code only applies to voc pascal foramt.**
+
+                  python3 albumentation_voc_aug.py \
+                  ./VOC2012/JPEGImages \     # Image dataset path
+                  ./VOC2012/Annotations \    # Annotation dataset path 
+                  ./VOC2012/Augmentations    # Path to save augmentation applied file
         
-        <table border="0">
-        <tr>
-            <td>
-            <img src="./doc_imgs/voc_aug1.png" width="100%" />
-            </td>
-            <td>
-            <img src="./doc_imgs/voc_aug2.png", width="100%" />
-            </td>
-        </tr>
-        </table>
+      <table border="0">
+      <tr>
+         <td>
+         <img src="./doc_imgs/voc_aug1.png" width="150%" />
+         </td>
+         <td>
+         <img src="./doc_imgs/voc_aug2.png", width="150%" />
+         </td>
+      </tr>
+      </table>
   
       -  Performance
          Augmentation options
