@@ -88,15 +88,15 @@
           - Augmentation is performed by using a loop on each image in the class.
 
           - Before applying augmentation.  number of seed images
-          <p align="center"><img src="/doc_imgs/alb_graph1.png" width=70%></p>  
-          <p align="center"><img src="/doc_imgs/alb_graph2.png" width=70%></p>
+          <p align="left"><img src="/doc_imgs/alb_graph1.png" width=90%></p>  
+          <p align="left"><img src="/doc_imgs/alb_graph2.png" width=90%></p>
 
           - After applying augmentation.
-          <p align="center"><img src="/doc_imgs/alb_graph3.png" width=70%></p> 
+          <p align="left"><img src="/doc_imgs/alb_graph3.png" width=90%></p> 
 
       -  [Source Code - albumentation_aug2.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug2.py)  
           - The number of images in classes are same as the number entered by the user.
-            <p align="center"><img src="/doc_imgs/alb_graph4.png" width=70%></p>  
+            <p align="left"><img src="/doc_imgs/alb_graph4.png" width=90%></p>  
     
       - Note
           - [What does mean p??](https://github.com/albumentations-team/albumentations/issues/586#issue-596422426)
@@ -117,10 +117,10 @@
       <table border="0">
       <tr>
          <td>
-         <img src="./doc_imgs/voc_aug1.png" width="150%" />
+         <img src="./doc_imgs/voc_aug1.png" width="200%" />
          </td>
          <td>
-         <img src="./doc_imgs/voc_aug2.png", width="150%" />
+         <img src="./doc_imgs/voc_aug2.png", width="200%" />
          </td>
       </tr>
       </table>
