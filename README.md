@@ -48,14 +48,14 @@
 
          from efficientnet.tfkeras import EfficientNetB0, preprocess_input
 
+     - [EfficientNet with tf.data](https://github.com/pervin0527/pervinco/blob/master/source/Efnet_tf_data_train.py)
+     - [Measuring model performance](https://github.com/pervin0527/pervinco/blob/master/source/tf2_model_test.py)
+
       - ### 2020.06.08 UPDATE
         - EfficientNet **Noisy Student** weights [released](https://www.kaggle.com/c/bengaliai-cv19/discussion/132894)
 
               import efficientnet.keras as eff
               model = eff.EfficientNetB0(weights='noisy-student')
-
-     - [EfficientNet with tf.data](https://github.com/pervin0527/pervinco/blob/master/source/Efnet_tf_data_train.py)
-     - [Measuring model performance](https://github.com/pervin0527/pervinco/blob/master/source/tf2_model_test.py)
 
      - ### 2020.06.11 UPDATE
        - [Learning Rate Schedule Callback function Added](https://github.com/pervin0527/pervinco/blob/05ba90f7a1921ddc84c79f3be8c232119de0b0e6/source/Efnet_tf_data_train.py#L147)
