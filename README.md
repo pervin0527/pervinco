@@ -103,6 +103,22 @@
 
           - [What is CLAHE?](https://opencv-python.readthedocs.io/en/latest/doc/20.imageHistogramEqualization/imageHistogramEqualization.html#clahe-contrast-limited-adaptive-histogram-equalization)
   
+
+      - [Source Code - albumentation_voc_aug.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_voc_aug.py)
+        -  Augmentation for VOC PASCAL dataset.
+        -  Save the augmented image and xml file.
+        
+        <table border="0">
+        <tr>
+            <td>
+            <img src="./doc_imgs/voc_aug1.png" width="100%" />
+            </td>
+            <td>
+            <img src="./doc_imgs/voc_aug2.png", width="100%" />
+            </td>
+        </tr>
+        </table>
+  
       -  Performance
          Augmentation options
          - Shift (limit=0.2)
