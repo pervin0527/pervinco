@@ -57,9 +57,9 @@
      - [EfficientNet with tf.data](https://github.com/pervin0527/pervinco/blob/master/source/Efnet_tf_data_train.py)
      - [Measuring model performance](https://github.com/pervin0527/pervinco/blob/master/source/tf2_model_test.py)
 
-     - **2020.06.11 UPDATE**
+     - ### 2020.06.11 UPDATE
        - [Learning Rate Schedule Callback function Added](https://github.com/pervin0527/pervinco/blob/05ba90f7a1921ddc84c79f3be8c232119de0b0e6/source/Efnet_tf_data_train.py#L147)
-     - **2020. 06.29 UPDATE**
+     - ### 2020. 06.29 UPDATE
        - [EfficientNet Train with Multi_GPU](https://github.com/pervin0527/pervinco/blob/master/source/Efnet_multi_gpu_train.py)
      
  
@@ -83,9 +83,9 @@
     
        <p align="center"><img src="/doc_imgs/albumentation.jpeg"></p>
 
-      - ### [Albumentations Git_Repo](https://github.com/albumentations-team/albumentations)
-      - ### [Albumentations API ](https://albumentations.readthedocs.io/en/latest/api/augmentations.html#module-albumentations.augmentations.functional)
-      - ### [Source Code - albumentation_aug1.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug1.py)  
+      - [Albumentations Git_Repo](https://github.com/albumentations-team/albumentations)
+      - [Albumentations API ](https://albumentations.readthedocs.io/en/latest/api/augmentations.html#module-albumentations.augmentations.functional)
+      - [Source Code - albumentation_aug1.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug1.py)  
           - Augmentation is performed by using a loop on each image in the class.
 
           - Before applying augmentation.  number of seed images
@@ -103,11 +103,11 @@
           - After applying augmentation.
           <p align="left"><img src="/doc_imgs/alb_graph3.png" width=90%></p> 
 
-      -  ### [Source Code - albumentation_aug2.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug2.py)  
+      - [Source Code - albumentation_aug2.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug2.py)  
           - The number of images in classes are same as the number entered by the user.
             <p align="left"><img src="/doc_imgs/alb_graph4.png" width=90%></p>  
     
-      - ### Note
+      - Note
           - [What does mean p??](https://github.com/albumentations-team/albumentations/issues/586#issue-596422426)
 
           - [What is CLAHE?](https://opencv-python.readthedocs.io/en/latest/doc/20.imageHistogramEqualization/imageHistogramEqualization.html#clahe-contrast-limited-adaptive-histogram-equalization)
