@@ -88,8 +88,16 @@
           - Augmentation is performed by using a loop on each image in the class.
 
           - Before applying augmentation.  number of seed images
-          <p align="left"><img src="/doc_imgs/alb_graph1.png" width=90%></p>  
-          <p align="left"><img src="/doc_imgs/alb_graph2.png" width=90%></p>
+            <table border="0">
+            <tr>
+               <td>
+               <img src="./doc_imgs/alb_graph1.png.png" width="200%" />
+               </td>
+               <td>
+               <img src="./doc_imgs/alb_graph2.png.png", width="200%" />
+               </td>
+            </tr>
+            </table>
 
           - After applying augmentation.
           <p align="left"><img src="/doc_imgs/alb_graph3.png" width=90%></p> 
