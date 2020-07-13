@@ -83,9 +83,9 @@
     
        <p align="center"><img src="/doc_imgs/albumentation.jpeg"></p>
 
-      - [Albumentations Git_Repo](https://github.com/albumentations-team/albumentations)
-      - [Albumentations API ](https://albumentations.readthedocs.io/en/latest/api/augmentations.html#module-albumentations.augmentations.functional)
-      - [Source Code - albumentation_aug1.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug1.py)  
+      - **[Albumentations Git_Repo](https://github.com/albumentations-team/albumentations)**
+      - **[Albumentations API ](https://albumentations.readthedocs.io/en/latest/api/augmentations.html#module-albumentations.augmentations.functional)**
+      - **[UPDATED 2020.06.24 albumentation_aug1.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug1.py)**  
           - Augmentation is performed by using a loop on each image in the class.
 
           - Before applying augmentation.  number of seed images
@@ -94,7 +94,7 @@
           - After applying augmentation.
             <p align="left"><img src="/doc_imgs/alb_graph3.png" width=90%></p> 
 
-      - [Source Code - albumentation_aug2.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug2.py)  
+      - **[UPDATED 2020.06.29 albumentation_aug2.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug2.py)**  
           - The number of images in classes are same as the number entered by the user.
             <p align="left"><img src="/doc_imgs/alb_graph4.png" width=90%></p>  
     
@@ -104,7 +104,7 @@
           - [What is CLAHE?](https://opencv-python.readthedocs.io/en/latest/doc/20.imageHistogramEqualization/imageHistogramEqualization.html#clahe-contrast-limited-adaptive-histogram-equalization)
   
 
-      - [Source Code - albumentation_voc_aug.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_voc_aug.py)
+      - **[UPDATED 2020.07.10 albumentation_voc_aug.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_voc_aug.py)**
 
          <table border="0">
          <tr>
