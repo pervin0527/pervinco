@@ -102,12 +102,14 @@ def visualize(annotations, category_id_to_name):
 
 
 def get_aug(min_area=0., min_visibility=0.):
-    return Compose(
+    return Compose([
+        Resize(1080, 1920, p=1),
+
         OneOf([
-        RandomContrast(p=0.2, limit=(-0.5,1)),   # -0.5 ~ 2 까지가 현장과 가장 비슷함  -- RandomBrightnessContrast
+        RandomContrast(p=0.3, limit=(-0.5,1)),   # -0.5 ~ 2 까지가 현장과 가장 비슷함  -- RandomBrightnessContrast
         RandomBrightness(p=0.3, limit=(-0.2,0.1)),
-        HorizontalFlip(p=0.6),
-        ], p=0.8),
+        HorizontalFlip(p=0.7),
+        ], p=1)],
 
         bbox_params=BboxParams(format='pascal_voc', min_area=min_area, 
                                min_visibility=min_visibility, label_fields=['category_id'])
@@ -161,7 +163,7 @@ if __name__ == "__main__":
 
         aug = get_aug()
         
-        for i in range(10):
+        for i in range(15):
             augmented = aug(**annotations)
             visualize(augmented, category_id_to_name)
             cv2.imwrite(output_path + '/images/' + image_name + '_' + str(i) + '.jpg', augmented['image'])
