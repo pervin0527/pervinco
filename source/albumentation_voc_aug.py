@@ -39,7 +39,7 @@ def modify_coordinate(output_path, augmented, xml, idx):
     obj_xml = root.findall('object')
     
     bbox_mod = augmented['bboxes']
-    print(bbox_mod)
+    # print(bbox_mod)
 
     for obj in obj_xml:
         bbox_original = obj.find('bndbox')
@@ -49,6 +49,8 @@ def modify_coordinate(output_path, augmented, xml, idx):
         bbox_original.find('ymax').text = str(int(bbox_mod[0][3]))
 
         del bbox_mod[0]
+
+    root.find('filename').text = filename + '_' + str(idx) + '.jpg'
 
     tree.write(output_path + '/xmls/' + filename + '_' + str(idx) + '.xml')
 
@@ -96,14 +98,14 @@ def visualize(annotations, category_id_to_name):
     for idx, bbox in enumerate(annotations['bboxes']):
         img = visualize_bbox(img, bbox, annotations['category_id'][idx], category_id_to_name)
 
-    resized = cv2.resize(img, (1280, 720))
+    # resized = cv2.resize(img, (1920, 1080))
     # cv2.imshow('test', resized)
     # cv2.waitKey(0)
 
 
 def get_aug(min_area=0., min_visibility=0.):
     return Compose([
-        Resize(1080, 1920, p=1),
+        # Resize(1080, 1920, p=1),
 
         OneOf([
         RandomContrast(p=0.3, limit=(-0.5,1)),   # -0.5 ~ 2 까지가 현장과 가장 비슷함  -- RandomBrightnessContrast
@@ -139,6 +141,12 @@ if __name__ == "__main__":
 
     output_path = sys.argv[3]
 
+    if not(os.path.isdir(output_path)):
+        os.makedirs(os.path.join(output_path))
+
+    else:
+        pass
+
     if not(os.path.isdir(output_path + '/images')) and not(os.path.isdir(output_path + '/xml')):
         os.makedirs(os.path.join(output_path + '/images'))
         os.makedirs(os.path.join(output_path + '/xmls'))
@@ -152,19 +160,23 @@ if __name__ == "__main__":
         
         image_name = image.split('/')[-1]
         image_name = image_name.split('.')[0]
-        print(image_name)
+        # print(image_name)
         image = read_image(image)
         bbox, str_label, category_id = get_boxes(xml)
         category_id_to_name = make_categori_id(str_label)
-        print(category_id_to_name)
+        # print(category_id_to_name)
 
         annotations = {'image':image, 'bboxes':bbox, 'category_id':category_id}
         visualize(annotations, category_id_to_name)
 
         aug = get_aug()
         
-        for i in range(15):
-            augmented = aug(**annotations)
-            visualize(augmented, category_id_to_name)
-            cv2.imwrite(output_path + '/images/' + image_name + '_' + str(i) + '.jpg', augmented['image'])
-            modify_coordinate(output_path, augmented, xml, i)
+        for i in range(5):
+            try:
+                augmented = aug(**annotations)
+                visualize(augmented, category_id_to_name)
+                cv2.imwrite(output_path + '/images/' + image_name + '_' + str(i) + '.jpg', augmented['image'])
+                modify_coordinate(output_path, augmented, xml, i)
+
+            except:
+                pass
