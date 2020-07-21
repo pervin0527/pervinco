@@ -185,6 +185,14 @@
 
   - #### [Blog post + Codes](https://pervin0527.github.io/YOLOv4/)
 
+## 8.Tensorflow Object Detecion API
+
+   <p align="center"><img src="/doc_imgs/tensorflow2objectdetection.png"></p>
+
+   - #### Blog Post  
+     1. [Install, Inference_test](https://pervin0527.github.io/tf2-object-detection/)
+     2. [Training Custom dataset](https://pervin0527.github.io/tf2-object-detection-custom/)
+
 
 # Resource
   - Open Datasets
