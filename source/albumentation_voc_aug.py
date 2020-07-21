@@ -9,6 +9,7 @@ from xml.dom import minidom
 from albumentations import(
     BboxParams,
     HorizontalFlip,
+    ShiftScaleRotate,
     VerticalFlip,
     Resize,
     CenterCrop,
@@ -67,10 +68,10 @@ def get_boxes(label_path):
     category_id = []
 
     for i in range(len(bnd_1)):
-        xmin = int(bnd_1[i].childNodes[1].childNodes[0].nodeValue)
-        ymin = int(bnd_1[i].childNodes[3].childNodes[0].nodeValue)
-        xmax = int(bnd_1[i].childNodes[5].childNodes[0].nodeValue)
-        ymax = int(bnd_1[i].childNodes[7].childNodes[0].nodeValue)
+        xmin = int(float(bnd_1[i].childNodes[1].childNodes[0].nodeValue))
+        ymin = int(float(bnd_1[i].childNodes[3].childNodes[0].nodeValue))
+        xmax = int(float(bnd_1[i].childNodes[5].childNodes[0].nodeValue))
+        ymax = int(float(bnd_1[i].childNodes[7].childNodes[0].nodeValue))
 
         result.append((xmin,ymin,xmax,ymax))
 
@@ -99,20 +100,29 @@ def visualize(annotations, category_id_to_name):
         img = visualize_bbox(img, bbox, annotations['category_id'][idx], category_id_to_name)
 
     # resized = cv2.resize(img, (1920, 1080))
-    # cv2.imshow('test', resized)
+    # cv2.imshow('test', img)
     # cv2.waitKey(0)
 
 
 def get_aug(min_area=0., min_visibility=0.):
     return Compose([
-        # Resize(1080, 1920, p=1),
+        Resize(height=1080, width=1920, p=1),
+
+        RandomCrop(p=0.2, height=1080, width=1400),
 
         OneOf([
-        RandomContrast(p=0.3, limit=(-0.5,1)),   # -0.5 ~ 2 까지가 현장과 가장 비슷함  -- RandomBrightnessContrast
+        RandomContrast(p=0.3, limit=(-0.5,1)),
         RandomBrightness(p=0.3, limit=(-0.2,0.1)),
-        HorizontalFlip(p=0.7),
-        ], p=1)],
+        HorizontalFlip(p=0.5),
+        ], p=0.6),
 
+        # OneOf([
+        # RandomCrop(p=0.6, height=1080, width=1280),
+        # # CenterCrop(height=1280, width=1080, p=0.9),
+        # # ShiftScaleRotate(p=0.7),
+        # ], p=0.2),
+
+        ],
         bbox_params=BboxParams(format='pascal_voc', min_area=min_area, 
                                min_visibility=min_visibility, label_fields=['category_id'])
                                
@@ -161,22 +171,30 @@ if __name__ == "__main__":
         image_name = image.split('/')[-1]
         image_name = image_name.split('.')[0]
         # print(image_name)
+
         image = read_image(image)
         bbox, str_label, category_id = get_boxes(xml)
         category_id_to_name = make_categori_id(str_label)
         # print(category_id_to_name)
+        # print(bbox)
 
         annotations = {'image':image, 'bboxes':bbox, 'category_id':category_id}
-        visualize(annotations, category_id_to_name)
+        # visualize(annotations, category_id_to_name)
 
         aug = get_aug()
-        
         for i in range(5):
             try:
                 augmented = aug(**annotations)
                 visualize(augmented, category_id_to_name)
                 cv2.imwrite(output_path + '/images/' + image_name + '_' + str(i) + '.jpg', augmented['image'])
                 modify_coordinate(output_path, augmented, xml, i)
+                # print(i)
 
             except:
-                pass
+                break
+
+            # aug = get_aug()
+            # augmented = aug(**annotations)
+            # visualize(augmented, category_id_to_name)
+            # cv2.imwrite(output_path + '/images/' + image_name + '_' + str(i) + '.jpg', augmented['image'])
+            # modify_coordinate(output_path, augmented, xml, i)
