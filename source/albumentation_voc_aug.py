@@ -179,7 +179,7 @@ if __name__ == "__main__":
         # print(bbox)
 
         annotations = {'image':image, 'bboxes':bbox, 'category_id':category_id}
-        # visualize(annotations, category_id_to_name)
+        visualize(annotations, category_id_to_name)
 
         aug = get_aug()
         for i in range(5):
