@@ -103,6 +103,10 @@
       - **UPDATED 2020.07.10**
         - [albumentation_voc_aug.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_voc_aug.py)
 
+      - **UPDATED 2020.07.21**
+        - [albumentation_voc_aug2.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_voc_aug2.py)\
+        - Same function as version 1, but the code has been changed. Both versions are available.
+
          <table border="0">
          <tr>
             <td>
