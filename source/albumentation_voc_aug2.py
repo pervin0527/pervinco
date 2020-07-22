@@ -123,6 +123,14 @@ if __name__ == "__main__":
         pass
 
 
+    transform = Compose([
+        HorizontalFlip(p=0.6),
+        RandomContrast(p=0.5, limit=(-0.5, 0.3)),
+        RandomBrightness(p=0.5, limit=(-0.2, 0.5)),
+        ],
+        bbox_params=BboxParams(format='pascal_voc', label_fields=['category_ids']))
+        
+
     for image, xml in zip(image_list, xml_list):
         print(image, xml)
         
@@ -138,13 +146,6 @@ if __name__ == "__main__":
         
         # bbox = denormalize_bboxes(bbox, rows=height, cols=width)
         visualize(image, bbox, category_id, category_id_to_name)
-
-        transform = Compose([
-            HorizontalFlip(p=0.6),
-            RandomContrast(p=0.5, limit=(-0.5, 0.3)),
-            RandomBrightness(p=0.5, limit=(-0.2, 0.5)),
-            ],
-            bbox_params=BboxParams(format='pascal_voc', label_fields=['category_ids']))
 
         for i in range(5):
             transformed = transform(image=image, bboxes=bbox, category_ids=category_id)
