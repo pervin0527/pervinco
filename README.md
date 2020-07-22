@@ -74,13 +74,8 @@
 
 
 ## 3. Image Dataset Augmentation
-   - #### Keras ImageDataGenerator  
-     - [Tensorflow API - Generate batches of tensor image data with real-time data augmentation.](https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image/ImageDataGenerator?version=nightly)
-
-     - [Source Code - keras_img_aug.py](https://github.com/pervin0527/pervinco/blob/master/source/keras_img_aug.py)
-    
-   - #### Albumentation  
-    
+   - ### Albumentation  
+      #### ImageClassification
        <p align="center"><img src="/doc_imgs/albumentation.jpeg"></p>
 
       - **[Albumentations Git_Repo](https://github.com/albumentations-team/albumentations)**
@@ -100,23 +95,24 @@
             - The number of images in classes are same as the number entered by the user.
               <p align="left"><img src="/doc_imgs/alb_graph4.png" width=90%></p>  
     
-      - **UPDATED 2020.07.10**
-        - [albumentation_voc_aug.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_voc_aug.py)
+      #### Object Detection
+      <table border="0">
+      <tr>
+         <td>
+         <img src="./doc_imgs/voc_aug1.png" width="200%" />
+         </td>
+         <td>
+         <img src="./doc_imgs/voc_aug2.png", width="200%" />
+         </td>
+      </tr>
+      </table> 
+      
+        - **UPDATED 2020.07.10**
+          - [albumentation_voc_aug.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_voc_aug.py)
 
-      - **UPDATED 2020.07.21**
-        - [albumentation_voc_aug2.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_voc_aug2.py)\
-        - Same function as version 1, but the code has been changed. Both versions are available.
-
-         <table border="0">
-         <tr>
-            <td>
-            <img src="./doc_imgs/voc_aug1.png" width="200%" />
-            </td>
-            <td>
-            <img src="./doc_imgs/voc_aug2.png", width="200%" />
-            </td>
-         </tr>
-         </table> 
+        - **UPDATED 2020.07.21**
+          - [albumentation_voc_aug2.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_voc_aug2.py)
+          - Same function as version 1, but the code has been changed. Both versions are available.
 
         -  Augmentation for VOC PASCAL dataset.
         -  Save the augmented image and xml file.
@@ -126,6 +122,7 @@
                   ./VOC2012/JPEGImages \     # Image dataset path
                   ./VOC2012/Annotations \    # Annotation dataset path 
                   ./VOC2012/Augmentations    # Path to save augmentation applied file
+
 
        - Note
           - [What does mean p??](https://github.com/albumentations-team/albumentations/issues/586#issue-596422426)
