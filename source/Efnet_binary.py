@@ -5,18 +5,17 @@ import random
 import os
 import datetime
 import time
-from efficientnet.tfkeras import EfficientNetB1, preprocess_input
+from efficientnet.tfkeras import EfficientNetB4, preprocess_input
 
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 strategy = tf.distribute.experimental.CentralStorageStrategy()
 
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
-    try:
-        print("True")
-        tf.config.experimental.set_memory_growth(gpus[0], True)
-    except RuntimeError as e:
-        print(e)
+  try:
+    tf.config.experimental.set_virtual_device_configuration(gpus[0], [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=9000)])
+  except RuntimeError as e:
+    print(e)
 
 def basic_processing(ds_path, is_training):
     ds_path = pathlib.Path(ds_path)
@@ -79,17 +78,17 @@ def build_lrfn(lr_start=0.00001, lr_max=0.00005,
 
 
 if __name__ == "__main__":
-    model_name = "EfficientNet-B1"
-    dataset_name = 'empty'
-    train_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/train'
-    valid_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/valid'
+    model_name = "EfficientNet-B4"
+    dataset_name = 'empty_final'
+    train_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/train_3'
+    valid_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/valid_3'
 
     train_images, train_labels, train_images_len, train_labels_len = basic_processing(train_dataset_path, True)
     valid_images, valid_labels, valid_images_len, valid_labels_len = basic_processing(valid_dataset_path, False)
 
-    BATCH_SIZE = 32
+    BATCH_SIZE = 4
     IMG_SIZE = 224
-    NUM_EPOCHS = 1000
+    NUM_EPOCHS = 30
     EARLY_STOP_PATIENCE = 3
     TRAIN_STEP_PER_EPOCH = tf.math.ceil(train_images_len / BATCH_SIZE).numpy()
     VALID_STEP_PER_EPOCH = tf.math.ceil(valid_images_len / BATCH_SIZE).numpy()
@@ -100,6 +99,13 @@ if __name__ == "__main__":
 
     if not(os.path.isdir(saved_path + dataset_name + '/' + time)):
         os.makedirs(os.path.join(saved_path + dataset_name + '/' + time))
+
+        f = open(saved_path + dataset_name + '/' + time + '/README.txt', 'w')
+        f.write(train_dataset_path + '\n')
+        f.write(valid_dataset_path + '\n')
+        f.write("Model : " + model_name)
+        f.close()
+
     else:
         pass
 
@@ -107,13 +113,11 @@ if __name__ == "__main__":
     valid_ds = make_tf_dataset(valid_images, valid_labels)
 
     train_ds = train_ds.repeat().batch(BATCH_SIZE)
-    train_ds = train_ds.prefetch(1)
+    train_ds = train_ds.prefetch(AUTOTUNE)
     valid_ds = valid_ds.repeat().batch(BATCH_SIZE)
-    valid_ds = valid_ds.prefetch(1)
+    valid_ds = valid_ds.prefetch(AUTOTUNE)
 
-
-
-    base_model = EfficientNetB1(input_shape=(IMG_SIZE, IMG_SIZE, 3),
+    base_model = EfficientNetB4(input_shape=(IMG_SIZE, IMG_SIZE, 3),
                                 weights="imagenet",
                                 include_top=False)
     avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
@@ -147,8 +151,3 @@ if __name__ == "__main__":
                         callbacks=[cb_early_stopper, cb_checkpointer, lr_schedule])
 
     model.save(saved_path + dataset_name + '/' + time + '/' + dataset_name + '.h5')
-
-    f = open(saved_path + dataset_name + '/' + time + '/README.txt', 'w')
-    f.write(train_dataset_path + '\n')
-    f.write(valid_dataset_path + '\n')
-    f.write("Model : " + model_name)
