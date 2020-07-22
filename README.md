@@ -96,7 +96,7 @@
             - The number of images in classes are same as the number entered by the user.
               <p align="left"><img src="/doc_imgs/alb_graph4.png" width=90%></p>  
     
-      - ### Object Detection
+    - ### Object Detection
   
       <table border="0">
       <tr>
@@ -109,29 +109,23 @@
       </tr>
       </table> 
 
-        -  Augmentation for VOC PASCAL dataset.
-        -  Save the augmented image and xml file.
+      -  Augmentation for VOC PASCAL dataset.
+      -  Save the augmented image and xml file.
 
-        - **UPDATED 2020.07.10**
-          - [albumentation_voc_aug.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_voc_aug.py)
+      - **UPDATED 2020.07.10**
+        - [albumentation_voc_aug.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_voc_aug.py)
 
-        - **UPDATED 2020.07.21**
-          - [albumentation_voc_aug2.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_voc_aug2.py)
-          - Same function as version 1, but the code has been changed. Both versions are available.
+      - **UPDATED 2020.07.21**
+        - [albumentation_voc_aug2.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_voc_aug2.py)
+        - Same function as version 1, but the code has been changed. Both versions are available.
 
 
                   python3 albumentation_voc_aug.py \
                   ./VOC2012/JPEGImages \     # Image dataset path
                   ./VOC2012/Annotations \    # Annotation dataset path 
                   ./VOC2012/Augmentations    # Path to save augmentation applied file
-
-
-       - Note
-          - [What does mean p??](https://github.com/albumentations-team/albumentations/issues/586#issue-596422426)
-
-          - [What is CLAHE?](https://opencv-python.readthedocs.io/en/latest/doc/20.imageHistogramEqualization/imageHistogramEqualization.html#clahe-contrast-limited-adaptive-histogram-equalization)
          
-      -  **Performance**
+    -  **Performance**
          Tools | 100 augmented images per sec
          ----- | ------------
          Keras Aug | 0.02068s
