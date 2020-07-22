@@ -96,7 +96,7 @@
             - The number of images in classes are same as the number entered by the user.
               <p align="left"><img src="/doc_imgs/alb_graph4.png" width=90%></p>  
     
-    - ### Object Detection
+   - ### Object Detection
   
       <table border="0">
       <tr>
@@ -124,14 +124,6 @@
                   ./VOC2012/JPEGImages \     # Image dataset path
                   ./VOC2012/Annotations \    # Annotation dataset path 
                   ./VOC2012/Augmentations    # Path to save augmentation applied file
-         
-    -  **Performance**
-         Tools | 100 augmented images per sec
-         ----- | ------------
-         Keras Aug | 0.02068s
-         Albumentation | 0.00211s
-
-         Albumentation is 9.8 times faster than Keras_augmentation.
 
 
 ## 4. Model Ensemble
