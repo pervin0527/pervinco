@@ -175,7 +175,7 @@
 
   - ### [Blog post + Codes](https://pervin0527.github.io/YOLOv4/)
 
-## 8.Tensorflow Object Detecion API
+## 8. Tensorflow Object Detecion API
 
    <p align="center"><img src="/doc_imgs/tensorflow2objectdetection.png"></p>
 
