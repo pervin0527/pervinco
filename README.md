@@ -74,27 +74,28 @@
 
 
 ## 3. Image Dataset Augmentation
-   ### Albumentation  
-   - **[Albumentations Git_hub](https://github.com/albumentations-team/albumentations)**
-   - **[Albumentations API](https://albumentations.readthedocs.io/en/latest/api/augmentations.html#module-albumentations.augmentations.functional)**
+   ### Albumentation
+   - ### Official  
+     - **[Albumentations Git_hub](https://github.com/albumentations-team/albumentations)**
+     - **[Albumentations API](https://albumentations.readthedocs.io/en/latest/api/augmentations.html#module-albumentations.augmentations.functional)**
   
    - ### ImageClassification
-       <p align="center"><img src="/doc_imgs/albumentation.jpeg"></p>
+       <p align="center"><img src="/doc_imgs/albumentation.jpeg" width=70%></p>
        
        - **UPDATED 2020.06.24**
           - [albumentation_aug1.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug1.py)  
           - Augmentation is performed by using a loop on each image in the class.
 
           - Before applying augmentation.  number of seed images
-            <p align="left"><img src="/doc_imgs/alb_graph2.png" width=90%></p>
+            <p align="left"><img src="/doc_imgs/alb_graph2.png" width=70%></p>
 
           - After applying augmentation.
-            <p align="left"><img src="/doc_imgs/alb_graph3.png" width=90%></p> 
+            <p align="left"><img src="/doc_imgs/alb_graph3.png" width=70%></p> 
 
       - **UPDATED 2020.06.29**
         - [albumentation_aug2.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug2.py)
             - The number of images in classes are same as the number entered by the user.
-              <p align="left"><img src="/doc_imgs/alb_graph4.png" width=90%></p>  
+              <p align="left"><img src="/doc_imgs/alb_graph4.png" width=70%></p>  
     
    - ### Object Detection
   
