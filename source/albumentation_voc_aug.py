@@ -17,6 +17,7 @@ from albumentations import(
     Crop,
     Compose,
     RandomContrast,
+    normalize_bboxes,
     RandomBrightness,
     IAASharpen,
     MotionBlur,
@@ -27,8 +28,10 @@ TEXT_COLOR = (255, 255, 255)
 
 def read_image(img_path):
     image = cv2.imread(img_path)
+    height, width, channels = image.shape
+    # print(height, width)
 
-    return image
+    return image, height, width
 
 
 def modify_coordinate(output_path, augmented, xml, idx):
@@ -56,30 +59,35 @@ def modify_coordinate(output_path, augmented, xml, idx):
     tree.write(output_path + '/xmls/' + filename + '_' + str(idx) + '.xml')
 
 def get_boxes(label_path):
-    # print(label_path)
     xml_path = os.path.join(label_path)
 
-    root_1 = minidom.parse(xml_path)  # xml.dom.minidom.parse(xml_path)
-    bnd_1 = root_1.getElementsByTagName('bndbox')
-    names = root_1.getElementsByTagName('name')
-    
+    tree = ET.parse(xml)
+    root = tree.getroot()
+    obj_xml = root.findall('object')
+
     result = []
     name_list = []
+    idx = 0
     category_id = []
 
-    for i in range(len(bnd_1)):
-        xmin = int(float(bnd_1[i].childNodes[1].childNodes[0].nodeValue))
-        ymin = int(float(bnd_1[i].childNodes[3].childNodes[0].nodeValue))
-        xmax = int(float(bnd_1[i].childNodes[5].childNodes[0].nodeValue))
-        ymax = int(float(bnd_1[i].childNodes[7].childNodes[0].nodeValue))
+    for obj in obj_xml:
+        bbox_original = obj.find('bndbox')
+        names = obj.find('name')
 
-        result.append((xmin,ymin,xmax,ymax))
+        xmin = int(bbox_original.find('xmin').text)
+        ymin = int(bbox_original.find('ymin').text)
+        xmax = int(bbox_original.find('xmax').text)
+        ymax = int(bbox_original.find('ymax').text)
 
-        name_list.append(names[i].childNodes[0].nodeValue)
+        result.append([xmin, ymin, xmax, ymax])
+        name_list.append(names.text)
+        category_id.append(idx)
+        idx+=1
 
-        category_id.append(i)
+        # print(result)
+        # print(name_list)
+        # print(category_id)
     
-    # print(result)
     return result, name_list, category_id
 
 
@@ -99,22 +107,25 @@ def visualize(annotations, category_id_to_name):
     for idx, bbox in enumerate(annotations['bboxes']):
         img = visualize_bbox(img, bbox, annotations['category_id'][idx], category_id_to_name)
 
-    # resized = cv2.resize(img, (1920, 1080))
-    # cv2.imshow('test', img)
-    # cv2.waitKey(0)
+    resized = cv2.resize(img, (1920, 1080))
+    cv2.imshow('test', resized)
+    cv2.waitKey(0)
 
 
 def get_aug(min_area=0., min_visibility=0.):
     return Compose([
-        Resize(height=1080, width=1920, p=1),
 
-        RandomCrop(p=0.2, height=1080, width=1400),
-
-        OneOf([
-        RandomContrast(p=0.3, limit=(-0.5,1)),
-        RandomBrightness(p=0.3, limit=(-0.2,0.1)),
+        # Resize(height=1080, width=1920, p=1),
+        # RandomCrop(p=0.2, height=1080, width=1400),
+        RandomContrast(p=0.5, limit=(-0.5, 0.3)),
+        RandomBrightness(p=0.5, limit=(-0.2, 0.3)),
         HorizontalFlip(p=0.5),
-        ], p=0.6),
+
+        # OneOf([
+        # RandomContrast(p=0.3, limit=(-0.5,1)),
+        # RandomBrightness(p=0.3, limit=(-0.2,0.1)),
+        # HorizontalFlip(p=0.4),
+        # ], p=1),
 
         # OneOf([
         # RandomCrop(p=0.6, height=1080, width=1280),
@@ -172,11 +183,13 @@ if __name__ == "__main__":
         image_name = image_name.split('.')[0]
         # print(image_name)
 
-        image = read_image(image)
+        image, height, width = read_image(image)
         bbox, str_label, category_id = get_boxes(xml)
         category_id_to_name = make_categori_id(str_label)
         # print(category_id_to_name)
         # print(bbox)
+
+        # bbox = normalize_bboxes(bbox, rows=height, cols=width)
 
         annotations = {'image':image, 'bboxes':bbox, 'category_id':category_id}
         visualize(annotations, category_id_to_name)
@@ -190,8 +203,12 @@ if __name__ == "__main__":
                 modify_coordinate(output_path, augmented, xml, i)
                 # print(i)
 
-            except:
-                break
+
+            except Exception as e:
+                print(e)
+            
+            # except:
+            #     pass
 
             # aug = get_aug()
             # augmented = aug(**annotations)

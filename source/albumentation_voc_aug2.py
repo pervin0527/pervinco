@@ -67,23 +67,32 @@ def visualize(image, bboxes, category_ids, category_id_to_name):
 def get_boxes(label_path):
     xml_path = os.path.join(label_path)
 
-    root_1 = minidom.parse(xml_path)
-    bnd_1 = root_1.getElementsByTagName('bndbox')
-    names = root_1.getElementsByTagName('name')
-    
+    tree = ET.parse(xml)
+    root = tree.getroot()
+    obj_xml = root.findall('object')
+
     result = []
     name_list = []
+    idx = 0
     category_id = []
 
-    for i in range(len(bnd_1)):
-        xmin = int(float(bnd_1[i].childNodes[1].childNodes[0].nodeValue))
-        ymin = int(float(bnd_1[i].childNodes[3].childNodes[0].nodeValue))
-        xmax = int(float(bnd_1[i].childNodes[5].childNodes[0].nodeValue))
-        ymax = int(float(bnd_1[i].childNodes[7].childNodes[0].nodeValue))
+    for obj in obj_xml:
+        bbox_original = obj.find('bndbox')
+        names = obj.find('name')
 
-        result.append([xmin,ymin,xmax,ymax])
-        name_list.append(names[i].childNodes[0].nodeValue)
-        category_id.append(i)
+        xmin = int(bbox_original.find('xmin').text)
+        ymin = int(bbox_original.find('ymin').text)
+        xmax = int(bbox_original.find('xmax').text)
+        ymax = int(bbox_original.find('ymax').text)
+
+        result.append([xmin, ymin, xmax, ymax])
+        name_list.append(names.text)
+        category_id.append(idx)
+        idx+=1
+
+        # print(result)
+        # print(name_list)
+        # print(category_id)
     
     return result, name_list, category_id
 
@@ -122,14 +131,12 @@ if __name__ == "__main__":
     else:
         pass
 
-
     transform = Compose([
         HorizontalFlip(p=0.6),
         RandomContrast(p=0.5, limit=(-0.5, 0.3)),
         RandomBrightness(p=0.5, limit=(-0.2, 0.5)),
         ],
-        bbox_params=BboxParams(format='pascal_voc', label_fields=['category_ids']))
-        
+        bbox_params=BboxParams(format='pascal_voc', label_fields=['category_ids'])) # coco, yolo, albumentations
 
     for image, xml in zip(image_list, xml_list):
         print(image, xml)
@@ -144,7 +151,7 @@ if __name__ == "__main__":
         # print(bbox, str_label, category_id)
         category_id_to_name = make_categori_id(str_label)
         
-        # bbox = denormalize_bboxes(bbox, rows=height, cols=width)
+        # bbox = normalize_bboxes(bbox, rows=height, cols=width)
         visualize(image, bbox, category_id, category_id_to_name)
 
         for i in range(5):
