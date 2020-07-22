@@ -74,13 +74,14 @@
 
 
 ## 3. Image Dataset Augmentation
-   - ### Albumentation  
-      #### ImageClassification
+   ### Albumentation  
+   - **[Albumentations Git_hub](https://github.com/albumentations-team/albumentations)**
+   - **[Albumentations API](https://albumentations.readthedocs.io/en/latest/api/augmentations.html#module-albumentations.augmentations.functional)**
+  
+   - ### ImageClassification
        <p align="center"><img src="/doc_imgs/albumentation.jpeg"></p>
-
-      - **[Albumentations Git_Repo](https://github.com/albumentations-team/albumentations)**
-      - **[Albumentations API ](https://albumentations.readthedocs.io/en/latest/api/augmentations.html#module-albumentations.augmentations.functional)**
-      - **UPDATED 2020.06.24**
+       
+       - **UPDATED 2020.06.24**
           - [albumentation_aug1.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug1.py)  
           - Augmentation is performed by using a loop on each image in the class.
 
@@ -95,7 +96,8 @@
             - The number of images in classes are same as the number entered by the user.
               <p align="left"><img src="/doc_imgs/alb_graph4.png" width=90%></p>  
     
-      #### Object Detection
+      - ### Object Detection
+  
       <table border="0">
       <tr>
          <td>
@@ -106,7 +108,10 @@
          </td>
       </tr>
       </table> 
-      
+
+        -  Augmentation for VOC PASCAL dataset.
+        -  Save the augmented image and xml file.
+
         - **UPDATED 2020.07.10**
           - [albumentation_voc_aug.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_voc_aug.py)
 
@@ -114,9 +119,6 @@
           - [albumentation_voc_aug2.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_voc_aug2.py)
           - Same function as version 1, but the code has been changed. Both versions are available.
 
-        -  Augmentation for VOC PASCAL dataset.
-        -  Save the augmented image and xml file.
-        -  **This code only applies to voc pascal foramt.**
 
                   python3 albumentation_voc_aug.py \
                   ./VOC2012/JPEGImages \     # Image dataset path
