@@ -76,8 +76,8 @@
 ## 3. Image Dataset Augmentation
    ### Albumentation
    - ### Official  
-     - **[Albumentations Git_hub](https://github.com/albumentations-team/albumentations)**
-     - **[Albumentations API](https://albumentations.readthedocs.io/en/latest/api/augmentations.html#module-albumentations.augmentations.functional)**
+     1. **[Albumentations Git_hub](https://github.com/albumentations-team/albumentations)**
+     2. **[Albumentations API](https://albumentations.readthedocs.io/en/latest/api/augmentations.html#module-albumentations.augmentations.functional)**
   
    - ### ImageClassification
    
