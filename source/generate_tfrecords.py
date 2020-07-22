@@ -20,120 +20,72 @@ from object_detection.utils import dataset_util
 from collections import namedtuple, OrderedDict
 
 flags = tf.app.flags
-flags.DEFINE_string('csv_input', './beverage/csv/eval_labels.csv', 'Path to the CSV input')
-flags.DEFINE_string('output_path', './beverage/tfrecord/eval.tfrecord', 'Path to output TFRecord')
-flags.DEFINE_string('image_dir', './beverage/Augmentations/eval_images', 'Path to images')
+flags.DEFINE_string('csv_input', '/data/backup/pervinco_2020/tensorflow/models/research/custom_test/VOC2012/features.csv', 'Path to the CSV input')
+flags.DEFINE_string('output_path', '/data/backup/pervinco_2020/tensorflow/models/research/custom_test/VOC2012/train.tfrecord', 'Path to output TFRecord')
+flags.DEFINE_string('image_dir', '/data/backup/pervinco_2020/tensorflow/models/research/custom_test/VOC2012/Augmentations/images', 'Path to images')
 FLAGS = flags.FLAGS
 
 
 def class_text_to_int(row_label):
-    if row_label == '2%':
+    if row_label == 'aeroplane':
         return 1
 
-    elif row_label == '2%_peach_pet':
+    elif row_label == 'bicycle':
         return 2
 
-    elif row_label == 'aloe_pet':
+    elif row_label == 'bird':
         return 3
 
-    elif row_label == 'apple_pet':
+    elif row_label == 'boat':
         return 4
 
-    elif row_label == 'coca_can':
+    elif row_label == 'bottle':
         return 5
 
-    elif row_label == 'coca_pet':
+    elif row_label == 'bus':
         return 6
 
-    elif row_label == 'dailyC':
+    elif row_label == 'car':
         return 7
 
-    elif row_label == 'demisoda':
+    elif row_label == 'cat':
         return 8
 
-    elif row_label == 'fanta_orange_pet':
+    elif row_label == 'chair':
         return 9
 
-    elif row_label == 'fanta_pine_pet':
+    elif row_label == 'cow':
         return 10
 
-    elif row_label == 'gal_bae':
+    elif row_label == 'diningtable':
         return 11
 
-    elif row_label == 'gal_bae_pet':
+    elif row_label == 'dog':
         return 12
 
-    elif row_label == 'gas_hwal':
+    elif row_label == 'horse':
         return 13
 
-    elif row_label == 'grape':
+    elif row_label == 'motorbike':
         return 14
 
-    elif row_label == 'hongsam':
+    elif row_label == 'person':
         return 15
 
-    elif row_label == 'jeju_pet':
+    elif row_label == 'pottedplant':
         return 16
 
-    elif row_label == 'lemonade':
+    elif row_label == 'sheep':
         return 17
 
-    elif row_label == 'mango':
+    elif row_label == 'sofa':
         return 18
 
-    elif row_label == 'mccol':
+    elif row_label == 'train':
         return 19
 
-    elif row_label == 'milkis':
+    elif row_label == 'tvmonitor':
         return 20
-
-    elif row_label == 'milkis_pet':
-        return 21
-
-    elif row_label == 'mogumogu':
-        return 22
-
-    elif row_label == 'oranC':
-        return 23
-
-    elif row_label == 'peach':
-        return 24
-
-    elif row_label == 'pepsi_can':
-        return 25
-
-    elif row_label == 'pepsi_pet':
-        return 26
-
-    elif row_label == 'pocari':
-        return 27
-
-    elif row_label == 'power':
-        return 28
-
-    elif row_label == 'red_bull':
-        return 29
-
-    elif row_label == 'sol':
-        return 30
-
-    elif row_label == 'sprite':
-        return 31
-
-    elif row_label == 'sprite_pet':
-        return 32
-
-    elif row_label == 'tejava':
-        return 33
-
-    elif row_label == 'virak_pet':
-        return 34
-
-    elif row_label == 'vita_500':
-        return 35
-
-    elif row_label == 'welchs':
-        return 36
 
     else:
         None
