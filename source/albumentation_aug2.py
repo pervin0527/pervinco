@@ -137,6 +137,7 @@ def aug_processing(data_set, label_list, output_path, aug_num, is_train):
 
     for path in img_path:
         file_name = path.split('/')[-1]
+        file_name = file_name.split('.')[0]
         label = path.split('/')[-2]
         avg = int(round(aug_num / labels[label]))
 
