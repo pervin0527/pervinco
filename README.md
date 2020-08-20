@@ -33,7 +33,6 @@
       - [Tensorflow 2.1 simple example](https://www.kaggle.com/philculliton/a-simple-tf-2-1-notebook)
 
    - ### Source Code
-     - [ResNet with Keras Imagedatagenerator](https://github.com/pervin0527/pervinco/blob/master/source/keras_resnet50_train.py)
      - EfficientNet [https://github.com/qubvel/efficientnet](https://github.com/qubvel/efficientnet)
      
      <p align="center"><img src="/doc_imgs/efficientnet.png"></p>
@@ -214,9 +213,13 @@
    - [Chapter 2](https://github.com/pervin0527/pervinco/blob/master/hands_on_ml_2/chapter2.ipynb)
 
 # InterMinds Projects
-  1. [Smart Checkout Table](https://pervin0527.github.io/SCO/) - 2019.05 ~ 2019.12 Fin.
-  2. Smart Shelf - 2020.01 ~ 2020.08
+  1. Smart checkout table - 2019.05 ~ 2019.12 Fin.  
    
-   [![video](https://img.youtube.com/vi/vS-b__hIs7o/0.jpg)](https://www.youtube.com/watch?v=vS-b__hIs7o)
+      [https://pervin0527.github.io/SCO/](https://pervin0527.github.io/SCO/)
+      ![sco](doc_imgs/2.png)
+
+  2. Smart Shelf - 2020.01 ~ 2020.08 Fin.
+   
+      [![video](https://img.youtube.com/vi/vS-b__hIs7o/0.jpg)](https://www.youtube.com/watch?v=vS-b__hIs7o)
    
 # [Reference](https://github.com/pervin0527/pervinco/blob/master/reference.md)
