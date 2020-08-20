@@ -217,6 +217,6 @@
   1. [Smart Checkout Table](https://pervin0527.github.io/SCO/) - 2019.05 ~ 2019.12 Fin.
   2. Smart Shelf - 2020.01 ~ 2020.08
    
-   [![video](doc_imgs/smart_cabinet_01.smart_cabinet_01.jpg)](https://www.youtube.com/watch?v=vS-b__hIs7o)
+   [![video](https://img.youtube.com/vi/vS-b__hIs7o/0.jpg)](https://www.youtube.com/watch?v=vS-b__hIs7o)
    
 # [Reference](https://github.com/pervin0527/pervinco/blob/master/reference.md)
