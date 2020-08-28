@@ -5,6 +5,7 @@ import time
 import cv2
 import random
 import glob
+import math
 from datetime import datetime
 import shutil
 import os
@@ -14,38 +15,27 @@ from albumentations import (
     HorizontalFlip, IAAPerspective, ShiftScaleRotate, CLAHE, RandomRotate90, RandomGamma, VerticalFlip,
     Transpose, ShiftScaleRotate, Blur, OpticalDistortion, GridDistortion, HueSaturationValue, 
     IAAAdditiveGaussianNoise, GaussNoise, MotionBlur, MedianBlur, RandomBrightnessContrast, IAAPiecewiseAffine,
-    IAASharpen, IAAEmboss, Flip, OneOf, Compose, Rotate, RandomContrast, RandomBrightness, RandomCrop, Resize, OpticalDistortion
+    IAASharpen, IAAEmboss, Flip, OneOf, Compose, Rotate, RandomContrast, RandomBrightness, RandomCrop, Resize, OpticalDistortion,
+    CenterCrop
 )
 
-IMG_RESIZE = 512
+IMG_RESIZE = 224
 
 def aug_options(p=1):
     return Compose([
-        # Resize(IMG_RESIZE, IMG_RESIZE),
+    # IAASharpen(p=0.5),
+    # Rotate(limit=(-360, 360), p=0.5, border_mode=1),
+    VerticalFlip(p=0.5),
+    # HorizontalFlip(p=0.6),
 
-        # RandomCrop(IMG_RESIZE, IMG_RESIZE, p=0.5),  # 위에꺼랑 세트
-        
-        OneOf([
-        RandomContrast(p=1, limit=(-0.5,1)),   # -0.5 ~ 2 까지가 현장과 가장 비슷함  -- RandomBrightnessContrast
-        RandomBrightness(p=1, limit=(-0.2,0.1)),
-        ], p=0.6),
-            
-        OneOf([
-            Rotate(limit=(180, 180), p=0.3),
-            RandomRotate90(p=0.3),
-            VerticalFlip(p=0.3),
-        ], p=0.5),
-
-        OneOf([
-            IAASharpen(alpha=(0.2, 0.5), lightness=(0.1, 0.5), always_apply=False, p=0.5),
-            MotionBlur(p=0.1),
-            HorizontalFlip(p=0.4)
-        ], p=0.5),
-
-        ShiftScaleRotate(shift_limit=0.001, scale_limit=0.1, rotate_limit=180, p=0.3, border_mode=1),
-        Resize(IMG_RESIZE, IMG_RESIZE, p=1),
-        ],
-        p=p)
+    # OneOf([
+    #     RandomContrast(p=0.5, limit=(-0.5, 0.5)),
+    #     RandomBrightness(p=0.5, limit=(-0.3, 0.2)),
+    # ], p=0.8),
+    
+    Resize(IMG_RESIZE, IMG_RESIZE),
+    ],
+    p=p)
 
 
 def apply_aug(aug, image):
@@ -137,9 +127,10 @@ def aug_processing(data_set, label_list, output_path, aug_num, is_train):
 
     for path in img_path:
         file_name = path.split('/')[-1]
+        print(file_name)
         file_name = file_name.split('.')[0]
         label = path.split('/')[-2]
-        avg = int(round(aug_num / labels[label]))
+        avg = int(math.ceil(aug_num / labels[label]))
 
         aug = aug_options(p=1)
         image = cv2.imread(path)
@@ -149,13 +140,16 @@ def aug_processing(data_set, label_list, output_path, aug_num, is_train):
 
         else:
             pass
-        
-        num_of_imgs = len(glob.glob(output_path + '/' + label + '/*.jpg'))
-        today = datetime.today().strftime('%Y-%m-%d-%H:%M:%S')
 
-        for i in range(avg):
-            aug_img = apply_aug(aug, image)
-            cv2.imwrite(output_path + '/' + label + '/' + file_name + '_' + str(i) + '.jpg', aug_img)
+        total_auged = len(glob.glob(output_path + '/' + label + '/*.jpg'))
+
+        if total_auged <= aug_num:
+            for i in range(avg):
+                aug_img = apply_aug(aug, image)
+                cv2.imwrite(output_path + '/' + label + '/' + file_name + '_' + str(i) + '.jpg', aug_img)
+
+        else:
+            pass
 
             
     return output_path
