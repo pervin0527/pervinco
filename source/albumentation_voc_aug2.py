@@ -80,10 +80,10 @@ def get_boxes(label_path):
         bbox_original = obj.find('bndbox')
         names = obj.find('name')
 
-        xmin = int(bbox_original.find('xmin').text)
-        ymin = int(bbox_original.find('ymin').text)
-        xmax = int(bbox_original.find('xmax').text)
-        ymax = int(bbox_original.find('ymax').text)
+        xmin = int(float(bbox_original.find('xmin').text))
+        ymin = int(float(bbox_original.find('ymin').text))
+        xmax = int(float(bbox_original.find('xmax').text))
+        ymax = int(float(bbox_original.find('ymax').text))
 
         result.append([xmin, ymin, xmax, ymax])
         name_list.append(names.text)
@@ -152,10 +152,10 @@ if __name__ == "__main__":
         category_id_to_name = make_categori_id(str_label)
         
         # bbox = normalize_bboxes(bbox, rows=height, cols=width)
-        visualize(image, bbox, category_id, category_id_to_name)
+        # visualize(image, bbox, category_id, category_id_to_name)
 
         for i in range(5):
             transformed = transform(image=image, bboxes=bbox, category_ids=category_id)
-            visualize(transformed['image'], transformed['bboxes'], transformed['category_ids'], category_id_to_name)
+            # visualize(transformed['image'], transformed['bboxes'], transformed['category_ids'], category_id_to_name)
             cv2.imwrite(output_path + '/images/' + image_name + '_' + str(i) + '.jpg', transformed['image'])
             modify_coordinate(output_path, transformed, xml, i)
