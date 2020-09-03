@@ -16,8 +16,16 @@ from object_detection.builders import model_builder
 from datetime import datetime
 
 
+pipe_config_path = './VOC2012/ssd_mobilenet_v2_fpnlite_320x320_coco17_tpu-8/pipeline.config'
+model_dir = './VOC2012/model2'
+ckpt_value = 'ckpt-501'
+image_path = './VOC2012/test_image/test.jpg'
+label_map_path = "./VOC2012/label_map.txt"
+
+
 def load_image_into_numpy_array(path):
-    image = cv2.imread(path)
+    img_data = tf.io.gfile.GFile(path, 'rb').read()
+    image = Image.open(BytesIO(img_data))
     (im_width, im_height) = image.size
     return np.array(image.getdata()).reshape((im_height, im_width, 3)).astype(np.uint8)
 
@@ -29,10 +37,7 @@ def get_keypoint_tuples(eval_config):
     return tuple_list
 
 
-pipeline_config = os.path.join('./VOC2012/ssd_mobilenet_v2_fpnlite_320x320_coco17_tpu-8/pipeline.config')
-model_dir = './VOC2012/model2'
-image_path = './VOC2012/test_image/test6.jpg'
-label_map_path = "./VOC2012/label_map.txt"
+pipeline_config = os.path.join(pipe_config_path)
 image_np = load_image_into_numpy_array(image_path)
 
 
@@ -44,7 +49,7 @@ detection_model = model_builder.build(
 
 ckpt = tf.compat.v2.train.Checkpoint(
       model=detection_model)
-ckpt.restore(os.path.join(model_dir, 'ckpt-501')).expect_partial()
+ckpt.restore(os.path.join(model_dir, ckpt_value)).expect_partial()
 
 
 def get_model_detection_function(model):
@@ -95,5 +100,9 @@ viz_utils.visualize_boxes_and_labels_on_image_array(
       keypoint_edges=get_keypoint_tuples(configs['eval_config']))
 
 save_img = cv2.cvtColor(image_np_with_detections, cv2.COLOR_BGR2RGB)
-today = datetime.today().strftime('%Y-%m-%d-%H:%M:%S')
-cv2.imwrite('./VOC2012/test_result/' + today + '.jpg', save_img)
+save_img = cv2.resize(save_img, (1920, 1080))
+cv2.imshow('Result', save_img)
+cv2.waitKey(0)
+
+# today = datetime.today().strftime('%Y-%m-%d-%H:%M:%S')
+# cv2.imwrite('./VOC2012/test_result/' + today + '.jpg', save_img)
