@@ -5,7 +5,23 @@ import random
 import os
 import datetime
 import time
-from efficientnet.tfkeras import EfficientNetB3, preprocess_input
+from efficientnet.tfkeras import EfficientNetB1, preprocess_input
+
+# gpus = tf.config.experimental.list_physical_devices('GPU')
+# if gpus:
+#   try:
+#     tf.config.experimental.set_virtual_device_configuration(gpus[0],
+#       [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=9000)])
+#   except RuntimeError as e:
+#     print(e)
+
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+    try:
+        print("True")
+        tf.config.experimental.set_memory_growth(gpus[0], True)
+    except RuntimeError as e:
+        print(e)
 
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 strategy = tf.distribute.experimental.CentralStorageStrategy()
@@ -15,21 +31,6 @@ IMG_SIZE = 224
 NUM_EPOCHS = 30
 EARLY_STOP_PATIENCE = 3
 
-gpus = tf.config.experimental.list_physical_devices('GPU')
-if gpus:
-    try:
-        tf.config.experimental.set_memory_growth(gpus[0], True)
-    except RuntimeError as e:
-        print(e)
-
-# gpus = tf.config.experimental.list_physical_devices('GPU')
-# if gpus:
-#   try:
-#     tf.config.experimental.set_virtual_device_configuration(
-#         gpus[0],
-#         [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=9000)])
-#   except RuntimeError as e:
-#     print(e)
 
 def basic_processing(ds_path, is_training):
     ds_path = pathlib.Path(ds_path)
@@ -94,8 +95,8 @@ def build_lrfn(lr_start=0.00001, lr_max=0.00005,
 
 
 if __name__ == "__main__":
-    model_name = "EfficientNet-B3"
-    dataset_name = 'final_pog_list_cls_data_ver4'
+    model_name = "EfficientNet-B1"
+    dataset_name = 'mask_classification'
     train_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/train'
     valid_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/valid'
 
@@ -111,12 +112,13 @@ if __name__ == "__main__":
 
     if not(os.path.isdir(saved_path + dataset_name + '/' + time)):
         os.makedirs(os.path.join(saved_path + dataset_name + '/' + time))
+
         f = open(saved_path + dataset_name + '/' + time + '/README.txt', 'w')
         f.write(train_dataset_path + '\n')
         f.write(valid_dataset_path + '\n')
         f.write("Model : " + model_name)
         f.close()
-        
+
     else:
         pass
 
@@ -128,7 +130,7 @@ if __name__ == "__main__":
     valid_ds = valid_ds.repeat().batch(BATCH_SIZE)
     valid_ds = valid_ds.prefetch(AUTOTUNE)
 
-    base_model = EfficientNetB3(input_shape=(IMG_SIZE, IMG_SIZE, 3),
+    base_model = EfficientNetB1(input_shape=(IMG_SIZE, IMG_SIZE, 3),
                                 weights="imagenet", # noisy-student
                                 include_top=False)
     avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)

@@ -5,8 +5,12 @@ import random
 import os
 import datetime
 import time
+# from tensorflow.keras.applications.resnet import preprocess_input
+from tensorflow.keras.applications.xception import preprocess_input
 
 AUTOTUNE = tf.data.experimental.AUTOTUNE
+strategy = tf.distribute.experimental.CentralStorageStrategy()
+
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
     try:
@@ -37,7 +41,7 @@ def basic_processing(ds_path, is_training):
 def preprocess_image(image):
     image = tf.image.decode_jpeg(image, channels=3)
     image = tf.image.resize(image, [224, 224])
-    image = keras.applications.xception.preprocess_input(image)
+    image = preprocess_input(image)
 
     return image
 
@@ -57,15 +61,34 @@ def make_tf_dataset(images, labels):
     return image_label_ds
 
 
+def build_lrfn(lr_start=0.00001, lr_max=0.00005, 
+               lr_min=0.00001, lr_rampup_epochs=5, 
+               lr_sustain_epochs=0, lr_exp_decay=.8):
+    lr_max = lr_max * strategy.num_replicas_in_sync
+
+    def lrfn(epoch):
+        if epoch < lr_rampup_epochs:
+            lr = (lr_max - lr_start) / lr_rampup_epochs * epoch + lr_start
+        elif epoch < lr_rampup_epochs + lr_sustain_epochs:
+            lr = lr_max
+        else:
+            lr = (lr_max - lr_min) *\
+                 lr_exp_decay**(epoch - lr_rampup_epochs\
+                                - lr_sustain_epochs) + lr_min
+        return lr
+    return lrfn
+
+
 if __name__ == "__main__":
-    dataset_name = 'cu50'
-    train_dataset_path = '/data/backup/pervinco_2020/datasets/' + dataset_name + '/train5'
-    valid_dataset_path = '/data/backup/pervinco_2020/datasets/' + dataset_name + '/valid5'
+    model_name = "xception"
+    dataset_name = 'total_split'
+    train_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/train_2'
+    valid_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/valid_2'
 
     train_images, train_labels, train_images_len, train_labels_len = basic_processing(train_dataset_path, True)
     valid_images, valid_labels, valid_images_len, valid_labels_len = basic_processing(valid_dataset_path, False)
 
-    BATCH_SIZE = 32
+    BATCH_SIZE = 8
     IMG_SIZE = 224
     NUM_EPOCHS = 30
     EARLY_STOP_PATIENCE = 3
@@ -89,7 +112,7 @@ if __name__ == "__main__":
     valid_ds = valid_ds.repeat().batch(BATCH_SIZE)
     valid_ds = valid_ds.prefetch(1)
 
-    base_model = keras.applications.xception.Xception(input_shape=(IMG_SIZE, IMG_SIZE, 3),
+    base_model = tf.keras.applications.Xception(input_shape=(IMG_SIZE, IMG_SIZE, 3),
                                                       weights="imagenet",
                                                       include_top=False)
     avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
@@ -109,13 +132,21 @@ if __name__ == "__main__":
                                                          save_best_only=True,
                                                          mode='auto')
 
+    lrfn = build_lrfn()
+    lr_schedule = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1)
+
     history = model.fit(train_ds,
-                        epochs=NUM_EPOCHS,
+                        epochs=10,
                         steps_per_epoch=TRAIN_STEP_PER_EPOCH,
                         shuffle=False,
                         validation_data=valid_ds,
                         validation_steps=VALID_STEP_PER_EPOCH,
                         verbose=1,
-                        callbacks=[cb_early_stopper, cb_checkpointer])
+                        callbacks=[cb_early_stopper, cb_checkpointer, lr_schedule])
 
     model.save(saved_path + dataset_name + '/' + time + '/' + dataset_name + '.h5')
+
+    f = open(saved_path + dataset_name + '/' + time + '/README.txt', 'w')
+    f.write(train_dataset_path + '\n')
+    f.write(valid_dataset_path + '\n')
+    f.write("Model : " + model_name)

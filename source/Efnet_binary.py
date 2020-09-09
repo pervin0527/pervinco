@@ -5,17 +5,25 @@ import random
 import os
 import datetime
 import time
-from efficientnet.tfkeras import EfficientNetB4, preprocess_input
+from efficientnet.tfkeras import EfficientNetB0, preprocess_input
 
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 strategy = tf.distribute.experimental.CentralStorageStrategy()
 
+# gpus = tf.config.experimental.list_physical_devices('GPU')
+# if gpus:
+#   try:
+#     tf.config.experimental.set_virtual_device_configuration(gpus[0], [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=9000)])
+#   except RuntimeError as e:
+#     print(e)
+
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
-  try:
-    tf.config.experimental.set_virtual_device_configuration(gpus[0], [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=9000)])
-  except RuntimeError as e:
-    print(e)
+    try:
+        print("True")
+        tf.config.experimental.set_memory_growth(gpus[0], True)
+    except RuntimeError as e:
+        print(e)
 
 def basic_processing(ds_path, is_training):
     ds_path = pathlib.Path(ds_path)
@@ -78,10 +86,10 @@ def build_lrfn(lr_start=0.00001, lr_max=0.00005,
 
 
 if __name__ == "__main__":
-    model_name = "EfficientNet-B4"
+    model_name = "EfficientNet-B0"
     dataset_name = 'empty_final'
-    train_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/train_3'
-    valid_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/valid_3'
+    train_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/train_4'
+    valid_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/valid_4'
 
     train_images, train_labels, train_images_len, train_labels_len = basic_processing(train_dataset_path, True)
     valid_images, valid_labels, valid_images_len, valid_labels_len = basic_processing(valid_dataset_path, False)
@@ -117,7 +125,7 @@ if __name__ == "__main__":
     valid_ds = valid_ds.repeat().batch(BATCH_SIZE)
     valid_ds = valid_ds.prefetch(AUTOTUNE)
 
-    base_model = EfficientNetB4(input_shape=(IMG_SIZE, IMG_SIZE, 3),
+    base_model = EfficientNetB0(input_shape=(IMG_SIZE, IMG_SIZE, 3),
                                 weights="imagenet",
                                 include_top=False)
     avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)

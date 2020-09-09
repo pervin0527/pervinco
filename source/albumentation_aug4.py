@@ -4,6 +4,7 @@ import sys
 import os
 import math
 import random
+import time
 from matplotlib import pyplot as plt
 from sklearn.model_selection import train_test_split
 import albumentations as A
@@ -80,10 +81,10 @@ def aug_processing(data_set, output_path, aug_num, is_train):
     labels = data_set['label'].value_counts().sort_index()
 
     if is_train == True:
-        output_path = output_path + '/train'
+        output_path = output_path + '/train_test'
 
     else:
-        output_path = output_path + '/valid'
+        output_path = output_path + '/valid_test'
 
     for path in img_path:
         file_name = path.split('/')[-1]
@@ -106,14 +107,25 @@ def aug_processing(data_set, output_path, aug_num, is_train):
             for i in range(avg):
                 transform = A.Compose([
                     A.Resize(224, 224, p=1),
+                    # A.Rotate(limit=(-360, 360), p=0.5, border_mode=1),
+
+                    # A.OneOf([
+                    #     A.Rotate(limit=(-360, 360), p=0.5, border_mode=1),
+                    #     A.ShiftScaleRotate(shift_limit=0.0625, scale_limit=0.50, rotate_limit=45, p=.5),
+                    # ], p=1),
 
                     A.OneOf([
-                        A.VerticalFlip(p=0.5),
                         A.HorizontalFlip(p=0.5),
+                        A.Blur(p=0.5)
+                    ], p=1),
+
+                    A.OneOf([
+                        A.RandomContrast(p=0.5, limit=(-0.5, 0.3)),
+                        A.RandomBrightness(p=0.5, limit=(-0.2, 0.3)),
                     ], p=1)
                 ])
                 augmented_image = transform(image=image)['image']
-                cv2.imwrite(output_path + '/' + label + '/' + file_name + '_' + str(i) + '.jpg', augmented_image)
+                cv2.imwrite(output_path + '/' + label + '/' + file_name + '_' + str(i) + '_' + str(time.time()) + '.jpg', augmented_image)
 
         else:
             pass

@@ -61,7 +61,7 @@ def visualize(image, bboxes, category_ids, category_id_to_name):
 
     img = cv2.resize(img, (1080, 720))
     cv2.imshow('sample', img)
-    cv2.waitKey(0)
+    cv2.waitKey(1000)
 
 
 def get_boxes(label_path):
@@ -70,31 +70,33 @@ def get_boxes(label_path):
     tree = ET.parse(xml)
     root = tree.getroot()
     obj_xml = root.findall('object')
-
-    result = []
-    name_list = []
-    idx = 0
-    category_id = []
-
-    for obj in obj_xml:
-        bbox_original = obj.find('bndbox')
-        names = obj.find('name')
-
-        xmin = int(float(bbox_original.find('xmin').text))
-        ymin = int(float(bbox_original.find('ymin').text))
-        xmax = int(float(bbox_original.find('xmax').text))
-        ymax = int(float(bbox_original.find('ymax').text))
-
-        result.append([xmin, ymin, xmax, ymax])
-        name_list.append(names.text)
-        category_id.append(idx)
-        idx+=1
-
-        # print(result)
-        # print(name_list)
-        # print(category_id)
     
-    return result, name_list, category_id
+    if obj_xml[0].find('bndbox') != None:
+
+        result = []
+        name_list = []
+        idx = 0
+        category_id = []
+
+        for obj in obj_xml:
+            bbox_original = obj.find('bndbox')
+            names = obj.find('name')
+        
+            xmin = int(float(bbox_original.find('xmin').text))
+            ymin = int(float(bbox_original.find('ymin').text))
+            xmax = int(float(bbox_original.find('xmax').text))
+            ymax = int(float(bbox_original.find('ymax').text))
+
+            result.append([xmin, ymin, xmax, ymax])
+            name_list.append(names.text)
+            category_id.append(idx)
+            idx+=1
+
+            # print(result)
+            # print(name_list)
+            # print(category_id)
+        
+        return result, name_list, category_id
 
 
 def make_categori_id(str_label):
@@ -147,15 +149,19 @@ if __name__ == "__main__":
         image = cv2.imread(image)
         height, width, channels = image.shape
 
-        bbox, str_label, category_id = get_boxes(xml)
-        # print(bbox, str_label, category_id)
-        category_id_to_name = make_categori_id(str_label)
+        try:
+            bbox, str_label, category_id = get_boxes(xml)
+            # print(bbox, str_label, category_id)
+            category_id_to_name = make_categori_id(str_label)
         
-        # bbox = normalize_bboxes(bbox, rows=height, cols=width)
-        # visualize(image, bbox, category_id, category_id_to_name)
+            # bbox = normalize_bboxes(bbox, rows=height, cols=width)
+            # visualize(image, bbox, category_id, category_id_to_name)
 
-        for i in range(5):
-            transformed = transform(image=image, bboxes=bbox, category_ids=category_id)
-            # visualize(transformed['image'], transformed['bboxes'], transformed['category_ids'], category_id_to_name)
-            cv2.imwrite(output_path + '/images/' + image_name + '_' + str(i) + '.jpg', transformed['image'])
-            modify_coordinate(output_path, transformed, xml, i)
+            for i in range(3):
+                transformed = transform(image=image, bboxes=bbox, category_ids=category_id)
+                # visualize(transformed['image'], transformed['bboxes'], transformed['category_ids'], category_id_to_name)
+                cv2.imwrite(output_path + '/images/' + image_name + '_' + str(i) + '.jpg', transformed['image'])
+                modify_coordinate(output_path, transformed, xml, i)
+
+        except:
+            pass

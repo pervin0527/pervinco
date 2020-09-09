@@ -3,14 +3,14 @@ import numpy as np
 import glob
 import os
 
-DATASET_NAME = 'cu50'
-path = sorted(glob.glob('/home/barcelona/pervinco/datasets/'+ DATASET_NAME + '/added/*/*'))
-output_path = '/home/barcelona/pervinco/datasets/' + DATASET_NAME + '/aug/'
+DATASET_NAME = 'walkin_beverage'
+path = sorted(glob.glob('/data/backup/pervinco_2020/datasets/'+ DATASET_NAME + '/*/*.jpg'))
+output_path = '/data/backup/pervinco_2020/Auged_dataset/' + DATASET_NAME + '/train_keras_aug/'
 print('label num : ', len(path))
 
 data_generator = tf.keras.preprocessing.image.ImageDataGenerator(rotation_range=360,
-                                                                 width_shift_range=0.2,
-                                                                 height_shift_range=0.2,
+                                                                 width_shift_range=0.1,
+                                                                 height_shift_range=0.1,
                                                                  zoom_range=0.1)
 
 
@@ -29,5 +29,5 @@ for image in path:
     if not (os.path.isdir(output_path + folder)):
         os.makedirs(output_path + folder)
 
-    for x, val in zip(data_generator.flow(image, save_to_dir=output_path + folder, save_prefix=folder, save_format='jpg'), range(60)):
+    for x, val in zip(data_generator.flow(image, save_to_dir=output_path + folder, save_prefix=folder, save_format='jpg'), range(50)):
         pass

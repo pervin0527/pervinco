@@ -5,8 +5,6 @@ import time
 import cv2
 import random
 import glob
-import math
-from datetime import datetime
 import shutil
 import os
 from sklearn.model_selection import train_test_split
@@ -15,27 +13,33 @@ from albumentations import (
     HorizontalFlip, IAAPerspective, ShiftScaleRotate, CLAHE, RandomRotate90, RandomGamma, VerticalFlip,
     Transpose, ShiftScaleRotate, Blur, OpticalDistortion, GridDistortion, HueSaturationValue, 
     IAAAdditiveGaussianNoise, GaussNoise, MotionBlur, MedianBlur, RandomBrightnessContrast, IAAPiecewiseAffine,
-    IAASharpen, IAAEmboss, Flip, OneOf, Compose, Rotate, RandomContrast, RandomBrightness, RandomCrop, Resize, OpticalDistortion,
-    CenterCrop
+    IAASharpen, IAAEmboss, Flip, OneOf, Compose, Rotate, RandomContrast, RandomBrightness, RandomCrop, Resize, OpticalDistortion
 )
 
-IMG_RESIZE = 224
 
 def aug_options(p=1):
     return Compose([
-    # IAASharpen(p=0.5),
-    # Rotate(limit=(-360, 360), p=0.5, border_mode=1),
-    VerticalFlip(p=0.5),
-    # HorizontalFlip(p=0.6),
-
-    # OneOf([
-    #     RandomContrast(p=0.5, limit=(-0.5, 0.5)),
-    #     RandomBrightness(p=0.5, limit=(-0.3, 0.2)),
-    # ], p=0.8),
+        Resize(224, 224),
+RandomCrop(224,224, p=0.5),  # 위에꺼랑 세트
+        
+        OneOf([
+        RandomContrast(p=1, limit=(-0.5,1)),   # -0.5 ~ 2 까지가 현장과 가장 비슷함  -- RandomBrightnessContrast
+        RandomBrightness(p=1, limit=(-0.2,0.1)),
+        # RandomGamma(p=1, gamma_limit=(80,200)),
+        ], p=0.6),
+            
+        OneOf([
+            Rotate(limit=(180, 180), p=0.3),
+            RandomRotate90(p=0.3),
+            VerticalFlip(p=0.3),
+            MotionBlur(p=0.1)
+        ], p=0.5),
     
-    Resize(IMG_RESIZE, IMG_RESIZE),
-    ],
-    p=p)
+        # MotionBlur(p=0.2),   # 움직일때 흔들리는 것 같은 이미지
+        ShiftScaleRotate(shift_limit=0.001, scale_limit=0.1, rotate_limit=180, p=0.3, border_mode=1),
+        Resize(224,224, p=1),
+        ],
+        p=p)
 
 
 def apply_aug(aug, image):
@@ -94,64 +98,55 @@ def show_aug_sampels(path):
     imgs = glob.glob(path + '/*/*.jpg')
     # print(len(imgs))
     idx = random.randint(0, len(imgs))
-    aug = aug_options(p=1)
 
     for i in range(0, 30):
         image = cv2.imread(imgs[idx])
-        image = cv2.resize(image, (IMG_RESIZE, IMG_RESIZE))
+        image = cv2.resize(image, (224, 224))
+        aug = aug_options(p=1)
         aug_img = apply_aug(aug, image)
 
         # numpy_horizontal = np.hstack((image, aug_img))
         numpy_horizontal_concat = np.concatenate((image, aug_img), axis=1)
-        # numpy_horizontal_concat = cv2.resize(numpy_horizontal_concat, (1280, 720))
+        numpy_horizontal_concat = cv2.resize(numpy_horizontal_concat, (1280, 720))
 
         cv2.imshow('Original / Augmentation', numpy_horizontal_concat)
         cv2.waitKey(300)
     cv2.destroyAllWindows()
 
-    os.system('clear')
+    # os.system('clear')
 
 
-def aug_processing(data_set, label_list, output_path, aug_num, is_train):
+def aug_processing(data_set, output_path, aug_num, is_train):
     img_path = data_set['image_path'].sort_index()
-    labels = data_set['label'].value_counts().sort_index()
 
-    # print(img_path)
-    # print(labels)
-    
     if is_train == True:
         output_path = output_path + '/train'
 
     else:
         output_path = output_path + '/valid'
+    
+    for img in img_path:
+        file_name = img.split('/')[-1]
+        class_name = img.split('/')[-2]
+        idx = random.randint(1, 10)
 
-    for path in img_path:
-        file_name = path.split('/')[-1]
-        print(file_name)
-        file_name = file_name.split('.')[0]
-        label = path.split('/')[-2]
-        avg = int(math.ceil(aug_num / labels[label]))
-
+        image = cv2.imread(img)
         aug = aug_options(p=1)
-        image = cv2.imread(path)
 
-        if not(os.path.isdir(output_path + '/' + label)):
-            os.makedirs(output_path + '/' + label)
+        if not (os.path.isdir(output_path + '/' + class_name)):
+            os.makedirs(output_path + '/' + class_name)
 
         else:
             pass
 
-        total_auged = len(glob.glob(output_path + '/' + label + '/*.jpg'))
-
-        if total_auged <= aug_num:
-            for i in range(avg):
+        if len(glob.glob(output_path + '/' + class_name + '/*.jpg')) < aug_num:
+            for i in range(idx):
                 aug_img = apply_aug(aug, image)
-                cv2.imwrite(output_path + '/' + label + '/' + file_name + '_' + str(i) + '.jpg', aug_img)
+                cv2.imwrite(output_path + '/' + class_name + '/' + str(i) + '_' + file_name, aug_img)
 
         else:
             pass
 
-            
     return output_path
                 
 
@@ -159,7 +154,6 @@ def make_df(path):
     result = []
     idx = 0
     label_list = sorted(os.listdir(path))
-    print(label_list)
 
     for label in label_list:
         file_list = glob.glob(os.path.join(path,label,'*'))
@@ -175,7 +169,7 @@ def make_df(path):
 
 if __name__ == "__main__":
     # Dataset Path define
-    path = '/data/backup/pervinco_2020/datasets/test'
+    path = '/data/backup/pervinco_2020/datasets/final_pog_list_cls_data_ver3'
     dataset_name = path.split('/')[-1]
     output_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name
 
@@ -183,7 +177,6 @@ if __name__ == "__main__":
     result = []
     idx = 0
     label_list = sorted(os.listdir(path))
-    print(label_list)
 
     for label in label_list:
         file_list = glob.glob(os.path.join(path,label,'*'))
@@ -205,24 +198,21 @@ if __name__ == "__main__":
         print("Start Aug Process??? Press y or n")
         a = input()
         
-
         if a == 'y':
             print('How many augmentation do you want?')
             aug_num = float(input())
 
-            output_train = aug_processing(train_set, label_list, output_path, int(aug_num), is_train=True)
+            output_train = aug_processing(train_set, output_path, int(aug_num), is_train=True)
             output_train_df = make_df(output_train)
 
-            output_valid = aug_processing(test_set, label_list, output_path, int(aug_num * 0.2), is_train=False)
+            output_valid = aug_processing(test_set, output_path, int(aug_num * 0.2), is_train=False)
             output_valid_df = make_df(output_valid)
 
             show_splited_datasets(output_train_df, output_valid_df)
             break
 
-
         elif a == 'n':
             break
-
 
         else:
             print("Please press y or n")
