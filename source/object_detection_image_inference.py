@@ -16,11 +16,12 @@ from object_detection.builders import model_builder
 from datetime import datetime
 
 
-pipe_config_path = './VOC2012/ssd_mobilenet_v2_fpnlite_320x320_coco17_tpu-8/pipeline.config'
-model_dir = './VOC2012/model2'
-ckpt_value = 'ckpt-501'
-image_path = './VOC2012/test_image/test.jpg'
+pipe_config_path = './VOC2012/Deploy/ssd_efficientdet_d0_512x512_coco17_tpu-8.config'
+model_dir = './VOC2012/Models/train_0911'
+ckpt_value = 'ckpt-3001'
+image_path = './test_image/dog.jpg'
 label_map_path = "./VOC2012/label_map.txt"
+min_score = 0.8
 
 
 def load_image_into_numpy_array(path):
@@ -93,7 +94,7 @@ viz_utils.visualize_boxes_and_labels_on_image_array(
       category_index,
       use_normalized_coordinates=True,
       max_boxes_to_draw=200,
-      min_score_thresh=.7,
+      min_score_thresh=min_score,
       agnostic_mode=False,
       keypoints=keypoints,
       keypoint_scores=keypoint_scores,
@@ -103,6 +104,3 @@ save_img = cv2.cvtColor(image_np_with_detections, cv2.COLOR_BGR2RGB)
 save_img = cv2.resize(save_img, (1920, 1080))
 cv2.imshow('Result', save_img)
 cv2.waitKey(0)
-
-# today = datetime.today().strftime('%Y-%m-%d-%H:%M:%S')
-# cv2.imwrite('./VOC2012/test_result/' + today + '.jpg', save_img)

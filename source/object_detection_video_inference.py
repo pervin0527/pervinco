@@ -8,9 +8,10 @@ from object_detection.utils import visualization_utils as viz_utils
 from object_detection.builders import model_builder
 
 
-PATH_TO_CFG = './VOC2012/ssd_mobilenet_v2_fpnlite_320x320_coco17_tpu-8/pipeline.config'
-PATH_TO_CKPT = './VOC2012/model2'
+PATH_TO_CFG = './VOC2012/Deploy/ssd_efficientdet_d0_512x512_coco17_tpu-8.config'
+PATH_TO_CKPT = './VOC2012/Models/train_0911'
 PATH_TO_LABELS = './VOC2012/label_map.txt'
+CKPT_VALUE = 'ckpt-3001'
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'    
 tf.get_logger().setLevel('ERROR')
@@ -24,7 +25,7 @@ model_config = configs['model']
 detection_model = model_builder.build(model_config=model_config, is_training=False)
 
 ckpt = tf.compat.v2.train.Checkpoint(model=detection_model)
-ckpt.restore(os.path.join(PATH_TO_CKPT, 'ckpt-501')).expect_partial()
+ckpt.restore(os.path.join(PATH_TO_CKPT, CKPT_VALUE)).expect_partial()
 
 @tf.function
 def detect_fn(image):
@@ -46,8 +47,8 @@ cap = cv2.VideoCapture(-1)
 if cap.isOpened() == False:
     print('카메라를 오픈 할 수 없습니다.')
 
-frame_width = int(800)
-frame_height = int(600)
+frame_width = int(1920)
+frame_height = int(1080)
 
 MJPG_CODEC = 1196444237.0 # MJPG
 cap_AUTOFOCUS = 0
@@ -56,7 +57,7 @@ cap_FOCUS = 0
 cv2.namedWindow('Usb Cam', cv2.WINDOW_FREERATIO)
 cv2.resizeWindow('Usb Cam', frame_height, frame_width)
 
-cap.set(cv2.CAP_PROP_BRIGHTNESS, 70)
+cap.set(cv2.CAP_PROP_BRIGHTNESS, 100)
 cap.set(cv2.CAP_PROP_FOURCC, MJPG_CODEC)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, frame_width)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, frame_height)
