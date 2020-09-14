@@ -10,9 +10,9 @@ from xml.dom import minidom
 from albumentations import(BboxParams, HorizontalFlip, ShiftScaleRotate, VerticalFlip, Resize,
                            CenterCrop, RandomCrop, Crop, Compose, RandomContrast,
                            RandomBrightness, IAASharpen, MotionBlur, OneOf, normalize_bboxes, 
-                           denormalize_bboxes)
+                           denormalize_bboxes, RGBShift, RandomRotate90, RandomBrightnessContrast)
 
-BOX_COLOR = (0, 0, 255) # Red
+BOX_COLOR = (0, 255, 0) # Red
 TEXT_COLOR = (255, 255, 255) # White
 
 
@@ -59,9 +59,9 @@ def visualize(image, bboxes, category_ids, category_id_to_name):
         class_name = category_id_to_name[category_id]
         img = visualize_bbox(img, bbox, class_name)
 
-    img = cv2.resize(img, (1080, 720))
+    # img = cv2.resize(img, (1080, 720))
     cv2.imshow('sample', img)
-    cv2.waitKey(1000)
+    cv2.waitKey(0)
 
 
 def get_boxes(label_path):
@@ -134,9 +134,10 @@ if __name__ == "__main__":
         pass
 
     transform = Compose([
+        Resize(512, 512, p=1),
         HorizontalFlip(p=0.6),
-        RandomContrast(p=0.5, limit=(-0.5, 0.3)),
-        RandomBrightness(p=0.5, limit=(-0.2, 0.5)),
+        RandomBrightnessContrast(p=0.3),
+        RGBShift(r_shift_limit=30, g_shift_limit=30, b_shift_limit=30, p=0.3),
         ],
         bbox_params=BboxParams(format='pascal_voc', label_fields=['category_ids'])) # coco, yolo, albumentations
 
@@ -155,11 +156,11 @@ if __name__ == "__main__":
             category_id_to_name = make_categori_id(str_label)
         
             # bbox = normalize_bboxes(bbox, rows=height, cols=width)
-            # visualize(image, bbox, category_id, category_id_to_name)
+            visualize(image, bbox, category_id, category_id_to_name)
 
             for i in range(3):
                 transformed = transform(image=image, bboxes=bbox, category_ids=category_id)
-                # visualize(transformed['image'], transformed['bboxes'], transformed['category_ids'], category_id_to_name)
+                visualize(transformed['image'], transformed['bboxes'], transformed['category_ids'], category_id_to_name)
                 cv2.imwrite(output_path + '/images/' + image_name + '_' + str(i) + '.jpg', transformed['image'])
                 modify_coordinate(output_path, transformed, xml, i)
 
