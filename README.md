@@ -185,6 +185,8 @@
    - ### Code
      - [Extract Features](https://github.com/pervin0527/pervinco/blob/master/source/create_training_files.py)
      - [Convert tfrecord](https://github.com/pervin0527/pervinco/blob/master/source/generate_tfrecords.py)
+     - [Image Inference](https://github.com/pervin0527/pervinco/blob/master/source/object_detection_image_inference.py)
+     - [Video Inference](https://github.com/pervin0527/pervinco/blob/master/source/object_detection_image_inference.py)
 
 
 # Resource
