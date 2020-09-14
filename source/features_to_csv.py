@@ -3,6 +3,7 @@ import glob
 import sys 
 import pandas as pd 
 import xml.etree.ElementTree as ET
+from datetime import datetime
 from xml.dom import minidom
 
 
@@ -24,16 +25,17 @@ def xml_to_csv(path):
             width = int(size.find('width').text)
 
         for obj in obj_xml:
-            bbox_original = obj.find('bndbox')
-            
-            name = obj.find('name').text
-            xmin = int(float(bbox_original.find('xmin').text))
-            ymin = int(float(bbox_original.find('ymin').text))
-            xmax = int(float(bbox_original.find('xmax').text))
-            ymax = int(float(bbox_original.find('ymax').text))
+            if obj.find('bndbox') != None:
+                bbox_original = obj.find('bndbox')
+                
+                name = obj.find('name').text
+                xmin = int(float(bbox_original.find('xmin').text))
+                ymin = int(float(bbox_original.find('ymin').text))
+                xmax = int(float(bbox_original.find('xmax').text))
+                ymax = int(float(bbox_original.find('ymax').text))
 
-            value = (str(file_name), height, width, str(name), xmin, ymin, xmax, ymax)
-            xml_list.append(value)
+                value = (str(file_name), height, width, str(name), xmin, ymin, xmax, ymax)
+                xml_list.append(value)
 
     column_name = ['filename', 'width', 'height', 'class', 'xmin', 'ymin', 'xmax', 'ymax']
     xml_df = pd.DataFrame(xml_list, columns=column_name)
@@ -42,6 +44,7 @@ def xml_to_csv(path):
 
 if __name__ == "__main__": 
     xml_path = sys.argv[1]
+    dataset_name = xml_path.split('/')[-2]
     output_path = sys.argv[2]
 
     if not(os.path.isdir(output_path)):
@@ -51,4 +54,5 @@ if __name__ == "__main__":
         pass
 
     xml_df = xml_to_csv(xml_path)
-    xml_df.to_csv(output_path + '/coco2017_feature.csv', index=None)
+    today = datetime.today().strftime('%Y-%m-%d-%H:%M:%S')
+    xml_df.to_csv(output_path + '/' + dataset_name + '_' + today + '_feature.csv', index=None)
