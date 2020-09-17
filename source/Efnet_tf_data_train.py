@@ -5,7 +5,6 @@ import random
 import os
 import datetime
 import time
-from efficientnet.tfkeras import EfficientNetB1, preprocess_input
 
 # gpus = tf.config.experimental.list_physical_devices('GPU')
 # if gpus:
@@ -54,7 +53,7 @@ def basic_processing(ds_path, is_training):
 def preprocess_image(image):
     image = tf.image.decode_jpeg(image, channels=3)
     image = tf.image.resize(image, [IMG_SIZE, IMG_SIZE])
-    image = preprocess_input(image)
+    image = tf.keras.applications.efficientnet.preprocess_input(image)
 
     return image
 
@@ -130,7 +129,7 @@ if __name__ == "__main__":
     valid_ds = valid_ds.repeat().batch(BATCH_SIZE)
     valid_ds = valid_ds.prefetch(AUTOTUNE)
 
-    base_model = EfficientNetB1(input_shape=(IMG_SIZE, IMG_SIZE, 3),
+    base_model = tf.keras.applications.EfficientNetB1(input_shape=(IMG_SIZE, IMG_SIZE, 3),
                                 weights="imagenet", # noisy-student
                                 include_top=False)
     avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)

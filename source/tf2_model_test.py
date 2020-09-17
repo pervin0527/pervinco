@@ -4,7 +4,6 @@ from tensorflow import keras
 import numpy as np
 import cv2
 import os
-from efficientnet.tfkeras import preprocess_input
 
 model_path = '/data/backup/pervinco_2020/model/mask_classification/2020.08.31_14:33_tf2/mask_classification.h5'
 
@@ -21,7 +20,7 @@ if gpus:
 
 
 model = tf.keras.models.load_model(model_path)
-# model.summary()
+model.summary()
 
 CLASS_NAMES = sorted(os.listdir(class_path))
 print(CLASS_NAMES)
@@ -36,7 +35,7 @@ for img in test_imgs:
     image = cv2.resize(original_image, (224, 224))
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     image = np.expand_dims(image, axis=0)
-    image = preprocess_input(image)
+    image = tf.keras.applications.efficientnet.preprocess_input(image)
     
 
     predictions = model.predict(image, steps=1)
