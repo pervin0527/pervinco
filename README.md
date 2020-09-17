@@ -4,9 +4,9 @@
    1. [Docker(Version : 19.03.11) Install Guide](https://pervin0527.github.io/docker/)
    2. [https://www.tensorflow.org/install/docker?hl=ko](https://www.tensorflow.org/install/docker?hl=ko)
    3. [https://hub.docker.com/r/tensorflow/tensorflow/](https://hub.docker.com/r/tensorflow/tensorflow/)
-   4. Install Tensorflow 2.1-gpu-py3-jupyter  
+   4. Install Tensorflow 2.3-gpu  
    
-          docker pull tensorflow/tensorflow:2.1.0-gpu-py3-jupyter
+          docker pull tensorflow/tensorflow:2.3.0-gpu-py3-jupyter
          
 
 # Projects
@@ -32,33 +32,15 @@
       - [Tensorflow tutorial](https://github.com/pervin0527/pervinco/blob/master/tensorflow_tutorial.md)
       - [Tensorflow 2.1 simple example](https://www.kaggle.com/philculliton/a-simple-tf-2-1-notebook)
 
-   - ### Source Code
-     - EfficientNet [https://github.com/qubvel/efficientnet](https://github.com/qubvel/efficientnet)
-     
-     <p align="center"><img src="/doc_imgs/efficientnet.png"></p>
-
-         sudo pip3 install -U git+https://github.com/qubvel/efficientnet
-    
-      import EfficientNet
-
-         import efficientnet.keras as efn
-
-        or  
-
-         from efficientnet.tfkeras import EfficientNetB0, preprocess_input
-
+   - ### Source Code (2020.09.17 update)
+     - Tensorflow 2.3에서 EfficientNet API 내장
      - [EfficientNet with tf.data](https://github.com/pervin0527/pervinco/blob/master/source/Efnet_tf_data_train.py)
      - [Measuring model performance](https://github.com/pervin0527/pervinco/blob/master/source/tf2_model_test.py)
 
-      - ### 2020.06.08 UPDATE
-        - EfficientNet **Noisy Student** weights [released](https://www.kaggle.com/c/bengaliai-cv19/discussion/132894)
-
-              import efficientnet.keras as eff
-              model = eff.EfficientNetB0(weights='noisy-student')
 
      - ### 2020.06.11 UPDATE
        - [Learning Rate Schedule Callback function Added](https://github.com/pervin0527/pervinco/blob/05ba90f7a1921ddc84c79f3be8c232119de0b0e6/source/Efnet_tf_data_train.py#L147)
-     - ### 2020. 06.29 UPDATE
+     - ### 2020.09.17 UPDATE
        - [EfficientNet Train with Multi_GPU](https://github.com/pervin0527/pervinco/blob/master/source/Efnet_multi_gpu_train.py)
      
  
