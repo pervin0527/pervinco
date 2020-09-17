@@ -6,7 +6,7 @@
    3. [https://hub.docker.com/r/tensorflow/tensorflow/](https://hub.docker.com/r/tensorflow/tensorflow/)
    4. Install Tensorflow 2.3-gpu  
    
-          docker pull tensorflow/tensorflow:2.3.0-gpu-py3-jupyter
+          docker pull tensorflow/tensorflow:2.3.0-gpu
          
 
 # Projects
