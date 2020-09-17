@@ -5,12 +5,12 @@
   
    - ### ImageClassification
    
-     <p align="left"><img src="/doc_imgs/albumentation.jpeg" width=70%></p>
+     <p align="left"><img src="./doc_imgs/albumentation.jpeg" width=70%></p>
        
      - **UPDATED 2020.06.29**
        - [CODE](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug4.py)
        - The number of images in classes are same as the number entered by the user.
-       <p align="left"><img src="/doc_imgs/alb_graph4.png" width=70%></p>  
+       <p align="left"><img src="./doc_imgs/alb_graph4.png" width=70%></p>  
     
    - ### Object Detection
   
