@@ -10,10 +10,10 @@
          
 
 # My Projects
-- [Tensorflow Tutorials]
-- [Image Dataset Augmentation]
-- [Image Classification]
-- [Object Detection]
+- [Tensorflow Tutorials](https://github.com/pervin0527/pervinco/blob/master/docs/Tensorflow_tutorial.md)
+- [Image Dataset Augmentation](https://github.com/pervin0527/pervinco/blob/master/docs/Image_Dataset_Augmentation.md)
+- [Image Classification](https://github.com/pervin0527/pervinco/blob/master/docs/image_classification.md)
+- [Object Detection](https://github.com/pervin0527/pervinco/blob/master/docs/Object_Detection.md)
 
 # InterMinds Projects
   1. Smart checkout table - 2019.05 ~ 2019.12 Fin.  
