@@ -1,3 +1,6 @@
+# Blog
+[https://www.notion.so/pervin0527/932d8e6e02b243f5991078c7f890c479](https://www.notion.so/pervin0527/932d8e6e02b243f5991078c7f890c479)
+
 # 🛰Environment
 - Ubuntu - 18.04
 - Docker - 19.03
