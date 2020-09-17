@@ -108,7 +108,7 @@
 
    <p align="center"><img src="./docs/doc_imgs/yolov4.png"></p>
 
-   - ### [Blog Post](https://www.notion.so/pervin0527/YOLO-v4-d7d9a312e4b14005be22f393539b85cd)
+   -  [Blog Post](https://www.notion.so/pervin0527/YOLO-v4-d7d9a312e4b14005be22f393539b85cd)
 
    ### 3. Google/Automl - EfficientDet
 
