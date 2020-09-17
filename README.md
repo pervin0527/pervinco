@@ -192,18 +192,16 @@
  - [Reference](https://github.com/pervin0527/pervinco/blob/master/reference.md)
  - [Tensorflow Guide Book](https://github.com/pervin0527/pervinco/blob/master/tensorflow_tutorial.md)
 
-# Hands on Machine-Learning 2
-   - [Chapter 1](https://github.com/pervin0527/pervinco/blob/master/hands_on_ml_2/chapter1.ipynb)
-   - [Chapter 2](https://github.com/pervin0527/pervinco/blob/master/hands_on_ml_2/chapter2.ipynb)
 
 # InterMinds Projects
   1. Smart checkout table - 2019.05 ~ 2019.12 Fin.  
    
-      [https://pervin0527.github.io/SCO/](https://pervin0527.github.io/SCO/)
+      [Blog](https://www.notion.so/pervin0527/InterMinds-Smart-Checkout-Table-5c8bd2acc4b246eda8193a90bb8066f9)
       ![sco](doc_imgs/2.png)
 
   2. Smart Shelf - 2020.01 ~ 2020.08 Fin.
    
-      [![video](https://img.youtube.com/vi/vS-b__hIs7o/0.jpg)](https://www.youtube.com/watch?v=vS-b__hIs7o)
+      [Blog](https://www.notion.so/pervin0527/Interminds-Smart-Cabinet-c13f8aa64c144ebf8ead49506e0359d3)
+      ![smart cabinet](doc_imgs/smart_cabinet_02.jpeg)
    
 # [Reference](https://github.com/pervin0527/pervinco/blob/master/reference.md)
