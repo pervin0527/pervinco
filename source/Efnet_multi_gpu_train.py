@@ -69,20 +69,20 @@ def build_lrfn(lr_start=0.00001, lr_max=0.00005,
     return lrfn
 
 
-def build_model():
-    base_model = tf.keras.applications.EfficientNetB0(input_shape=(IMG_SIZE, IMG_SIZE, 3),
-                                weights="imagenet", # noisy-student
-                                include_top=False)
-    avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
-    output = tf.keras.layers.Dense(train_labels_len, activation="softmax")(avg)
-    model = tf.keras.Model(inputs=base_model.input, outputs=output)
+# def build_model():
+#     base_model = tf.keras.applications.EfficientNetB5(input_shape=(IMG_SIZE, IMG_SIZE, 3),
+#                                 weights="imagenet", # noisy-student
+#                                 include_top=False)
+#     avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
+#     output = tf.keras.layers.Dense(train_labels_len, activation="softmax")(avg)
+#     model = tf.keras.Model(inputs=base_model.input, outputs=output)
 
-    for layer in base_model.layers:
-        layer.trainable = True
+#     for layer in base_model.layers:
+#         layer.trainable = True
 
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+#     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
-    return model
+#     return model
 
 
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -95,10 +95,10 @@ if gpus:
     print(e)
 
 
-model_name = "EfficientNet-B0"
-dataset_name = 'flower_photos'
-train_dataset_path = './Auged_datasets/' + dataset_name + '/train'
-valid_dataset_path = './Auged_datasets/' + dataset_name + '/valid'
+model_name = "EfficientNet-B5"
+dataset_name = 'd_beverage'
+train_dataset_path = '/data/minjun/Auged_datasets/' + dataset_name + '/train_3'
+valid_dataset_path = '/data/minjun/Auged_datasets/' + dataset_name + '/valid_3'
 
 train_images, train_labels, train_images_len, train_labels_len = basic_processing(train_dataset_path, True)
 valid_images, valid_labels, valid_images_len, valid_labels_len = basic_processing(valid_dataset_path, False)
@@ -136,7 +136,17 @@ train_ds = train_ds.repeat().batch(BATCH_SIZE).prefetch(AUTOTUNE)
 valid_ds = valid_ds.repeat().batch(BATCH_SIZE).prefetch(AUTOTUNE)
 
 with strategy.scope():
-    model = build_model()
+    base_model = tf.keras.applications.EfficientNetB5(input_shape=(IMG_SIZE, IMG_SIZE, 3),
+                                                      weights="imagenet", # noisy-student
+                                                      include_top=False)
+    avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
+    output = tf.keras.layers.Dense(train_labels_len, activation="softmax")(avg)
+    model = tf.keras.Model(inputs=base_model.input, outputs=output)
+
+    for layer in base_model.layers:
+        layer.trainable = True
+
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
 cb_early_stopper = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
 checkpoint_path = saved_path + dataset_name + '/' + time + '/' + weight_file_name
