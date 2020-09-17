@@ -63,18 +63,8 @@
    
      <p align="left"><img src="/doc_imgs/albumentation.jpeg" width=70%></p>
        
-     - **UPDATED 2020.06.24**
-       - [albumentation_aug1.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug1.py)  
-       - Augmentation is performed by using a loop on each image in the class.
-
-       - Before applying augmentation.  number of seed images
-       <p align="left"><img src="/doc_imgs/alb_graph2.png" width=70%></p>
-
-       - After applying augmentation.
-       <p align="left"><img src="/doc_imgs/alb_graph3.png" width=70%></p> 
-
      - **UPDATED 2020.06.29**
-       - [albumentation_aug2.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug2.py)
+       - [CODE](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug4.py)
        - The number of images in classes are same as the number entered by the user.
        <p align="left"><img src="/doc_imgs/alb_graph4.png" width=70%></p>  
     
@@ -94,11 +84,8 @@
       -  Augmentation for VOC PASCAL dataset.
       -  Save the augmented image and xml file.
 
-      - **UPDATED 2020.07.10**
-        - [albumentation_voc_aug.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_voc_aug.py)
-
       - **UPDATED 2020.07.21**
-        - [albumentation_voc_aug2.py](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_voc_aug2.py)
+        - [CODE](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_voc_aug2.py)
         - Same function as version 1, but the code has been changed. Both versions are available.
 
 
