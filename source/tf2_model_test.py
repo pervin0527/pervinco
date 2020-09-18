@@ -47,8 +47,8 @@ for img in test_imgs:
 
     result_image = cv2.putText(original_image, name + ' : ' + str(score), org=(50,50), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(0, 255, 0), thickness=2)
     result_image = cv2.resize(result_image, (512, 512))
-    # cv2.imshow('result', result_image)
-    # cv2.waitKey(0)
-    cv2.imwrite('/data/backup/pervinco_2020/Auged_datasets/mask_classification/test/result/result_' + file_name, result_image)
+    cv2.imshow('result', result_image)
+    cv2.waitKey(0)
+    # cv2.imwrite('/data/backup/pervinco_2020/Auged_datasets/mask_classification/test/result/result_' + file_name, result_image)
 
     
