@@ -106,6 +106,7 @@
       - [Blog Post](https://www.notion.so/pervin0527/Tensorflow-2-Object-Detection-API-a354ee337107497dae8bcbde7341e2a8)
       - [Source Code - Test image inference](https://github.com/pervin0527/pervinco/blob/master/source/object_detection_image_inference.py)
       - [Source Code - Test Video inference](https://github.com/pervin0527/pervinco/blob/master/source/object_detection_video_inference.py)
+         ![](./docs/doc_imgs/object_detection_sc.png)
 
    2. Yolo V4
 

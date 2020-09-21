@@ -8,10 +8,10 @@ from object_detection.utils import visualization_utils as viz_utils
 from object_detection.builders import model_builder
 
 
-PATH_TO_CFG = './VOC2012/Deploy/ssd_efficientdet_d0_512x512_coco17_tpu-8.config'
-PATH_TO_CKPT = './VOC2012/Models/train_0911'
-PATH_TO_LABELS = './VOC2012/label_map.txt'
-CKPT_VALUE = 'ckpt-3001'
+PATH_TO_CFG = './COCO2017/Deploy/ssd_efficientdet_d0_512x512_coco17_tpu-8.config'
+PATH_TO_CKPT = './COCO2017/Models/train_0915'
+PATH_TO_LABELS = './COCO2017/label_map.pbtxt'
+CKPT_VALUE = 'ckpt-300'
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'    
 tf.get_logger().setLevel('ERROR')
@@ -41,33 +41,21 @@ def detect_fn(image):
 category_index = label_map_util.create_category_index_from_labelmap(PATH_TO_LABELS,
                                                                     use_display_name=True)
 
-##########################################################################
 cap = cv2.VideoCapture(-1)
-
-if cap.isOpened() == False:
-    print('카메라를 오픈 할 수 없습니다.')
-
-frame_width = int(1920)
-frame_height = int(1080)
-
-MJPG_CODEC = 1196444237.0 # MJPG
-cap_AUTOFOCUS = 0
-cap_FOCUS = 0
-
-cv2.namedWindow('Usb Cam', cv2.WINDOW_FREERATIO)
-cv2.resizeWindow('Usb Cam', frame_height, frame_width)
-
-cap.set(cv2.CAP_PROP_BRIGHTNESS, 100)
-cap.set(cv2.CAP_PROP_FOURCC, MJPG_CODEC)
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, frame_width)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, frame_height)
-cap.set(cv2.CAP_PROP_AUTOFOCUS, cap_AUTOFOCUS)
-##########################################################################
-
 while True:
+    # Read frame from camera
     ret, image_np = cap.read()
+
+    # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
     image_np_expanded = np.expand_dims(image_np, axis=0)
 
+    # Things to try:
+    # Flip horizontally
+    # image_np = np.fliplr(image_np).copy()
+
+    # Convert image to grayscale
+    # image_np = np.tile(
+    #     np.mean(image_np, 2, keepdims=True), (1, 1, 3)).astype(np.uint8)
 
     input_tensor = tf.convert_to_tensor(np.expand_dims(image_np, 0), dtype=tf.float32)
     detections, predictions_dict, shapes = detect_fn(input_tensor)
@@ -83,10 +71,11 @@ while True:
           category_index,
           use_normalized_coordinates=True,
           max_boxes_to_draw=200,
-          min_score_thresh=.30,
+          min_score_thresh=.7,
           agnostic_mode=False)
 
-    cv2.imshow('Usb Cam', image_np_with_detections)
+    # Display output
+    cv2.imshow('object detection', cv2.resize(image_np_with_detections, (1920, 1080)))
 
     if cv2.waitKey(25) & 0xFF == ord('q'):
         break
