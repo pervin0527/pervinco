@@ -10,9 +10,10 @@
          
 
 # 🚀My Projects
-## 🏗[Tensorflow](https://github.com/pervin0527/pervinco/blob/master/docs/Tensorflow_tutorial.md)  
-   1. tf.data input pipeline API image dataset 적용법
-      - [Blog Post](https://www.notion.so/pervin0527/tf-data-API-27edd95e1f4c4c1eb352315125917d24)
+## 🏗[Tensorflow 2.x](https://github.com/pervin0527/pervinco/blob/master/docs/Tensorflow_tutorial.md)  
+   1. tf.data API Tutorial
+      - [Blog Post 1](https://www.notion.so/pervin0527/Tensorflow-data-API-1-208ddce5837744fa8b0d9b14b30e6dd2)
+      - [Blog Post 2](https://www.notion.so/pervin0527/Tensorflow-data-API-2-6e481e1285df4366813548a2dabe1b9f)
       - [Jupyter-notebook Tutorial](https://gist.github.com/pervin0527/e9af4e0faab83243cb7f26990cac77f8)
       - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/tf2_image_classification.py)
 
@@ -52,7 +53,7 @@
       - [Blog Post](https://www.notion.so/pervin0527/Augmentation-pipline-for-Object-Detection-4e239d6db6eb4fe09da8b66f6af1ba4a)
       - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_voc_aug2.py)  
    
-            python3 albumentation_voc_aug.py \
+            python3 albumentation_voc_aug2.py \
             ./VOC2012/JPEGImages \     # Image dataset path
             ./VOC2012/Annotations \    # Annotation dataset path 
             ./VOC2012/Augmentations    # Path to save augmentation applied file
@@ -77,7 +78,8 @@
          </table>
 
       - [Blog Post](https://www.notion.so/pervin0527/Basic-Image-Classification-using-EfficientNet-8ac30bbd2bc84d4fb494740b5c7c99c6)
-      - [Source Code - Training](https://github.com/pervin0527/pervinco/blob/master/source/Efnet_tf_data_train.py)
+      - [Source Code - Training EfficientNet tf2.1](https://github.com/pervin0527/pervinco/blob/master/source/tf2_EffcieintNet.py)
+      - [Source Code - Training EfficientNet tf2.3](https://github.com/pervin0527/pervinco/blob/master/source/tf2.3_EfficientNet.py)
       - [Blog Post - Accuracy Test](https://github.com/pervin0527/pervinco/blob/master/source/tf2_model_test.py)
 
    3. Multi Label Image Classification
@@ -104,8 +106,8 @@
       <p align="center"><img src="./docs/doc_imgs/tensorflow2objectdetection.png"></p>
 
       - [Blog Post](https://www.notion.so/pervin0527/Tensorflow-2-Object-Detection-API-a354ee337107497dae8bcbde7341e2a8)
-      - [Source Code - Test image inference](https://github.com/pervin0527/pervinco/blob/master/source/object_detection_image_inference.py)
-      - [Source Code - Test Video inference](https://github.com/pervin0527/pervinco/blob/master/source/object_detection_video_inference.py)
+      - [Source Code - Test image inference](https://github.com/pervin0527/pervinco/blob/master/source/tf2_object_detection_image_inference.py)
+      - [Source Code - Test Video inference](https://github.com/pervin0527/pervinco/blob/master/source/tf2_object_detection_video_inference.py)
          ![](./docs/doc_imgs/object_detection_sc.png)
 
    2. Yolo V4
