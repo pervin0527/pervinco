@@ -50,7 +50,8 @@ def basic_processing(ds_path, is_training):
     return images, labels, len_images, labels_len
 
 
-def preprocess_image(image):
+def preprocess_image(path):
+    image = tf.io.read_file(path)
     image = tf.image.decode_jpeg(image, channels=3)
     image = tf.image.resize(image, [IMG_SIZE, IMG_SIZE])
     image = tf.keras.applications.efficientnet.preprocess_input(image)
@@ -58,18 +59,10 @@ def preprocess_image(image):
     return image
 
 
-def load_and_preprocess_image(path):
-    image = tf.io.read_file(path)
-    
-    return preprocess_image(image)
-
-
 def make_tf_dataset(images, labels):
     image_ds = tf.data.Dataset.from_tensor_slices(images)
-    image_ds = image_ds.map(load_and_preprocess_image, num_parallel_calls=AUTOTUNE)
-
+    image_ds = image_ds.map(preprocess_image, num_parallel_calls=AUTOTUNE)
     lable_ds = tf.data.Dataset.from_tensor_slices(tf.cast(labels, tf.float32))
-
     image_label_ds = tf.data.Dataset.zip((image_ds, lable_ds))
 
     return image_label_ds
@@ -94,10 +87,10 @@ def build_lrfn(lr_start=0.00001, lr_max=0.00005,
 
 
 if __name__ == "__main__":
-    model_name = "EfficientNet-B1"
-    dataset_name = 'mask_classification'
-    train_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/train'
-    valid_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/valid'
+    model_name = "EfficientNet-B4"
+    dataset_name = 'IDT_beverage'
+    train_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/train_3'
+    valid_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/valid_3'
 
     train_images, train_labels, train_images_len, train_labels_len = basic_processing(train_dataset_path, True)
     valid_images, valid_labels, valid_images_len, valid_labels_len = basic_processing(valid_dataset_path, False)
@@ -124,12 +117,10 @@ if __name__ == "__main__":
     train_ds = make_tf_dataset(train_images, train_labels)
     valid_ds = make_tf_dataset(valid_images, valid_labels)
 
-    train_ds = train_ds.repeat().batch(BATCH_SIZE)
-    train_ds = train_ds.prefetch(AUTOTUNE)
-    valid_ds = valid_ds.repeat().batch(BATCH_SIZE)
-    valid_ds = valid_ds.prefetch(AUTOTUNE)
+    train_ds = train_ds.repeat().batch(BATCH_SIZE).prefetch(AUTOTUNE)
+    valid_ds = valid_ds.repeat().batch(BATCH_SIZE).prefetch(AUTOTUNE)
 
-    base_model = tf.keras.applications.EfficientNetB1(input_shape=(IMG_SIZE, IMG_SIZE, 3),
+    base_model = tf.keras.applications.EfficientNetB4(input_shape=(IMG_SIZE, IMG_SIZE, 3),
                                 weights="imagenet", # noisy-student
                                 include_top=False)
     avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
@@ -156,7 +147,6 @@ if __name__ == "__main__":
     history = model.fit(train_ds,
                         epochs=NUM_EPOCHS,
                         steps_per_epoch=TRAIN_STEP_PER_EPOCH,
-                        shuffle=False,
                         validation_data=valid_ds,
                         validation_steps=VALID_STEP_PER_EPOCH,
                         verbose=1,
