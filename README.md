@@ -78,7 +78,7 @@
          </table>
 
       - [Blog Post](https://www.notion.so/pervin0527/Basic-Image-Classification-using-EfficientNet-8ac30bbd2bc84d4fb494740b5c7c99c6)
-      - [Source Code - Training EfficientNet tf2.1](https://github.com/pervin0527/pervinco/blob/master/source/tf2_EffcieintNet.py)
+      - [Source Code - Training EfficientNet tf2.1](https://github.com/pervin0527/pervinco/blob/master/source/tf2_EfficientNet_binary.py)
       - [Source Code - Training EfficientNet tf2.3](https://github.com/pervin0527/pervinco/blob/master/source/tf2.3_EfficientNet.py)
       - [Blog Post - Accuracy Test](https://github.com/pervin0527/pervinco/blob/master/source/tf2_model_test.py)
 
