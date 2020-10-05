@@ -81,6 +81,7 @@
       - [Source Code - Training EfficientNet tf2.1](https://github.com/pervin0527/pervinco/blob/master/source/tf2_EfficientNet_binary.py)
       - [Source Code - Training EfficientNet tf2.3](https://github.com/pervin0527/pervinco/blob/master/source/tf2.3_EfficientNet.py)
       - [Blog Post - Accuracy Test](https://github.com/pervin0527/pervinco/blob/master/source/tf2_model_test.py)
+      - [Source Code - Multi GPU Training](https://github.com/pervin0527/pervinco/blob/master/source/tf2_Multi_gpu_training.py)
 
    3. Multi Label Image Classification
 
