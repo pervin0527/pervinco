@@ -6,6 +6,14 @@ import datetime
 import json
 import time
 
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+  try:
+    for gpu in gpus:
+        tf.config.experimental.set_virtual_device_configuration(gpu, [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=10000)])
+  except RuntimeError as e:
+    # 프로그램 시작시에 메모리 증가가 설정되어야만 합니다
+    print(e)
 
 def basic_processing(ds_path, is_training):
     ds_path = pathlib.Path(ds_path)
@@ -67,32 +75,6 @@ def build_lrfn(lr_start=0.00001, lr_max=0.00005,
                                 - lr_sustain_epochs) + lr_min
         return lr
     return lrfn
-
-
-# def build_model():
-#     base_model = tf.keras.applications.EfficientNetB5(input_shape=(IMG_SIZE, IMG_SIZE, 3),
-#                                 weights="imagenet", # noisy-student
-#                                 include_top=False)
-#     avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
-#     output = tf.keras.layers.Dense(train_labels_len, activation="softmax")(avg)
-#     model = tf.keras.Model(inputs=base_model.input, outputs=output)
-
-#     for layer in base_model.layers:
-#         layer.trainable = True
-
-#     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-
-#     return model
-
-
-gpus = tf.config.experimental.list_physical_devices('GPU')
-if gpus:
-  try:
-    for gpu in gpus:
-        tf.config.experimental.set_virtual_device_configuration(gpu, [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=10000)])
-  except RuntimeError as e:
-    # 프로그램 시작시에 메모리 증가가 설정되어야만 합니다
-    print(e)
 
 
 model_name = "EfficientNet-B5"
