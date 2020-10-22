@@ -5,7 +5,8 @@ import os
 import math
 import random
 import time
-from matplotlib import pyplot as plt
+import matplotlib.pyplot as plt
+import seaborn as sns
 from sklearn.model_selection import train_test_split
 import albumentations as A
 import pandas as pd
@@ -69,7 +70,6 @@ def show_splited_datasets(train_set, valid_set):
         valid_imgs_num.append(i)
 
     df = pd.DataFrame({'train imgs':train_imgs_num, 'valid imgs':valid_imgs_num}, index=index)
-
     df.plot.barh(title='Num of images Distribution', figsize=(14, 10))
     plt.show()
 
@@ -81,10 +81,10 @@ def aug_processing(data_set, output_path, aug_num, is_train):
     labels = data_set['label'].value_counts().sort_index()
 
     if is_train == True:
-        output_path = output_path + '/train_test'
+        output_path = output_path + '/train_2'
 
     else:
-        output_path = output_path + '/valid_test'
+        output_path = output_path + '/valid_2'
 
     for path in img_path:
         file_name = path.split('/')[-1]
@@ -108,21 +108,25 @@ def aug_processing(data_set, output_path, aug_num, is_train):
                 transform = A.Compose([
                     A.Resize(224, 224, p=1),
                     # A.Rotate(limit=(-360, 360), p=0.5, border_mode=1),
+                    # A.HorizontalFlip(p=0.4),
 
-                    # A.OneOf([
-                    #     A.Rotate(limit=(-360, 360), p=0.5, border_mode=1),
-                    #     A.ShiftScaleRotate(shift_limit=0.0625, scale_limit=0.50, rotate_limit=45, p=.5),
-                    # ], p=1),
+                    A.OneOf([
+                        A.RandomRotate90(p=0.5),
+                        A.IAASharpen(p=0.5),
+                        # A.Rotate(limit=(-360, 360), p=0.5, border_mode=1),
+                        # A.ShiftScaleRotate(shift_limit=0.0625, scale_limit=0.50, rotate_limit=45, border_mode=1, p=.5),
+                    ], p=1),
 
                     A.OneOf([
                         A.HorizontalFlip(p=0.5),
+                        A.VerticalFlip(p=0.5),
                         A.Blur(p=0.5)
                     ], p=1),
 
                     A.OneOf([
                         A.RandomContrast(p=0.5, limit=(-0.5, 0.3)),
                         A.RandomBrightness(p=0.5, limit=(-0.2, 0.3)),
-                    ], p=1)
+                    ], p=0.5)
                 ])
                 augmented_image = transform(image=image)['image']
                 cv2.imwrite(output_path + '/' + label + '/' + file_name + '_' + str(i) + '_' + str(time.time()) + '.jpg', augmented_image)
@@ -169,5 +173,3 @@ if __name__ == "__main__":
         else:
             print("Please press y or n")
             continue
-
-
