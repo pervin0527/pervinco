@@ -180,7 +180,7 @@ if __name__ == "__main__":
     empty_model.predict(test, steps=1)
     main_model.predict(test, steps=1)
 
-    test_images = sorted(glob.glob('/data/backup/pervinco_2020/test_code/test_image/*.jpg'))
+    test_images = sorted(glob.glob('/data/backup/pervinco_2020/test_code/test_image/emart24/*.jpg'))
     os.system('clear')
 
     # for frame in test_images:
