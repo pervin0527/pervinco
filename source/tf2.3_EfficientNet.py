@@ -62,8 +62,8 @@ def preprocess_image(path):
 def make_tf_dataset(images, labels):
     image_ds = tf.data.Dataset.from_tensor_slices(images)
     image_ds = image_ds.map(preprocess_image, num_parallel_calls=AUTOTUNE)
-    lable_ds = tf.data.Dataset.from_tensor_slices(tf.cast(labels, tf.float32))
-    image_label_ds = tf.data.Dataset.zip((image_ds, lable_ds))
+    label_ds = tf.data.Dataset.from_tensor_slices(tf.cast(labels, tf.float32))
+    image_label_ds = tf.data.Dataset.zip((image_ds, label_ds))
 
     return image_label_ds
 
