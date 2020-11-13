@@ -5,6 +5,8 @@ import random
 import os
 import datetime
 import time
+from sklearn.model_selection import KFold
+import numpy as np
 
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
@@ -17,12 +19,13 @@ if gpus:
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 strategy = tf.distribute.experimental.CentralStorageStrategy()
 
-BATCH_SIZE = 8
-IMG_HEIGHT = 270
-IMG_WIDTH = 480
+BATCH_SIZE = 32
+IMG_HEIGHT = 224
+IMG_WIDTH = 223
 NUM_EPOCHS = 1000
 EARLY_STOP_PATIENCE = 3
 LR = 0.0001
+
 
 def basic_processing(ds_path, labels_list, labels_len, is_training):
     ds_path = pathlib.Path(ds_path)
@@ -55,11 +58,25 @@ def preprocess_image(path):
 def make_tf_dataset(images, labels):
     image_ds = tf.data.Dataset.from_tensor_slices(images)
     image_ds = image_ds.map(preprocess_image, num_parallel_calls=AUTOTUNE)
-    lable_ds = tf.data.Dataset.from_tensor_slices(tf.cast(labels, tf.float32))
-    image_label_ds = tf.data.Dataset.zip((image_ds, lable_ds))
+    label_ds = tf.data.Dataset.from_tensor_slices(tf.cast(labels, tf.float32))
+    image_label_ds = tf.data.Dataset.zip((image_ds, label_ds))
 
     return image_label_ds
 
+
+def get_model():
+    base_model = tf.keras.applications.EfficientNetB0(input_shape=(IMG_HEIGHT, IMG_WIDTH, 3),
+                                                      weights="imagenet", # noisy-student
+                                                      include_top=False)
+    gap = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
+
+    dense = tf.keras.layers.Dense(train_labels_len)(gap)
+    prelu = tf.keras.layers.PReLU()(dense)
+    output = tf.keras.layers.Softmax(dtype="float32", name="softmax")(prelu)
+
+    model = tf.keras.Model(inputs=base_model.input, outputs=output)
+
+    return model
 
 def build_lrfn(lr_start=0.000001*10*0.5, lr_max=0.0000005 * BATCH_SIZE * 10*0.5, 
                lr_min=0.000001 * 10*0.5, lr_rampup_epochs=5, 
@@ -78,12 +95,13 @@ def build_lrfn(lr_start=0.000001*10*0.5, lr_max=0.0000005 * BATCH_SIZE * 10*0.5,
         return lr
     return lrfn
 
-model_name = 'Efficientnet-B0'
-dataset_name = 'landmark_classification'
+
+model_name = 'Efficientnet-B0 K-fold'
+dataset_name = 'cat_dog_mask'
 train_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/train'
 valid_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/valid'
 
-labels_csv = '/data/backup/pervinco_2020/datasets/data/public/category.csv'
+labels_csv = '/data/backup/pervinco_2020/Auged_datasets/cat_dog_mask/category.csv'
 labels_df = pd.read_csv(labels_csv)
 labels_list = labels_df['landmark_name'].tolist()
 
@@ -95,59 +113,66 @@ VALID_STEP_PER_EPOCH = int(tf.math.ceil(valid_images_len / BATCH_SIZE).numpy())
 
 saved_path = '/data/backup/pervinco_2020/model/'
 time = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M") + '_tf2'
-weight_file_name = '{epoch:02d}-{val_categorical_accuracy:.2f}.hdf5'
+# weight_file_name = '{fold_no:01d}-{epoch:02d}-{val_categorical_accuracy:.2f}.hdf5'
 
 if not(os.path.isdir(saved_path + dataset_name + '/' + time)):
     os.makedirs(os.path.join(saved_path + dataset_name + '/' + time))
 
     f = open(saved_path + dataset_name + '/' + time + '/README.txt', 'w')
+    f.write("Model : " + model_name + '\n')
     f.write(train_dataset_path + '\n')
     f.write(valid_dataset_path + '\n')
     f.write(str(IMG_HEIGHT) + '\n')
     f.write(str(IMG_WIDTH) + '\n')
-    f.write("Model : " + model_name)
     f.close()
 
 else:
     pass
 
-train_ds = make_tf_dataset(train_images, train_labels)
-valid_ds = make_tf_dataset(valid_images, valid_labels)
+num_folds = 5
 
-train_ds = train_ds.repeat().batch(BATCH_SIZE).prefetch(AUTOTUNE)
-valid_ds = valid_ds.repeat().batch(BATCH_SIZE).prefetch(AUTOTUNE)
+images = np.concatenate((train_images, valid_images), axis=0)
+labels = np.concatenate((train_labels, valid_labels), axis=0)
+kfold = KFold(n_splits=num_folds, shuffle=False)
+fold_no = 1
 
-# input_layer = tf.keras.layers.Input(shape = (IMG_HEIGHT, IMG_WIDTH, 3))
-base_model = tf.keras.applications.EfficientNetB3(input_shape=(IMG_HEIGHT, IMG_WIDTH, 3),
-                                                  weights="imagenet", # noisy-student
-                                                  include_top=False)
-gap = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
+for train_idx, valid_idx in kfold.split(images, labels):
+    train_x, train_y = images[train_idx[0] : (train_idx[-1] + 1)], labels[train_idx[0] : (train_idx[-1] + 1)]
+    valid_x, valid_y = images[valid_idx[0] : (valid_idx[-1] + 1)], labels[valid_idx[0] : (valid_idx[-1] + 1)]
 
-dense = tf.keras.layers.Dense(train_labels_len)(gap)
-prelu = tf.keras.layers.PReLU()(dense)
-output = tf.keras.layers.Softmax(dtype="float32", name="softmax")(prelu)
+    train_ds = make_tf_dataset(train_x, train_y)
+    valid_ds = make_tf_dataset(valid_x, valid_y)
 
-model = tf.keras.Model(inputs=base_model.input, outputs=output)
+    train_ds = train_ds.repeat().batch(BATCH_SIZE).prefetch(AUTOTUNE)
+    valid_ds = valid_ds.repeat().batch(BATCH_SIZE).prefetch(AUTOTUNE)
 
-optimizer = tf.keras.optimizers.Adam(learning_rate = LR)
-model.compile(optimizer=optimizer, loss=[tf.keras.losses.CategoricalCrossentropy()], metrics=[tf.keras.metrics.CategoricalAccuracy()])
-model.summary()
+    with strategy.scope():
+        model = get_model()
+        optimizer = tf.keras.optimizers.Adam(learning_rate = LR)
+        model.compile(optimizer=optimizer, loss=[tf.keras.losses.CategoricalCrossentropy()], metrics=[tf.keras.metrics.CategoricalAccuracy()])
+        model.summary()
 
-cb_early_stopper = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
-checkpoint_path = saved_path + dataset_name + '/' + time + '/' + weight_file_name
-cb_checkpointer = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
-                                                        monitor='val_categorical_accuracy',
-                                                        save_best_only=True,
-                                                        mode='max')
-lrfn = build_lrfn()
-lr_schedule = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1)    
 
-history = model.fit(train_ds,
-                    epochs=NUM_EPOCHS,
-                    steps_per_epoch=TRAIN_STEP_PER_EPOCH,
-                    validation_data=valid_ds,
-                    validation_steps=VALID_STEP_PER_EPOCH,
-                    verbose=1,
-                    callbacks=[cb_early_stopper, cb_checkpointer, lr_schedule])
+    cb_early_stopper = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
+    checkpoint_path = saved_path + dataset_name + '/' + time + '/' + str(fold_no) + '-{epoch:02d}-{val_categorical_accuracy:.2f}.hdf5'
+    cb_checkpointer = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
+                                                         monitor='val_categorical_accuracy',
+                                                         save_best_only=True,
+                                                         mode='max')
+    lrfn = build_lrfn()
+    lr_schedule = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1)    
 
-model.save(saved_path + dataset_name + '/' + time + '/' + dataset_name + '.h5')
+    print('------------------------------------------------------------------------')
+    print(f'Training for fold {fold_no} ...')
+
+    history = model.fit(train_ds,
+                        epochs=NUM_EPOCHS,
+                        steps_per_epoch=TRAIN_STEP_PER_EPOCH,
+                        validation_data=valid_ds,
+                        validation_steps=VALID_STEP_PER_EPOCH,
+                        verbose=1,
+                        callbacks=[cb_early_stopper, cb_checkpointer, lr_schedule])
+
+    model.save(saved_path + dataset_name + '/' + time + '/' + str(fold_no) + '_' + dataset_name  +  '.h5')
+
+    fold_no = fold_no + 1

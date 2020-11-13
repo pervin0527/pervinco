@@ -110,13 +110,9 @@ def augmentation(set_path, label_list, aug_num):
 
                 for c in range(cnt):
                     transform = A.Compose([
-                        A.CenterCrop(450, 225, p=1),
-                        A.IAASharpen(p=1),
-                        A.ShiftScaleRotate(shift_limit=0, rotate_limit=0),
-                        A.Resize(456, 456, p=1),
-                        A.HorizontalFlip(p=0.4),                        
-
-                    ])
+                                A.Resize(270, 480),
+                                A.HorizontalFlip(p=0.5),
+                                ])
                     augmented_image = transform(image=image)['image']
                     cv2.imwrite(output_path + '/' + 'aug_' + str(c) + file_name, augmented_image)
                 

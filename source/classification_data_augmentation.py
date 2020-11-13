@@ -111,7 +111,7 @@ def augmentation(set_path, label_list, aug_num):
                     transform = A.Compose([
                         A.Resize(224, 224, p=1),
                         A.HorizontalFlip(p=0.3),
-                        A.VerticalFlip(p=0.1),
+                        A.VerticalFlip(p=0.3),
                         A.Blur(p=0.1),
 
                         # A.RandomRotate90(p=0.3),

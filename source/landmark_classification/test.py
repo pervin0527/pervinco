@@ -15,11 +15,14 @@ for img in images:
     print(img)
     image = cv2.imread(img)
     transform = A.Compose([
-                    A.CenterCrop(450, 225),
-                    A.ShiftScaleRotate(shift_limit=0, rotate_limit=0),
-                    A.Resize(456, 456)
+                    # A.CenterCrop(450, 225),
+                    # A.ShiftScaleRotate(shift_limit=0, rotate_limit=0),
+                    A.Resize(270, 480),
+                    A.HorizontalFlip(p=0.5),
+                    # A.VerticalFlip(p=0.7),
                     ])
     augmented_image = transform(image = image)["image"]
+    # augmented_image = cv2.resize(augmented_image, (270, 480))
     cv2.imshow("aug", augmented_image)
     cv2.imshow("orig", image)
 

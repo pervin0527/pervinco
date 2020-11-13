@@ -14,10 +14,14 @@ if gpus:
 
 
 def preprocess_image(image):
-    image = cv2.resize(image, (600, 600))
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    image = cv2.resize(image, (480, 270))
     image = np.expand_dims(image, axis=0)
     image = tf.keras.applications.efficientnet.preprocess_input(image)
+
+    # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    # image = image / 255.0
+    # image = cv2.resize(image, (480, 270))
 
     return image
 
@@ -50,11 +54,11 @@ def load_image(model, test_set_path, test_df, class_list, mapping):
 
     result_df = pd.DataFrame(result)
     print(result_df)
-    result_df.to_csv("/data/backup/pervinco_2020/datasets/data/public/B7.csv", index=False)
+    result_df.to_csv("/data/backup/pervinco_2020/datasets/data/public/v100_test.csv", index=False)
 
 
 # Load model
-model_path = '/data/backup/pervinco_2020/model/landmark_classification/B7/landmark_classification.h5'
+model_path = '/data/backup/pervinco_2020/model/landmark_classification/2020.11.12_08:38_tf2/landmark_classification.h5'
 model = tf.keras.models.load_model(model_path)
 model.summary()
 
@@ -66,6 +70,6 @@ print("NUM OF CLASSES : ", len(CLASS_LIST))
 
 # Load_test_images
 test_set_path = '/data/backup/pervinco_2020/datasets/data/public/test'
-test_csv = '/data/backup/pervinco_2020/datasets/data/public/sample_submisstion.csv'
+test_csv = '/data/backup/pervinco_2020/datasets/data/public/sample_submission.csv'
 test_df = pd.read_csv(test_csv)
 load_image(model, test_set_path, test_df, CLASS_LIST, mapping)

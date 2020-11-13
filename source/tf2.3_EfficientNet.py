@@ -25,9 +25,9 @@ if gpus:
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 strategy = tf.distribute.experimental.CentralStorageStrategy()
 
-BATCH_SIZE = 16
-IMG_SIZE = 300
-NUM_EPOCHS = 100
+BATCH_SIZE = 64
+IMG_SIZE = 224
+NUM_EPOCHS = 1000
 EARLY_STOP_PATIENCE = 3
 
 
