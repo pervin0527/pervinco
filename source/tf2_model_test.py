@@ -34,9 +34,8 @@ for img in test_imgs:
     original_image = cv2.imread(img)
     image = cv2.resize(original_image, (224, 224))
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    image = image / 255.0
     image = np.expand_dims(image, axis=0)
-    # image = tf.keras.applications.efficientnet.preprocess_input(image)
+    image = tf.keras.applications.efficientnet.preprocess_input(image)
     
 
     predictions = model.predict(image, steps=1)

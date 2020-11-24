@@ -139,7 +139,7 @@ if __name__ == "__main__":
     label_list = sorted(os.listdir(seed_path + '/'))
     n_classes = len(label_list)
 
-    visualize(seed_path, label_list)
+    # visualize(seed_path, label_list)
     
     train_images, valid_images = basic_processing(seed_path)
 
@@ -149,5 +149,5 @@ if __name__ == "__main__":
     augmentation(train_path, label_list, aug_num)
     augmentation(valid_path, label_list, (aug_num * 0.2))
 
-    aug_visualize(label_list, train_path, valid_path)
+    # aug_visualize(label_list, train_path, valid_path)
     

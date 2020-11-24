@@ -32,6 +32,18 @@ def preprocess_image(image, b_ver):
 
     return image
 
+def preprocess_image2(image, b_ver):
+    IMG_WIDTH, IMG_HEIGHT = 480, 270
+
+    image = cv2.resize(image, (IMG_WIDTH, IMG_HEIGHT))
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    image = np.expand_dims(image, axis=0)
+    #image = tf.keras.applications.efficientnet.preprocess_input(image)
+    image = np.float32(image / 255.0)
+
+    return image
+
+
 
 def load_image(b6, b3_2, b5, b7, test_set_path, test_df, class_list, mapping):
     result = []
@@ -42,7 +54,7 @@ def load_image(b6, b3_2, b5, b7, test_set_path, test_df, class_list, mapping):
                 
         b3_image = preprocess_image(original_test_image, "b3")
         b5_image = preprocess_image(original_test_image, "b5")
-        b6_image = preprocess_image(original_test_image, "b6")
+        b6_image = preprocess_image2(original_test_image, "b6")
         b7_image = preprocess_image(original_test_image, "b7")
         
         # b3_pred = b3.predict(b3_image)
@@ -62,13 +74,13 @@ def load_image(b6, b3_2, b5, b7, test_set_path, test_df, class_list, mapping):
         result.append({'id' : file_name, 'landmark_id' : landmark_id, 'conf' : conf})
 
     result_df = pd.DataFrame(result)
-    result_df.to_csv("/data/backup/pervinco_2020/datasets/data/public/2020.11.13.csv", index=False)
+    result_df.to_csv("/data/backup/pervinco_2020/datasets/data/public/2020.11.14.csv", index=False)
 
 
 # efn_b3 = "/data/backup/pervinco_2020/model/landmark_classification/2020.10.26_16:39_tf2/landmark_classification.h5"
 efn_b3_2 = "/data/backup/pervinco_2020/model/landmark_classification/2020.11.04_05:07_tf2/landmark_classification.h5" # multi-label classification model
 efn_b5 = "/data/backup/pervinco_2020/model/landmark_classification/2020.11.02_11:16_tf2/landmark_classification.h5"
-efn_b6 = "/data/backup/pervinco_2020/model/landmark_classification/2020.11.12_08:38_tf2/landmark_classification.h5"
+efn_b6 = "/data/backup/pervinco_2020/model/landmark_classification/kfold_train/3_landmark_classification.h5"
 enf_b7 = "/data/backup/pervinco_2020/model/landmark_classification/B7/landmark_classification.h5"
 
 # b3 = tf.keras.models.load_model(efn_b3)

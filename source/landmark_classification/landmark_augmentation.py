@@ -76,7 +76,7 @@ def split_seed(images, is_train, label_list, output_path, TODAY):
         print(label, file_name, output_path)
 
         image = cv2.imread(img)
-        transform = A.Resize(456, 456)
+        transform = A.Resize(270, 480)
         augmented_image = transform(image = image)['image']
         cv2.imwrite(output_path + '/' + label + '/' + file_name, augmented_image)
 

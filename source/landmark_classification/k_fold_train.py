@@ -81,7 +81,7 @@ def get_model():
 def build_lrfn(lr_start=0.000001*10*0.5, lr_max=0.0000005 * BATCH_SIZE * 10*0.5, 
                lr_min=0.000001 * 10*0.5, lr_rampup_epochs=5, 
                lr_sustain_epochs=0, lr_exp_decay=.8):
-    lr_max = lr_max * strategy.num_replicas_in_sync
+    # lr_max = lr_max * strategy.num_replicas_in_sync
 
     def lrfn(epoch):
         if epoch < lr_rampup_epochs:
