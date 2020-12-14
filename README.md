@@ -32,7 +32,16 @@
 
    2. Image classification dataset에 Augmentation 적용하기
 
-      <p align="left"><img src="./docs/doc_imgs/alb_graph4.png" width=70%></p>  
+      <table border="0">
+      <tr>
+         <td>
+         <img src="./docs/doc_imgs/cls_aug_start.png" width="200%" />
+         </td>
+         <td>
+         <img src="./docs/doc_imgs/cls_aug_end.png", width="200%" />
+         </td>
+      </tr>
+      </table>  
 
       - [Blog Post](https://www.notion.so/pervin0527/Augmentation-pipeline-for-image-classification-4932be16eb914e5892b015980efce4df)
       - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug4.py)
@@ -53,7 +62,7 @@
       - [Blog Post](https://www.notion.so/pervin0527/Augmentation-pipline-for-Object-Detection-4e239d6db6eb4fe09da8b66f6af1ba4a)
       - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_voc_aug2.py)  
    
-            python3 albumentation_voc_aug2.py \
+            python3 detection_data_augmentation.py \
             ./VOC2012/JPEGImages \     # Image dataset path
             ./VOC2012/Annotations \    # Annotation dataset path 
             ./VOC2012/Augmentations    # Path to save augmentation applied file
