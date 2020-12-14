@@ -35,10 +35,10 @@
       <table border="0">
       <tr>
          <td>
-         <img src="./docs/doc_imgs/cls_aug_start.png" width="200%" />
+         <img src="./docs/doc_imgs/cls_aug_start.png" width="100%" />
          </td>
          <td>
-         <img src="./docs/doc_imgs/cls_aug_end.png", width="200%" />
+         <img src="./docs/doc_imgs/cls_aug_end.png", width="100%" />
          </td>
       </tr>
       </table>  
