@@ -46,6 +46,10 @@
       - [Blog Post](https://www.notion.so/pervin0527/Augmentation-pipeline-for-image-classification-4932be16eb914e5892b015980efce4df)
       - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug4.py)
 
+            python3 classification_data_augmentation.py \
+            /data/backup/pervinco_2020/datasets/eastern_wells_3 \ # Seed dataset path
+            2000 # Number of augmentations to be applied per class
+
    3. Object Detecion dataset에 Augmentation 적용하기
 
       <table border="0">
