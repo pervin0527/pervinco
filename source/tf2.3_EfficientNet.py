@@ -88,7 +88,7 @@ def build_lrfn(lr_start=0.00001, lr_max=0.00005,
 
 if __name__ == "__main__":
     model_name = "EfficientNet-B3"
-    dataset_name = 'landmark_classification'
+    dataset_name = 'empty_test'
     train_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/train'
     valid_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/valid'
 
@@ -135,6 +135,7 @@ if __name__ == "__main__":
     # model.compile(loss="categorical_crossentropy", optimizer=optimizer, metrics=["accuracy"])
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
     model.summary()
+    tf.keras.utils.plot_model(model, to_file="/data/backup/pervinco_2020/test_code/ssd_code_review/efficientnet.jpg")
 
     cb_early_stopper = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
     checkpoint_path = saved_path + dataset_name + '/' + time + '/' + weight_file_name

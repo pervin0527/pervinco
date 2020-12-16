@@ -6,76 +6,21 @@ import xml.etree.ElementTree as ET
 from xml.dom import minidom
 import numpy as np
 from sklearn.model_selection import train_test_split
+from sklearn.utils import shuffle
 
 IMG_SIZE = 224
 INIT_LR = 1e-4
 NUM_EPOCHS = 20
 BATCH_SIZE = 32
 
+n_classes = 3
+epoch_size = 300
+# input_height , input_width = 224 , 672
+# output_height , output_width = 224 , 672
 
-def class_text_to_int(row_label):
-    if row_label == 'aeroplane':
-        return 0
-
-    elif row_label == 'bicycle':
-        return 1
-
-    elif row_label == 'bird':
-        return 2
-
-    elif row_label == 'boat':
-        return 3
-
-    elif row_label == 'bottle':
-        return 4
-
-    elif row_label == 'bus':
-        return 5
-
-    elif row_label == 'car':
-        return 6
-
-    elif row_label == 'cat':
-        return 7
-
-    elif row_label == 'chair':
-        return 8
-
-    elif row_label == 'cow':
-        return 9
-
-    elif row_label == 'diningtable':
-        return 10
-
-    elif row_label == 'dog':
-        return 11
-
-    elif row_label == 'horse':
-        return 12
-
-    elif row_label == 'motorbike':
-        return 13
-
-    elif row_label == 'person':
-        return 14
-
-    elif row_label == 'pottedplant':
-        return 15
-
-    elif row_label == 'sheep':
-        return 16
-
-    elif row_label == 'sofa':
-        return 17
-
-    elif row_label == 'train':
-        return 18
-
-    elif row_label == 'tvmonitor':
-        return 19
-
-    else:
-        pass
+dir_data = "/data/backup/pervinco_2020/datasets/segmentation_test/training"
+dir_seg = dir_data + "/gt_image/"
+dir_img = dir_data + "/image/"
 
 
 def get_boxes(xml_path):
@@ -108,76 +53,84 @@ def create_model():
                                                       weights="imagenet",
                                                       include_top=False)
 
-    o = tf.keras.layers.Conv2D(4096 ,(7, 7), activation='relu' , padding='same', name="conv6")(base_model.output)
-    conv7 = tf.keras.layers.Conv2D(4096, (1, 1) , activation='relu' , padding='same', name="conv7")(o)
-    conv7_4 = tf.keras.layers.Conv2DTranspose(20, kernel_size=(4,4), strides=(4,4), use_bias=False)(conv7)
+    conv7_7 = tf.keras.layers.Conv2D(4096 ,(7, 7), activation='relu' , padding='same', name="conv6")(base_model.output)
+    conv1_1 = tf.keras.layers.Conv2D(4096, (1, 1) , activation='relu' , padding='same', name="conv7")(conv7_7)
+    conv7_1_out = tf.keras.layers.Conv2DTranspose(n_classes, kernel_size=(4,4), strides=(4,4), use_bias=False)(conv1_1)
 
-    pool411 = tf.keras.layers.Conv2D(20, (1, 1) , activation='relu' , padding='same', name="pool4_11")(base_model.get_layer("block4_pool").output)
-    pool411_2 = tf.keras.layers.Conv2DTranspose(20, kernel_size=(2,2), strides=(2,2), use_bias=False)(pool411)
+    pool4_1_1 = tf.keras.layers.Conv2D(n_classes, (1, 1) , activation='relu' , padding='same', name="pool1_1")(base_model.get_layer("block4_pool").output)
+    pool4_1_1_out = tf.keras.layers.Conv2DTranspose(n_classes, kernel_size=(2,2), strides=(2,2), use_bias=False)(pool4_1_1)
 
-    pool311 = tf.keras.layers.Conv2D(20, (1,1) , activation='relu' , padding='same', name="pool3_11")(base_model.get_layer("block3_pool").output)
+    pool_3_1_1_out = tf.keras.layers.Conv2D(n_classes, (1,1) , activation='relu' , padding='same', name="pool3_1_1")(base_model.get_layer("block3_pool").output)
 
-    o = tf.keras.layers.Add(name="add")([pool411_2, pool311, conv7_4 ])
-    o = tf.keras.layers.Conv2DTranspose(20 , kernel_size=(8,8) ,  strides=(8,8) , use_bias=False)(o)
-    o = (tf.keras.layers.Activation('softmax'))(o)
+    out = tf.keras.layers.Add(name="add")([pool4_1_1_out, pool_3_1_1_out, conv7_1_out])
+    out = tf.keras.layers.Conv2DTranspose(n_classes , kernel_size=(8,8) ,  strides=(8,8) , use_bias=False)(out)
+    out = (tf.keras.layers.Activation('softmax'))(out)
     
-    model = tf.keras.Model(base_model.input, o)
+    model = tf.keras.Model(base_model.input, out)
 
     return model
 
 
-if __name__ == "__main__":
-    images = "/data/backup/pervinco_2020/datasets/VOC2012/sample_image"
-    images = sorted(glob.glob(images + '/*.jpg'))
+def getImageArr( path , width , height ):
+    img = cv2.imread(path, 1)
+    img = np.float32(cv2.resize(img, ( width , height ))) / 127.5 - 1
+    return img
 
-    annotations = "/data/backup/pervinco_2020/datasets/VOC2012/sample_annotation"
-    annotations = sorted(glob.glob(annotations + '/*.xml'))
+def getOrigin( path , width , height ):
+    img = cv2.imread(path, 1)
+    img = np.float32(cv2.resize(img, ( width , height )))
+    return img
 
-    total_images = []
-    total_labels = []
-    total_boxes = []
 
-    for image, annotation in zip(images, annotations):    
-        bboxes, classes = get_boxes(annotation)
+def getSegmentationArr( path , nClasses ,  width , height  ):
 
-        file_name = image.split('/')[-1]
-        image = cv2.imread(image)
-        h, w = image.shape[:2]
-        image = cv2.resize(image, (224, 224))
-        image = tf.keras.applications.efficientnet.preprocess_input(image)
+    seg_labels = np.zeros((  height , width  , nClasses ))
+    img = cv2.imread(path, 1)
+    img = cv2.resize(img, ( width , height ))
+    img_normal = cv2.normalize(img, None, 0,2, cv2.NORM_MINMAX)
+    img_normal = img_normal[:, : , 0]
 
-        for (xmin, ymin, xmax, ymax), label in zip(bboxes, classes):
-            xmin = float(xmin) / w
-            ymin = float(ymin) / h
-            xmax = float(xmax) / w
-            ymax = float(ymax) / h
+    for c in range(nClasses):
+        seg_labels[: , : , c ] = (img_normal == c ).astype(int)
+    ##seg_labels = np.reshape(seg_labels, ( width*height,nClasses  ))
+    return seg_labels
 
-            total_boxes.append((xmin, ymin, xmax, ymax))
-            # print(file_name, class_text_to_int(label))
-            total_labels.append(class_text_to_int(label))
-            total_images.append(image)
 
-    total_images = np.array(total_images, dtype="float32")
-    total_labels = np.array(total_labels)
-    total_labels = tf.keras.utils.to_categorical(total_labels, num_classes=20, dtype="float32")
-    total_boxes = np.array(total_boxes, dtype="float32")
+def train(n_classes):
+    images = os.listdir(dir_img)
+    images.sort()
+    segmentations  = os.listdir(dir_seg)
+    segmentations.sort()
+        
+    X = []
+    Y = []
+    for im , seg in zip(images,segmentations) :
+        X.append(getImageArr(dir_img + im , IMG_SIZE , IMG_SIZE))
+        Y.append(getSegmentationArr( dir_seg + seg , n_classes , IMG_SIZE , IMG_SIZE))
 
-    split = train_test_split(total_images, total_labels, total_boxes, test_size=.2, random_state=42)
+    X, Y = np.array(X) , np.array(Y)
+    Full_dataset = 'Full  dataset : {}, {}'.format(X.shape, Y.shape)
+    print(Full_dataset)
 
-    (trainImages, testImages) = split[:2]
-    (trainLabels, testLabels) = split[2:4]
-    (trainBBoxes, testBBoxes) = split[4:6]
+    train_rate = 0.85
+    index_train = np.random.choice(X.shape[0],int(X.shape[0]*train_rate),replace=False)
+    index_valid = list(set(range(X.shape[0])) - set(index_train))
+                                
+    X, Y = shuffle(X,Y)
+    X_train, y_train = X[index_train],Y[index_train]
+    X_valid, y_valid = X[index_valid],Y[index_valid]
+    Train_dataset = 'Train dataset : {}, {}'.format(X_train.shape, y_train.shape)
+    print(Train_dataset)
+    Valid_dataset = 'Valid dataset : {}, {}'.format(X_valid.shape, y_valid.shape)
+    print(Valid_dataset)
 
     model = create_model()
     model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
     model.summary()
     tf.keras.utils.plot_model(model, to_file="/data/backup/pervinco_2020/test_code/test_model_plot.png")
 
-    H = model.fit(
-        trainImages, trainLabels,
-        validation_data=(testImages, testLabels),
-        batch_size=BATCH_SIZE,
-        epochs=NUM_EPOCHS,
-        verbose=1)
+    model.fit(X_train, y_train, validation_data=(X_valid, y_valid), batch_size=32, epochs=epoch_size, verbose=1)
 
-    model.save('/data/backup/pervinco_2020/model/voc_detection_model.h5')
+    model.save('/data/backup/pervinco_2020/model/FCN_model.h5')
+
+train(n_classes)

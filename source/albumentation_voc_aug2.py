@@ -10,7 +10,7 @@ from xml.dom import minidom
 from albumentations import(BboxParams, HorizontalFlip, ShiftScaleRotate, VerticalFlip, Resize,
                            CenterCrop, RandomCrop, Crop, Compose, RandomContrast,
                            RandomBrightness, IAASharpen, MotionBlur, OneOf, normalize_bboxes, 
-                           denormalize_bboxes, RGBShift, RandomRotate90, RandomBrightnessContrast)
+                           denormalize_bboxes, RGBShift, RandomRotate90, RandomBrightnessContrast, CenterCrop, Blur)
 
 BOX_COLOR = (0, 255, 0) # Red
 TEXT_COLOR = (255, 255, 255) # White
@@ -65,8 +65,6 @@ def visualize(image, bboxes, category_ids, category_id_to_name):
 
 
 def get_boxes(label_path):
-    xml_path = os.path.join(label_path)
-
     tree = ET.parse(xml)
     root = tree.getroot()
     obj_xml = root.findall('object')
@@ -101,7 +99,6 @@ def get_boxes(label_path):
 
 def make_categori_id(str_label):
     idx = 0
-    result = []
     category_id_to_name = {}
 
     for label in str_label:
@@ -134,8 +131,12 @@ if __name__ == "__main__":
         pass
 
     transform = Compose([
-        Resize(512, 512, p=1),
+        # Resize(608, 608, p=1),
+        # ShiftScaleRotate(p=0.5, border_mode=1),
+        # RandomRotate90(p=0.5),
+        Blur(p=0.3),
         HorizontalFlip(p=0.6),
+        VerticalFlip(p=0.3),
         RandomBrightnessContrast(p=0.3),
         RGBShift(r_shift_limit=30, g_shift_limit=30, b_shift_limit=30, p=0.3),
         ],
@@ -156,11 +157,11 @@ if __name__ == "__main__":
             category_id_to_name = make_categori_id(str_label)
         
             # bbox = normalize_bboxes(bbox, rows=height, cols=width)
-            visualize(image, bbox, category_id, category_id_to_name)
+            # visualize(image, bbox, category_id, category_id_to_name)
 
             for i in range(3):
                 transformed = transform(image=image, bboxes=bbox, category_ids=category_id)
-                visualize(transformed['image'], transformed['bboxes'], transformed['category_ids'], category_id_to_name)
+                # visualize(transformed['image'], transformed['bboxes'], transformed['category_ids'], category_id_to_name)
                 cv2.imwrite(output_path + '/images/' + image_name + '_' + str(i) + '.jpg', transformed['image'])
                 modify_coordinate(output_path, transformed, xml, i)
 
