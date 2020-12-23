@@ -10,6 +10,11 @@
          
 
 # 🚀My Projects
+
+## Dacon - Landmark Classification Competition
+   We were able to get a score of 99.085 and finished 26th in 387 teams.
+   <p align="left"><img src="./docs/doc_imgs/dacon.png" width=100%></p>
+
 ## 🏗[Tensorflow 2.x](https://github.com/pervin0527/pervinco/blob/master/docs/Tensorflow_tutorial.md)  
    1. tf.data API Tutorial
       - [Blog Post 1](https://www.notion.so/pervin0527/Tensorflow-data-API-1-208ddce5837744fa8b0d9b14b30e6dd2)
