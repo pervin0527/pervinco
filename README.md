@@ -11,11 +11,6 @@
 
 # 🚀My Projects
 
-## 2020.11.16 [Dacon - Landmark Classification Competition]
-   We were able to get a score of 99.085 and finished 26th in 387 teams.
-   - [Blog Post](https://www.notion.so/pervin0527/Dacon-Landmark-Classification-6f1d5f42a2db43e6aa45e03077f23692)
-   <p align="left"><img src="./docs/doc_imgs/dacon.png" width=100%></p>
-
 ## 🏗[Tensorflow 2.x](https://github.com/pervin0527/pervinco/blob/master/docs/Tensorflow_tutorial.md)  
    1. tf.data API Tutorial
       - [Blog Post 1](https://www.notion.so/pervin0527/Tensorflow-data-API-1-208ddce5837744fa8b0d9b14b30e6dd2)
@@ -156,6 +151,13 @@
       <p align="center"><img src="./docs/doc_imgs/efficientdet.png"></p>
 
       - [Blog Post](https://www.notion.so/pervin0527/EfficientDet-Google-AutoML-efc3927f229448759973322756c3bd23)
+
+
+## 2020.11.16 [Dacon - Landmark Classification Competition]
+   We were able to get a score of 99.085 and finished 26th in 387 teams.
+   - [Blog Post](https://www.notion.so/pervin0527/Dacon-Landmark-Classification-6f1d5f42a2db43e6aa45e03077f23692)
+   <p align="left"><img src="./docs/doc_imgs/dacon.png" width=100%></p>
+   
 
 ## InterMinds Projects
   1. Smart checkout table - 2019.05 ~ 2019.12 Fin.  
