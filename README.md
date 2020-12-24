@@ -120,6 +120,21 @@
       - [Source Code - training](https://github.com/pervin0527/pervinco/blob/master/source/multi_label_train.py) 
       - [Source Code - Accuracy Test](https://github.com/pervin0527/pervinco/blob/master/source/tf2_multi_label_predict.py)
 
+
+   4. CutMix & MixUp Augmentation Training
+      <table border="0">
+      <tr>
+         <td>
+         <img src="./docs/doc_imgs/cutmix.png" width="100%" />
+         </td>
+         <td>
+         <img src="./docs/doc_imgs/mixup.png", width="100%" />
+         </td>
+      </tr>
+      </table>
+      
+      - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/cut_mix_training.py)
+
 ## 🚝[Object Detection](https://github.com/pervin0527/pervinco/blob/master/docs/Object_Detection.md)  
    1. Tensorflow Object Detection API 소개 및 사용방법
    

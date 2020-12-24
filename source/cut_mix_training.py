@@ -1,201 +1,313 @@
-import tensorflow as tf
-from tensorflow import keras
+import re
+import math
 import pathlib
 import random
-import os
-import datetime
-import time
-from efficientnet.tfkeras import EfficientNetB3, preprocess_input
+import numpy as np
 import pandas as pd
-from glob import glob
 import matplotlib.pyplot as plt
-import cv2
-#from tensorflow.keras.utils import multi_gpu_model
-from sklearn.model_selection import StratifiedKFold
+
+from sklearn.metrics import f1_score, precision_score, recall_score, confusion_matrix
+from sklearn.model_selection import KFold
+
+import tensorflow as tf
+import tensorflow.keras.backend as K
+from tensorflow.keras.mixed_precision import experimental as mixed_precision
+
 
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
-  # 텐서플로가 첫 번째 GPU에 1GB 메모리만 할당하도록 제한
   try:
-    tf.config.experimental.set_virtual_device_configuration(
-        gpus[0],
-        [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=8024)])
+    tf.config.experimental.set_virtual_device_configuration(gpus[0],
+      [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=9000)])
   except RuntimeError as e:
-    # 프로그램 시작시에 가상 장치가 설정되어야만 합니다
     print(e)
 
 
-def basic_processing(img_list, is_training):
-    #img_path = pathlib.Path(img_path)
-    #images = list(img_path.glob('*/*'))
-    images = img_list
+MIXED_PRECISION = False
+XLA_ACCELERATE = False
+
+if MIXED_PRECISION:
+    if tpu:
+        policy = tf.keras.mixed_precision.experimental.Policy('mixed_bfloat16')
+    else:
+        policy = tf.keras.mixed_precision.experimental.Policy('mixed_float16')
+    mixed_precision.set_policy(policy)
+    print('Mixed precision enabled')
+
+if XLA_ACCELERATE:
+    tf.config.optimizer.set_jit(True)
+    print('Accelerated Linear Algebra enabled')
+
+
+AUTO = tf.data.experimental.AUTOTUNE
+strategy = tf.distribute.experimental.CentralStorageStrategy()
+IMAGE_SIZE = [300, 300]
+EPOCHS = 25
+FOLDS = 3
+BATCH_SIZE = 16 * strategy.num_replicas_in_sync
+AUG_BATCH = BATCH_SIZE
+FIRST_FOLD_ONLY = False
+CLASSES = 4
+SEED = 777
+
+LR_START = 0.00001
+LR_MAX = 0.00005 * strategy.num_replicas_in_sync
+LR_MIN = 0.00001
+LR_RAMPUP_EPOCHS = 5
+LR_SUSTAIN_EPOCHS = 0
+LR_EXP_DECAY = .8
+
+def lrfn(epoch):
+    if epoch < LR_RAMPUP_EPOCHS:
+        lr = (LR_MAX - LR_START) / LR_RAMPUP_EPOCHS * epoch + LR_START
+    elif epoch < LR_RAMPUP_EPOCHS + LR_SUSTAIN_EPOCHS:
+        lr = LR_MAX
+    else:
+        lr = (LR_MAX - LR_MIN) * LR_EXP_DECAY**(epoch - LR_RAMPUP_EPOCHS - LR_SUSTAIN_EPOCHS) + LR_MIN
+    return lr
+    
+lr_callback = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose = True)
+
+
+def basic_processing(ds_path, is_training):
+    ds_path = pathlib.Path(ds_path)
+
+    images = list(ds_path.glob('*/*'))
     images = [str(path) for path in images]
-    len_images = len(images)
+
     if is_training:
         random.shuffle(images)
-    #labels = sorted(item.name for item in img_path.glob('*/') if item.is_dir())
-    labels = sorted(label_list)
-    labels_len = len(labels)
+
+    labels = sorted(item.name for item in ds_path.glob('*/') if item.is_dir())
+    # num_of_labels = len(labels)
     labels = dict((name, index) for index, name in enumerate(labels))
     labels = [labels[pathlib.Path(path).parent.name] for path in images]
-    labels = tf.keras.utils.to_categorical(labels, num_classes=labels_len, dtype='float32')
-    return images, labels, len_images, labels_len
+    # labels = tf.keras.utils.to_categorical(labels, num_classes=num_of_labels, dtype='float32')
+
+    return images, labels
 
 
-def preprocess_image(image):
-    #image = tf.image.decode_jpeg(image, channels=3)
-    #image = tf.image.resize(image, [224, 224])
-    #image = keras.applications.xception.preprocess_input(image)  ## 수정해야함
+def decode_image(image_data):
+    image = tf.io.read_file(image_data)
     image = tf.image.decode_jpeg(image, channels=3)
-    image = tf.image.resize(image, [224, 224])  #  antialias = True 
-    image = preprocess_input(image)
+    image = tf.image.resize(image, IMAGE_SIZE)
+    image = tf.cast(image, tf.float32) / 255.0 
+    image = tf.reshape(image, [*IMAGE_SIZE, 3])
     return image
 
 
-# 이미지 path -> tensor
-def load_and_preprocess_image(path):
-    image = tf.io.read_file(path)
-    return preprocess_image(image)
+def get_training_dataset(images, labels, do_aug=True):
+    images = tf.data.Dataset.from_tensor_slices(images)
+    images = images.map(decode_image, num_parallel_calls=AUTO)
+    labels = tf.data.Dataset.from_tensor_slices(labels)
+
+    dataset = tf.data.Dataset.zip((images, labels))
+    dataset = dataset.repeat()
+    dataset = dataset.batch(AUG_BATCH)
+
+    if do_aug:
+        dataset = dataset.map(transform, num_parallel_calls=AUTO)
+
+    dataset = dataset.unbatch()
+    dataset = dataset.shuffle(2048)
+    dataset = dataset.batch(BATCH_SIZE)
+    dataset = dataset.prefetch(AUTO)
+
+    return dataset
 
 
-# tf dataset 만들기
-def make_tf_dataset(images, labels):
-    image_ds = tf.data.Dataset.from_tensor_slices(images)
-    image_ds = image_ds.map(load_and_preprocess_image, num_parallel_calls=AUTOTUNE)
-    lable_ds = tf.data.Dataset.from_tensor_slices(tf.cast(labels, tf.float32))
-    image_label_ds = tf.data.Dataset.zip((image_ds, lable_ds))
-    return image_label_ds
+def onehot_encoding(label):
+    return tf.one_hot(label, CLASSES)
 
 
-def cutmix(images, labels, PROB = 0.3):
-    imgs = []
-    labs = []
-    for i in range(BATCH_SIZE):
-        APPLY = tf.cast(tf.random.uniform(()) <= PROB, tf.int32)
-        idx = tf.random.uniform((), 0, BATCH_SIZE, tf.int32)
-        W = IMG_SIZE
-        H = IMG_SIZE
-        lam = tf.random.uniform(())
-        cut_ratio = tf.math.sqrt(1.-lam)
-        cut_w = tf.cast(W * cut_ratio, tf.int32) * APPLY
-        cut_h = tf.cast(H * cut_ratio, tf.int32) * APPLY
-        cx = tf.random.uniform((), int(W/8), int(7/8*W), tf.int32)
-        cy = tf.random.uniform((), int(H/8), int(7/8*H), tf.int32)
-        xmin = tf.clip_by_value(cx - cut_w//2, 0, W)   # clip_by_value 값의 상한 하한 설정,
-        ymin = tf.clip_by_value(cy - cut_h//2, 0, H)
-        xmax = tf.clip_by_value(cx + cut_w//2, 0, W)   # clip_by_value 값의 상한 하한 설정,
-        ymax = tf.clip_by_value(cy + cut_h//2, 0, H)
-        mid_left = images[i, ymin:ymax, :xmin, :]
-        mid_mid = images[idx, ymin:ymax, xmin:xmax, :]
-        mid_right = images[i, ymin:ymax, xmax:, :]
-        middle = tf.concat([mid_left, mid_mid, mid_right], axis=1)
-        top = images[i, :ymin, :, :]
-        bottom = images[i, ymax:, :, :]
-        new_img = tf.concat([top, middle, bottom], axis = 0)
-        imgs.append(new_img)
-        alpha = tf.cast((cut_w*cut_h) / (W*H), tf.float32)
-        label1 = labels[i]
-        label2 = labels[idx]
-        new_label = ((1-alpha) * label1 + alpha * label2)
-        labs.append(new_label)
-    new_imgs = tf.reshape(tf.stack(imgs), [-1, IMG_SIZE, IMG_SIZE, 3])
-    new_labs = tf.reshape(tf.stack(labs), [-1, train_labels_len])
-    return new_imgs, new_labs
+def get_validation_dataset(images, labels, do_onehot=True):
+    images = tf.data.Dataset.from_tensor_slices(images)
+    images = images.map(decode_image, num_parallel_calls=AUTO)
+    labels = tf.data.Dataset.from_tensor_slices(labels)
+    labels = labels.map(onehot_encoding, num_parallel_calls=AUTO)
+    
+    dataset = tf.data.Dataset.zip((images, labels))
+    dataset = dataset.batch(BATCH_SIZE)
+    dataset = dataset.cache()
+    dataset = dataset.prefetch(AUTO)
+
+    return dataset
 
 
-img_dir = '../../datasets/emart24/total_bev_109/'
-result = []
-idx = 0
-label_list = [f for f in os.listdir(img_dir) if not f.startswith('.')]
-for label in label_list:
-    file_list = glob(os.path.join(img_dir,label,'*'))
-    for file in file_list:
-        result.append([idx, label, file])
-        idx += 1
-img_df = pd.DataFrame(result, columns=['idx','label','image_path'])
-X = img_df[['idx','label']].values[:,0]
-y = img_df[['idx','label']].values[:,1:]
-img_df['fold'] = -1
-skf = StratifiedKFold(n_splits=10, shuffle=True, random_state=0)
-for i, (trn_idx, vld_idx) in enumerate(skf.split(X,y)):
-    img_df.loc[vld_idx, 'fold'] = i
-#img_df.to_csv('dataset.csv', index = False)
-#img_df = pd.read_csv('../datasets/dataset.csv')
-trn_fold = [i for i in range(10) if i not in [4]]
-vld_fold = [4]
-trn_idx = img_df.loc[img_df['fold'].isin(trn_fold)].index
-vld_idx = img_df.loc[img_df['fold'].isin(vld_fold)].index
-#####################
-dataset_name = 'em24_normal_aug'
-AUTOTUNE = tf.data.experimental.AUTOTUNE
-#train_dataset_path = '../datasets/emart24/cls_train/train'
-#valid_dataset_path = '../datasets/emart24/cls_train/validation'
-BATCH_SIZE = 16
-IMG_SIZE = 224
-NUM_EPOCHS = 50
-EARLY_STOP_PATIENCE = 5
-#TRAIN_STEP_PER_EPOCH = tf.math.ceil(train_images_len / BATCH_SIZE).numpy()
-#VALID_STEP_PER_EPOCH = tf.math.ceil(valid_images_len / BATCH_SIZE).numpy()
-saved_path = '../../em24_project/classification/model/'
-time = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M") + '_tf2'
-weight_file_name = '{epoch:02d}.hdf5'
-checkpoint_path = saved_path + dataset_name + '/' + time + '/' + weight_file_name
-if not(os.path.isdir(saved_path + dataset_name + '/' + time)):
-    os.makedirs(os.path.join(saved_path + dataset_name + '/' + time))
-else:
-    pass
-trn_img_list = list(img_df.loc[img_df['idx'].isin(trn_idx)]['image_path'])
-vld_img_list = list(img_df.loc[img_df['idx'].isin(vld_idx)]['image_path'])
-train_images, train_labels, train_images_len, train_labels_len = basic_processing(trn_img_list, True)
-valid_images, valid_labels, valid_images_len, valid_labels_len = basic_processing(vld_img_list, False)
-TRAIN_STEP_PER_EPOCH = tf.math.ceil(train_images_len / BATCH_SIZE).numpy()
-VALID_STEP_PER_EPOCH = tf.math.ceil(valid_images_len / BATCH_SIZE).numpy()
-# 기본 Dataset 만들기
-# Cutmix 포함 Dataset 만들기
-train_ds = make_tf_dataset(train_images, train_labels)
-train_ds = train_ds.batch(BATCH_SIZE).prefetch(tf.data.experimental.AUTOTUNE) # tf.data.experimental.AUTOTUNE
-train_ds = train_ds.map(cutmix).repeat()
-valid_ds = make_tf_dataset(valid_images, valid_labels)
-valid_ds = valid_ds.repeat().batch(BATCH_SIZE).prefetch(tf.data.experimental.AUTOTUNE)
-base_model = EfficientNetB3(input_shape=(IMG_SIZE, IMG_SIZE, 3),
-                            weights="imagenet",
-                            include_top=False)
-avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
-output = tf.keras.layers.Dense(train_labels_len, activation="softmax")(avg)
-model = tf.keras.Model(inputs=base_model.input, outputs=output)
-#model = multi_gpu_model(model, gpus=3)
-for layer in base_model.layers:
-    layer.trainable = True
-LR_INIT = 0.000001
-LR_MAX = 0.0002
-LR_MIN = LR_INIT
-RAMUP_EPOCH = 4
-EXP_DECAY = 0.9
-def lr_schedule_fn(epoch):
-    if epoch < RAMUP_EPOCH:
-        lr = (LR_MAX - LR_MIN) / RAMUP_EPOCH * epoch + LR_INIT
-    else:
-        lr = (LR_MAX - LR_MIN) * EXP_DECAY**(epoch - RAMUP_EPOCH)
-    return lr    
-#optimizer = tf.keras.optimizers.SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
-optimizer = tf.keras.optimizers.Adam(LR_INIT)
-#model.compile(loss="categorical_crossentropy", optimizer=optimizer, metrics=["accuracy"])
-model.compile(loss=tf.keras.losses.CategoricalCrossentropy(label_smoothing=0.1),
-              optimizer = optimizer,
-              metrics=["accuracy"])
-lr_callback = keras.callbacks.LearningRateScheduler(lr_schedule_fn)
-cb_early_stopper = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
-#checkpoint_path = saved_path + dataset_name + '/' + time + '/' + weight_file_name
-cb_checkpointer = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
-                                                     monitor='val_loss',
-                                                     save_best_only=True,
-                                                     mode='auto')
-history = model.fit(train_ds,
-                    epochs=100,
-                    steps_per_epoch=TRAIN_STEP_PER_EPOCH,
-                    shuffle=False,
-                    validation_data=valid_ds,
-                    validation_steps=VALID_STEP_PER_EPOCH,
-                    verbose=1,
-                    callbacks=[lr_callback, cb_checkpointer, cb_early_stopper])  #cb_checkpointer, cb_early_stopper
-model.save(saved_path + dataset_name  + '/' + dataset_name + '.h5')
+def cutmix(image, label, PROBABILITY = 1.0):
+    DIM = IMAGE_SIZE[0]
+    
+    imgs = []; labs = []
+    for j in range(AUG_BATCH):
+        P = tf.cast( tf.random.uniform([],0,1)<=PROBABILITY, tf.int32)
+        k = tf.cast( tf.random.uniform([],0,AUG_BATCH),tf.int32)
+        x = tf.cast( tf.random.uniform([],0,DIM),tf.int32)
+        y = tf.cast( tf.random.uniform([],0,DIM),tf.int32)
+        b = tf.random.uniform([],0,1)
+        WIDTH = tf.cast( DIM * tf.math.sqrt(1-b),tf.int32) * P
+        ya = tf.math.maximum(0,y-WIDTH//2)
+        yb = tf.math.minimum(DIM,y+WIDTH//2)
+        xa = tf.math.maximum(0,x-WIDTH//2)
+        xb = tf.math.minimum(DIM,x+WIDTH//2)
+        
+        one = image[j,ya:yb,0:xa,:]
+        two = image[k,ya:yb,xa:xb,:]
+        three = image[j,ya:yb,xb:DIM,:]
+        middle = tf.concat([one,two,three],axis=1)
+        img = tf.concat([image[j,0:ya,:,:],middle,image[j,yb:DIM,:,:]],axis=0)
+        imgs.append(img)
+        
+        a = tf.cast(WIDTH*WIDTH/DIM/DIM,tf.float32)
+        if len(label.shape)==1:
+            lab1 = tf.one_hot(label[j],CLASSES)
+            lab2 = tf.one_hot(label[k],CLASSES)
+        else:
+            lab1 = label[j,]
+            lab2 = label[k,]
+        labs.append((1-a)*lab1 + a*lab2)
+            
+    
+    image2 = tf.reshape(tf.stack(imgs),(AUG_BATCH,DIM,DIM,3))
+    label2 = tf.reshape(tf.stack(labs),(AUG_BATCH,CLASSES))
+    return image2,label2
+
+
+def mixup(image, label, PROBABILITY = 1.0):
+    DIM = IMAGE_SIZE[0]
+    
+    imgs = []; labs = []
+    for j in range(AUG_BATCH):
+        P = tf.cast( tf.random.uniform([],0,1)<=PROBABILITY, tf.float32)
+        k = tf.cast( tf.random.uniform([],0,AUG_BATCH),tf.int32)
+        a = tf.random.uniform([],0,1)*P
+
+        img1 = image[j,]
+        img2 = image[k,]
+        imgs.append((1-a)*img1 + a*img2)
+
+        if len(label.shape)==1:
+            lab1 = tf.one_hot(label[j], CLASSES)
+            lab2 = tf.one_hot(label[k], CLASSES)
+        else:
+            lab1 = label[j,]
+            lab2 = label[k,]
+        labs.append((1-a)*lab1 + a*lab2)
+            
+    image2 = tf.reshape(tf.stack(imgs),(AUG_BATCH,DIM,DIM,3))
+    label2 = tf.reshape(tf.stack(labs),(AUG_BATCH,CLASSES))
+    return image2,label2
+
+
+def transform(image,label):
+    DIM = IMAGE_SIZE[0]
+    SWITCH = 0.5
+    CUTMIX_PROB = 0.666
+    MIXUP_PROB = 0.666
+    
+    image2, label2 = cutmix(image, label, CUTMIX_PROB)
+    image3, label3 = mixup(image, label, MIXUP_PROB)
+    imgs = []; labs = []
+    for j in range(AUG_BATCH):
+        P = tf.cast( tf.random.uniform([],0,1)<=SWITCH, tf.float32)
+        imgs.append(P*image2[j,]+(1-P)*image3[j,])
+        labs.append(P*label2[j,]+(1-P)*label3[j,])
+    
+    image4 = tf.reshape(tf.stack(imgs),(AUG_BATCH,DIM,DIM,3))
+    label4 = tf.reshape(tf.stack(labs),(AUG_BATCH,CLASSES))
+    return image4,label4
+
+
+def get_model():
+    with strategy.scope():
+        base_model = tf.keras.applications.EfficientNetB0(input_shape=(IMAGE_SIZE[0], IMAGE_SIZE[1], 3),
+                                                          weights='imagenet',
+                                                          include_top=False)
+        base_model.trainable = True
+        model = tf.keras.Sequential([base_model,
+                                     tf.keras.layers.GlobalAveragePooling2D(),
+                                     tf.keras.layers.Dense(CLASSES, activation='softmax', dtype='float32')])
+
+        model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['categorical_accuracy'])
+        return model
+
+
+def train_cross_validate(images, labels, folds=5):
+    histories = []
+    models = []
+    early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
+    kfold = KFold(folds, shuffle=True, random_state=SEED)
+    
+    for f, (train_index, valid_index) in enumerate(kfold.split(images, labels)):
+        print('FOLD', f + 1)
+        train_x, train_y = images[train_index[0] : (train_index[-1] + 1)], labels[train_index[0] : (train_index[-1] + 1)]
+        valid_x, valid_y = images[valid_index[0] : (valid_index[-1] + 1)], labels[valid_index[0] : (valid_index[-1] + 1)]
+        STEPS_PER_EPOCH = int(tf.math.ceil(len(images) / BATCH_SIZE).numpy())
+
+        model = get_model()
+        history = model.fit(get_training_dataset(train_x, train_y), 
+                            steps_per_epoch = STEPS_PER_EPOCH,
+                            epochs = EPOCHS,
+                            callbacks = [lr_callback, early_stopping],
+                            validation_data = get_validation_dataset(valid_x, valid_y),
+                            verbose=1)
+        models.append(model)
+        histories.append(history)
+
+        if FIRST_FOLD_ONLY:
+            break
+
+    return histories, models
+
+
+
+if __name__ == "__main__":
+    dataset = "/data/backup/pervinco_2020/Auged_datasets/test"
+    images, labels = basic_processing(dataset, True)
+    train_cross_validate(images, labels, folds=5)
+
+    """ Display CutMix sample """
+    # train_ds = get_training_dataset(train_images, train_labels, do_aug=False).unbatch()
+    # augmented_element = train_ds.repeat().batch(AUG_BATCH).map(cutmix)
+
+    # row = 6
+    # col = 4
+    # row = min(row, AUG_BATCH // col)
+
+    # for (img,label) in augmented_element:
+    #     plt.figure(figsize=(15,int(15*row/col)))
+    #     for j in range(row*col):
+    #         plt.subplot(row,col,j+1)
+    #         plt.axis('off')
+    #         plt.imshow(img[j,])
+    #     plt.show()
+    #     break
+
+    """ Display MixUp sample """
+    # row = 6; col = 4;
+    # row = min(row,AUG_BATCH//col)
+    # train_ds = get_training_dataset(train_images, train_labels, do_aug=False).unbatch()
+    # augmented_element = train_ds.repeat().batch(AUG_BATCH).map(mixup)
+
+    # for (img,label) in augmented_element:
+    #     plt.figure(figsize=(15,int(15*row/col)))
+    #     for j in range(row*col):
+    #         plt.subplot(row,col,j+1)
+    #         plt.axis('off')
+    #         plt.imshow(img[j,])
+    #     plt.show()
+    #     break
+
+    """ Display CutMix & MixUp sample """
+    # row = 6; col = 4;
+    # row = min(row,AUG_BATCH//col)
+    # train_ds = get_training_dataset(train_images, train_labels, do_aug=False).unbatch()
+    # augmented_element = train_ds.repeat().batch(AUG_BATCH).map(transform)
+
+    # for (img,label) in augmented_element:
+    #     plt.figure(figsize=(15,int(15*row/col)))
+    #     for j in range(row*col):
+    #         plt.subplot(row,col,j+1)
+    #         plt.axis('off')
+    #         plt.imshow(img[j,])
+    #     plt.show()
+    #     break
