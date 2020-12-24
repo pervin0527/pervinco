@@ -116,7 +116,12 @@
       - [Source Code - Accuracy Test](https://github.com/pervin0527/pervinco/blob/master/source/tf2_multi_label_predict.py)
 
 
-   4. CutMix & MixUp Augmentation Training
+   4. K-Fold Cross Validation
+      <p align="left"><img src="./docs/doc_imgs/k-fold.png" width=70%></p>
+      
+      - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/landmark_classification/k_fold_train.py)
+
+   5. CutMix & MixUp Augmentation & K-Fold Cross Validation Training
       <table border="0">
       <tr>
          <td>
