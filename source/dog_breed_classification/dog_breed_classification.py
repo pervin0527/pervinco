@@ -135,6 +135,8 @@ h = dnn.fit(final_features, y,
             validation_split=0.1,
             callbacks=my_callback)
 
+dnn.save("/data/tf_workspace/models/dog_breed_classification/ensemble_model.h5")
+
 def images_to_array2(data_dir, labels_dataframe, img_size = (224,224,3)):
     '''
     Do same as images_to_array but omit some unnecessary steps for test data.
@@ -147,8 +149,8 @@ def images_to_array2(data_dir, labels_dataframe, img_size = (224,224,3)):
         image_name = images_names[i]
         img_dir = os.path.join(data_dir, image_name+'.jpg')
         img_pixels = cv2.imread(img_dir)
-        img_pixels = cv2.cvtColor(img_pixels, cv2.COLOR_BG2RGB)
-        img_pixels = cv2.resize(img_pixels, (img_pixels[0], img_pixels[1]))
+        img_pixels = cv2.cvtColor(img_pixels, cv2.COLOR_BGR2RGB)
+        img_pixels = cv2.resize(img_pixels, (img_size[0], img_size[1]))
         X[i] = img_pixels
         
     print('Ouptut Data Size: ', X.shape)
@@ -171,4 +173,4 @@ del test_data
 
 y_pred = dnn.predict(test_features, batch_size=128)
 
-print(y_pred.shape)
+print(y_pred)

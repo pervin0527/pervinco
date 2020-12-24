@@ -1,30 +1,29 @@
-import tensorflow as tf
-import pandas as pd
-import pathlib
-import random
-import os
-import datetime
-import time
+import random, re, math, os, gc, pathlib, datetime
+import numpy as np, pandas as pd
+import matplotlib.pyplot as plt
+import tensorflow as tf, tensorflow.keras.backend as K
+from sklearn.model_selection import train_test_split
 from sklearn.model_selection import KFold
-import numpy as np
+
 
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
-    try:
-        print("True")
-        tf.config.experimental.set_memory_growth(gpus[0], True)
-    except RuntimeError as e:
-        print(e)
+  try:
+    for gpu in gpus:
+        tf.config.experimental.set_virtual_device_configuration(gpu, [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=11000)])
+  except RuntimeError as e:
+    # 프로그램 시작시에 메모리 증가가 설정되어야만 합니다
+    print(e)
 
+strategy = tf.distribute.MirroredStrategy(cross_device_ops=tf.distribute.HierarchicalCopyAllReduce())
 AUTOTUNE = tf.data.experimental.AUTOTUNE
-strategy = tf.distribute.experimental.CentralStorageStrategy()
-
-BATCH_SIZE = 32
-IMG_HEIGHT = 224
-IMG_WIDTH = 223
-NUM_EPOCHS = 1000
-EARLY_STOP_PATIENCE = 3
+IMG_HEIGHT = 270
+IMG_WIDTH = 480
+NUM_EPOCHS = 20
+BATCH_SIZE = 3 * strategy.num_replicas_in_sync
+SEED = 100
 LR = 0.0001
+NUM_OF_CLASSES = 1049
 
 
 def basic_processing(ds_path, labels_list, labels_len, is_training):
@@ -32,7 +31,6 @@ def basic_processing(ds_path, labels_list, labels_len, is_training):
 
     images = list(ds_path.glob('*/*'))
     images = [str(path) for path in images]
-    len_images = len(images)
 
     if is_training:
         random.shuffle(images)
@@ -41,21 +39,23 @@ def basic_processing(ds_path, labels_list, labels_len, is_training):
     labels = [labels[pathlib.Path(path).parent.name] for path in images]
     labels = tf.keras.utils.to_categorical(labels, num_classes=labels_len, dtype='float32')
 
-    return images, labels, len_images, labels_len
+    return images, labels
 
 
 def preprocess_image(path):
     image = tf.io.read_file(path)
     image = tf.image.decode_jpeg(image, channels=3)
-    image = tf.cast(image, tf.float32) / 255.0
     image = tf.image.resize(image, [IMG_HEIGHT, IMG_WIDTH])
-    
-    # image = tf.keras.applications.efficientnet.preprocess_input(image)
+
+    NEW_IMAGE_SIZE = [int(image.shape[0]), int(image.shape[1])]
+
+    image = tf.cast(image, tf.float32) / 255.0
+    image = tf.reshape(image, [*NEW_IMAGE_SIZE, 3])
     
     return image
 
 
-def make_tf_dataset(images, labels):
+def make_dataset(images, labels):
     image_ds = tf.data.Dataset.from_tensor_slices(images)
     image_ds = image_ds.map(preprocess_image, num_parallel_calls=AUTOTUNE)
     label_ds = tf.data.Dataset.from_tensor_slices(tf.cast(labels, tf.float32))
@@ -64,115 +64,105 @@ def make_tf_dataset(images, labels):
     return image_label_ds
 
 
+def get_lr_callback():
+    lr_start   = 0.000001*10*0.5
+    lr_max     = 0.0000005 * BATCH_SIZE * 10 * 0.5
+    lr_min     = 0.000001 * 10*0.5
+    lr_ramp_ep = 5
+    lr_sus_ep  = 0
+    lr_decay   = 0.8
+   
+     
+    def lrfn(epoch):
+        if epoch < lr_ramp_ep:
+            lr = (lr_max - lr_start) / lr_ramp_ep * epoch + lr_start   
+        elif epoch < lr_ramp_ep + lr_sus_ep:
+            lr = lr_max    
+        else:
+            lr = (lr_max - lr_min) * lr_decay**(epoch - lr_ramp_ep - lr_sus_ep) + lr_min    
+        return lr
+
+    lr_callback = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose = False)
+    return lr_callback
+
+
 def get_model():
-    base_model = tf.keras.applications.EfficientNetB0(input_shape=(IMG_HEIGHT, IMG_WIDTH, 3),
-                                                      weights="imagenet", # noisy-student
-                                                      include_top=False)
-    gap = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
+    with strategy.scope():
+        input_layer = tf.keras.layers.Input(shape = (None, None, 3))
+        base_model = tf.keras.applications.EfficientNetB6(weights="imagenet", include_top=False)(input_layer)
+        gap = tf.keras.layers.GlobalAveragePooling2D()(base_model)
 
-    dense = tf.keras.layers.Dense(train_labels_len)(gap)
-    prelu = tf.keras.layers.PReLU()(dense)
-    output = tf.keras.layers.Softmax(dtype="float32", name="softmax")(prelu)
+        dense = tf.keras.layers.Dense(NUM_OF_CLASSES)(gap)
+        prelu = tf.keras.layers.PReLU()(dense)
+        output = tf.keras.layers.Softmax(dtype="float32", name="softmax")(prelu)
 
-    model = tf.keras.Model(inputs=base_model.input, outputs=output)
+        model = tf.keras.Model(inputs=input_layer, outputs=output)
+
+        optimizer = tf.keras.optimizers.Adam(learning_rate = LR)
+        model.compile(optimizer=optimizer, loss=[tf.keras.losses.CategoricalCrossentropy()], metrics=[tf.keras.metrics.CategoricalAccuracy()])
 
     return model
 
-def build_lrfn(lr_start=0.000001*10*0.5, lr_max=0.0000005 * BATCH_SIZE * 10*0.5, 
-               lr_min=0.000001 * 10*0.5, lr_rampup_epochs=5, 
-               lr_sustain_epochs=0, lr_exp_decay=.8):
-    # lr_max = lr_max * strategy.num_replicas_in_sync
 
-    def lrfn(epoch):
-        if epoch < lr_rampup_epochs:
-            lr = (lr_max - lr_start) / lr_rampup_epochs * epoch + lr_start
-        elif epoch < lr_rampup_epochs + lr_sustain_epochs:
-            lr = lr_max
-        else:
-            lr = (lr_max - lr_min) *\
-                 lr_exp_decay**(epoch - lr_rampup_epochs\
-                                - lr_sustain_epochs) + lr_min
-        return lr
-    return lrfn
+def train_cross_validate(images, labels, folds = 5):
+    kf = KFold(n_splits=5, random_state=0, shuffle=True)
 
+    for fold, (train_index, valid_index) in enumerate(kf.split(images, labels)):
+        print('FOLD', fold + 1)
+        
+        train_x, train_y = images[train_index[0] : (train_index[-1] + 1)], labels[train_index[0] : (train_index[-1] + 1)]
+        valid_x, valid_y = images[valid_index[0] : (valid_index[-1] + 1)], labels[valid_index[0] : (valid_index[-1] + 1)]
 
-model_name = 'Efficientnet-B0 K-fold'
-dataset_name = 'cat_dog_mask'
-train_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/train'
-valid_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/valid'
+        TRAIN_STEP_PER_EPOCH = int(tf.math.ceil(len(train_x) / BATCH_SIZE).numpy())
+        VALID_STEP_PER_EPOCH = int(tf.math.ceil(len(valid_x) / BATCH_SIZE).numpy())
 
-labels_csv = '/data/backup/pervinco_2020/Auged_datasets/cat_dog_mask/category.csv'
-labels_df = pd.read_csv(labels_csv)
-labels_list = labels_df['landmark_name'].tolist()
+        train_ds = make_dataset(train_x, train_y)
+        valid_ds = make_dataset(valid_x, valid_y)
+        train_ds = train_ds.repeat().shuffle(2048).batch(BATCH_SIZE).prefetch(AUTOTUNE)
+        valid_ds = valid_ds.repeat().shuffle(2048).batch(BATCH_SIZE).prefetch(AUTOTUNE)
 
-train_images, train_labels, train_images_len, train_labels_len = basic_processing(train_dataset_path, labels_list, len(labels_list), True)
-valid_images, valid_labels, valid_images_len, valid_labels_len = basic_processing(valid_dataset_path, labels_list, len(labels_list), False)
-
-TRAIN_STEP_PER_EPOCH = int(tf.math.ceil(train_images_len / BATCH_SIZE).numpy())
-VALID_STEP_PER_EPOCH = int(tf.math.ceil(valid_images_len / BATCH_SIZE).numpy())
-
-saved_path = '/data/backup/pervinco_2020/model/'
-time = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M") + '_tf2'
-# weight_file_name = '{fold_no:01d}-{epoch:02d}-{val_categorical_accuracy:.2f}.hdf5'
-
-if not(os.path.isdir(saved_path + dataset_name + '/' + time)):
-    os.makedirs(os.path.join(saved_path + dataset_name + '/' + time))
-
-    f = open(saved_path + dataset_name + '/' + time + '/README.txt', 'w')
-    f.write("Model : " + model_name + '\n')
-    f.write(train_dataset_path + '\n')
-    f.write(valid_dataset_path + '\n')
-    f.write(str(IMG_HEIGHT) + '\n')
-    f.write(str(IMG_WIDTH) + '\n')
-    f.close()
-
-else:
-    pass
-
-num_folds = 5
-
-images = np.concatenate((train_images, valid_images), axis=0)
-labels = np.concatenate((train_labels, valid_labels), axis=0)
-kfold = KFold(n_splits=num_folds, shuffle=False)
-fold_no = 1
-
-for train_idx, valid_idx in kfold.split(images, labels):
-    train_x, train_y = images[train_idx[0] : (train_idx[-1] + 1)], labels[train_idx[0] : (train_idx[-1] + 1)]
-    valid_x, valid_y = images[valid_idx[0] : (valid_idx[-1] + 1)], labels[valid_idx[0] : (valid_idx[-1] + 1)]
-
-    train_ds = make_tf_dataset(train_x, train_y)
-    valid_ds = make_tf_dataset(valid_x, valid_y)
-
-    train_ds = train_ds.repeat().batch(BATCH_SIZE).prefetch(AUTOTUNE)
-    valid_ds = valid_ds.repeat().batch(BATCH_SIZE).prefetch(AUTOTUNE)
-
-    with strategy.scope():
         model = get_model()
-        optimizer = tf.keras.optimizers.Adam(learning_rate = LR)
-        model.compile(optimizer=optimizer, loss=[tf.keras.losses.CategoricalCrossentropy()], metrics=[tf.keras.metrics.CategoricalAccuracy()])
-        model.summary()
+
+        # cb_lr_schedule = tf.keras.callbacks.ReduceLROnPlateau(monitor = 'val_loss', 
+        #                                                     mode = 'min', 
+        #                                                     factor = 0.9, 
+        #                                                     patience = 1, 
+        #                                                     verbose = 1, 
+        #                                                     min_delta = 0.0001)
 
 
-    cb_early_stopper = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
-    checkpoint_path = saved_path + dataset_name + '/' + time + '/' + str(fold_no) + '-{epoch:02d}-{val_categorical_accuracy:.2f}.hdf5'
-    cb_checkpointer = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
-                                                         monitor='val_categorical_accuracy',
-                                                         save_best_only=True,
-                                                         mode='max')
-    lrfn = build_lrfn()
-    lr_schedule = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1)    
+        saved_path = '/data/tf_workspace/models/landmark_classification'
+        time = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M") + '_tf2'
 
-    print('------------------------------------------------------------------------')
-    print(f'Training for fold {fold_no} ...')
+        if not(os.path.isdir(saved_path + '/' + time)):
+            os.makedirs(os.path.join(saved_path + '/' + time))
 
-    history = model.fit(train_ds,
-                        epochs=NUM_EPOCHS,
-                        steps_per_epoch=TRAIN_STEP_PER_EPOCH,
-                        validation_data=valid_ds,
-                        validation_steps=VALID_STEP_PER_EPOCH,
-                        verbose=1,
-                        callbacks=[cb_early_stopper, cb_checkpointer, lr_schedule])
+        checkpoint_path = saved_path + '/' + time + '/' + str(fold + 1) + '-{epoch:02d}-{val_categorical_accuracy:.2f}.hdf5'
+        cb_checkpointer = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
+                                                            monitor='val_categorical_accuracy',
+                                                            save_best_only=True,
+                                                            mode='max')
 
-    model.save(saved_path + dataset_name + '/' + time + '/' + str(fold_no) + '_' + dataset_name  +  '.h5')
+        history = model.fit(train_ds,
+                            epochs=NUM_EPOCHS,
+                            steps_per_epoch=TRAIN_STEP_PER_EPOCH,
+                            validation_data=valid_ds,
+                            validation_steps=VALID_STEP_PER_EPOCH,
+                            verbose=1,
+                            callbacks=[cb_checkpointer, get_lr_callback()])
 
-    fold_no = fold_no + 1
+        model.save(saved_path + '/' + time + '/' + str(fold + 1) + '_' + 'landmark_cls.h5')
+
+
+if __name__ == "__main__":
+    # DATA_SET_PATH = '/data/tf_workspace/datasets/public'
+    # TRAIN_DS = tf.io.gfile.glob(DATA_SET_PATH + '/train/*')
+    # TEST_DS = tf.io.gfile.glob(DATA_SET_PATH + '/test/*')
+
+    DS_PATH = '/data/tf_workspace/datasets/public/train'
+    labels_csv = '/data/tf_workspace/datasets/public/category.csv'
+    labels_df = pd.read_csv(labels_csv)
+    labels_list = labels_df['landmark_name'].tolist()
+
+    images, labels = basic_processing(DS_PATH, labels_list, len(labels_list), True)
+    train_cross_validate(images, labels)
