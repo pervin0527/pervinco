@@ -6,8 +6,8 @@ import math
 import time
 import pathlib
 import datetime
-import tensorflow as tf
 import albumentations as A
+import argparse
 from sklearn.model_selection import train_test_split
 from matplotlib import pyplot as plt
 
@@ -92,8 +92,6 @@ def augmentation(set_path, label_list, aug_num):
     print(len(ds))
     
     for output_path in ds:
-        label = output_path.split('/')[-1]
-
         images = os.listdir(output_path)
         n_images = len(images)
         cnt = int(math.ceil(aug_num / n_images))
@@ -104,7 +102,7 @@ def augmentation(set_path, label_list, aug_num):
             total = len(os.listdir(output_path))
             if total <= aug_num:
                 file_name = img.split('/')[-1]
-                file_name = file_name.split('.')[0]
+                # file_name = file_name.split('.')[0]
                 image = cv2.imread(output_path + '/' + img)
 
                 for c in range(cnt):
@@ -122,7 +120,7 @@ def augmentation(set_path, label_list, aug_num):
                         ], p=0.5)
                     ])
                     augmented_image = transform(image=image)['image']
-                    cv2.imwrite(output_path + '/' + file_name + 'aug_' + str(c) +'.jpg', augmented_image)
+                    cv2.imwrite(output_path + '/' + 'aug_' + str(c) + '_' + file_name, augmented_image)
                 
             else:
                 pass
@@ -131,10 +129,15 @@ if __name__ == "__main__":
     TODAY = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M:%S")
     print(TODAY)
 
-    seed_path = sys.argv[1]
-    aug_num = int(sys.argv[2])
-    dataset_name = seed_path.split('/')[-1]
-    output_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name
+    parser = argparse.ArgumentParser(description='Classification dataset augmentation')
+    parser.add_argument('--input_images_path', type=str)
+    parser.add_argument('--num_of_aug', type=int, default=5)
+    parser.add_argument('--output_path', type=str)
+    args = parser.parse_args()
+
+    seed_path = args.input_images_path
+    aug_num = args.num_of_aug
+    output_path = args.output_path
 
     label_list = sorted(os.listdir(seed_path + '/'))
     n_classes = len(label_list)
@@ -150,4 +153,3 @@ if __name__ == "__main__":
     augmentation(valid_path, label_list, (aug_num * 0.2))
 
     aug_visualize(label_list, train_path, valid_path)
-    

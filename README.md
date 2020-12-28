@@ -48,8 +48,9 @@
       - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug4.py)
 
             python3 classification_data_augmentation.py \
-            /data/backup/pervinco_2020/datasets/eastern_wells_3 \ # Seed dataset path
-            2000 # Number of augmentations to be applied per class
+            --input_images_path=/data/backup/pervinco_2020/datasets/test \
+            --num_of_aug=1000 \
+            --output_path=/data/backup/pervinco_2020/Auged_datasets/test
 
    3. Object Detecion dataset에 Augmentation 적용하기
 
