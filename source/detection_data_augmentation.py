@@ -7,9 +7,18 @@ from matplotlib import pyplot as plt
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 import albumentations as A
+import argparse
 
-BOX_COLOR = (0, 255, 0) # Red
+BOX_COLOR = (0, 0, 255) # Red
 TEXT_COLOR = (255, 255, 255) # White
+
+def str2bool(v):
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
 def visualize_bbox(img, bbox, class_name, color=BOX_COLOR, thickness=2):   
@@ -33,7 +42,7 @@ def visualize_bbox(img, bbox, class_name, color=BOX_COLOR, thickness=2):
     return img
 
 
-def visualize(image, bboxes, category_ids, category_id_to_name):
+def visualize(image, bboxes, category_ids, category_id_to_name, window_name):
     img = image.copy()
     for bbox, category_id in zip(bboxes, category_ids):
         class_name = category_id_to_name[category_id]
@@ -42,12 +51,12 @@ def visualize(image, bboxes, category_ids, category_id_to_name):
     # plt.axis('off')
     # plt.imshow(img)
 
-    cv2.imshow('sample', img)
+    cv2.imshow(str(window_name), img)
     cv2.waitKey(0)
 
 
 def get_boxes(label_path):
-    tree = ET.parse(xml)
+    tree = ET.parse(label_path)
     root = tree.getroot()
     obj_xml = root.findall('object')
     
@@ -90,7 +99,7 @@ def make_categori_id(str_label):
     return category_id_to_name
 
 
-def modify_coordinate(output_path, augmented, xml, idx):
+def modify_coordinate(output_path, augmented, xml, idx, output_shape):
     filename = xml.split('/')[-1]
     filename = filename.split('.')[0]
 
@@ -116,29 +125,14 @@ def modify_coordinate(output_path, augmented, xml, idx):
 
     root.find('filename').text = filename + '_' + str(idx) + '.jpg'
 
-    tree.write(output_path + '/' + str(idx) + '/xmls/' + filename + '_' + str(idx) + '.xml')
+    if output_shape == 'split':
+        tree.write(output_path + '/' + str(idx) + '/xmls/' + filename + '_' + str(idx) + '.xml')
+
+    else:
+        tree.write(output_path + '/' + 'xmls/' + filename + '_' + str(idx) + '.xml')
 
 
-
-if __name__ == "__main__":
-    image_set_path = sys.argv[1] + '/*'
-    image_list = sorted(glob.glob(image_set_path))
-
-    xml_set_path = sys.argv[2] + '/*'
-    xml_list = sorted(glob.glob(xml_set_path))
-
-    output_path = sys.argv[3]
-
-    aug_num = sys.argv[4]
-
-    for x in range(int(aug_num)):
-        if not(os.path.isdir(output_path + '/' + str(x))):
-            os.makedirs(os.path.join(output_path + '/' + str(x) + '/images'))
-            os.makedirs(os.path.join(output_path + '/' + str(x) + '/xmls'))
-
-        else:
-            pass
-
+def augmentation(image_list, xml_list, output_shape, visual):
     for image, xml in zip(image_list, xml_list):        
         image_name = image.split('/')[-1]
         image_name = image_name.split('.')[0]
@@ -150,13 +144,13 @@ if __name__ == "__main__":
 
         bbox, str_label, category_id = get_boxes(xml)
         category_id_to_name = make_categori_id(str_label)
-
-        # visualize(image, bbox, category_id, category_id_to_name)
-
         print(image_name, xml_name, str_label)
 
+        if visual:
+            visualize(image, bbox, category_id, category_id_to_name, 'original data')
+
         transform = A.Compose([
-            A.Resize(608, 608, p=1),
+            # A.Resize(608, 608, p=1),
             A.HorizontalFlip(p=1),
             # A.ShiftScaleRotate(p=0.5, border_mode=1),
             A.RandomRotate90(p=0.5),
@@ -169,10 +163,62 @@ if __name__ == "__main__":
             bbox_params = A.BboxParams(format='pascal_voc', label_fields=['category_ids'])
         )
 
-        for x in range(int(aug_num)):
-            transformed = transform(image=image, bboxes=bbox, category_ids=category_id)
+        if output_shape == 'split':
+            for x in range(int(aug_num)):
+                if os.path.isdir(output_path + '/' + str(x) + '/images') and os.path.isdir(output_path + '/' + str(x) + '/xmls'):
+                    pass
+                else:
+                    os.makedirs(output_path + '/' + str(x) + '/images')
+                    os.makedirs(output_path + '/' + str(x) + '/xmls')
 
-            # visualize(transformed['image'], transformed['bboxes'], transformed['category_ids'], category_id_to_name,)
-            cv2.imwrite(output_path + '/' + str(x) + '/images/' + image_name + '_' + str(x) + '.jpg', transformed['image'])
-            
-            modify_coordinate(output_path, transformed, xml, x)
+                transformed = transform(image=image, bboxes=bbox, category_ids=category_id)
+                cv2.imwrite(output_path + '/' + str(x) + '/images/' + image_name + '_' + str(x) + '.jpg', transformed['image'])
+                modify_coordinate(output_path, transformed, xml, x, output_shape)
+
+                if visual:
+                    visualize(transformed['image'], transformed['bboxes'], transformed['category_ids'], category_id_to_name, 'augmentation data')
+
+        else:
+            for x in range(int(aug_num)):
+                transformed = transform(image=image, bboxes=bbox, category_ids=category_id)
+                cv2.imwrite(output_path + '/' + 'images/' + image_name + '_' + str(x) + '.jpg', transformed['image'])
+                modify_coordinate(output_path, transformed, xml, x, output_shape)
+
+                if visual:
+                    visualize(transformed['image'], transformed['bboxes'], transformed['category_ids'], category_id_to_name, 'augmentation data')
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Detection dataset augmentation')
+    parser.add_argument('--input_images_path', type=str)
+    parser.add_argument('--input_xmls_path', type=str)
+    parser.add_argument('--output_path', type=str)
+    parser.add_argument('--output_shape', type=str) # split or merge
+    parser.add_argument('--num_of_aug', type=str, default=5)
+    parser.add_argument('--visual', type=str2bool, default=False)
+    args = parser.parse_args()
+
+    image_set_path = args.input_images_path + '/*'
+    image_list = sorted(glob.glob(image_set_path))
+
+    xml_set_path = args.input_xmls_path + '/*'
+    xml_list = sorted(glob.glob(xml_set_path))
+
+    output_shape = args.output_shape
+    output_path = args.output_path
+    aug_num = args.num_of_aug
+    visual = args.visual
+
+    if os.path.isdir(output_path):
+        if os.path.isdir(output_path + '/images') and os.path.isdir(output_path + '/xmls'):
+            pass
+        else:
+            os.makedirs(output_path + '/images')
+            os.makedirs(output_path + '/xmls')
+    else:
+        os.makedirs(output_path)
+        os.makedirs(output_path + '/images')
+        os.makedirs(output_path + '/xmls')
+
+
+    augmentation(image_list, xml_list, output_shape, visual)
