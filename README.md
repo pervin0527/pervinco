@@ -68,9 +68,11 @@
       - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_voc_aug2.py)  
    
             python3 detection_data_augmentation.py \
-            ./VOC2012/JPEGImages \     # Image dataset path
-            ./VOC2012/Annotations \    # Annotation dataset path 
-            ./VOC2012/Augmentations    # Path to save augmentation applied file
+            --input_images_path=./sample_images \
+            --input_xmls_path=./sample_xmls \
+            --output_path=./sample_output \
+            --num_of_aug=5 \
+            --visual=false
 
 ## ✈[Image Classification](https://github.com/pervin0527/pervinco/blob/master/docs/image_classification.md)   
    1. Image 인식 개요 및 tensorflow 예제  
