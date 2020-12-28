@@ -68,11 +68,11 @@
       - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_voc_aug2.py)  
    
             python3 detection_data_augmentation.py \
-            --input_images_path=./sample_images \
-            --input_xmls_path=./sample_xmls \
-            --output_path=./sample_output \
-            --num_of_aug=5 \
-            --visual=false
+            --input_images_path=/data/backup/pervinco_2020/darknet/build/darknet/x64/data/obj/test/images \
+            --input_xmls_path=/data/backup/pervinco_2020/darknet/build/darknet/x64/data/obj/test/xmls \
+            --output_path=/data/backup/pervinco_2020/darknet/build/darknet/x64/data/obj/test/outputs \
+            --output_shape=merge \
+            --visual=False
 
 ## ✈[Image Classification](https://github.com/pervin0527/pervinco/blob/master/docs/image_classification.md)   
    1. Image 인식 개요 및 tensorflow 예제  
