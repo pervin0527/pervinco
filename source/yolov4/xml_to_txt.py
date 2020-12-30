@@ -5,6 +5,7 @@ from xml.dom import minidom
 import os
 import sys
 import glob
+import argparse
 
 # def convert_coordinates(width, height, xmin, ymin, xmax, ymax):
 #     x_center = (xmin + xmax) / (2 * width)
@@ -26,6 +27,7 @@ def convert_coordinates(size, box):
     w = w*dw
     y = y*dh
     h = h*dh
+
     return (x,y,w,h)
 
 
@@ -71,11 +73,17 @@ def convert_xml2yolo(lut, input_path, output_path):
 
 
 if __name__ == '__main__':
-    input_path = sys.argv[1]
-    label_map = sys.argv[2]
-    output_path = sys.argv[3]
+    parser = argparse.ArgumentParser(description='PASCAL VOC to YOLO')
+    parser.add_argument('--input_xmls_path', type=str)
+    parser.add_argument('--label_map_path', type=str)
+    parser.add_argument('--output_path', type=str)
+    args = parser.parse_args()
 
-    df = pd.read_csv(label_map, sep = ' ', index_col=False, header=None)
+    input_path = args.input_xmls_path
+    label_map = args.label_map_path
+    output_path = args.output_path
+
+    df = pd.read_csv(label_map, sep = '\n', index_col=False, header=None)
     classes = df[0].tolist()
     print(classes)
 

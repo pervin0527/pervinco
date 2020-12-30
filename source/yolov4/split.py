@@ -1,16 +1,23 @@
 import glob, os
+import argparse
 
+parser = argparse.ArgumentParser(description='Dataset split train/test')
+parser.add_argument('--input_images_path', type=str)
+parser.add_argument('--train_file_name', type=str, default='train.txt')
+parser.add_argument('--test_file_name', type=str, default='test.txt')
+args = parser.parse_args()
 
-dataset_path = '/data/backup/pervinco_2020/darknet/build/darknet/x64/data/obj/VOC2012/'
+dataset_path = args.input_images_path
+splited_path = dataset_path.split('/')[:-1]
+output_path = '/'.join(splited_path)
+print(output_path)
 
 # Percentage of images to be used for the test set
 percentage_test = 10
 
-# Create and/or truncate train.txt and test.txt
-file_train = open('/data/backup/pervinco_2020/darknet/build/darknet/x64/data/voc2012_train.txt', 'w')  
-file_test = open('/data/backup/pervinco_2020/darknet/build/darknet/x64/data/voc2012_test.txt', 'w')
+file_train = open(output_path + '/' + args.train_file_name, 'w')  
+file_test = open(output_path + '/' + args.test_file_name, 'w')  
 
-# Populate train.txt and test.txt
 counter = 1  
 index_test = round(100 / percentage_test)  
 for pathAndFilename in glob.iglob(os.path.join(dataset_path, "*.jpg")):  

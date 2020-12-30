@@ -133,6 +133,7 @@ def modify_coordinate(output_path, augmented, xml, idx, output_shape):
 
 
 def augmentation(image_list, xml_list, output_shape, visual):
+    cnt = 0
     for image, xml in zip(image_list, xml_list):        
         image_name = image.split('/')[-1]
         image_name = image_name.split('.')[0]
@@ -142,50 +143,59 @@ def augmentation(image_list, xml_list, output_shape, visual):
         image = cv2.imread(image)
         height, width, channels = image.shape
 
-        bbox, str_label, category_id = get_boxes(xml)
-        category_id_to_name = make_categori_id(str_label)
-        print(image_name, xml_name, str_label)
+        try:
+            bbox, str_label, category_id = get_boxes(xml)
+            category_id_to_name = make_categori_id(str_label)
+            # print(image_name, xml_name, str_label)
 
-        if visual:
-            visualize(image, bbox, category_id, category_id_to_name, 'original data')
+            if visual:
+                visualize(image, bbox, category_id, category_id_to_name, 'original data')
 
-        transform = A.Compose([
-            # A.Resize(608, 608, p=1),
-            A.HorizontalFlip(p=1),
-            # A.ShiftScaleRotate(p=0.5, border_mode=1),
-            A.RandomRotate90(p=0.5),
-            A.Blur(p=0.3),
-            A.HorizontalFlip(p=0.6),
-            A.VerticalFlip(p=0.3),
-            A.RandomBrightnessContrast(p=0.3),
-            A.RGBShift(r_shift_limit=30, g_shift_limit=30, b_shift_limit=30, p=0.3),
-            ],
-            bbox_params = A.BboxParams(format='pascal_voc', label_fields=['category_ids'])
-        )
+            transform = A.Compose([
+                # A.Resize(608, 608, p=1),
+                A.HorizontalFlip(p=1),
+                # A.ShiftScaleRotate(p=0.5, border_mode=1),
+                A.RandomRotate90(p=0.5),
+                A.Blur(p=0.3),
+                A.HorizontalFlip(p=0.6),
+                A.VerticalFlip(p=0.3),
+                A.RandomBrightnessContrast(p=0.3),
+                A.RGBShift(r_shift_limit=30, g_shift_limit=30, b_shift_limit=30, p=0.3),
+                ],
+                bbox_params = A.BboxParams(format='pascal_voc', label_fields=['category_ids'])
+            )
 
-        if output_shape == 'split':
-            for x in range(int(aug_num)):
-                if os.path.isdir(output_path + '/' + str(x) + '/images') and os.path.isdir(output_path + '/' + str(x) + '/xmls'):
-                    pass
-                else:
-                    os.makedirs(output_path + '/' + str(x) + '/images')
-                    os.makedirs(output_path + '/' + str(x) + '/xmls')
+            if output_shape == 'split':
+                for x in range(int(aug_num)):
+                    if os.path.isdir(output_path + '/' + str(x) + '/images') and os.path.isdir(output_path + '/' + str(x) + '/xmls'):
+                        pass
+                    else:
+                        os.makedirs(output_path + '/' + str(x) + '/images')
+                        os.makedirs(output_path + '/' + str(x) + '/xmls')
 
-                transformed = transform(image=image, bboxes=bbox, category_ids=category_id)
-                cv2.imwrite(output_path + '/' + str(x) + '/images/' + image_name + '_' + str(x) + '.jpg', transformed['image'])
-                modify_coordinate(output_path, transformed, xml, x, output_shape)
+                    transformed = transform(image=image, bboxes=bbox, category_ids=category_id)
+                    cv2.imwrite(output_path + '/' + str(x) + '/images/' + image_name + '_' + str(x) + '.jpg', transformed['image'])
+                    modify_coordinate(output_path, transformed, xml, x, output_shape)
 
-                if visual:
-                    visualize(transformed['image'], transformed['bboxes'], transformed['category_ids'], category_id_to_name, 'augmentation data')
+                    if visual:
+                        visualize(transformed['image'], transformed['bboxes'], transformed['category_ids'], category_id_to_name, 'augmentation data')
 
-        else:
-            for x in range(int(aug_num)):
-                transformed = transform(image=image, bboxes=bbox, category_ids=category_id)
-                cv2.imwrite(output_path + '/' + 'images/' + image_name + '_' + str(x) + '.jpg', transformed['image'])
-                modify_coordinate(output_path, transformed, xml, x, output_shape)
+            elif output_shape == 'merge':
+                for x in range(int(aug_num)):
+                    transformed = transform(image=image, bboxes=bbox, category_ids=category_id)
+                    cv2.imwrite(output_path + '/' + 'images/' + image_name + '_' + str(x) + '.jpg', transformed['image'])
+                    modify_coordinate(output_path, transformed, xml, x, output_shape)
 
-                if visual:
-                    visualize(transformed['image'], transformed['bboxes'], transformed['category_ids'], category_id_to_name, 'augmentation data')
+                    if visual:
+                        visualize(transformed['image'], transformed['bboxes'], transformed['category_ids'], category_id_to_name, 'augmentation data')
+
+            else:
+                print('Please Select the output format option from "split" or "merge".')
+
+        except:
+            print(cnt, xml_name, ' This file does not contain objects.')
+            pass
+            cnt += 1
 
 
 if __name__ == "__main__":

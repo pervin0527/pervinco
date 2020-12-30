@@ -120,21 +120,16 @@
 
 
    4. K-Fold Cross Validation
-      <p align="left"><img src="./docs/doc_imgs/k-fold.png" width=70%></p>
+      <p align="left"><img src="./docs/doc_imgs/k-fold.png" width=80%></p>
       
       - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/landmark_classification/k_fold_train.py)
 
-   5. CutMix & MixUp Augmentation & K-Fold Cross Validation Training
-      <table border="0">
-      <tr>
-         <td>
-         <img src="./docs/doc_imgs/cutmix.png" width="100%" />
-         </td>
-         <td>
-         <img src="./docs/doc_imgs/mixup.png", width="100%" />
-         </td>
-      </tr>
-      </table>
+   5. Ensemble Training
+      <p align="left"><img src="./docs/doc_imgs/ensemble_train.png" width=100%></p>
+
+   6. CutMix & MixUp Augmentation & K-Fold Cross Validation Training
+      <p align="left"><img src="./docs/doc_imgs/cutmix.png" width=70%></p>
+      <p align="left"><img src="./docs/doc_imgs/mixup.png" width=70%></p>
       
       - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/cut_mix_training.py)
 

@@ -104,6 +104,32 @@ def get_model():
     return model
 
 
+def load_all_models():
+    all_models = []
+    model_names = ['1_landmark_cls.h5', '2_landmark_cls.h5', '3_landmark_cls.h5', '4_landmark_cls.h5', '5_landmark_cls.h5']
+    for model_name in model_names:
+        file_name = os.path.join('/data/tf_workspace/models/landmark_classification/k-fold', model_name)
+        model = tf.keras.models.load_model(file_name)
+        all_models.append(model)
+        print('Model loaded : ', file_name)
+
+    return all_models
+
+
+def ensemble_model(models):
+    inputs = tf.keras.Input(shape = (None, None, 3))
+    for i, model in enumerate(models):
+        for layer in model.layers:
+            layer.trainable = False
+    ensemble_outputs = [model(inputs) for model in models]
+    merge = tf.keras.layers.concatenate(ensemble_outputs)
+    output = tf.keras.layers.Dense(NUM_OF_CLASSES, activation='softmax')(merge)
+    ensemble_model = tf.keras.models.Model(inputs=inputs, outputs=output)   
+    tf.keras.utils.plot_model(ensemble_model, "/data/tf_workspace/models/landmark_classification/ensemble.png")
+
+    return ensemble_model
+
+
 def train_cross_validate(images, labels, folds = 5):
     kf = KFold(n_splits=5, random_state=0, shuffle=True)
 
@@ -152,6 +178,34 @@ def train_cross_validate(images, labels, folds = 5):
                             callbacks=[cb_checkpointer, get_lr_callback()])
 
         model.save(saved_path + '/' + time + '/' + str(fold + 1) + '_' + 'landmark_cls.h5')
+
+    train_x, valid_x, train_y, valid_y = train_test_split(images, labels, test_size=0.2)
+    print(len(train_x), len(train_y))
+
+    train_ds = make_dataset(train_x, train_y)
+    valid_ds = make_dataset(valid_x, valid_y)
+    train_ds = train_ds.repeat().shuffle(2048).batch(BATCH_SIZE).prefetch(AUTOTUNE)
+    valid_ds = valid_ds.repeat().shuffle(2048).batch(BATCH_SIZE).prefetch(AUTOTUNE)
+
+    TRAIN_STEP_PER_EPOCH = int(tf.math.ceil(len(train_x) / BATCH_SIZE).numpy())
+    VALID_STEP_PER_EPOCH = int(tf.math.ceil(len(valid_x) / BATCH_SIZE).numpy())
+
+    with strategy.scope():
+        models = load_all_models()
+        model = ensemble_model(models)
+
+        optimizer = tf.keras.optimizers.Adam(learning_rate = LR)
+        model.compile(optimizer=optimizer, loss=[tf.keras.losses.CategoricalCrossentropy()], metrics=[tf.keras.metrics.CategoricalAccuracy()])
+
+    history = model.fit(train_ds,
+                        epochs=NUM_EPOCHS,
+                        steps_per_epoch=TRAIN_STEP_PER_EPOCH,
+                        validation_data=valid_ds,
+                        validation_steps=VALID_STEP_PER_EPOCH,
+                        verbose=1,
+                        callbacks=[get_lr_callback()])
+
+    model.save('/data/tf_workspace/models/landmark_classification/k-fold/ensemble_landmark_cls.h5')
 
 
 if __name__ == "__main__":
