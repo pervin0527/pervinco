@@ -87,7 +87,7 @@ class InferenceClass:
 
 def save_images(left_main_boxes, right_main_boxes, left_frame, right_frame):
     now = datetime.now().strftime("%Y.%m.%d_%H:%M:%S")
-    save_path = f'./inference/logs/video/{store_name}'
+    save_path = f'./inference/logs/images/{store_name}'
 
     if os.path.isdir(save_path):
         pass
