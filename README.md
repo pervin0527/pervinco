@@ -45,7 +45,7 @@
    </table>  
 
    - [Blog Post](https://www.notion.so/pervin0527/Augmentation-pipeline-for-image-classification-4932be16eb914e5892b015980efce4df)
-   - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_aug4.py)
+   - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/classification_data_augmentation.py)
 
          python3 classification_data_augmentation.py \
          --input_images_path=/data/backup/pervinco_2020/datasets/test \
@@ -66,7 +66,7 @@
    </table> 
 
    - [Blog Post](https://www.notion.so/pervin0527/Augmentation-pipline-for-Object-Detection-4e239d6db6eb4fe09da8b66f6af1ba4a)
-   - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/albumentation_voc_aug2.py)  
+   - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/detection_data_augmentation.py)  
 
          python3 detection_data_augmentation.py \
          --input_images_path=/data/backup/pervinco_2020/darknet/build/darknet/x64/data/obj/test/images \
