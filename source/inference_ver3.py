@@ -85,6 +85,32 @@ class InferenceClass:
             return list(map(lambda x: self.main_class_names[x], score))
 
 
+def save_images(left_main_boxes, right_main_boxes, left_frame, right_frame):
+    now = datetime.now().strftime("%Y.%m.%d_%H:%M:%S")
+    save_path = f'./inference/logs/video/{store_name}'
+
+    if os.path.isdir(save_path):
+        pass
+    else:
+        os.mkdir(save_path)
+        os.mkdir(save_path+'/frame')
+        os.mkdir(save_path+'/crop')
+
+    cv2.imwrite(save_path + '/frame/left' + now + '.jpg', left_frame)
+    cv2.imwrite(save_path + '/frame/right' + now + '.jpg', right_frame)
+
+    for idx, (xmin, ymin, xmax, ymax) in enumerate(left_main_boxes):
+        left_crop = left_frame[ymin:ymax, xmin:xmax]
+        cv2.imwrite(save_path + '/crop/left_' + str(idx) + now + '.jpg', left_crop)
+
+    for idx, (xmin, ymin, xmax, ymax) in enumerate(right_main_boxes):
+        right_crop = right_frame[ymin:ymax, xmin:xmax]
+        cv2.imwrite(save_path +'/crop/right_' + str(idx) + now + '.jpg', right_crop)
+
+    print("Frame {} saved in {}".format(now, save_path))
+    time.sleep(0.5)
+
+
 def inference_test_images():
     os.system('clear')
 
@@ -311,29 +337,7 @@ def inference_video():
                 floor = len(floor_list) - 1
 
         elif k == ord('s'):
-            now = datetime.now().strftime("%Y.%m.%d_%H:%M:%S")
-            save_path = f'./inference/logs/video/{store_name}'
-
-            if os.path.isdir(save_path):
-                pass
-            else:
-                os.mkdir(save_path)
-                os.mkdir(save_path+'/frame')
-                os.mkdir(save_path+'/crop')
-
-            cv2.imwrite(save_path + '/frame/left' + now + '.jpg', left_frame)
-            cv2.imwrite(save_path + '/frame/right' + now + '.jpg', right_frame)
-
-            for idx, (xmin, ymin, xmax, ymax) in enumerate(left_main_boxes):
-                left_crop = left_frame[ymin:ymax, xmin:xmax]
-                cv2.imwrite(save_path + '/crop/left_' + str(idx) + now + '.jpg', left_crop)
-
-            for idx, (xmin, ymin, xmax, ymax) in enumerate(right_main_boxes):
-                right_crop = right_frame[ymin:ymax, xmin:xmax]
-                cv2.imwrite(save_path +'/crop/right_' + str(idx) + now + '.jpg', right_crop)
-
-            print("Frame {} saved in {}".format(now, save_path))
-            time.sleep(0.5)
+            save_images(left_main_boxes, right_main_boxes, left_frame, right_frame)
 
 
 if __name__ == "__main__":
