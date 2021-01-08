@@ -92,9 +92,9 @@ def save_images(left_main_boxes, right_main_boxes, left_frame, right_frame):
     if os.path.isdir(save_path):
         pass
     else:
-        os.mkdir(save_path)
-        os.mkdir(save_path+'/frame')
-        os.mkdir(save_path+'/crop')
+        os.makedirs(save_path)
+        os.makedirs(save_path+'/frame')
+        os.makedirs(save_path+'/crop')
 
     cv2.imwrite(save_path + '/frame/left' + now + '.jpg', left_frame)
     cv2.imwrite(save_path + '/frame/right' + now + '.jpg', right_frame)
