@@ -1,5 +1,6 @@
 import tensorflow as tf
 import glob, os, sys, time, cv2, argparse
+import queue
 import numpy as np
 import pandas as pd
 import xml.etree.ElementTree as ET
@@ -9,11 +10,20 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.applications.efficientnet import preprocess_input
 
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
+
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+    try:
+        print("True")
+        tf.config.experimental.set_memory_growth(gpus[0], True)
+    except RuntimeError as e:
+        print(e)
+
 # gpus = tf.config.experimental.list_physical_devices('GPU')
 # if gpus:
 #   try:
-#     for gpu in gpus:
-#         tf.config.experimental.set_virtual_device_configuration(gpu, [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=10000)])
+#     tf.config.experimental.set_virtual_device_configuration(gpus[0],
+#       [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=9000)])
 #   except RuntimeError as e:
 #     print(e)
 
@@ -130,21 +140,47 @@ def inference_test_images():
 
     inf_result = list(map(lambda x: x[0] if x[0] == 'empty' else x[1] , zip(empty_pred, main_pred)))
     
-    for c in spliter:
-        for left_img, right_img in zip(left_images, right_images):
-            os.system('clear')
-            print(inf_result[:c])
-            inf_result = inf_result[c:]
+    for left_img, right_img in zip(left_images, right_images):
+        os.system('clear')
+        print(left_img, ' / ', right_img)
 
-            left_img = cv2.imread(left_img)
-            right_img = cv2.imread(right_img)
+        floor = left_img.split('/')[-4]
+        left_em_boxes = get_boxes(f'./inference/boxes/{folder}/{device_id}/{floor}/l/empty.xml')
+        left_main_boxes = get_boxes(f'./inference/boxes/{folder}/{device_id}/{floor}/l/main.xml')
+        right_em_boxes = get_boxes(f'./inference/boxes/{folder}/{device_id}/{floor}/r/empty.xml')
+        right_main_boxes = get_boxes(f'./inference/boxes/{folder}/{device_id}/{floor}/r/main.xml')
 
-            left_show = cv2.resize(left_img, (800, 600))
-            right_show = cv2.resize(right_img, (800, 600))
-            concat_frame = np.concatenate((left_show, right_show), axis=1)
+        coulmns = len(left_main_boxes) + len(right_main_boxes)
+        tmp_res = inf_result[:coulmns]
+        print(tmp_res)
+        inf_result = inf_result[coulmns:]
 
-            cv2.imshow('LEFT IMG / RIGHT IMG', concat_frame)            
-            k = cv2.waitKey(0)
+        left_img = cv2.imread(left_img)
+        right_img = cv2.imread(right_img)
+
+        left_show = left_img.copy()
+        right_show = right_img.copy()
+
+        for (xmin, ymin, xmax, ymax) in left_main_boxes:
+            left_show = cv2.rectangle(left_show, (xmin, ymin), (xmax, ymax), (255, 0, 0), 3)
+            left_show = cv2.putText(left_show, str(tmp_res[0]) , (xmin, ymin+30), cv2.FONT_HERSHEY_SIMPLEX, .9, (0, 0, 0), 3)
+            del tmp_res[0]
+        for (xmin, ymin, xmax, ymax) in left_em_boxes:
+            left_show = cv2.rectangle(left_show, (xmin, ymin), (xmax, ymax), (0, 255, 0), 3)
+        
+        for (xmin, ymin, xmax, ymax) in right_main_boxes:
+            right_show = cv2.rectangle(right_show, (xmin, ymin), (xmax, ymax), (255, 0, 0), 3)
+            right_show = cv2.putText(right_show, str(tmp_res[0]) , (xmin, ymin+30), cv2.FONT_HERSHEY_SIMPLEX, .9, (0, 0, 0), 3)
+            del tmp_res[0]
+        for (xmin, ymin, xmax, ymax) in right_em_boxes:
+            right_show = cv2.rectangle(right_show, (xmin, ymin), (xmax, ymax), (0, 255, 0), 3)
+
+        left_show = cv2.resize(left_show, (940, 700))
+        right_show = cv2.resize(right_show, (940, 700))
+        concat_frame = np.concatenate((left_show, right_show), axis=1)
+
+        cv2.imshow('Inference Result', concat_frame)
+        k = cv2.waitKey(0)
 
 
 def getDevicesList():
@@ -238,7 +274,7 @@ def inference_video():
         print(inf_result)
 
         if right_cam:
-            right_show = right_frame
+            right_show = right_frame.copy()
             for (xmin, ymin, xmax, ymax) in right_main_boxes:
                 right_show = cv2.rectangle(right_show, (xmin, ymin), (xmax, ymax), (255, 0, 0), 3)
             for (xmin, ymin, xmax, ymax) in right_em_boxes:
@@ -246,7 +282,7 @@ def inference_video():
             right_show = cv2.resize(right_show, (960, 960))
 
         if left_cam:
-            left_show = left_frame
+            left_show = left_frame.copy()
             for (xmin, ymin, xmax, ymax) in left_main_boxes:
                 left_show = cv2.rectangle(left_show, (xmin, ymin), (xmax, ymax), (255, 0, 0), 3)
             for (xmin, ymin, xmax, ymax) in left_em_boxes:
@@ -273,6 +309,31 @@ def inference_video():
 
             else:
                 floor = len(floor_list) - 1
+
+        elif k == ord('s'):
+            now = datetime.now().strftime("%Y.%m.%d_%H:%M:%S")
+            save_path = f'./inference/logs/video/{store_name}'
+
+            if os.path.isdir(save_path):
+                pass
+            else:
+                os.mkdir(save_path)
+                os.mkdir(save_path+'/frame')
+                os.mkdir(save_path+'/crop')
+
+            cv2.imwrite(save_path + '/frame/left' + now + '.jpg', left_frame)
+            cv2.imwrite(save_path + '/frame/right' + now + '.jpg', right_frame)
+
+            for idx, (xmin, ymin, xmax, ymax) in enumerate(left_main_boxes):
+                left_crop = left_frame[ymin:ymax, xmin:xmax]
+                cv2.imwrite(save_path + '/crop/left_' + str(idx) + now + '.jpg', left_crop)
+
+            for idx, (xmin, ymin, xmax, ymax) in enumerate(right_main_boxes):
+                right_crop = right_frame[ymin:ymax, xmin:xmax]
+                cv2.imwrite(save_path +'/crop/right_' + str(idx) + now + '.jpg', right_crop)
+
+            print("Frame {} saved in {}".format(now, save_path))
+            time.sleep(0.5)
 
 
 if __name__ == "__main__":
