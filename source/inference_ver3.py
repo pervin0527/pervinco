@@ -207,6 +207,11 @@ def inference_test_images():
 
         cv2.imshow('Inference Result', concat_frame)
         k = cv2.waitKey(0)
+        if k == ord('q'):
+            break
+
+        if k == ord('s'):
+            save_images(left_main_boxes, right_main_boxes, left_img, right_img)
 
 
 def getDevicesList():
