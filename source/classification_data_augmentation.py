@@ -14,7 +14,7 @@ def visualize(path, label_list):
         images.append(file_num)
 
     x, y = label_list, images
-    plt.figure(figsize=(20, 10))
+    plt.figure(figsize=(10, 10))
     plt.bar(x, y, width=0.9,)
     plt.xticks(x, rotation=90)
     plt.show()
@@ -32,7 +32,7 @@ def aug_visualize(train_data_path, valid_data_path):
         valid_images.append(valid_image_num)
 
     print(train_images, valid_images)
-    plt.figure(figsize=(20, 10))
+    plt.figure(figsize=(10, 10))
     plt.bar(label_list, train_images, width=0.9,)
     plt.bar(label_list, valid_images, width=0.9,)
     plt.xticks(label_list, rotation=90)
@@ -119,7 +119,7 @@ if __name__ == "__main__":
     seed_path = args.input_path
     aug_num = args.num_of_aug
 
-    TODAY = datetime.datetime.now().strftime("%Y_%m_%d")
+    TODAY = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M:%S")
     DATASET_NAME = seed_path.split('/')[-1]
     OUTPUT_PATH = seed_path.split('/')[:-2]
     OUTPUT_PATH = '/'.join(OUTPUT_PATH) + f'/Auged_datasets/{DATASET_NAME}_{TODAY}'
