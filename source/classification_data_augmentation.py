@@ -1,15 +1,9 @@
-import sys
-import glob
-import cv2
-import os
-import math
-import time
-import pathlib
-import datetime
+import sys, glob, cv2, os, math, time, pathlib, datetime, argparse
 import albumentations as A
-import argparse
+from tqdm import tqdm
 from sklearn.model_selection import train_test_split
 from matplotlib import pyplot as plt
+
 
 def visualize(path, label_list):
     images = []
@@ -26,130 +20,115 @@ def visualize(path, label_list):
     plt.show()
         
 
-def aug_visualize(labels, train_data_path, valid_data_path):
+def aug_visualize(train_data_path, valid_data_path):
     train_images = []
     valid_images = []
 
-    for label in labels:
+    for label in label_list:
         train_image_num = len(os.listdir(train_data_path + '/' + label))
         valid_image_num = len(os.listdir(valid_data_path + '/' + label))
 
         train_images.append(train_image_num)
         valid_images.append(valid_image_num)
 
+    print(train_images, valid_images)
     plt.figure(figsize=(20, 10))
-    plt.bar(labels, train_images, width=0.9,)
-    plt.bar(labels, valid_images, width=0.9,)
-    plt.xticks(labels, rotation=90)
+    plt.bar(label_list, train_images, width=0.9,)
+    plt.bar(label_list, valid_images, width=0.9,)
+    plt.xticks(label_list, rotation=90)
     plt.show() 
+    
+
+def make_info(images):
+    info = {}
+    cnt = [0] * len(label_list)
+
+    for image in images:
+        label = image.split('/')[-2]
+        
+        if label in label_list:
+            cnt[label_list.index(label)] += 1
+
+    for label, num in zip(label_list, cnt):
+        info.update({label:num})
+
+    return info
 
 
-def basic_processing(ds_path):
+def split_seed(ds_path):
     ds_path = pathlib.Path(ds_path)
-
     images = list(ds_path.glob('*/*'))
     images = [str(path) for path in images]
 
     train_images, valid_images = train_test_split(images, test_size=0.2)
+    train_info = make_info(train_images)
+    valid_info = make_info(valid_images)
 
-    print(len(train_images), len(valid_images))
+    return sorted(train_images), sorted(valid_images), train_info, valid_info
+    
 
-    return sorted(train_images), sorted(valid_images)
-
-
-def split_seed(images, is_train, label_list, output_path, TODAY):
+def augmentation(images, is_train, info, aug_num):
     if is_train:
-        output_path = output_path + '/' + TODAY + '/train'
+        output_path = f'{OUTPUT_PATH}/train'
 
     else:
-        output_path = output_path + '/' + TODAY + '/valid'
+        output_path = f'{OUTPUT_PATH}/valid'
+        aug_num = int(aug_num * 0.2)
 
     for label in label_list:
-        if not(os.path.isdir(output_path + '/' + label)):
-            os.makedirs(output_path + '/' + label)
+        if not os.path.isdir(f'{output_path}/{label}'):
+            os.makedirs(f'{output_path}/{label}')
 
-        else:
-            pass
+    for i in tqdm(range(len(images))):
+        image = images[i]
+        image_name = image.split('/')[-1]
+        label = image.split('/')[-2]
 
-    for img in images:
-        file_name = img.split('/')[-1]
-        label = img.split('/')[-2]
-        print(label, file_name, output_path)
+        cnt = int(math.ceil(aug_num / info[label]))
+        total_images = len(os.listdir(f'{output_path}/{label}'))
+        if total_images <= aug_num:
+            image = cv2.imread(image)
+            transform = A.Resize(224, 224)
+            augmented_image = transform(image = image)['image']
+            cv2.imwrite(f'{output_path}/{label}/orig_{image_name}', augmented_image)
 
-        image = cv2.imread(img)
-        transform = A.Resize(224, 224)
-        augmented_image = transform(image = image)['image']
-        cv2.imwrite(output_path + '/' + label + '/' + file_name, augmented_image)
+            for c in range(cnt):
+                transform = A.Compose([
+                    A.Resize(224, 224, p=1),
+                    A.HorizontalFlip(p=0.4),
+                    A.VerticalFlip(p=0.3),
+                    A.Blur(p=0.1),
 
-    return output_path
+                    A.OneOf([
+                        A.RandomContrast(p=0.5, limit=(-0.5, 0.3)),
+                        A.RandomBrightness(p=0.5, limit=(-0.2, 0.3))
+                    ], p=0.5)
+                ])
+                augmented_image =transform(image=image)['image']
+                cv2.imwrite(f'{output_path}/{label}/aug{c}_{image_name}', augmented_image)
 
+    return output_path 
 
-def augmentation(set_path, label_list, aug_num):
-    ds_path = pathlib.Path(set_path)
-
-    ds = list(ds_path.glob('*'))
-    ds = sorted([str(path) for path in ds])
-    print(len(ds))
-    
-    for output_path in ds:
-        images = os.listdir(output_path)
-        n_images = len(images)
-        cnt = int(math.ceil(aug_num / n_images))
-
-        # print(label, n_images)
-        
-        for img in images:
-            total = len(os.listdir(output_path))
-            if total <= aug_num:
-                file_name = img.split('/')[-1]
-                # file_name = file_name.split('.')[0]
-                image = cv2.imread(output_path + '/' + img)
-
-                for c in range(cnt):
-                    transform = A.Compose([
-                        A.Resize(224, 224, p=1),
-                        A.HorizontalFlip(p=0.3),
-                        A.VerticalFlip(p=0.3),
-                        A.Blur(p=0.1),
-
-                        # A.RandomRotate90(p=0.3),
-
-                        A.OneOf([
-                            A.RandomContrast(p=0.5, limit=(-0.5, 0.3)),
-                            A.RandomBrightness(p=0.5, limit=(-0.2, 0.3)),
-                        ], p=0.5)
-                    ])
-                    augmented_image = transform(image=image)['image']
-                    cv2.imwrite(output_path + '/' + 'aug_' + str(c) + '_' + file_name, augmented_image)
-                
-            else:
-                pass
 
 if __name__ == "__main__":
-    TODAY = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M:%S")
-    print(TODAY)
-
     parser = argparse.ArgumentParser(description='Classification dataset augmentation')
-    parser.add_argument('--input_images_path', type=str)
-    parser.add_argument('--num_of_aug', type=int, default=5)
-    parser.add_argument('--output_path', type=str)
+    parser.add_argument('--input_path', type=str)
+    parser.add_argument('--num_of_aug', type=int, default=3000)
     args = parser.parse_args()
 
-    seed_path = args.input_images_path
+    seed_path = args.input_path
     aug_num = args.num_of_aug
-    output_path = args.output_path
+
+    TODAY = datetime.datetime.now().strftime("%Y_%m_%d")
+    DATASET_NAME = seed_path.split('/')[-1]
+    OUTPUT_PATH = seed_path.split('/')[:-2]
+    OUTPUT_PATH = '/'.join(OUTPUT_PATH) + f'/Auged_datasets/{DATASET_NAME}_{TODAY}'
 
     label_list = sorted(os.listdir(seed_path + '/'))
     n_classes = len(label_list)
 
     visualize(seed_path, label_list)
-    
-    train_images, valid_images = basic_processing(seed_path)
-
-    train_path = split_seed(train_images, True, label_list, output_path, TODAY)
-    valid_path = split_seed(valid_images, False, label_list, output_path, TODAY)
-
-    augmentation(train_path, label_list, aug_num)
-    augmentation(valid_path, label_list, (aug_num * 0.2))
-
-    aug_visualize(label_list, train_path, valid_path)
+    train_images, valid_images, train_info, valid_info = split_seed(seed_path)
+    train_dataset_path = augmentation(train_images, True, train_info, aug_num)
+    valid_dataset_path = augmentation(valid_images, False, valid_info, aug_num)
+    aug_visualize(train_dataset_path, valid_dataset_path)

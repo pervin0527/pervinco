@@ -107,7 +107,7 @@ def modify_coordinate(output_path, augmented, xml, idx, output_shape):
     root = tree.getroot()
     obj_xml = root.findall('object')
     
-    auged_width, auged_height, _ = augmented['image'].shape
+    auged_height, auged_width, _ = augmented['image'].shape
     size_xml = root.find('size')
     size_xml.find('width').text = str(int(auged_width))
     size_xml.find('height').text = str(int(auged_height))
@@ -155,7 +155,7 @@ def augmentation(image_list, xml_list, output_shape, visual):
                 # A.Resize(608, 608, p=1),
                 A.HorizontalFlip(p=1),
                 # A.ShiftScaleRotate(p=0.5, border_mode=1),
-                A.RandomRotate90(p=0.5),
+                # A.RandomRotate90(p=0.5),
                 A.Blur(p=0.3),
                 A.HorizontalFlip(p=0.6),
                 A.VerticalFlip(p=0.3),
@@ -208,10 +208,10 @@ if __name__ == "__main__":
     parser.add_argument('--visual', type=str2bool, default=False)
     args = parser.parse_args()
 
-    image_set_path = args.input_images_path + '/*'
+    image_set_path = args.input_images_path + '/*.jpg'
     image_list = sorted(glob.glob(image_set_path))
 
-    xml_set_path = args.input_xmls_path + '/*'
+    xml_set_path = args.input_xmls_path + '/*.xml'
     xml_list = sorted(glob.glob(xml_set_path))
 
     output_shape = args.output_shape

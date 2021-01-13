@@ -4,7 +4,8 @@ from matplotlib.pyplot import imshow
 import numpy as np
 import cv2
 
-img_path = "/data/backup/pervinco_2020/datasets/landmark_classification/4.19학생혁명기념탑/4.19학생혁명기념탑_001.JPG"
+img_path = "/data/backup/pervinco_2020/colab_dataset/plant-pathology-2020-fgvc7/images/Test_14.jpg"
+print(f"Load Image : {img_path}")
 image = tf.io.read_file(img_path)
 image = tf.image.decode_jpeg(image, channels=3)
 image = tf.image.resize(image, [270, 480])

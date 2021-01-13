@@ -1,4 +1,6 @@
+import os
 import re
+import datetime
 import math
 import pathlib
 import random
@@ -49,6 +51,8 @@ AUG_BATCH = BATCH_SIZE
 FIRST_FOLD_ONLY = False
 CLASSES = 4
 SEED = 777
+SAVED_PATH = '/data/backup/pervinco_2020/model/cutmix_test'
+TIME = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M")
 
 LR_START = 0.00001
 LR_MAX = 0.00005 * strategy.num_replicas_in_sync
@@ -66,8 +70,6 @@ def lrfn(epoch):
         lr = (LR_MAX - LR_MIN) * LR_EXP_DECAY**(epoch - LR_RAMPUP_EPOCHS - LR_SUSTAIN_EPOCHS) + LR_MIN
     return lr
     
-lr_callback = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose = True)
-
 
 def basic_processing(ds_path, is_training):
     ds_path = pathlib.Path(ds_path)
@@ -234,22 +236,36 @@ def get_model():
 def train_cross_validate(images, labels, folds=5):
     histories = []
     models = []
-    early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
+
     kfold = KFold(folds, shuffle=True, random_state=SEED)
-    
     for f, (train_index, valid_index) in enumerate(kfold.split(images, labels)):
         print('FOLD', f + 1)
         train_x, train_y = images[train_index[0] : (train_index[-1] + 1)], labels[train_index[0] : (train_index[-1] + 1)]
         valid_x, valid_y = images[valid_index[0] : (valid_index[-1] + 1)], labels[valid_index[0] : (valid_index[-1] + 1)]
         STEPS_PER_EPOCH = int(tf.math.ceil(len(images) / BATCH_SIZE).numpy())
 
+        if not(os.path.isdir(SAVED_PATH + '/' + TIME)):
+            os.makedirs(os.path.join(SAVED_PATH + '/' + TIME))
+
+        checkpoint_path = SAVED_PATH + '/' + TIME + '/' + str(f + 1) + '-{epoch:02d}-{val_categorical_accuracy:.2f}.hdf5'
+        cb_checkpointer = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
+                                                             monitor='val_categorical_accuracy',
+                                                             save_best_only=True,
+                                                             mode='max')
+
+        cb_lr_callback = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose = True)        
+        cb_early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)      
+
         model = get_model()
         history = model.fit(get_training_dataset(train_x, train_y), 
                             steps_per_epoch = STEPS_PER_EPOCH,
                             epochs = EPOCHS,
-                            callbacks = [lr_callback, early_stopping],
+                            callbacks = [cb_lr_callback, cb_early_stopping, cb_checkpointer],
                             validation_data = get_validation_dataset(valid_x, valid_y),
                             verbose=1)
+
+        model.save(SAVED_PATH + '/' + TIME + '/' + str(f + 1) + '_cutmix_mixup.h5')
+
         models.append(model)
         histories.append(history)
 
@@ -265,8 +281,8 @@ if __name__ == "__main__":
     images, labels = basic_processing(dataset, True)
     train_cross_validate(images, labels, folds=5)
 
-    """ Display CutMix sample """
-    # train_ds = get_training_dataset(train_images, train_labels, do_aug=False).unbatch()
+    # """ Display CutMix sample """
+    # train_ds = get_training_dataset(images, labels, do_aug=False).unbatch()
     # augmented_element = train_ds.repeat().batch(AUG_BATCH).map(cutmix)
 
     # row = 6
@@ -282,10 +298,10 @@ if __name__ == "__main__":
     #     plt.show()
     #     break
 
-    """ Display MixUp sample """
+    # """ Display MixUp sample """
     # row = 6; col = 4;
     # row = min(row,AUG_BATCH//col)
-    # train_ds = get_training_dataset(train_images, train_labels, do_aug=False).unbatch()
+    # train_ds = get_training_dataset(images, labels, do_aug=False).unbatch()
     # augmented_element = train_ds.repeat().batch(AUG_BATCH).map(mixup)
 
     # for (img,label) in augmented_element:
@@ -297,10 +313,10 @@ if __name__ == "__main__":
     #     plt.show()
     #     break
 
-    """ Display CutMix & MixUp sample """
+    # """ Display CutMix & MixUp sample """
     # row = 6; col = 4;
     # row = min(row,AUG_BATCH//col)
-    # train_ds = get_training_dataset(train_images, train_labels, do_aug=False).unbatch()
+    # train_ds = get_training_dataset(images, labels, do_aug=False).unbatch()
     # augmented_element = train_ds.repeat().batch(AUG_BATCH).map(transform)
 
     # for (img,label) in augmented_element:

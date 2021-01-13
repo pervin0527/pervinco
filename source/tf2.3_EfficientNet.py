@@ -98,6 +98,12 @@ if __name__ == "__main__":
     TRAIN_STEP_PER_EPOCH = int(tf.math.ceil(train_images_len / BATCH_SIZE).numpy())
     VALID_STEP_PER_EPOCH = int(tf.math.ceil(valid_images_len / BATCH_SIZE).numpy())
 
+    train_ds = make_tf_dataset(train_images, train_labels)
+    valid_ds = make_tf_dataset(valid_images, valid_labels)
+
+    train_ds = train_ds.repeat().batch(BATCH_SIZE).prefetch(AUTOTUNE)
+    valid_ds = valid_ds.repeat().batch(BATCH_SIZE).prefetch(AUTOTUNE)
+
     saved_path = '/data/backup/pervinco_2020/model/'
     time = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M") + '_tf2'
     weight_file_name = '{epoch:02d}-{val_accuracy:.2f}.hdf5'
@@ -114,12 +120,6 @@ if __name__ == "__main__":
 
     else:
         pass
-
-    train_ds = make_tf_dataset(train_images, train_labels)
-    valid_ds = make_tf_dataset(valid_images, valid_labels)
-
-    train_ds = train_ds.repeat().batch(BATCH_SIZE).prefetch(AUTOTUNE)
-    valid_ds = valid_ds.repeat().batch(BATCH_SIZE).prefetch(AUTOTUNE)
 
     base_model = tf.keras.applications.EfficientNetB3(input_shape=(IMG_SIZE, IMG_SIZE, 3),
                                 weights="imagenet", # noisy-student
