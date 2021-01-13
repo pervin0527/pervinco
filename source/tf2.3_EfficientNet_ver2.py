@@ -159,13 +159,15 @@ def str2bool(v):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Image classification model Training")
-    parser.add_argument('--dataset_name', type=str)
+    parser.add_argument('--input_dataset', type=str)
     parser.add_argument('--visualize', type=str2bool, default=False)
     args = parser.parse_args()
 
-    DATASET_NAME = args.dataset_name
-    TRAIN_PATH = f'/data/backup/pervinco_2020/Auged_datasets/{DATASET_NAME}/train'
-    VALID_PATH = f'/data/backup/pervinco_2020/Auged_datasets/{DATASET_NAME}/valid'
+    dataset = args.input_dataset
+    DATASET_NAME = dataset.split('/')[-3]
+    DATE = dataset.split('/')[-2]
+    TRAIN_PATH = f'/data/backup/pervinco_2020/Auged_datasets/{DATASET_NAME}/{DATE}/train'
+    VALID_PATH = f'/data/backup/pervinco_2020/Auged_datasets/{DATASET_NAME}/{DATE}/valid'
 
     train_dataset, train_total, train_labels = make_tf_dataset(TRAIN_PATH, True)
     valid_dataset, valid_total, valid_labels = make_tf_dataset(VALID_PATH, False)
