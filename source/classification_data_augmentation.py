@@ -122,7 +122,7 @@ if __name__ == "__main__":
     TODAY = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M:%S")
     DATASET_NAME = seed_path.split('/')[-1]
     OUTPUT_PATH = seed_path.split('/')[:-2]
-    OUTPUT_PATH = '/'.join(OUTPUT_PATH) + f'/Auged_datasets/{DATASET_NAME}_{TODAY}'
+    OUTPUT_PATH = '/'.join(OUTPUT_PATH) + f'/Auged_datasets/{DATASET_NAME}/{TODAY}'
 
     label_list = sorted(os.listdir(seed_path + '/'))
     n_classes = len(label_list)

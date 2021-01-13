@@ -157,6 +157,19 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
+def get_model():
+    with strategy.scope():
+        model = tf.keras.Sequential([tf.keras.applications.EfficientNetB0(input_shape=(IMG_SIZE, IMG_SIZE, 3),
+                                                                         weights='imagenet',
+                                                                         include_top=False),
+
+                                    tf.keras.layers.GlobalAveragePooling2D(),
+                                    tf.keras.layers.Dense(train_labels, activation='softmax')])
+
+    model.compile(optimizer='adam', loss = 'categorical_crossentropy', metrics = ['categorical_accuracy'])
+    model.summary()
+    return model
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Image classification model Training")
     parser.add_argument('--input_dataset', type=str)
@@ -198,22 +211,10 @@ if __name__ == "__main__":
                                                       mode='max')
     earlystopper = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
 
-    with strategy.scope():
-        model = tf.keras.Sequential([tf.keras.applications.EfficientNetB0(input_shape=(IMG_SIZE, IMG_SIZE, 3),
-                                                                         weights='imagenet',
-                                                                         include_top=False),
-
-                                    tf.keras.layers.GlobalAveragePooling2D(),
-                                    tf.keras.layers.Dense(train_labels, activation='softmax')])
-
-    model.compile(optimizer='adam',
-                    loss = 'categorical_crossentropy',
-                    metrics = ['categorical_accuracy'])
-    model.summary()
-
     TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(train_total/ BATCH_SIZE).numpy())
     VALID_STEP_PER_EPOCH = int(tf.math.ceil(valid_total / BATCH_SIZE).numpy())
-    
+
+    model = get_model()    
     history = model.fit(train_dataset,
                         epochs=EPOCHS,
                         callbacks=[lr_schedule, checkpointer, earlystopper],
