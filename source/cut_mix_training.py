@@ -34,7 +34,8 @@ AUTO = tf.data.experimental.AUTOTUNE
 strategy = tf.distribute.experimental.CentralStorageStrategy()
 BATCH_SIZE = 4 * strategy.num_replicas_in_sync
 EPOCHS = 1000
-IMAGE_SIZE = [380, 380]
+# IMAGE_SIZE = [380, 380]
+IMAGE_SIZE = [224, 224]
 
 
 def basic_processing(ds_path, is_training):
@@ -108,35 +109,35 @@ def cutmix(image, label, PROBABILITY = 1.0):
     
     imgs = []; labs = []
     for j in range(BATCH_SIZE):
-        P = tf.cast( tf.random.uniform([],0,1)<=PROBABILITY, tf.int32)
-        k = tf.cast( tf.random.uniform([],0, BATCH_SIZE),tf.int32)
-        x = tf.cast( tf.random.uniform([],0,DIM),tf.int32)
-        y = tf.cast( tf.random.uniform([],0,DIM),tf.int32)
+        P = tf.cast( tf.random.uniform([], 0,1)<=PROBABILITY, tf.int32)
+        k = tf.cast( tf.random.uniform([], 0, BATCH_SIZE),tf.int32)
+        x = tf.cast( tf.random.uniform([], 0, DIM),tf.int32)
+        y = tf.cast( tf.random.uniform([], 0, DIM),tf.int32)
         b = tf.random.uniform([],0,1)
-        WIDTH = tf.cast( DIM * tf.math.sqrt(1-b),tf.int32) * P
-        ya = tf.math.maximum(0,y-WIDTH//2)
-        yb = tf.math.minimum(DIM,y+WIDTH//2)
-        xa = tf.math.maximum(0,x-WIDTH//2)
-        xb = tf.math.minimum(DIM,x+WIDTH//2)
+        WIDTH = tf.cast( DIM * tf.math.sqrt(1 - b), tf.int32) * P
+        ya = tf.math.maximum(0, y - WIDTH // 2)
+        yb = tf.math.minimum(DIM, y + WIDTH // 2)
+        xa = tf.math.maximum(0, x - WIDTH // 2)
+        xb = tf.math.minimum(DIM, x + WIDTH // 2)
         
-        one = image[j,ya:yb,0:xa,:]
-        two = image[k,ya:yb,xa:xb,:]
-        three = image[j,ya:yb,xb:DIM,:]
-        middle = tf.concat([one,two,three],axis=1)
-        img = tf.concat([image[j,0:ya,:,:],middle,image[j,yb:DIM,:,:]],axis=0)
+        one = image[j, ya : yb, 0 : xa, :]
+        two = image[k, ya : yb, xa : xb, :]
+        three = image[j, ya : yb, xb : DIM, :]
+        middle = tf.concat([one, two, three], axis=1)
+        img = tf.concat([image[j, 0 : ya, : , :], middle, image[j, yb : DIM, :, :]], axis=0)
         imgs.append(img)
         
-        a = tf.cast(WIDTH*WIDTH/DIM/DIM,tf.float32)
+        a = tf.cast(WIDTH * WIDTH / DIM / DIM, tf.float32)
         if len(label.shape)==1:
             lab1 = tf.one_hot(label[j], CLASSES)
             lab2 = tf.one_hot(label[k], CLASSES)
         else:
             lab1 = label[j,]
             lab2 = label[k,]
-        labs.append((1-a)*lab1 + a*lab2)
+        labs.append((1 - a) * lab1 + a * lab2)
             
     
-    image2 = tf.reshape(tf.stack(imgs),(BATCH_SIZE, DIM,DIM,3))
+    image2 = tf.reshape(tf.stack(imgs),(BATCH_SIZE, DIM,DIM, 3))
     label2 = tf.reshape(tf.stack(labs),(BATCH_SIZE, CLASSES))
     return image2,label2
 
@@ -146,13 +147,13 @@ def mixup(image, label, PROBABILITY = 1.0):
     
     imgs = []; labs = []
     for j in range(BATCH_SIZE):
-        P = tf.cast( tf.random.uniform([],0,1)<=PROBABILITY, tf.float32)
-        k = tf.cast( tf.random.uniform([],0, BATCH_SIZE),tf.int32)
+        P = tf.cast( tf.random.uniform([], 0,1) <= PROBABILITY, tf.float32)
+        k = tf.cast( tf.random.uniform([], 0, BATCH_SIZE),tf.int32)
         a = tf.random.uniform([],0,1)*P
 
         img1 = image[j,]
         img2 = image[k,]
-        imgs.append((1-a)*img1 + a*img2)
+        imgs.append((1 - a) * img1 + a * img2)
 
         if len(label.shape)==1:
             lab1 = tf.one_hot(label[j], CLASSES)
@@ -160,10 +161,10 @@ def mixup(image, label, PROBABILITY = 1.0):
         else:
             lab1 = label[j,]
             lab2 = label[k,]
-        labs.append((1-a)*lab1 + a*lab2)
+        labs.append((1 - a) * lab1 + a * lab2)
             
-    image2 = tf.reshape(tf.stack(imgs),(BATCH_SIZE,DIM,DIM,3))
-    label2 = tf.reshape(tf.stack(labs),(BATCH_SIZE,CLASSES))
+    image2 = tf.reshape(tf.stack(imgs),(BATCH_SIZE, DIM,DIM, 3))
+    label2 = tf.reshape(tf.stack(labs),(BATCH_SIZE, CLASSES))
     return image2,label2
 
 
@@ -177,11 +178,11 @@ def transform(image,label):
     image3, label3 = mixup(image, label, MIXUP_PROB)
     imgs = []; labs = []
     for j in range(BATCH_SIZE):
-        P = tf.cast( tf.random.uniform([],0,1)<=SWITCH, tf.float32)
-        imgs.append(P*image2[j,]+(1-P)*image3[j,])
-        labs.append(P*label2[j,]+(1-P)*label3[j,])
+        P = tf.cast( tf.random.uniform([], 0, 1) <= SWITCH, tf.float32)
+        imgs.append(P*image2[j,] + (1 - P) * image3[j,])
+        labs.append(P*label2[j,] + (1 - P) * label3[j,])
     
-    image4 = tf.reshape(tf.stack(imgs),(BATCH_SIZE, DIM,DIM,3))
+    image4 = tf.reshape(tf.stack(imgs),(BATCH_SIZE, DIM,DIM, 3))
     label4 = tf.reshape(tf.stack(labs),(BATCH_SIZE, CLASSES))
     return image4,label4
 
