@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow.keras.backend as K
 import matplotlib
+matplotlib.use('Agg')
 
 from sklearn.metrics import f1_score, precision_score, recall_score, confusion_matrix
 from sklearn.model_selection import KFold
@@ -31,9 +32,9 @@ else:
 
 AUTO = tf.data.experimental.AUTOTUNE
 strategy = tf.distribute.experimental.CentralStorageStrategy()
-BATCH_SIZE = 16 * strategy.num_replicas_in_sync
+BATCH_SIZE = 4 * strategy.num_replicas_in_sync
 EPOCHS = 1000
-IMAGE_SIZE = [224, 224]
+IMAGE_SIZE = [380, 380]
 
 
 def basic_processing(ds_path, is_training):
@@ -58,7 +59,8 @@ def decode_image(image_data):
     image = tf.io.read_file(image_data)
     image = tf.image.decode_jpeg(image, channels=3)
     image = tf.image.resize(image, IMAGE_SIZE)
-    image = tf.cast(image, tf.float32) / 255.0 
+    # image = tf.cast(image, tf.float32) / 255.0
+    image = tf.keras.applications.efficientnet.preprocess_input(image)
     image = tf.reshape(image, [*IMAGE_SIZE, 3])
     return image
 
@@ -204,7 +206,7 @@ def build_lrfn(lr_start=0.00001, lr_max=0.00005,
 
 def get_model():
     with strategy.scope():
-        base_model = tf.keras.applications.EfficientNetB0(input_shape=(IMAGE_SIZE[0], IMAGE_SIZE[1], 3),
+        base_model = tf.keras.applications.EfficientNetB4(input_shape=(IMAGE_SIZE[0], IMAGE_SIZE[1], 3),
                                                           weights='imagenet',
                                                           include_top=False)
         base_model.trainable = True
@@ -262,6 +264,7 @@ def visualize(augmentation_element, name):
     row = min(row, BATCH_SIZE // col)
 
     for (image, label) in augmentation_element:
+        image = image / 255.0
         plt.figure(figsize=(15, int(15 * row / col)))
         for j in range(row * col):
             plt.subplot(row, col, j + 1)
@@ -290,7 +293,7 @@ if __name__ == "__main__":
 
     DATASET_PATH = args.input_dataset
     DATASET_NAME = DATASET_PATH.split('/')[-1]
-    SAVED_PATH = f'/data/backup/pervinco_2020/model/{DATASET_NAME}'
+    SAVED_PATH = f'/data/tf_workspace/model/{DATASET_NAME}'
     LOG_TIME = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M")
 
     images, labels, CLASSES = basic_processing(DATASET_PATH, True)
@@ -302,30 +305,19 @@ if __name__ == "__main__":
     if args.visualize == True:
         train_ds = get_training_dataset(images, labels, do_aug=False).unbatch()
         cut_mix_element = train_ds.repeat().batch(BATCH_SIZE).map(cutmix)
-
-        for item in cut_mix_element.take(3):
-            print(item)
-
         visualize(cut_mix_element, 'cut_mix')
         del cut_mix_element
 
         mix_up_element = train_ds.repeat().batch(BATCH_SIZE).map(mixup)
-
-        for item in mix_up_element.take(3):
-            print(item)
-
         visualize(mix_up_element, 'mix_up')
         del mix_up_element
 
         merged_element = train_ds.repeat().batch(BATCH_SIZE).map(transform)
         visualize(merged_element, 'merged')
-
-        for item in merged_element.take(3):
-            print(item)
-
         del merged_element
 
 
-    # histories, models = train_cross_validate(images, labels, folds=5)
-    # print(histories)
-    # print(models)
+    histories, models = train_cross_validate(images, labels, folds=5)
+    
+    for h, m in zip(histories, models):
+        print(h, m)
