@@ -124,12 +124,12 @@ if __name__ == "__main__":
     base_model = tf.keras.applications.EfficientNetB3(input_shape=(IMG_SIZE, IMG_SIZE, 3),
                                 weights="imagenet", # noisy-student
                                 include_top=False)
+    for layer in base_model.layers:
+        layer.trainable = True
+        
     avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
     output = tf.keras.layers.Dense(train_labels_len, activation="softmax")(avg)
     model = tf.keras.Model(inputs=base_model.input, outputs=output)
-
-    for layer in base_model.layers:
-        layer.trainable = True
 
     # optimizer = tf.keras.optimizers.SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
     # model.compile(loss="categorical_crossentropy", optimizer=optimizer, metrics=["accuracy"])

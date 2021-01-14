@@ -159,12 +159,18 @@ def str2bool(v):
 
 def get_model():
     with strategy.scope():
-        model = tf.keras.Sequential([tf.keras.applications.EfficientNetB0(input_shape=(IMG_SIZE, IMG_SIZE, 3),
-                                                                         weights='imagenet',
-                                                                         include_top=False),
+        base_model = tf.keras.applications.EfficientNetB1(input_shape=(IMG_SIZE, IMG_SIZE, 3),
+                                    weights="imagenet", # noisy-student
+                                    include_top=False)
+        for layer in base_model.layers:
+            layer.trainable = True
 
-                                    tf.keras.layers.GlobalAveragePooling2D(),
-                                    tf.keras.layers.Dense(train_labels, activation='softmax')])
+        avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
+        batch_norm = tf.keras.layers.BatchNormalization()(avg)
+        drop_out = tf.keras.layers.Dropout(0.2)(batch_norm)
+        output = tf.keras.layers.Dense(train_labels, activation="softmax")(drop_out)
+        
+        model = tf.keras.Model(inputs=base_model.input, outputs=output)
 
     model.compile(optimizer='adam', loss = 'categorical_crossentropy', metrics = ['categorical_accuracy'])
     model.summary()

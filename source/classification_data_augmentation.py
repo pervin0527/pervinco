@@ -31,7 +31,9 @@ def aug_visualize(train_data_path, valid_data_path):
         train_images.append(train_image_num)
         valid_images.append(valid_image_num)
 
-    print(train_images, valid_images)
+    print(train_images)
+    print(valid_images)
+    
     plt.figure(figsize=(10, 10))
     plt.bar(label_list, train_images, width=0.9,)
     plt.bar(label_list, valid_images, width=0.9,)
