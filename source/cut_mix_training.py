@@ -109,12 +109,12 @@ def cutmix(image, label, PROBABILITY = 1.0):
     
     imgs = []; labs = []
     for j in range(BATCH_SIZE):
-        P = tf.cast( tf.random.uniform([], 0,1)<=PROBABILITY, tf.int32)
-        k = tf.cast( tf.random.uniform([], 0, BATCH_SIZE),tf.int32)
-        x = tf.cast( tf.random.uniform([], 0, DIM),tf.int32)
-        y = tf.cast( tf.random.uniform([], 0, DIM),tf.int32)
-        b = tf.random.uniform([],0,1)
-        WIDTH = tf.cast( DIM * tf.math.sqrt(1 - b), tf.int32) * P
+        P = tf.cast(tf.random.uniform([], 0, 1) <= PROBABILITY, tf.int32) # 0 ~ 1 사이 난수 생성후, PROB보다 이하면 1, 초과면 0
+        k = tf.cast(tf.random.uniform([], 0, BATCH_SIZE), tf.int32) # BATCH_SIZE 보다 작은 난수 생성.
+        x = tf.cast(tf.random.uniform([], 0, DIM), tf.int32)
+        y = tf.cast(tf.random.uniform([], 0, DIM), tf.int32)
+        b = tf.random.uniform([], 0, 1)
+        WIDTH = tf.cast(DIM * tf.math.sqrt(1 - b), tf.int32) * P
         ya = tf.math.maximum(0, y - WIDTH // 2)
         yb = tf.math.minimum(DIM, y + WIDTH // 2)
         xa = tf.math.maximum(0, x - WIDTH // 2)
@@ -137,9 +137,9 @@ def cutmix(image, label, PROBABILITY = 1.0):
         labs.append((1 - a) * lab1 + a * lab2)
             
     
-    image2 = tf.reshape(tf.stack(imgs),(BATCH_SIZE, DIM,DIM, 3))
-    label2 = tf.reshape(tf.stack(labs),(BATCH_SIZE, CLASSES))
-    return image2,label2
+    image2 = tf.reshape(tf.stack(imgs), (BATCH_SIZE, DIM, DIM, 3))
+    label2 = tf.reshape(tf.stack(labs), (BATCH_SIZE, CLASSES))
+    return image2, label2
 
 
 def mixup(image, label, PROBABILITY = 1.0):
@@ -147,15 +147,15 @@ def mixup(image, label, PROBABILITY = 1.0):
     
     imgs = []; labs = []
     for j in range(BATCH_SIZE):
-        P = tf.cast( tf.random.uniform([], 0,1) <= PROBABILITY, tf.float32)
-        k = tf.cast( tf.random.uniform([], 0, BATCH_SIZE),tf.int32)
-        a = tf.random.uniform([],0,1)*P
+        P = tf.cast(tf.random.uniform([], 0, 1) <= PROBABILITY, tf.float32)
+        k = tf.cast(tf.random.uniform([], 0, BATCH_SIZE), tf.int32)
+        a = tf.random.uniform([],0 ,1) * P
 
         img1 = image[j,]
         img2 = image[k,]
         imgs.append((1 - a) * img1 + a * img2)
 
-        if len(label.shape)==1:
+        if len(label.shape) == 1:
             lab1 = tf.one_hot(label[j], CLASSES)
             lab2 = tf.one_hot(label[k], CLASSES)
         else:
@@ -163,12 +163,12 @@ def mixup(image, label, PROBABILITY = 1.0):
             lab2 = label[k,]
         labs.append((1 - a) * lab1 + a * lab2)
             
-    image2 = tf.reshape(tf.stack(imgs),(BATCH_SIZE, DIM,DIM, 3))
-    label2 = tf.reshape(tf.stack(labs),(BATCH_SIZE, CLASSES))
-    return image2,label2
+    image2 = tf.reshape(tf.stack(imgs), (BATCH_SIZE, DIM, DIM, 3))
+    label2 = tf.reshape(tf.stack(labs), (BATCH_SIZE, CLASSES))
+    return image2, label2
 
 
-def transform(image,label):
+def transform(image, label):
     DIM = IMAGE_SIZE[0]
     SWITCH = 0.5
     CUTMIX_PROB = 0.666
@@ -178,12 +178,12 @@ def transform(image,label):
     image3, label3 = mixup(image, label, MIXUP_PROB)
     imgs = []; labs = []
     for j in range(BATCH_SIZE):
-        P = tf.cast( tf.random.uniform([], 0, 1) <= SWITCH, tf.float32)
-        imgs.append(P*image2[j,] + (1 - P) * image3[j,])
-        labs.append(P*label2[j,] + (1 - P) * label3[j,])
+        P = tf.cast(tf.random.uniform([], 0, 1) <= SWITCH, tf.float32)
+        imgs.append(P * image2[j,] + (1 - P) * image3[j,])
+        labs.append(P * label2[j,] + (1 - P) * label3[j,])
     
-    image4 = tf.reshape(tf.stack(imgs),(BATCH_SIZE, DIM,DIM, 3))
-    label4 = tf.reshape(tf.stack(labs),(BATCH_SIZE, CLASSES))
+    image4 = tf.reshape(tf.stack(imgs), (BATCH_SIZE, DIM, DIM, 3))
+    label4 = tf.reshape(tf.stack(labs), (BATCH_SIZE, CLASSES))
     return image4,label4
 
 
@@ -207,7 +207,7 @@ def build_lrfn(lr_start=0.00001, lr_max=0.00005,
 
 def get_model():
     with strategy.scope():
-        base_model = tf.keras.applications.EfficientNetB4(input_shape=(IMAGE_SIZE[0], IMAGE_SIZE[1], 3),
+        base_model = tf.keras.applications.EfficientNetB5(input_shape=(IMAGE_SIZE[0], IMAGE_SIZE[1], 3),
                                                           weights='imagenet',
                                                           include_top=False)
         base_model.trainable = True
