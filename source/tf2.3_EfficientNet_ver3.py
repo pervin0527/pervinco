@@ -31,6 +31,7 @@ AUTO = tf.data.experimental.AUTOTUNE
 EPOCHS = 1000
 BATCH_SIZE = 16 * strategy.num_replicas_in_sync
 IMG_SIZE = 224
+IMAGE_SIZE = [IMG_SIZE, IMG_SIZE]
 
 transforms = A.Compose([
                         A.Resize(IMG_SIZE, IMG_SIZE, 3, p=1),
@@ -55,7 +56,7 @@ def basic_processing(ds_path):
     labels_len = len(labels)
     labels = dict((name, index) for index, name in enumerate(labels))
     labels = [labels[pathlib.Path(path).parent.name] for path in images]
-    labels = tf.keras.utils.to_categorical(labels, num_classes=labels_len, dtype='float32')
+    # labels = tf.keras.utils.to_categorical(labels, num_classes=labels_len, dtype='float32')
 
     return images, labels, labels_len
 
@@ -73,6 +74,12 @@ def process_data(image, label):
     aug_img = tf.numpy_function(func=aug_fn, inp=[image], Tout=tf.float32)
 
     return aug_img, label
+
+
+def onehot_encoding(image, label):
+    label = tf.one_hot(label, CLASSES)
+
+    return image, label
 
 
 def preprocess_train_image(images):
@@ -93,7 +100,90 @@ def preprocess_valid_image(images):
     return image
 
 
-def get_train_dataset(images, labels):
+def cutmix(image, label, PROBABILITY = 1.0):
+    DIM = IMAGE_SIZE[0]
+    
+    imgs = []; labs = []
+    for j in range(BATCH_SIZE):
+        P = tf.cast(tf.random.uniform([], 0, 1) <= PROBABILITY, tf.int32) # 0 ~ 1 사이 난수 생성후, PROB보다 이하면 1, 초과면 0
+        k = tf.cast(tf.random.uniform([], 0, BATCH_SIZE), tf.int32) # BATCH_SIZE 보다 작은 난수 생성.
+        x = tf.cast(tf.random.uniform([], 0, DIM), tf.int32) # 0 ~ IMAGE_SIZE로 난수 생성
+        y = tf.cast(tf.random.uniform([], 0, DIM), tf.int32)
+        b = tf.random.uniform([], 0, 1) # 0 ~ 1사이 난수 생성.
+        WIDTH = tf.cast(DIM * tf.math.sqrt(1 - b), tf.int32) * P
+        ya = tf.math.maximum(0, y - WIDTH // 2)
+        yb = tf.math.minimum(DIM, y + WIDTH // 2)
+        xa = tf.math.maximum(0, x - WIDTH // 2)
+        xb = tf.math.minimum(DIM, x + WIDTH // 2)
+        
+        one = image[j, ya : yb, 0 : xa, :]
+        two = image[k, ya : yb, xa : xb, :]
+        three = image[j, ya : yb, xb : DIM, :]
+        middle = tf.concat([one, two, three], axis=1)
+        img = tf.concat([image[j, 0 : ya, : , :], middle, image[j, yb : DIM, :, :]], axis=0)
+        imgs.append(img)
+        
+        a = tf.cast(WIDTH * WIDTH / DIM / DIM, tf.float32)
+        if len(label.shape)==1:
+            lab1 = tf.one_hot(label[j], CLASSES)
+            lab2 = tf.one_hot(label[k], CLASSES)
+        else:
+            lab1 = label[j,]
+            lab2 = label[k,]
+        labs.append((1 - a) * lab1 + a * lab2)
+            
+    
+    image2 = tf.reshape(tf.stack(imgs), (BATCH_SIZE, DIM, DIM, 3))
+    label2 = tf.reshape(tf.stack(labs), (BATCH_SIZE, CLASSES))
+    return image2, label2
+
+
+def mixup(image, label, PROBABILITY = 1.0):
+    DIM = IMAGE_SIZE[0]
+    
+    imgs = []; labs = []
+    for j in range(BATCH_SIZE):
+        P = tf.cast(tf.random.uniform([], 0, 1) <= PROBABILITY, tf.float32)
+        k = tf.cast(tf.random.uniform([], 0, BATCH_SIZE), tf.int32)
+        a = tf.random.uniform([],0 ,1) * P
+
+        img1 = image[j,]
+        img2 = image[k,]
+        imgs.append((1 - a) * img1 + a * img2)
+
+        if len(label.shape) == 1:
+            lab1 = tf.one_hot(label[j], CLASSES)
+            lab2 = tf.one_hot(label[k], CLASSES)
+        else:
+            lab1 = label[j,]
+            lab2 = label[k,]
+        labs.append((1 - a) * lab1 + a * lab2)
+            
+    image2 = tf.reshape(tf.stack(imgs), (BATCH_SIZE, DIM, DIM, 3))
+    label2 = tf.reshape(tf.stack(labs), (BATCH_SIZE, CLASSES))
+    return image2, label2
+
+
+def transform(image, label):
+    DIM = IMAGE_SIZE[0]
+    SWITCH = 0.5
+    CUTMIX_PROB = 0.666
+    MIXUP_PROB = 0.666
+    
+    image2, label2 = cutmix(image, label, CUTMIX_PROB)
+    image3, label3 = mixup(image, label, MIXUP_PROB)
+    imgs = []; labs = []
+    for j in range(BATCH_SIZE):
+        P = tf.cast(tf.random.uniform([], 0, 1) <= SWITCH, tf.float32)
+        imgs.append(P * image2[j,] + (1 - P) * image3[j,])
+        labs.append(P * label2[j,] + (1 - P) * label3[j,])
+    
+    image4 = tf.reshape(tf.stack(imgs), (BATCH_SIZE, DIM, DIM, 3))
+    label4 = tf.reshape(tf.stack(labs), (BATCH_SIZE, CLASSES))
+    return image4,label4
+
+
+def get_train_dataset(images, labels, do_cutmix):
     images = tf.data.Dataset.from_tensor_slices(images)
     images = images.map(preprocess_train_image, num_parallel_calls=AUTO)
     labels = tf.data.Dataset.from_tensor_slices(labels)
@@ -101,6 +191,17 @@ def get_train_dataset(images, labels):
     dataset = tf.data.Dataset.zip((images, labels))
     dataset = dataset.repeat()
     dataset = dataset.map(partial(process_data), num_parallel_calls=AUTO)
+
+    if do_cutmix == False:
+        dataset = dataset.map(onehot_encoding, num_parallel_calls=AUTO)
+
+    else:
+        dataset = dataset.batch(BATCH_SIZE)
+        dataset = dataset.map(transform, num_parallel_calls=AUTO)
+        dataset = dataset.unbatch()
+        dataset = dataset.shuffle(512)
+
+
     dataset = dataset.batch(BATCH_SIZE)
     dataset = dataset.prefetch(AUTO)
 
@@ -113,6 +214,7 @@ def get_valid_dataset(images, labels):
     labels = tf.data.Dataset.from_tensor_slices(labels)
     
     dataset = tf.data.Dataset.zip((images, labels))
+    dataset = dataset.map(onehot_encoding, num_parallel_calls=AUTO)
     dataset = dataset.repeat()
     dataset = dataset.batch(BATCH_SIZE)
     dataset = dataset.prefetch(AUTO)
@@ -179,7 +281,7 @@ def get_model():
         avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
         batch_norm = tf.keras.layers.BatchNormalization()(avg)
         drop_out = tf.keras.layers.Dropout(0.2)(batch_norm)
-        output = tf.keras.layers.Dense(num_classes, activation="softmax")(drop_out)
+        output = tf.keras.layers.Dense(CLASSES, activation="softmax")(drop_out)
         
         model = tf.keras.Model(inputs=base_model.input, outputs=output)
 
@@ -218,14 +320,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Image classification model Training")
     parser.add_argument('--input_dataset', type=str)
     parser.add_argument('--visualize', type=str2bool, default=False)
+    parser.add_argument('--do_cutmix', type=str2bool, default=False)
     args = parser.parse_args()
 
     dataset = args.input_dataset
     DATASET_NAME = dataset.split('/')[-1]
 
-    total_images, total_labels, num_classes = basic_processing(dataset)
-    train_images, valid_images, train_labels, valid_labels = train_test_split(total_images, total_labels, test_size=.3, random_state=777)
-    train_dataset = get_train_dataset(train_images, train_labels)
+    total_images, total_labels, CLASSES = basic_processing(dataset)
+    train_images, valid_images, train_labels, valid_labels = train_test_split(total_images, total_labels, test_size=.3, shuffle=True, random_state=777)
+    train_dataset = get_train_dataset(train_images, train_labels, args.do_cutmix)
     valid_dataset = get_valid_dataset(valid_images, valid_labels)
 
     # Learning Rate Scheduler setup
