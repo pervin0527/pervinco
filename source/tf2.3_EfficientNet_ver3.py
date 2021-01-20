@@ -29,10 +29,11 @@ else:
 # Load data & Set hyper-parameters
 AUTO = tf.data.experimental.AUTOTUNE
 EPOCHS = 1000
-BATCH_SIZE = 32 * strategy.num_replicas_in_sync
+BATCH_SIZE = 16 * strategy.num_replicas_in_sync
 IMG_SIZE = 224
 
-transforms = A.Compose([A.Resize(224, 224, p=1),
+transforms = A.Compose([
+                        A.Resize(IMG_SIZE, IMG_SIZE, 3, p=1),
                         A.HorizontalFlip(p=0.4),
                         A.VerticalFlip(p=0.3),
                         A.Blur(p=0.1),
@@ -49,7 +50,6 @@ def basic_processing(ds_path):
 
     images = list(ds_path.glob('*/*'))
     images = [str(path) for path in images]
-    images_len = len(images)
 
     labels = sorted(item.name for item in ds_path.glob('*/') if item.is_dir())
     labels_len = len(labels)
@@ -60,48 +60,62 @@ def basic_processing(ds_path):
     return images, labels, labels_len
 
 
-def aug_fn(image, img_size):
+def aug_fn(image):
     data = {"image":image}
     aug_data = transforms(**data)
     aug_img = aug_data["image"]
     aug_img = tf.cast(aug_img, tf.float32)
-    
+
     return aug_img
 
 
-def process_data(image, label, img_size):
-    aug_img = tf.numpy_function(func=aug_fn, inp=[image, img_size], Tout=tf.float32)
+def process_data(image, label):
+    aug_img = tf.numpy_function(func=aug_fn, inp=[image], Tout=tf.float32)
 
     return aug_img, label
 
 
-def preprocess_image(images, label=None):
+def preprocess_train_image(images):
     image = tf.io.read_file(images)
     image = tf.image.decode_jpeg(image, channels=3)
+    # image = tf.image.resize(image, [IMG_SIZE, IMG_SIZE])
     image = tf.keras.applications.efficientnet.preprocess_input(image)
 
-    if label is None:
-        return image
-    else:
-        return image, label
+    return image
 
 
-def make_tf_dataset(images, labels, is_train):
+def preprocess_valid_image(images):
+    image = tf.io.read_file(images)
+    image = tf.image.decode_jpeg(image, channels=3)
+    image = tf.image.resize(image, [IMG_SIZE, IMG_SIZE])
+    image = tf.keras.applications.efficientnet.preprocess_input(image)
+
+    return image
+
+
+def get_train_dataset(images, labels):
     images = tf.data.Dataset.from_tensor_slices(images)
-    images = images.map(preprocess_image, num_parallel_calls=AUTO)
+    images = images.map(preprocess_train_image, num_parallel_calls=AUTO)
     labels = tf.data.Dataset.from_tensor_slices(labels)
 
     dataset = tf.data.Dataset.zip((images, labels))
     dataset = dataset.repeat()
+    dataset = dataset.map(partial(process_data), num_parallel_calls=AUTO)
+    dataset = dataset.batch(BATCH_SIZE)
+    dataset = dataset.prefetch(AUTO)
 
-    if is_train:
-        dataset = dataset.map(partial(process_data, img_size=IMG_SIZE), num_parallel_calls=AUTO)
-        dataset = dataset.batch(BATCH_SIZE)
-        dataset = dataset.prefetch(AUTO)
+    return dataset
 
-    else:
-        dataset = dataset.batch(BATCH_SIZE)
-        dataset = dataset.prefetch(AUTO)
+
+def get_valid_dataset(images, labels):
+    images = tf.data.Dataset.from_tensor_slices(images)
+    images = images.map(preprocess_valid_image, num_parallel_calls=AUTO)
+    labels = tf.data.Dataset.from_tensor_slices(labels)
+    
+    dataset = tf.data.Dataset.zip((images, labels))
+    dataset = dataset.repeat()
+    dataset = dataset.batch(BATCH_SIZE)
+    dataset = dataset.prefetch(AUTO)
 
     return dataset
 
@@ -129,6 +143,7 @@ def tf_data_visualize(augmentation_element):
     row = min(row, BATCH_SIZE // col)
 
     for (image, label) in augmentation_element:
+        print(image.shape, label.shape)
         image = image / 255.0
         plt.figure(figsize=(15, int(15 * row / col)))
         for j in range(row * col):
@@ -156,8 +171,8 @@ def str2bool(v):
 def get_model():
     with strategy.scope():
         base_model = tf.keras.applications.EfficientNetB1(input_shape=(IMG_SIZE, IMG_SIZE, 3),
-                                    weights="imagenet", # noisy-student
-                                    include_top=False)
+                                                          weights="imagenet", # noisy-student
+                                                          include_top=False)
         for layer in base_model.layers:
             layer.trainable = True
 
@@ -210,8 +225,8 @@ if __name__ == "__main__":
 
     total_images, total_labels, num_classes = basic_processing(dataset)
     train_images, valid_images, train_labels, valid_labels = train_test_split(total_images, total_labels, test_size=.3, random_state=777)
-    train_dataset = make_tf_dataset(train_images, train_labels, True)
-    valid_dataset = make_tf_dataset(valid_images, valid_labels, False)
+    train_dataset = get_train_dataset(train_images, train_labels)
+    valid_dataset = get_valid_dataset(valid_images, valid_labels)
 
     # Learning Rate Scheduler setup
     lrfn = build_lrfn()
@@ -226,9 +241,9 @@ if __name__ == "__main__":
     if not(os.path.isdir(f'/{SAVED_PATH}/{LOG_TIME}')):
         os.makedirs(f'/{SAVED_PATH}/{LOG_TIME}')
 
-    print(train_labels, valid_labels)
     if args.visualize:
         tf_data_visualize(train_dataset)
+        tf_data_visualize(valid_dataset)
 
     checkpointer = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
                                                       monitor='val_categorical_accuracy',
@@ -237,6 +252,7 @@ if __name__ == "__main__":
     earlystopper = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
 
     train_total, valid_total = len(train_images), len(valid_images)
+    print(train_total, valid_total)
     TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(train_total/ BATCH_SIZE).numpy())
     VALID_STEP_PER_EPOCH = int(tf.math.ceil(valid_total / BATCH_SIZE).numpy())
 

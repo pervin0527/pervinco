@@ -5,8 +5,6 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 
 from sklearn.model_selection import train_test_split
-from tqdm import tqdm
-tqdm.pandas()
 
 # GPU setup
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -159,8 +157,8 @@ def str2bool(v):
 def get_model():
     with strategy.scope():
         base_model = tf.keras.applications.EfficientNetB1(input_shape=(IMG_SIZE, IMG_SIZE, 3),
-                                    weights="imagenet", # noisy-student
-                                    include_top=False)
+                                                          weights="imagenet", # noisy-student
+                                                          include_top=False)
         for layer in base_model.layers:
             layer.trainable = True
 
