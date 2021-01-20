@@ -240,7 +240,7 @@ def build_lrfn(lr_start=0.00001, lr_max=0.00005,
     return lrfn
 
 
-def tf_data_visualize(augmentation_element):
+def tf_data_visualize(augmentation_element, name):
     row, col, idx = 5, 4, 0
     row = min(row, BATCH_SIZE // col)
 
@@ -253,12 +253,13 @@ def tf_data_visualize(augmentation_element):
             plt.axis('off')
             plt.imshow(image[j, ])
 
-        plt.savefig(f'{SAVED_PATH}/{LOG_TIME}/result_{idx}.jpg')
+        plt.savefig(f'{SAVED_PATH}/{LOG_TIME}/{name}_{idx}.jpg')
         plt.show()
         idx += 1
 
         if idx == 3:
             break
+
 
 
 def str2bool(v):
@@ -345,8 +346,8 @@ if __name__ == "__main__":
         os.makedirs(f'/{SAVED_PATH}/{LOG_TIME}')
 
     if args.visualize:
-        tf_data_visualize(train_dataset)
-        tf_data_visualize(valid_dataset)
+        tf_data_visualize(train_dataset, "train")
+        tf_data_visualize(valid_dataset, "valid")
 
     checkpointer = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
                                                       monitor='val_categorical_accuracy',
