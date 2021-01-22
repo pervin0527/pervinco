@@ -1,71 +1,107 @@
+import os, cv2, datetime, pathlib, random, argparse
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 import tensorflow as tf
-from tensorflow import keras
-import pathlib
-import random
-import os
-import datetime
-import time
 
+from sklearn.model_selection import train_test_split
+from tqdm import tqdm
+tqdm.pandas()
+
+# GPU setup
 gpus = tf.config.experimental.list_physical_devices('GPU')
-if gpus:
+if len(gpus) > 1:
     try:
-        print("True")
-        tf.config.experimental.set_memory_growth(gpus[0], True)
+        print("ActivateMulti GPU")
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+        strategy = tf.distribute.MirroredStrategy(cross_device_ops=tf.distribute.HierarchicalCopyAllReduce())
     except RuntimeError as e:
         print(e)
 
-# gpus = tf.config.experimental.list_physical_devices('GPU')
-# if gpus:
-#   try:
-#     tf.config.experimental.set_virtual_device_configuration(gpus[0],
-#       [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=9000)])
-#   except RuntimeError as e:
-#     print(e)
+else:
+    try:
+        print("Activate Sigle GPU")
+        tf.config.experimental.set_memory_growth(gpus[0], True)
+        strategy = tf.distribute.experimental.CentralStorageStrategy()
+    except RuntimeError as e:
+        print(e)
 
-AUTOTUNE = tf.data.experimental.AUTOTUNE
-strategy = tf.distribute.experimental.CentralStorageStrategy()
 
-BATCH_SIZE = 64
+# Load data & Set hyper-parameters
+AUTO = tf.data.experimental.AUTOTUNE
+SAMPLE_LEN = 100
+EPOCHS = 1000
+BATCH_SIZE = 32 * strategy.num_replicas_in_sync
 IMG_SIZE = 224
-NUM_EPOCHS = 1000
-EARLY_STOP_PATIENCE = 3
 
 
-def basic_processing(ds_path, is_training):
-    ds_path = pathlib.Path(ds_path)
-
-    images = list(ds_path.glob('*/*'))
-    images = [str(path) for path in images]
-    len_images = len(images)
-
-    if is_training:
-        random.shuffle(images)
-
-    labels = sorted(item.name for item in ds_path.glob('*/') if item.is_dir())
-    labels_len = len(labels)
-    labels = dict((name, index) for index, name in enumerate(labels))
-    labels = [labels[pathlib.Path(path).parent.name] for path in images]
-    labels = tf.keras.utils.to_categorical(labels, num_classes=labels_len, dtype='float32')
-
-    return images, labels, len_images, labels_len
-
-
-def preprocess_image(path):
-    image = tf.io.read_file(path)
+def preprocess_image(images, label=None):
+    image = tf.io.read_file(images)
     image = tf.image.decode_jpeg(image, channels=3)
     image = tf.image.resize(image, [IMG_SIZE, IMG_SIZE])
     image = tf.keras.applications.efficientnet.preprocess_input(image)
 
-    return image
+    if label is None:
+        return image
+
+    else:
+        return image, label
 
 
-def make_tf_dataset(images, labels):
-    image_ds = tf.data.Dataset.from_tensor_slices(images)
-    image_ds = image_ds.map(preprocess_image, num_parallel_calls=AUTOTUNE)
-    label_ds = tf.data.Dataset.from_tensor_slices(tf.cast(labels, tf.float32))
-    image_label_ds = tf.data.Dataset.zip((image_ds, label_ds))
+def make_tf_dataset(ds_path, is_train):
+    ds_path = pathlib.Path(ds_path)
 
-    return image_label_ds
+    images = list(ds_path.glob('*/*'))
+    images = [str(path) for path in images]
+    total_images = len(images)
+
+    if is_train:
+        random.shuffle(images)
+
+    labels = sorted(item.name for item in ds_path.glob('*/') if item.is_dir())
+    num_labels = len(labels)
+    labels = dict((name, index) for index, name in enumerate(labels))
+    labels = [labels[pathlib.Path(path).parent.name] for path in images]
+    labels = tf.keras.utils.to_categorical(labels, num_classes=num_labels, dtype='float32')
+
+    if is_train:
+        dataset = (tf.data.Dataset
+                   .from_tensor_slices((images, labels))
+                   .map(preprocess_image, num_parallel_calls=AUTO)
+                   .repeat()
+                   .shuffle(512)
+                   .batch(BATCH_SIZE)
+                   .prefetch(AUTO)
+        )
+    
+    else:
+        dataset = (tf.data.Dataset
+                   .from_tensor_slices((images, labels))
+                   .map(preprocess_image, num_parallel_calls=AUTO)
+                   .repeat()
+                   .batch(BATCH_SIZE)
+                   .prefetch(AUTO)
+        )
+
+    return dataset, total_images, num_labels
+
+
+def tf_data_visualize(dataset):
+    for image, label in dataset.take(1):
+        print("Image shape: ", image.numpy().shape)
+        print("Label: ", label.numpy().shape)
+
+    image_batch, label_batch = next(iter(dataset))
+
+    plt.figure(figsize=(10, 10))
+    for i in range(16):
+        ax = plt.subplot(4, 4, i + 1)
+        plt.imshow((image_batch[i].numpy()).astype('uint8'))
+        label = label_batch[i]
+        plt.axis('off')
+
+    plt.show()
 
 
 def build_lrfn(lr_start=0.00001, lr_max=0.00005, 
@@ -86,72 +122,111 @@ def build_lrfn(lr_start=0.00001, lr_max=0.00005,
     return lrfn
 
 
-if __name__ == "__main__":
-    model_name = "EfficientNet-B3"
-    dataset_name = 'empty_test'
-    train_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/train'
-    valid_dataset_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/valid'
+def display_training_curves(history):
+    acc = history.history['categorical_accuracy']
+    val_acc = history.history['val_categorical_accuracy']
 
-    train_images, train_labels, train_images_len, train_labels_len = basic_processing(train_dataset_path, True)
-    valid_images, valid_labels, valid_images_len, valid_labels_len = basic_processing(valid_dataset_path, False)
+    loss = history.history['loss']
+    val_loss = history.history['val_loss']
 
-    TRAIN_STEP_PER_EPOCH = int(tf.math.ceil(train_images_len / BATCH_SIZE).numpy())
-    VALID_STEP_PER_EPOCH = int(tf.math.ceil(valid_images_len / BATCH_SIZE).numpy())
+    epochs_range = range(len(history.history['loss']))
 
-    train_ds = make_tf_dataset(train_images, train_labels)
-    valid_ds = make_tf_dataset(valid_images, valid_labels)
+    plt.figure(figsize=(8, 8))
+    plt.subplot(1, 2, 1)
+    plt.plot(epochs_range, acc, label='Training Accuracy')
+    plt.plot(epochs_range, val_acc, label='Validation Accuracy')
+    plt.legend(loc='lower right')
+    plt.title('Training and Validation Accuracy')
 
-    train_ds = train_ds.repeat().batch(BATCH_SIZE).prefetch(AUTOTUNE)
-    valid_ds = valid_ds.repeat().batch(BATCH_SIZE).prefetch(AUTOTUNE)
+    plt.subplot(1, 2, 2)
+    plt.plot(epochs_range, loss, label='Training Loss')
+    plt.plot(epochs_range, val_loss, label='Validation Loss')
+    plt.legend(loc='upper right')
+    plt.title('Training and Validation Loss')
+    
+    plt.savefig(f'/{SAVED_PATH}/{LOG_TIME}/train_result.png')
+    plt.show()
 
-    saved_path = '/data/backup/pervinco_2020/model/'
-    time = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M") + '_tf2'
-    weight_file_name = '{epoch:02d}-{val_accuracy:.2f}.hdf5'
 
-    if not(os.path.isdir(saved_path + dataset_name + '/' + time)):
-        os.makedirs(os.path.join(saved_path + dataset_name + '/' + time))
-
-        f = open(saved_path + dataset_name + '/' + time + '/README.txt', 'w')
-        f.write(train_dataset_path + '\n')
-        f.write(valid_dataset_path + '\n')
-        f.write(str(IMG_SIZE) + '\n')
-        f.write("Model : " + model_name)
-        f.close()
-
+def str2bool(v):
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
     else:
-        pass
+        raise argparse.ArgumentTypeError('Boolean value expected.')
 
-    base_model = tf.keras.applications.EfficientNetB3(input_shape=(IMG_SIZE, IMG_SIZE, 3),
-                                weights="imagenet", # noisy-student
-                                include_top=False)
-    for layer in base_model.layers:
-        layer.trainable = True
-        
-    avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
-    output = tf.keras.layers.Dense(train_labels_len, activation="softmax")(avg)
-    model = tf.keras.Model(inputs=base_model.input, outputs=output)
 
-    # optimizer = tf.keras.optimizers.SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
-    # model.compile(loss="categorical_crossentropy", optimizer=optimizer, metrics=["accuracy"])
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+def get_model():
+    with strategy.scope():
+        base_model = tf.keras.applications.EfficientNetB3(input_shape=(IMG_SIZE, IMG_SIZE, 3),
+                                    weights="imagenet", # noisy-student
+                                    include_top=False)
+        for layer in base_model.layers:
+            layer.trainable = True
+            
+        avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
+        output = tf.keras.layers.Dense(train_labels, activation="softmax")(avg)
+        model = tf.keras.Model(inputs=base_model.input, outputs=output)
+
+    model.compile(optimizer='adam', loss = 'categorical_crossentropy', metrics = ['categorical_accuracy'])
     model.summary()
-    tf.keras.utils.plot_model(model, to_file="/data/backup/pervinco_2020/test_code/ssd_code_review/efficientnet.jpg")
+    return model
 
-    cb_early_stopper = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
-    checkpoint_path = saved_path + dataset_name + '/' + time + '/' + weight_file_name
-    cb_checkpointer = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
-                                                         monitor='val_accuracy',
-                                                         save_best_only=True,
-                                                         mode='max')
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Image classification model Training")
+    parser.add_argument('--input_dataset', type=str)
+    parser.add_argument('--visualize', type=str2bool, default=False)
+    args = parser.parse_args()
+
+    dataset = args.input_dataset
+    DATASET_NAME = dataset.split('/')[-3]
+    DATE = dataset.split('/')[-2]
+    TRAIN_PATH = f'/data/tf_workspace/Auged_datasets/{DATASET_NAME}/{DATE}/train'
+    VALID_PATH = f'/data/tf_workspace/Auged_datasets/{DATASET_NAME}/{DATE}/valid'
+
+    train_dataset, train_total, train_labels = make_tf_dataset(TRAIN_PATH, True)
+    valid_dataset, valid_total, valid_labels = make_tf_dataset(VALID_PATH, False)
+
+    print(train_labels, valid_labels)
+
+    if args.visualize == True:
+        for i in range(3):
+            tf_data_visualize(train_dataset)
+            tf_data_visualize(valid_dataset)
+    
+    # Learning Rate Scheduler setup
     lrfn = build_lrfn()
-    lr_schedule = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1)    
+    lr_schedule = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1)
 
-    history = model.fit(train_ds,
-                        epochs=NUM_EPOCHS,
-                        steps_per_epoch=TRAIN_STEP_PER_EPOCH,
-                        validation_data=valid_ds,
-                        validation_steps=VALID_STEP_PER_EPOCH,
+    # Checkpoint callback setup
+    SAVED_PATH = f'/data/tf_workspace/model/{DATASET_NAME}'
+    LOG_TIME = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M")
+    WEIGHT_FNAME = '{epoch:02d}-{val_categorical_accuracy:.2f}.hdf5'
+    checkpoint_path = f'/{SAVED_PATH}/{LOG_TIME}/{WEIGHT_FNAME}'
+
+    if not(os.path.isdir(f'/{SAVED_PATH}/{LOG_TIME}')):
+        os.makedirs(f'/{SAVED_PATH}/{LOG_TIME}')
+
+    checkpointer = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
+                                                      monitor='val_categorical_accuracy',
+                                                      save_best_only=True,
+                                                      mode='max')
+    earlystopper = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
+
+    TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(train_total/ BATCH_SIZE).numpy())
+    VALID_STEP_PER_EPOCH = int(tf.math.ceil(valid_total / BATCH_SIZE).numpy())
+
+    model = get_model()    
+    history = model.fit(train_dataset,
+                        epochs=EPOCHS,
+                        callbacks=[lr_schedule, checkpointer, earlystopper],
+                        steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
                         verbose=1,
-                        callbacks=[cb_early_stopper, cb_checkpointer, lr_schedule])
+                        validation_data=valid_dataset,
+                        validation_steps=VALID_STEP_PER_EPOCH)
 
-    model.save(saved_path + dataset_name + '/' + time + '/' + dataset_name + '.h5')
+    model.save(f'{SAVED_PATH}/{LOG_TIME}/{DATASET_NAME}.h5')
+
+    display_training_curves(history)
