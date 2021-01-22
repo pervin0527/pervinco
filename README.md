@@ -96,13 +96,13 @@
 
    - [Blog Post](https://www.notion.so/pervin0527/Basic-Image-Classification-using-EfficientNet-8ac30bbd2bc84d4fb494740b5c7c99c6)
    - [Source Code - Normal Training EfficientNet](https://github.com/pervin0527/pervinco/blob/master/source/tf2.3_EfficientNet_ver1.py)
-   - [Source Code - Training with Augmentation(include CutMix, MixUp) EfficientNet tf2.3](https://github.com/pervin0527/pervinco/blob/master/source/tf2.3_EfficientNet.py)
+   - [Source Code - Training with Augmentation(include CutMix, MixUp) EfficientNet tf2.3](https://github.com/pervin0527/pervinco/blob/master/source/tf2.3_EfficientNet_ver2.py)
       
          python3 tf2.3_EfficientNet_ver2.py --input_dataset=/path/ # input dataset path
                                             --visualize=True # tf.data visualize imshow
                                             --do_cutmix=True # apply cutmix & mixup
 
-   - [Blog Post - Accuracy Test](https://github.com/pervin0527/pervinco/blob/master/source/tf2.3_model_test.py)
+   - [Blog Post - Accuracy Test](https://github.com/pervin0527/pervinco/blob/master/source/tf2.3_model_test.py) - Test data can be evaluated faster in the form of tf.data.
    - [Source Code - Multi GPU Training](https://github.com/pervin0527/pervinco/blob/master/source/tf2.3_Multi_gpu_training.py)
 
    ### 3. Multi Label Image Classification
@@ -133,11 +133,11 @@
    <p align="left"><img src="./docs/doc_imgs/cutmix.png" width=70%></p>
    <p align="left"><img src="./docs/doc_imgs/mixup.png" width=70%></p>
    
-   - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/tf2.3_EfficientNet.py)
+   - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/tf2.3_EfficientNet_ver2.py)
       
          python3 tf2.3_Efficient_Net.py --input_dataset=/path/ --do_cutmix=True
 
-   - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/cut_mix_training.py)
+   - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/tf2.3_cut_mix_training.py)
 
 ## 🚝[Object Detection](https://github.com/pervin0527/pervinco/blob/master/docs/Object_Detection.md)  
    ### 1. Tensorflow Object Detection API 소개 및 사용방법
@@ -156,7 +156,7 @@
 
    -  [Blog Post](https://www.notion.so/pervin0527/YOLO-v4-d7d9a312e4b14005be22f393539b85cd)
    - [Source Code - Test image inference](https://github.com/pervin0527/pervinco/blob/master/source/yolov4/yolov4_image_inference.py)
-   - [Source Code - Test Video inference](https://github.com/pervin0527/pervinco/blob/master/source/yolov4/video_inference.py)
+   - [Source Code - Test Video inference](https://github.com/pervin0527/pervinco/blob/master/source/yolov4/yolov4_video_inference.py)
 
    ### 3. Google/Automl - EfficientDet
 
