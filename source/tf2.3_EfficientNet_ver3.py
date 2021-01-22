@@ -261,7 +261,6 @@ def tf_data_visualize(augmentation_element, name):
             break
 
 
-
 def str2bool(v):
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
         return True

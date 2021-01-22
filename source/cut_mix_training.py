@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow.keras.backend as K
 import matplotlib
-matplotlib.use('Agg')
 
 from sklearn.metrics import f1_score, precision_score, recall_score, confusion_matrix
 from sklearn.model_selection import KFold
@@ -111,9 +110,9 @@ def cutmix(image, label, PROBABILITY = 1.0):
     for j in range(BATCH_SIZE):
         P = tf.cast(tf.random.uniform([], 0, 1) <= PROBABILITY, tf.int32) # 0 ~ 1 사이 난수 생성후, PROB보다 이하면 1, 초과면 0
         k = tf.cast(tf.random.uniform([], 0, BATCH_SIZE), tf.int32) # BATCH_SIZE 보다 작은 난수 생성.
-        x = tf.cast(tf.random.uniform([], 0, DIM), tf.int32)
+        x = tf.cast(tf.random.uniform([], 0, DIM), tf.int32) # 0 ~ IMAGE_SIZE로 난수 생성
         y = tf.cast(tf.random.uniform([], 0, DIM), tf.int32)
-        b = tf.random.uniform([], 0, 1)
+        b = tf.random.uniform([], 0, 1) # 0 ~ 1사이 난수 생성.
         WIDTH = tf.cast(DIM * tf.math.sqrt(1 - b), tf.int32) * P
         ya = tf.math.maximum(0, y - WIDTH // 2)
         yb = tf.math.minimum(DIM, y + WIDTH // 2)

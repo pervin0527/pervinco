@@ -85,26 +85,40 @@ class InferenceClass:
             return list(map(lambda x: self.main_class_names[x], score))
 
 
-def save_images(left_main_boxes, right_main_boxes, left_frame, right_frame):
+def save_images(left_main_boxes, right_main_boxes, left_frame, right_frame, inf_result):
     now = datetime.now().strftime("%Y.%m.%d_%H:%M:%S")
     save_path = f'./inference/logs/{store_name}'
 
     if os.path.isdir(save_path):
         pass
     else:
-        os.makedirs(save_path+'/frame')
+        os.makedirs(save_path+'/frame/left')
+        os.makedirs(save_path+'/frame/right')
         os.makedirs(save_path+'/crop')
 
-    cv2.imwrite(save_path + '/frame/left' + now + '.jpg', left_frame)
-    cv2.imwrite(save_path + '/frame/right' + now + '.jpg', right_frame)
+    cv2.imwrite(save_path + '/frame/left/' + now + '.jpg', left_frame)
+    cv2.imwrite(save_path + '/frame/right/' + now + '.jpg', right_frame)
 
     for idx, (xmin, ymin, xmax, ymax) in enumerate(left_main_boxes):
         left_crop = left_frame[ymin:ymax, xmin:xmax]
-        cv2.imwrite(save_path + '/crop/left_' + str(idx) + now + '.jpg', left_crop)
+        if os.path.isdir(f'{save_path}/crop/{inf_result[idx]}'):
+            cv2.imwrite(f'{save_path}/crop/{inf_result[idx]}/{time.time()}.jpg', left_crop)
+
+        else:
+            os.makedirs(f'{save_path}/crop/{inf_result[idx]}')
+            cv2.imwrite(f'{save_path}/crop/{inf_result[idx]}/{time.time()}.jpg', left_crop)
+
+    inf_result = inf_result[len(left_main_boxes):]
 
     for idx, (xmin, ymin, xmax, ymax) in enumerate(right_main_boxes):
         right_crop = right_frame[ymin:ymax, xmin:xmax]
-        cv2.imwrite(save_path +'/crop/right_' + str(idx) + now + '.jpg', right_crop)
+        if os.path.isdir(f'{save_path}/crop/{inf_result[idx]}'):
+            cv2.imwrite(f'{save_path}/crop/{inf_result[idx]}/{time.time()}.jpg', right_crop)
+
+        else:
+            os.makedirs(f'{save_path}/crop/{inf_result[idx]}')
+            cv2.imwrite(f'{save_path}/crop/{inf_result[idx]}/{time.time()}.jpg', right_crop)
+
 
     print("Frame {} saved in {}".format(now, save_path))
     time.sleep(0.5)
@@ -210,7 +224,7 @@ def inference_test_images():
             break
 
         if k == ord('s'):
-            save_images(left_main_boxes, right_main_boxes, left_img, right_img)
+            save_images(left_main_boxes, right_main_boxes, left_img, right_img, )
 
 
 def getDevicesList():
@@ -241,13 +255,13 @@ def inference_video():
     cap_AUTOFOCUS = 0
     cap_FOCUS = 0
 
-    right_cam.set(cv2.CAP_PROP_BRIGHTNESS, 10)
+    right_cam.set(cv2.CAP_PROP_BRIGHTNESS, 0)
     right_cam.set(cv2.CAP_PROP_FOURCC, MJPG_CODEC)
     right_cam.set(cv2.CAP_PROP_FRAME_WIDTH, frame_width)
     right_cam.set(cv2.CAP_PROP_FRAME_HEIGHT, frame_height)
     right_cam.set(cv2.CAP_PROP_AUTOFOCUS, cap_AUTOFOCUS)
 
-    left_cam.set(cv2.CAP_PROP_BRIGHTNESS, 10)
+    left_cam.set(cv2.CAP_PROP_BRIGHTNESS, 0)
     left_cam.set(cv2.CAP_PROP_FOURCC, MJPG_CODEC)
     left_cam.set(cv2.CAP_PROP_FRAME_WIDTH, frame_width)
     left_cam.set(cv2.CAP_PROP_FRAME_HEIGHT, frame_height)
@@ -256,6 +270,7 @@ def inference_video():
 
     folder = store_name.split('_')[0]
     device_id = os.listdir(f'./inference/test_sets/{folder}/')
+    print(device_id)
 
     if len(device_id) > 1:
         print(device_id)
@@ -309,7 +324,7 @@ def inference_video():
                 right_show = cv2.rectangle(right_show, (xmin, ymin), (xmax, ymax), (255, 0, 0), 3)
             for (xmin, ymin, xmax, ymax) in right_em_boxes:
                 right_show = cv2.rectangle(right_show, (xmin, ymin), (xmax, ymax), (0, 255, 0), 3)
-            right_show = cv2.resize(right_show, (960, 960))
+            right_show = cv2.resize(right_show, (960, 600))
 
         if left_cam:
             left_show = left_frame.copy()
@@ -317,7 +332,7 @@ def inference_video():
                 left_show = cv2.rectangle(left_show, (xmin, ymin), (xmax, ymax), (255, 0, 0), 3)
             for (xmin, ymin, xmax, ymax) in left_em_boxes:
                 left_show = cv2.rectangle(left_show, (xmin, ymin), (xmax, ymax), (0, 255, 0), 3)
-            left_show = cv2.resize(left_show, (960, 960))
+            left_show = cv2.resize(left_show, (960, 600))
 
         concat_frame = np.concatenate((left_show, right_show), axis=1)
         cv2.imshow("LEFT FRAME / RIGHT FRAME", concat_frame)
@@ -341,7 +356,7 @@ def inference_video():
                 floor = len(floor_list) - 1
 
         elif k == ord('s'):
-            save_images(left_main_boxes, right_main_boxes, left_frame, right_frame)
+            save_images(left_main_boxes, right_main_boxes, left_frame, right_frame, inf_result)
 
 
 if __name__ == "__main__":

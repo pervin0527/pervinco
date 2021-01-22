@@ -1,54 +1,85 @@
-import tensorflow as tf
-import glob
-from tensorflow import keras
+import os, cv2, argparse, time, pathlib
 import numpy as np
-import cv2
-import os
+import tensorflow as tf
+import pandas as pd
 
-model_path = '/data/backup/pervinco_2020/model/cat_dog_mask/2020.11.13_12:07_tf2/5_cat_dog_mask.h5'
-
-dataset_name = model_path.split('/')[-3]
-test_img_path = '/data/backup/pervinco_2020/Auged_datasets/' + dataset_name + '/test/*.jpg'
-class_path = '/data/backup/pervinco_2020/datasets/' + dataset_name
-
+# GPU setup
 gpus = tf.config.experimental.list_physical_devices('GPU')
-if gpus:
-  try:
-    tf.config.experimental.set_virtual_device_configuration(gpus[0], [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=6000)])
-  except RuntimeError as e:
-    print(e)
+if len(gpus) > 1:
+    try:
+        print("ActivateMulti GPU")
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+        strategy = tf.distribute.MirroredStrategy(cross_device_ops=tf.distribute.HierarchicalCopyAllReduce())
+    except RuntimeError as e:
+        print(e)
+
+else:
+    try:
+        print("Activate Sigle GPU")
+        tf.config.experimental.set_memory_growth(gpus[0], True)
+        strategy = tf.distribute.experimental.CentralStorageStrategy()
+    except RuntimeError as e:
+        print(e)
 
 
-model = tf.keras.models.load_model(model_path)
-model.summary()
+def read_images(path):
+    test_path = pathlib.Path(path)
+    test_path = list(test_path.glob('*'))
+    test_images = [str(path) for path in test_path]
 
-CLASS_NAMES = sorted(os.listdir(class_path))
-print(CLASS_NAMES)
-print("Num of Classes", len(CLASS_NAMES))
+    return test_images
 
-test_imgs = sorted(glob.glob(test_img_path))
-print("Num of Test Image : ", len(test_imgs))
 
-for img in test_imgs:
-    file_name = img.split('/')[-1]
-    original_image = cv2.imread(img)
-    image = cv2.resize(original_image, (224, 224))
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    image = np.expand_dims(image, axis=0)
-    image = tf.keras.applications.efficientnet.preprocess_input(image)
+def preprocess_images(images):
+    images = tf.io.read_file(images)
+    images = tf.image.decode_jpeg(images, channels=3)
+    images = tf.image.resize(images, (IMG_SIZE, IMG_SIZE))
+    images = tf.keras.applications.efficientnet.preprocess_input(images)
+
+    return images
+
+
+def get_test_dataset(images):
+    testset = tf.data.Dataset.from_tensor_slices(images)
+    testset = testset.map(preprocess_images, num_parallel_calls=AUTOTUNE)
+    testset = testset.batch(BATCH_SIZE)
+    testset = testset.prefetch(AUTOTUNE)
+
+    return testset
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="testset classification")
+    parser.add_argument('--testset_path', type=str)
+    parser.add_argument('--model_path', type=str)
+    args = parser.parse_args()
+
+    model = tf.keras.models.load_model(args.model_path)
+    test_images = read_images(args.testset_path)
+    label_path = args.model_path.split('/')[:-1]
+    label_path = '/'.join(label_path)
+    label_file = pd.read_csv(f'{label_path}/main_labels.txt', sep=' ', index_col=False, header=None)
+
+    CLASSES = sorted(label_file[0].tolist())
+    IMG_SIZE = 224
+    AUTOTUNE = tf.data.experimental.AUTOTUNE
+    BATCH_SIZE = len(test_images)
+
+    testset = get_test_dataset(test_images)
     
+    predictions = model.predict(testset)
+    os.system('clear')
+    for pred, file_name in zip(predictions, test_images):
+        pred = [(idx, score) for idx, score in enumerate(pred)]
+        
+        score_board = []
+        for _ in range(2):
+            tmp = max(pred, key=lambda x : x[1])
+            pred.pop(tmp[0])
 
-    predictions = model.predict(image, steps=1)
-    index = np.argmax(predictions[0])
-    name = str(CLASS_NAMES[index])
-    score = str(int(predictions[0][index] * 100)) + '%'
+            label = CLASSES[tmp[0]]
+            score = format(tmp[1], ".2f")
+            score_board.append((label, score))
 
-    print(file_name, name, score)
-
-    result_image = cv2.putText(original_image, name + ' : ' + str(score), org=(50,50), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(0, 255, 0), thickness=2)
-    result_image = cv2.resize(result_image, (512, 512))
-    cv2.imshow('result', result_image)
-    cv2.waitKey(0)
-    # cv2.imwrite('/data/backup/pervinco_2020/Auged_datasets/mask_classification/test/result/result_' + file_name, result_image)
-
-    
+        print(file_name, score_board)
