@@ -77,10 +77,10 @@ def overlay(fg_list):
 
                 bg_image[y : y + fg_height, x : x + fg_width] = (1.0 - mask) * bg_image[y : y + fg_height, x : x + fg_width] + mask * overlay_image
                 
-                if not os.path.isdir(f"{OUTPUT_PATH}/{fg_label}"):
-                    os.makedirs(f"{OUTPUT_PATH}/{fg_label}")
+                # if not os.path.isdir(f"{OUTPUT_PATH}/{fg_label}"):
+                    # os.makedirs(f"{OUTPUT_PATH}/{fg_label}")
+                # cv2.imwrite(f"{OUTPUT_PATH}/{fg_label}/overlay_{idx}_{time.time()}.jpg", bg_image)
 
-                cv2.imwrite(f"{OUTPUT_PATH}/{fg_label}/overlay_{idx}_{time.time()}.jpg", bg_image)
                 cv2.imshow("test", bg_image)
                 cv2.waitKey(0)
 
@@ -89,8 +89,8 @@ def overlay(fg_list):
 
 if __name__ == "__main__":
     IMG_SIZE = 224
-    fg_path = "/data/backup/pervinco_2020/datasets/CU_5"
-    bg_path = "/data/backup/pervinco_2020/datasets/IDT_snack"
+    fg_path = "/data/backup/pervinco_2020/datasets/test_bev"
+    bg_path = "/data/backup/pervinco_2020/datasets/test_snack"
     OUTPUT_PATH = "/data/backup/pervinco_2020/test_code/test_output"
 
     fg_list = get_foreground(fg_path)

@@ -26,7 +26,7 @@ else:
 def read_images(path):
     test_path = pathlib.Path(path)
     test_path = list(test_path.glob('*'))
-    test_images = [str(path) for path in test_path]
+    test_images = sorted([str(path) for path in test_path])
 
     return test_images
 

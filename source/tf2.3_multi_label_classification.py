@@ -86,21 +86,6 @@ ds = make_tf_dataset(images, labels)
 ds = ds.shuffle(buffer_size=1000)
 ds = ds.repeat().batch(32)
 
-# for i in ds.take(1):
-#     print(i)
-
-# data_generator = ImageDataGenerator(preprocessing_function=keras.applications.xception.preprocess_input)
-# train_generator = data_generator.flow_from_dataframe(dataframe = training_set,
-#                                                     directory=img_dir,
-#                                                     x_col="Filenames",
-#                                                     y_col="labels",
-#                                                     class_mode="categorical",
-#                                                     classes=['desert', 'sunset', 'trees', 'mountains', 'sea'],
-#                                                     target_size=(224,224),
-#                                                     batch_size=3)
-
-# print(next(train_generator))
-
 base_model = keras.applications.xception.Xception(input_shape=(224, 224, 3),
                                                   weights="imagenet",
                                                   include_top=False)
