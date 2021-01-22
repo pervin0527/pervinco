@@ -95,8 +95,8 @@
       </table>
 
    - [Blog Post](https://www.notion.so/pervin0527/Basic-Image-Classification-using-EfficientNet-8ac30bbd2bc84d4fb494740b5c7c99c6)
-   - [Source Code - Training EfficientNet tf2.1](https://github.com/pervin0527/pervinco/blob/master/source/tf2.3_EfficientNet_ver1.py)
-   - [Source Code - Training EfficientNet tf2.3](https://github.com/pervin0527/pervinco/blob/master/source/tf2.3_EfficientNet.py)
+   - [Source Code - Normal Training EfficientNet](https://github.com/pervin0527/pervinco/blob/master/source/tf2.3_EfficientNet_ver1.py)
+   - [Source Code - Training with Augmentation(include CutMix, MixUp) EfficientNet tf2.3](https://github.com/pervin0527/pervinco/blob/master/source/tf2.3_EfficientNet.py)
       
          python3 tf2.3_EfficientNet_ver2.py --input_dataset=/path/ # input dataset path
                                             --visualize=True # tf.data visualize imshow
