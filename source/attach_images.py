@@ -41,8 +41,10 @@ def overlay(fg_list):
             idx = 0
             RAND_SIZE = randrange(100, 130)
             transform = A.Resize(IMG_SIZE-30, RAND_SIZE)
+            # x = randrange(0, 120)
+            # y = randrange(50, 70)
             x = randrange(0, 120)
-            y = randrange(50, 70)
+            y = randrange(0, 50)
 
             fg_image = foreground[i]
             fg_label = fg_image.split('/')[-2]
