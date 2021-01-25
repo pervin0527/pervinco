@@ -230,6 +230,6 @@ if __name__ == "__main__":
                         validation_steps=VALID_STEP_PER_EPOCH)
 
     model.save(f'{SAVED_PATH}/{LOG_TIME}/main_model.h5')
-    model.save(f'{SAVED_PATH}/{LOG_TIME}/{DATASET_NAME}/saved_model.pb', save_format='tf')
+    model.save(f'{SAVED_PATH}/{LOG_TIME}/saved_model.pb', save_format='tf')
 
     display_training_curves(history)
