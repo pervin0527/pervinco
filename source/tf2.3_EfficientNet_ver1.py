@@ -170,8 +170,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     dataset = args.input_dataset
-    DATASET_NAME = dataset.split('/')[-3]
-    DATE = dataset.split('/')[-2]
+    DATASET_NAME = dataset.split('/')[-2]
+    DATE = dataset.split('/')[-1]
     TRAIN_PATH = f'/data/backup/pervinco_2020/Auged_datasets/{DATASET_NAME}/{DATE}/train'
     VALID_PATH = f'/data/backup/pervinco_2020/Auged_datasets/{DATASET_NAME}/{DATE}/valid'
 
