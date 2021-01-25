@@ -28,14 +28,6 @@ else:
         print(e)
 
 
-# Load data & Set hyper-parameters
-AUTO = tf.data.experimental.AUTOTUNE
-SAMPLE_LEN = 100
-EPOCHS = 1000
-BATCH_SIZE = 32 * strategy.num_replicas_in_sync
-IMG_SIZE = 224
-
-
 def preprocess_image(images, label=None):
     image = tf.io.read_file(images)
     image = tf.image.decode_jpeg(image, channels=3)
@@ -60,10 +52,10 @@ def make_tf_dataset(ds_path, is_train):
         random.shuffle(images)
 
     labels = sorted(item.name for item in ds_path.glob('*/') if item.is_dir())
-    num_labels = len(labels)
+    classes = labels
     labels = dict((name, index) for index, name in enumerate(labels))
     labels = [labels[pathlib.Path(path).parent.name] for path in images]
-    labels = tf.keras.utils.to_categorical(labels, num_classes=num_labels, dtype='float32')
+    labels = tf.keras.utils.to_categorical(labels, num_classes=len(classes), dtype='float32')
 
     if is_train:
         dataset = (tf.data.Dataset
@@ -84,7 +76,7 @@ def make_tf_dataset(ds_path, is_train):
                    .prefetch(AUTO)
         )
 
-    return dataset, total_images, num_labels
+    return dataset, total_images, classes
 
 
 def tf_data_visualize(dataset):
@@ -159,14 +151,14 @@ def str2bool(v):
 
 def get_model():
     with strategy.scope():
-        base_model = tf.keras.applications.EfficientNetB3(input_shape=(IMG_SIZE, IMG_SIZE, 3),
+        base_model = tf.keras.applications.EfficientNetB1(input_shape=(IMG_SIZE, IMG_SIZE, 3),
                                     weights="imagenet", # noisy-student
                                     include_top=False)
         for layer in base_model.layers:
             layer.trainable = True
             
         avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
-        output = tf.keras.layers.Dense(train_labels, activation="softmax")(avg)
+        output = tf.keras.layers.Dense(len(train_classes), activation="softmax")(avg)
         model = tf.keras.Model(inputs=base_model.input, outputs=output)
 
     model.compile(optimizer='adam', loss = 'categorical_crossentropy', metrics = ['categorical_accuracy'])
@@ -183,13 +175,23 @@ if __name__ == "__main__":
     dataset = args.input_dataset
     DATASET_NAME = dataset.split('/')[-3]
     DATE = dataset.split('/')[-2]
-    TRAIN_PATH = f'/data/tf_workspace/Auged_datasets/{DATASET_NAME}/{DATE}/train'
-    VALID_PATH = f'/data/tf_workspace/Auged_datasets/{DATASET_NAME}/{DATE}/valid'
+    TRAIN_PATH = f'/data/backup/pervinco_2020/Auged_datasets/{DATASET_NAME}/{DATE}/train'
+    VALID_PATH = f'/data/backup/pervinco_2020/Auged_datasets/{DATASET_NAME}/{DATE}/valid'
 
-    train_dataset, train_total, train_labels = make_tf_dataset(TRAIN_PATH, True)
-    valid_dataset, valid_total, valid_labels = make_tf_dataset(VALID_PATH, False)
+    # Load data & Set hyper-parameters
+    AUTO = tf.data.experimental.AUTOTUNE
+    SAMPLE_LEN = 100
+    EPOCHS = 1000
+    BATCH_SIZE = 32 * strategy.num_replicas_in_sync
+    IMG_SIZE = 224
 
-    print(train_labels, valid_labels)
+    train_dataset, train_total, train_classes = make_tf_dataset(TRAIN_PATH, True)
+    valid_dataset, valid_total, valid_classes = make_tf_dataset(VALID_PATH, False)
+
+    TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(train_total/ BATCH_SIZE).numpy())
+    VALID_STEP_PER_EPOCH = int(tf.math.ceil(valid_total / BATCH_SIZE).numpy())
+
+    print(len(train_classes), len(valid_classes))
 
     if args.visualize == True:
         for i in range(3):
@@ -201,22 +203,25 @@ if __name__ == "__main__":
     lr_schedule = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1)
 
     # Checkpoint callback setup
-    SAVED_PATH = f'/data/tf_workspace/model/{DATASET_NAME}'
+    SAVED_PATH = f'/data/backup/pervinco_2020/model/{DATASET_NAME}'
     LOG_TIME = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M")
     WEIGHT_FNAME = '{epoch:02d}-{val_categorical_accuracy:.2f}.hdf5'
     checkpoint_path = f'/{SAVED_PATH}/{LOG_TIME}/{WEIGHT_FNAME}'
 
     if not(os.path.isdir(f'/{SAVED_PATH}/{LOG_TIME}')):
         os.makedirs(f'/{SAVED_PATH}/{LOG_TIME}')
+        f = open(f'{SAVED_PATH}/{LOG_TIME}/main_label.txt', 'w')
+
+        for label in train_classes:
+            f.write(f'{label}\n')
+        
+        f.close()
 
     checkpointer = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
                                                       monitor='val_categorical_accuracy',
                                                       save_best_only=True,
                                                       mode='max')
     earlystopper = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
-
-    TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(train_total/ BATCH_SIZE).numpy())
-    VALID_STEP_PER_EPOCH = int(tf.math.ceil(valid_total / BATCH_SIZE).numpy())
 
     model = get_model()    
     history = model.fit(train_dataset,
@@ -228,5 +233,6 @@ if __name__ == "__main__":
                         validation_steps=VALID_STEP_PER_EPOCH)
 
     model.save(f'{SAVED_PATH}/{LOG_TIME}/{DATASET_NAME}.h5')
+    model.save(f'{SAVED_PATH}/{LOG_TIME}/{DATASET_NAME}.pb')
 
     display_training_curves(history)
