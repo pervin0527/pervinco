@@ -3,10 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
-
 from sklearn.model_selection import train_test_split
-from tqdm import tqdm
-tqdm.pandas()
 
 # GPU setup
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -232,7 +229,7 @@ if __name__ == "__main__":
                         validation_data=valid_dataset,
                         validation_steps=VALID_STEP_PER_EPOCH)
 
-    model.save(f'{SAVED_PATH}/{LOG_TIME}/{DATASET_NAME}.h5')
-    model.save(f'{SAVED_PATH}/{LOG_TIME}/{DATASET_NAME}.pb')
+    model.save(f'{SAVED_PATH}/{LOG_TIME}/main_model.h5')
+    model.save(f'{SAVED_PATH}/{LOG_TIME}/{DATASET_NAME}/saved_model.pb', save_format='tf')
 
     display_training_curves(history)
