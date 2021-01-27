@@ -134,10 +134,16 @@
    <p align="left"><img src="./docs/doc_imgs/mixup.png" width=70%></p>
    
    - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/tf2_EfficientNet_ver2.py)
+
+      augmentation(using albumentations) + cutmix + mixup
       
-         python3 tf2_Efficient_Net.py --input_dataset=/path/ --do_cutmix=True
+         python3 tf2_Efficient_Net_ver2.py --input_dataset=/path/ --do_cutmix=True
 
    - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/tf2_cut_mix_training.py)
+
+      cutmix + mixup
+      
+         python3 tf2_cut_mix_training.py
 
 ## 🚝[Object Detection](https://github.com/pervin0527/pervinco/blob/master/docs/Object_Detection.md)  
    ### 1. Tensorflow Object Detection API 소개 및 사용방법
