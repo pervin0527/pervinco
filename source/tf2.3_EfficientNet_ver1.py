@@ -171,9 +171,9 @@ if __name__ == "__main__":
 
     dataset = args.input_dataset
     DATASET_NAME = dataset.split('/')[-2]
-    DATE = dataset.split('/')[-1]
-    TRAIN_PATH = f'/data/backup/pervinco_2020/Auged_datasets/{DATASET_NAME}/{DATE}/train'
-    VALID_PATH = f'/data/backup/pervinco_2020/Auged_datasets/{DATASET_NAME}/{DATE}/valid'
+    TRAIN_PATH = f'{dataset}/train'
+    VALID_PATH = f'{dataset}/valid'
+    # print(TRAIN_PATH, VALID_PATH)
 
     # Load data & Set hyper-parameters
     AUTO = tf.data.experimental.AUTOTUNE
