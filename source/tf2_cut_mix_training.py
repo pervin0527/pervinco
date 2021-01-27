@@ -31,7 +31,7 @@ else:
 
 AUTO = tf.data.experimental.AUTOTUNE
 strategy = tf.distribute.experimental.CentralStorageStrategy()
-BATCH_SIZE = 4 * strategy.num_replicas_in_sync
+BATCH_SIZE = 16 * strategy.num_replicas_in_sync
 EPOCHS = 1000
 # IMAGE_SIZE = [380, 380]
 IMAGE_SIZE = [224, 224]
@@ -206,7 +206,7 @@ def build_lrfn(lr_start=0.00001, lr_max=0.00005,
 
 def get_model():
     with strategy.scope():
-        base_model = tf.keras.applications.EfficientNetB5(input_shape=(IMAGE_SIZE[0], IMAGE_SIZE[1], 3),
+        base_model = tf.keras.applications.EfficientNetB1(input_shape=(IMAGE_SIZE[0], IMAGE_SIZE[1], 3),
                                                           weights='imagenet',
                                                           include_top=False)
         base_model.trainable = True
@@ -316,8 +316,6 @@ if __name__ == "__main__":
         visualize(merged_element, 'merged')
         del merged_element
 
-
     histories, models = train_cross_validate(images, labels, folds=5)
-    
     for h, m in zip(histories, models):
         print(h, m)
