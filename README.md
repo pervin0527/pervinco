@@ -95,15 +95,15 @@
       </table>
 
    - [Blog Post](https://www.notion.so/pervin0527/Basic-Image-Classification-using-EfficientNet-8ac30bbd2bc84d4fb494740b5c7c99c6)
-   - [Source Code - Normal Training EfficientNet](https://github.com/pervin0527/pervinco/blob/master/source/tf2.3_EfficientNet_ver1.py)
-   - [Source Code - Training with Augmentation(include CutMix, MixUp) EfficientNet tf2.3](https://github.com/pervin0527/pervinco/blob/master/source/tf2.3_EfficientNet_ver2.py)
+   - [Source Code - Normal Training EfficientNet](https://github.com/pervin0527/pervinco/blob/master/source/tf2_EfficientNet_ver1.py)
+   - [Source Code - Training with Augmentation(include CutMix, MixUp) EfficientNet tf2](https://github.com/pervin0527/pervinco/blob/master/source/tf2_EfficientNet_ver2.py)
       
-         python3 tf2.3_EfficientNet_ver2.py --input_dataset=/path/ # input dataset path
+         python3 tf2_EfficientNet_ver2.py --input_dataset=/path/ # input dataset path
                                             --visualize=True # tf.data visualize imshow
                                             --do_cutmix=True # apply cutmix & mixup
 
-   - [Blog Post - Accuracy Test](https://github.com/pervin0527/pervinco/blob/master/source/tf2.3_model_test.py) - Test data can be evaluated faster in the form of tf.data.
-   - [Source Code - Multi GPU Training](https://github.com/pervin0527/pervinco/blob/master/source/tf2.3_Multi_gpu_training.py)
+   - [Blog Post - Accuracy Test](https://github.com/pervin0527/pervinco/blob/master/source/tf2_model_test.py) - Test data can be evaluated faster in the form of tf.data.
+   - [Source Code - Multi GPU Training](https://github.com/pervin0527/pervinco/blob/master/source/tf2_Multi_gpu_training.py)
 
    ### 3. Multi Label Image Classification
 
@@ -119,8 +119,8 @@
    </table>
 
    - [Blog Post](https://www.notion.so/pervin0527/Multi-label-Classification-7a69efb0281c46cf80d2fe24e6a0f4b2)
-   - [Source Code - training + tf.data](https://github.com/pervin0527/pervinco/blob/master/source/tf2.3_multi_label_classification.py)
-   - [Source Code - Accuracy Test](https://github.com/pervin0527/pervinco/blob/master/source/tf2.3_multi_label_predict.py)
+   - [Source Code - training + tf.data](https://github.com/pervin0527/pervinco/blob/master/source/tf2_multi_label_classification.py)
+   - [Source Code - Accuracy Test](https://github.com/pervin0527/pervinco/blob/master/source/tf2_multi_label_predict.py)
 
 
    ### 4. K-Fold Cross Validation & Ensemble
@@ -133,11 +133,11 @@
    <p align="left"><img src="./docs/doc_imgs/cutmix.png" width=70%></p>
    <p align="left"><img src="./docs/doc_imgs/mixup.png" width=70%></p>
    
-   - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/tf2.3_EfficientNet_ver2.py)
+   - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/tf2_EfficientNet_ver2.py)
       
-         python3 tf2.3_Efficient_Net.py --input_dataset=/path/ --do_cutmix=True
+         python3 tf2_Efficient_Net.py --input_dataset=/path/ --do_cutmix=True
 
-   - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/tf2.3_cut_mix_training.py)
+   - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/tf2_cut_mix_training.py)
 
 ## 🚝[Object Detection](https://github.com/pervin0527/pervinco/blob/master/docs/Object_Detection.md)  
    ### 1. Tensorflow Object Detection API 소개 및 사용방법
