@@ -25,8 +25,10 @@ def cutmix(image, label, PROBABILITY = 1.0):
     
     imgs = []; labs = []
     for j in range(BATCH_SIZE):
+        print("#########################################################################")
         P = tf.cast(tf.random.uniform([], 0, 1) <= PROBABILITY, tf.int32) # 0 ~ 1 사이 난수 생성후, PROB보다 이하면 1, 초과면 0
         k = tf.cast(tf.random.uniform([], 0, BATCH_SIZE), tf.int32) # BATCH_SIZE 보다 작은 난수 생성.
+        print(label[j], label[k])
         x = tf.cast(tf.random.uniform([], 0, DIM), tf.int32) # 0 ~ IMAGE_SIZE로 난수 생성
         y = tf.cast(tf.random.uniform([], 0, DIM), tf.int32)
         b = tf.random.uniform([], 0, 1) # 0 ~ 1사이 난수 생성.
@@ -46,26 +48,18 @@ def cutmix(image, label, PROBABILITY = 1.0):
         three = image[j, ya : yb, xb : DIM, :]
         middle = tf.concat([one, two, three], axis=1)
         img = tf.concat([image[j, 0 : ya, : , :], middle, image[j, yb : DIM, :, :]], axis=0)
-        imgs.append(img)
         
         a = tf.cast(WIDTH * WIDTH / DIM / DIM, tf.float32)
-        if len(label.shape)==1:
-            lab1 = tf.one_hot(label[j], CLASSES)
-            lab2 = tf.one_hot(label[k], CLASSES)
-        else:
-            lab1 = label[j,]
-            lab2 = label[k,]
-        labs.append((1 - a) * lab1 + a * lab2)
+        print(a)
+        
+        lab1 = tf.one_hot(label[j], CLASSES)
+        lab2 = tf.one_hot(label[k], CLASSES)
+        print(lab1, lab2)
 
-        result = np.uint8(img)
-        cv2.imshow('test', result)
+        print((1 - a) * lab1 + a * lab2)
+        cv2.imshow('result', np.uint8(img))
         cv2.waitKey(0)
-        break
-            
-    
-    # image2 = tf.reshape(tf.stack(imgs), (BATCH_SIZE, DIM, DIM, 3))
-    # label2 = tf.reshape(tf.stack(labs), (BATCH_SIZE, CLASSES))
-    # return image2, label2
+        # break
 
 
 def decode_image(image_data):
@@ -98,7 +92,7 @@ def images_to_arr(images, labels):
 
 
 if __name__ == "__main__":
-    BATCH_SIZE = 6
+    BATCH_SIZE = 16
     IMAGE_SIZE = [224, 224]
     AUTO = tf.data.experimental.AUTOTUNE
     DATASET_PATH = '/data/backup/pervinco/datasets/test'

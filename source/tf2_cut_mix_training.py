@@ -293,7 +293,7 @@ if __name__ == "__main__":
 
     DATASET_PATH = args.input_dataset
     DATASET_NAME = DATASET_PATH.split('/')[-1]
-    SAVED_PATH = f'/data/tf_workspace/model/{DATASET_NAME}'
+    SAVED_PATH = f'/data/backup/pervinco/model/{DATASET_NAME}'
     LOG_TIME = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M")
 
     images, labels, CLASSES = basic_processing(DATASET_PATH, True)
