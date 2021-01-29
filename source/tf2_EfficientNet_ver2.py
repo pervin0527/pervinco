@@ -335,14 +335,14 @@ if __name__ == "__main__":
     lr_schedule = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1)
 
     # Checkpoint callback setup
-    SAVED_PATH = f'/data/backup/pervinco_2020/model/{DATASET_NAME}'
+    SAVED_PATH = f'/data/backup/pervinco/model/{DATASET_NAME}'
     LOG_TIME = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M")
     WEIGHT_FNAME = '{epoch:02d}-{val_categorical_accuracy:.2f}.hdf5'
     checkpoint_path = f'/{SAVED_PATH}/{LOG_TIME}/{WEIGHT_FNAME}'
 
     if not(os.path.isdir(f'/{SAVED_PATH}/{LOG_TIME}')):
         os.makedirs(f'/{SAVED_PATH}/{LOG_TIME}')
-        f = open(f'{SAVED_PATH}/{LOG_TIME}/main_label.txt', 'w')
+        f = open(f'{SAVED_PATH}/{LOG_TIME}/main_labels.txt', 'w')
 
         for label in CLASSES:
             f.write(f'{label}\n')

@@ -4,6 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
+import matplotlib
+matplotlib.use('Agg')
 
 # GPU setup
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -112,8 +114,8 @@ def build_lrfn(lr_start=0.00001, lr_max=0.00005,
 
 
 def display_training_curves(history):
-    acc = history.history['categorical_accuracy']
-    val_acc = history.history['val_categorical_accuracy']
+    acc = history.history['accuracy']
+    val_acc = history.history['val_accuracy']
 
     loss = history.history['loss']
     val_loss = history.history['val_loss']
@@ -148,17 +150,17 @@ def str2bool(v):
 
 def get_model():
     with strategy.scope():
-        base_model = tf.keras.applications.EfficientNetB1(input_shape=(IMG_SIZE, IMG_SIZE, 3),
+        base_model = tf.keras.applications.EfficientNetB5(input_shape=(IMG_SIZE, IMG_SIZE, 3),
                                     weights="imagenet", # noisy-student
                                     include_top=False)
         for layer in base_model.layers:
             layer.trainable = True
             
         avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
-        output = tf.keras.layers.Dense(len(train_classes), activation="softmax")(avg)
+        output = tf.keras.layers.Dense(len(train_classes), activation="sigmoid")(avg)
         model = tf.keras.Model(inputs=base_model.input, outputs=output)
 
-    model.compile(optimizer='adam', loss = 'categorical_crossentropy', metrics = ['categorical_accuracy'])
+    model.compile(optimizer='adam', loss = 'binary_crossentropy', metrics = ['accuracy'])
     model.summary()
     return model
 
@@ -171,9 +173,9 @@ if __name__ == "__main__":
 
     dataset = args.input_dataset
     DATASET_NAME = dataset.split('/')[-2]
-    TRAIN_PATH = f'{dataset}/train'
-    VALID_PATH = f'{dataset}/valid'
-    # print(TRAIN_PATH, VALID_PATH)
+    DATE = dataset.split('/')[-1]
+    TRAIN_PATH = f'/home/v100/tf_workspace/Auged_datasets/{DATASET_NAME}/{DATE}/train'
+    VALID_PATH = f'/home/v100/tf_workspace/Auged_datasets/{DATASET_NAME}/{DATE}/valid'
 
     # Load data & Set hyper-parameters
     AUTO = tf.data.experimental.AUTOTUNE
@@ -200,14 +202,14 @@ if __name__ == "__main__":
     lr_schedule = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1)
 
     # Checkpoint callback setup
-    SAVED_PATH = f'/data/backup/pervinco/model/{DATASET_NAME}'
+    SAVED_PATH = f'/home/v100/tf_workspace/model/{DATASET_NAME}'
     LOG_TIME = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M")
-    WEIGHT_FNAME = '{epoch:02d}-{val_categorical_accuracy:.2f}.hdf5'
+    WEIGHT_FNAME = '{epoch:02d}-{val_accuracy:.2f}.hdf5'
     checkpoint_path = f'/{SAVED_PATH}/{LOG_TIME}/{WEIGHT_FNAME}'
 
     if not(os.path.isdir(f'/{SAVED_PATH}/{LOG_TIME}')):
         os.makedirs(f'/{SAVED_PATH}/{LOG_TIME}')
-        f = open(f'{SAVED_PATH}/{LOG_TIME}/main_labels.txt', 'w')
+        f = open(f'{SAVED_PATH}/{LOG_TIME}/empty_labels.txt', 'w')
 
         for label in train_classes:
             f.write(f'{label}\n')
@@ -215,7 +217,7 @@ if __name__ == "__main__":
         f.close()
 
     checkpointer = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
-                                                      monitor='val_categorical_accuracy',
+                                                      monitor='val_accuracy',
                                                       save_best_only=True,
                                                       mode='max')
     earlystopper = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
@@ -229,7 +231,7 @@ if __name__ == "__main__":
                         validation_data=valid_dataset,
                         validation_steps=VALID_STEP_PER_EPOCH)
 
-    model.save(f'{SAVED_PATH}/{LOG_TIME}/main_model.h5')
+    model.save(f'{SAVED_PATH}/{LOG_TIME}/empty_model.h5')
     model.save(f'{SAVED_PATH}/{LOG_TIME}/pb_model', save_format='tf')
 
     display_training_curves(history)
