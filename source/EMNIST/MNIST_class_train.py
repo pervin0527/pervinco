@@ -11,7 +11,7 @@ from functools import partial
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if len(gpus) > 1:
     try:
-        print("ActivateMulti GPU")
+        print("Activate Multi GPU")
         for gpu in gpus:
             tf.config.experimental.set_memory_growth(gpu, True)
         strategy = tf.distribute.MirroredStrategy(cross_device_ops=tf.distribute.HierarchicalCopyAllReduce())
@@ -49,9 +49,10 @@ def onehot_encoding(image, label):
 
 
 def preprocess_image(images):
-    image = tf.keras.applications.efficientnet.preprocess_input(images)
+    images = tf.image.grayscale_to_rgb(images)
+    images = tf.keras.applications.efficientnet.preprocess_input(images)
 
-    return image
+    return images
 
 
 def cutmix(image, label, PROBABILITY = 1.0):
@@ -87,7 +88,7 @@ def cutmix(image, label, PROBABILITY = 1.0):
         labs.append((1 - a) * lab1 + a * lab2)
             
     
-    image2 = tf.reshape(tf.stack(imgs), (BATCH_SIZE, DIM, DIM, 1))
+    image2 = tf.reshape(tf.stack(imgs), (BATCH_SIZE, DIM, DIM, 3))
     label2 = tf.reshape(tf.stack(labs), (BATCH_SIZE, CLASSES))
     return image2, label2
 
@@ -113,7 +114,7 @@ def mixup(image, label, PROBABILITY = 1.0):
             lab2 = label[k,]
         labs.append((1 - a) * lab1 + a * lab2)
             
-    image2 = tf.reshape(tf.stack(imgs), (BATCH_SIZE, DIM, DIM, 1))
+    image2 = tf.reshape(tf.stack(imgs), (BATCH_SIZE, DIM, DIM, 3))
     label2 = tf.reshape(tf.stack(labs), (BATCH_SIZE, CLASSES))
     return image2, label2
 
@@ -132,7 +133,7 @@ def transform(image, label):
         imgs.append(P * image2[j,] + (1 - P) * image3[j,])
         labs.append(P * label2[j,] + (1 - P) * label3[j,])
     
-    image4 = tf.reshape(tf.stack(imgs), (BATCH_SIZE, DIM, DIM, 1))
+    image4 = tf.reshape(tf.stack(imgs), (BATCH_SIZE, DIM, DIM, 3))
     label4 = tf.reshape(tf.stack(labs), (BATCH_SIZE, CLASSES))
     return image4,label4
 
@@ -166,9 +167,9 @@ def get_valid_dataset(images, labels):
     images = tf.data.Dataset.from_tensor_slices(images)
     images = images.map(preprocess_image, num_parallel_calls=AUTOTUNE)
     labels = tf.data.Dataset.from_tensor_slices(labels)
+    labels = labels.map(onehot_encoding, num_parallel_calls=AUTOTUNE)
     
     dataset = tf.data.Dataset.zip((images, labels))
-    dataset = dataset.map(onehot_encoding, num_parallel_calls=AUTOTUNE)
     dataset = dataset.repeat()
     dataset = dataset.batch(BATCH_SIZE)
     dataset = dataset.prefetch(AUTOTUNE)
@@ -178,8 +179,8 @@ def get_valid_dataset(images, labels):
 
 def get_model():
     with strategy.scope():
-        base_model = tf.keras.applications.EfficientNetB5(input_shape=(IMG_SIZE, IMG_SIZE, 1),
-                                                          weights=None, # noisy-student
+        base_model = tf.keras.applications.EfficientNetB1(input_shape=(IMG_SIZE, IMG_SIZE, 1),
+                                                          weights="imagenet", # noisy-student
                                                           include_top=False)
         for layer in base_model.layers:
             layer.trainable = True
@@ -236,7 +237,8 @@ if __name__ == "__main__":
                                                                                       split=['train', 'test'],
                                                                                       batch_size=-1,
                                                                                       as_supervised=True,
-                                                                                      shuffle_files=True,))
+                                                                                    #   shuffle_files=True,
+                                                                                      ))
                                                         
     print(train_images.shape, train_labels.shape)
     print(valid_images.shape, valid_labels.shape)
