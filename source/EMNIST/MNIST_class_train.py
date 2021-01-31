@@ -42,10 +42,10 @@ def process_data(image, label):
     return aug_img, label
 
 
-def onehot_encoding(image, label):
+def onehot_encoding(label):
     label = tf.one_hot(label, CLASSES)
 
-    return image, label
+    return label
 
 
 def preprocess_image(images):
