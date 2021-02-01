@@ -42,122 +42,25 @@ def process_data(image, label):
     return aug_img, label
 
 
-def onehot_encoding(label):
-    label = tf.one_hot(label, CLASSES)
-
-    return label
-
-
-def preprocess_image(images):
+def data_preprocess(images, labels):
+    images = tf.image.resize(images, (IMG_SIZE, IMG_SIZE))
     images = tf.image.grayscale_to_rgb(images)
     images = tf.keras.applications.efficientnet.preprocess_input(images)
+    labels = tf.one_hot(labels, CLASSES)
 
-    return images
-
-
-def cutmix(image, label, PROBABILITY = 1.0):
-    DIM = IMAGE_SIZE[0]
-    
-    imgs = []; labs = []
-    for j in range(BATCH_SIZE):
-        P = tf.cast(tf.random.uniform([], 0, 1) <= PROBABILITY, tf.int32) # 0 ~ 1 사이 난수 생성후, PROB보다 이하면 1, 초과면 0
-        k = tf.cast(tf.random.uniform([], 0, BATCH_SIZE), tf.int32) # BATCH_SIZE 보다 작은 난수 생성.
-        x = tf.cast(tf.random.uniform([], 0, DIM), tf.int32) # 0 ~ IMAGE_SIZE로 난수 생성
-        y = tf.cast(tf.random.uniform([], 0, DIM), tf.int32)
-        b = tf.random.uniform([], 0, 1) # 0 ~ 1사이 난수 생성.
-        WIDTH = tf.cast(DIM * tf.math.sqrt(1 - b), tf.int32) * P
-        ya = tf.math.maximum(0, y - WIDTH // 2)
-        yb = tf.math.minimum(DIM, y + WIDTH // 2)
-        xa = tf.math.maximum(0, x - WIDTH // 2)
-        xb = tf.math.minimum(DIM, x + WIDTH // 2)
-        
-        one = image[j, ya : yb, 0 : xa, :]
-        two = image[k, ya : yb, xa : xb, :]
-        three = image[j, ya : yb, xb : DIM, :]
-        middle = tf.concat([one, two, three], axis=1)
-        img = tf.concat([image[j, 0 : ya, : , :], middle, image[j, yb : DIM, :, :]], axis=0)
-        imgs.append(img)
-        
-        a = tf.cast(WIDTH * WIDTH / DIM / DIM, tf.float32)
-        if len(label.shape)==1:
-            lab1 = tf.one_hot(label[j], CLASSES)
-            lab2 = tf.one_hot(label[k], CLASSES)
-        else:
-            lab1 = label[j,]
-            lab2 = label[k,]
-        labs.append((1 - a) * lab1 + a * lab2)
-            
-    
-    image2 = tf.reshape(tf.stack(imgs), (BATCH_SIZE, DIM, DIM, 3))
-    label2 = tf.reshape(tf.stack(labs), (BATCH_SIZE, CLASSES))
-    return image2, label2
+    return images, labels
 
 
-def mixup(image, label, PROBABILITY = 1.0):
-    DIM = IMAGE_SIZE[0]
-    
-    imgs = []; labs = []
-    for j in range(BATCH_SIZE):
-        P = tf.cast(tf.random.uniform([], 0, 1) <= PROBABILITY, tf.float32)
-        k = tf.cast(tf.random.uniform([], 0, BATCH_SIZE), tf.int32)
-        a = tf.random.uniform([],0 ,1) * P
-
-        img1 = image[j,]
-        img2 = image[k,]
-        imgs.append((1 - a) * img1 + a * img2)
-
-        if len(label.shape) == 1:
-            lab1 = tf.one_hot(label[j], CLASSES)
-            lab2 = tf.one_hot(label[k], CLASSES)
-        else:
-            lab1 = label[j,]
-            lab2 = label[k,]
-        labs.append((1 - a) * lab1 + a * lab2)
-            
-    image2 = tf.reshape(tf.stack(imgs), (BATCH_SIZE, DIM, DIM, 3))
-    label2 = tf.reshape(tf.stack(labs), (BATCH_SIZE, CLASSES))
-    return image2, label2
-
-
-def transform(image, label):
-    DIM = IMAGE_SIZE[0]
-    SWITCH = 0.5
-    CUTMIX_PROB = 0.666
-    MIXUP_PROB = 0.666
-    
-    image2, label2 = cutmix(image, label, CUTMIX_PROB)
-    image3, label3 = mixup(image, label, MIXUP_PROB)
-    imgs = []; labs = []
-    for j in range(BATCH_SIZE):
-        P = tf.cast(tf.random.uniform([], 0, 1) <= SWITCH, tf.float32)
-        imgs.append(P * image2[j,] + (1 - P) * image3[j,])
-        labs.append(P * label2[j,] + (1 - P) * label3[j,])
-    
-    image4 = tf.reshape(tf.stack(imgs), (BATCH_SIZE, DIM, DIM, 3))
-    label4 = tf.reshape(tf.stack(labs), (BATCH_SIZE, CLASSES))
-    return image4,label4
-
-
-def get_train_dataset(images, labels, do_cutmix):
+def get_train_dataset(images, labels):
     images = tf.data.Dataset.from_tensor_slices(images)
-    images = images.map(preprocess_image, num_parallel_calls=AUTOTUNE)
     labels = tf.data.Dataset.from_tensor_slices(labels)
 
     dataset = tf.data.Dataset.zip((images, labels))
-    dataset = dataset.repeat()
+    dataset = dataset.map(data_preprocess, num_parallel_calls=AUTOTUNE)
     dataset = dataset.map(partial(process_data), num_parallel_calls=AUTOTUNE)
-
-    if do_cutmix == False:
-        dataset = dataset.map(onehot_encoding, num_parallel_calls=AUTOTUNE)
-
-    else:
-        dataset = dataset.batch(BATCH_SIZE)
-        dataset = dataset.map(transform, num_parallel_calls=AUTOTUNE)
-        dataset = dataset.unbatch()
-        dataset = dataset.shuffle(512)
-
-
+    dataset = dataset.repeat()
     dataset = dataset.batch(BATCH_SIZE)
+    dataset = dataset.shuffle(512)
     dataset = dataset.prefetch(AUTOTUNE)
 
     return dataset
@@ -165,12 +68,10 @@ def get_train_dataset(images, labels, do_cutmix):
 
 def get_valid_dataset(images, labels):
     images = tf.data.Dataset.from_tensor_slices(images)
-    images = images.map(preprocess_image, num_parallel_calls=AUTOTUNE)
     labels = tf.data.Dataset.from_tensor_slices(labels)
-    labels = labels.map(onehot_encoding, num_parallel_calls=AUTOTUNE)
-    
+
     dataset = tf.data.Dataset.zip((images, labels))
-    dataset = dataset.repeat()
+    dataset = dataset.map(data_preprocess, num_parallel_calls=AUTOTUNE)
     dataset = dataset.batch(BATCH_SIZE)
     dataset = dataset.prefetch(AUTOTUNE)
 
@@ -179,21 +80,22 @@ def get_valid_dataset(images, labels):
 
 def get_model():
     with strategy.scope():
-        base_model = tf.keras.applications.EfficientNetB1(input_shape=(IMG_SIZE, IMG_SIZE, 1),
+        base_model = tf.keras.applications.EfficientNetB5(input_shape=(IMG_SIZE, IMG_SIZE, 3),
                                                           weights="imagenet", # noisy-student
                                                           include_top=False)
-        for layer in base_model.layers:
-            layer.trainable = True
-
-        avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
-        batch_norm = tf.keras.layers.BatchNormalization()(avg)
-        drop_out = tf.keras.layers.Dropout(0.2)(batch_norm)
-        output = tf.keras.layers.Dense(CLASSES, activation="softmax")(drop_out)
+        base_model.trainable = False
+        x = base_model.output
+        x = tf.keras.layers.Flatten()(x)
+        x = tf.keras.layers.Dense(1024, activation='relu')(x)
+        x = tf.keras.layers.Dropout(0.5)(x)
+        predictions = tf.keras.layers.Dense(CLASSES, activation='softmax')(x)
         
-        model = tf.keras.Model(inputs=base_model.input, outputs=output)
+        model = tf.keras.Model(inputs=base_model.input, outputs=predictions)
 
-    model.compile(optimizer='adam', loss = 'categorical_crossentropy', metrics = ['categorical_accuracy'])
+    # optimizer = tf.keras.optimizers.RMSprop(lr=0.0001, decay=1e-6)
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['categorical_accuracy'])
     model.summary()
+
     return model
 
 
@@ -225,13 +127,8 @@ if __name__ == "__main__":
     BATCH_SIZE = 32 * strategy.num_replicas_in_sync
     DATASET_NAME = 'mnist'
 
-    transforms = A.Compose([A.Resize(IMG_SIZE, IMG_SIZE, p=1),
-                            A.HorizontalFlip(p=0.3),
-                            A.VerticalFlip(p=0.3),
-                            A.Blur(p=0.3),])
+    transforms = A.Compose([A.RandomRotate90(p=1),])
 
-    # ds, info = tfds.load('emnist/byclass', with_info=True)
-    # print(info)
 
     (train_images, train_labels), (valid_images, valid_labels) = tfds.as_numpy(tfds.load('emnist/byclass',
                                                                                       split=['train', 'test'],
@@ -243,16 +140,10 @@ if __name__ == "__main__":
     print(train_images.shape, train_labels.shape)
     print(valid_images.shape, valid_labels.shape)
 
-    # rgb_batch = np.repeat(train_images[..., np.newaxis], 3, -1)
-    # print(rgb_batch.shape)
-
-    train_dataset = get_train_dataset(train_images, train_labels, True)
-    valid_dataset = get_valid_dataset(valid_images, valid_labels)
-
     lrfn = build_lrfn()
     lr_schedule = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1)
 
-    SAVED_PATH = f'/data/backup/pervinco/model/{DATASET_NAME}'
+    SAVED_PATH = f'/data/tf_workspace/model/{DATASET_NAME}'
     LOG_TIME = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M")
     WEIGHT_FNAME = '{epoch:02d}-{val_categorical_accuracy:.2f}.hdf5'
     checkpoint_path = f'/{SAVED_PATH}/{LOG_TIME}/{WEIGHT_FNAME}'
@@ -272,12 +163,12 @@ if __name__ == "__main__":
     VALID_STEP_PER_EPOCH = int(tf.math.ceil(valid_total / BATCH_SIZE).numpy())
 
     model = get_model()    
-    history = model.fit(train_dataset,
+    history = model.fit(get_train_dataset(train_images, train_labels),
                         epochs=EPOCHS,
                         callbacks=[lr_schedule, checkpointer, earlystopper],
                         steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
                         verbose=1,
-                        validation_data=valid_dataset,
+                        validation_data=get_valid_dataset(valid_images, valid_labels),
                         validation_steps=VALID_STEP_PER_EPOCH)
 
     model.save(f'{SAVED_PATH}/{LOG_TIME}/main_model.h5')
