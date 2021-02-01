@@ -38,27 +38,14 @@ def data_preprocess(images, labels):
     return images, labels
 
 
-def get_train_dataset(images, labels):
+def get_dataset(images, labels):
     images = tf.data.Dataset.from_tensor_slices(images)
     labels = tf.data.Dataset.from_tensor_slices(labels)
 
     dataset = tf.data.Dataset.zip((images, labels))
     dataset = dataset.map(data_preprocess, num_parallel_calls=AUTOTUNE)
     dataset = dataset.repeat()
-    dataset = dataset.shuffle(512)
-    dataset = dataset.batch(BATCH_SIZE)
-    dataset = dataset.prefetch(AUTOTUNE)
-
-    return dataset
-
-
-def get_valid_dataset(images, labels):
-    images = tf.data.Dataset.from_tensor_slices(images)
-    labels = tf.data.Dataset.from_tensor_slices(labels)
-
-    dataset = tf.data.Dataset.zip((images, labels))
-    dataset = dataset.map(data_preprocess, num_parallel_calls=AUTOTUNE)
-    dataset = dataset.repeat()
+    dataset = dataset.shuffle(2048)
     dataset = dataset.batch(BATCH_SIZE)
     dataset = dataset.prefetch(AUTOTUNE)
 
@@ -102,7 +89,7 @@ def build_lrfn(lr_start=0.00001, lr_max=0.00005,
 
 
 def train_cross_validate(images, labels, folds=5):
-    kfold = KFold(folds, shuffle=True, random_state=777)
+    kfold = KFold(n_splits=5, random_state=0, shuffle=True)
 
     for f, (train_index, valid_index) in enumerate(kfold.split(images, labels)):
         print('FOLD', f + 1)
@@ -119,7 +106,7 @@ def train_cross_validate(images, labels, folds=5):
         SAVED_PATH = f'/data/tf_workspace/model/{DATASET_NAME}'
         LOG_TIME = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M")
         WEIGHT_FNAME = '{epoch:02d}-{val_categorical_accuracy:.2f}.hdf5'
-        checkpoint_path = f'/{SAVED_PATH}/{LOG_TIME}/{folds+1}-{WEIGHT_FNAME}'
+        checkpoint_path = f'/{SAVED_PATH}/{LOG_TIME}/{f+1}-{WEIGHT_FNAME}'
 
         if not(os.path.isdir(f'/{SAVED_PATH}/{LOG_TIME}')):
             os.makedirs(f'/{SAVED_PATH}/{LOG_TIME}')
@@ -136,15 +123,15 @@ def train_cross_validate(images, labels, folds=5):
         VALID_STEP_PER_EPOCH = int(tf.math.ceil(valid_total / BATCH_SIZE).numpy())
 
         model = get_model()    
-        history = model.fit(get_train_dataset(train_images, train_labels),
+        history = model.fit(get_dataset(train_images, train_labels),
                             epochs=EPOCHS,
                             callbacks=[lr_schedule, checkpointer, earlystopper],
                             steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
                             verbose=1,
-                            validation_data=get_valid_dataset(valid_images, valid_labels),
+                            validation_data=get_dataset(valid_images, valid_labels),
                             validation_steps=VALID_STEP_PER_EPOCH)
 
-        model.save(f'{SAVED_PATH}/{LOG_TIME}/{folds+1}_model.h5')
+        model.save(f'{SAVED_PATH}/{LOG_TIME}/{f+1}_model.h5')
 
 
 if __name__ == "__main__":
