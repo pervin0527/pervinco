@@ -6,6 +6,7 @@ import tensorflow_datasets as tfds
 import albumentations as A
 from tqdm import tqdm
 from functools import partial
+from sklearn.model_selection import KFold
 
 # GPU setup
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -27,25 +28,11 @@ else:
         print(e)
 
 
-def aug_fn(image):
-    data = {"image":image}
-    aug_data = transforms(**data)
-    aug_img = aug_data["image"]
-    aug_img = tf.cast(aug_img, tf.float32)
-
-    return aug_img
-
-
-def process_data(image, label):
-    aug_img = tf.numpy_function(func=aug_fn, inp=[image], Tout=tf.float32)
-
-    return aug_img, label
-
-
 def data_preprocess(images, labels):
     images = tf.image.resize(images, (IMG_SIZE, IMG_SIZE))
     images = tf.image.grayscale_to_rgb(images)
-    images = tf.keras.applications.efficientnet.preprocess_input(images)
+    images = tf.cast(images, tf.float32) / 255.0
+    # images = tf.keras.applications.efficientnet.preprocess_input(images)
     labels = tf.one_hot(labels, CLASSES)
 
     return images, labels
@@ -57,10 +44,9 @@ def get_train_dataset(images, labels):
 
     dataset = tf.data.Dataset.zip((images, labels))
     dataset = dataset.map(data_preprocess, num_parallel_calls=AUTOTUNE)
-    dataset = dataset.map(partial(process_data), num_parallel_calls=AUTOTUNE)
     dataset = dataset.repeat()
-    dataset = dataset.batch(BATCH_SIZE)
     dataset = dataset.shuffle(512)
+    dataset = dataset.batch(BATCH_SIZE)
     dataset = dataset.prefetch(AUTOTUNE)
 
     return dataset
@@ -72,6 +58,7 @@ def get_valid_dataset(images, labels):
 
     dataset = tf.data.Dataset.zip((images, labels))
     dataset = dataset.map(data_preprocess, num_parallel_calls=AUTOTUNE)
+    dataset = dataset.repeat()
     dataset = dataset.batch(BATCH_SIZE)
     dataset = dataset.prefetch(AUTOTUNE)
 
@@ -83,17 +70,14 @@ def get_model():
         base_model = tf.keras.applications.EfficientNetB5(input_shape=(IMG_SIZE, IMG_SIZE, 3),
                                                           weights="imagenet", # noisy-student
                                                           include_top=False)
-        base_model.trainable = False
-        x = base_model.output
-        x = tf.keras.layers.Flatten()(x)
-        x = tf.keras.layers.Dense(1024, activation='relu')(x)
-        x = tf.keras.layers.Dropout(0.5)(x)
-        predictions = tf.keras.layers.Dense(CLASSES, activation='softmax')(x)
-        
-        model = tf.keras.Model(inputs=base_model.input, outputs=predictions)
+        for layer in base_model.layers:
+            layer.trainable = True
+            
+        avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
+        output = tf.keras.layers.Dense(CLASSES, activation="softmax")(avg)
+        model = tf.keras.Model(inputs=base_model.input, outputs=output)
 
-    # optimizer = tf.keras.optimizers.RMSprop(lr=0.0001, decay=1e-6)
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['categorical_accuracy'])
+    model.compile(optimizer='adam', loss = 'categorical_crossentropy', metrics = ['categorical_accuracy'])
     model.summary()
 
     return model
@@ -117,59 +101,69 @@ def build_lrfn(lr_start=0.00001, lr_max=0.00005,
     return lrfn
 
 
+def train_cross_validate(images, labels, folds=5):
+    kfold = KFold(folds, shuffle=True, random_state=777)
+
+    for f, (train_index, valid_index) in enumerate(kfold.split(images, labels)):
+        print('FOLD', f + 1)
+        # print(train_index, valid_index)
+        train_images, train_labels = images[train_index[0] : (train_index[-1] + 1)], labels[train_index[0] : (train_index[-1] + 1)]
+        valid_images, valid_labels = images[valid_index[0] : (valid_index[-1] + 1)], labels[valid_index[0] : (valid_index[-1] + 1)]
+
+        # print(train_images.shape, train_labels.shape)
+        # print(valid_images.shape, valid_labels.shape)
+
+        lrfn = build_lrfn()
+        lr_schedule = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1)
+
+        SAVED_PATH = f'/data/tf_workspace/model/{DATASET_NAME}'
+        LOG_TIME = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M")
+        WEIGHT_FNAME = '{epoch:02d}-{val_categorical_accuracy:.2f}.hdf5'
+        checkpoint_path = f'/{SAVED_PATH}/{LOG_TIME}/{folds+1}-{WEIGHT_FNAME}'
+
+        if not(os.path.isdir(f'/{SAVED_PATH}/{LOG_TIME}')):
+            os.makedirs(f'/{SAVED_PATH}/{LOG_TIME}')
+
+        checkpointer = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
+                                                        monitor='val_categorical_accuracy',
+                                                        save_best_only=True,
+                                                        mode='max')
+        earlystopper = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
+
+        train_total, valid_total = len(train_images), len(valid_images)
+        print(train_total, valid_total)
+        TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(train_total/ BATCH_SIZE).numpy())
+        VALID_STEP_PER_EPOCH = int(tf.math.ceil(valid_total / BATCH_SIZE).numpy())
+
+        model = get_model()    
+        history = model.fit(get_train_dataset(train_images, train_labels),
+                            epochs=EPOCHS,
+                            callbacks=[lr_schedule, checkpointer, earlystopper],
+                            steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
+                            verbose=1,
+                            validation_data=get_valid_dataset(valid_images, valid_labels),
+                            validation_steps=VALID_STEP_PER_EPOCH)
+
+        model.save(f'{SAVED_PATH}/{LOG_TIME}/{folds+1}_model.h5')
+
 
 if __name__ == "__main__":
     AUTOTUNE = tf.data.experimental.AUTOTUNE
-    IMG_SIZE = 56
+    IMG_SIZE = 32
     IMAGE_SIZE = [IMG_SIZE, IMG_SIZE]
     EPOCHS = 1000
-    CLASSES = 62
+    CLASSES = 26
     BATCH_SIZE = 32 * strategy.num_replicas_in_sync
     DATASET_NAME = 'mnist'
 
-    transforms = A.Compose([A.RandomRotate90(p=1),])
+    (images1, labels1), (images2, labels2) = tfds.as_numpy(tfds.load('emnist/letters', split=['train', 'test'], batch_size=-1, as_supervised=True,))
 
-
-    (train_images, train_labels), (valid_images, valid_labels) = tfds.as_numpy(tfds.load('emnist/byclass',
-                                                                                      split=['train', 'test'],
-                                                                                      batch_size=-1,
-                                                                                      as_supervised=True,
-                                                                                    #   shuffle_files=True,
-                                                                                      ))
+    print(images1.shape, labels1.shape)
+    print(images2.shape, labels2.shape)
                                                         
-    print(train_images.shape, train_labels.shape)
-    print(valid_images.shape, valid_labels.shape)
+    total_images = np.concatenate((images1, images2))
+    total_labels = np.concatenate((labels1, labels2))
 
-    lrfn = build_lrfn()
-    lr_schedule = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1)
+    print(total_images.shape, total_labels.shape)
 
-    SAVED_PATH = f'/data/tf_workspace/model/{DATASET_NAME}'
-    LOG_TIME = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M")
-    WEIGHT_FNAME = '{epoch:02d}-{val_categorical_accuracy:.2f}.hdf5'
-    checkpoint_path = f'/{SAVED_PATH}/{LOG_TIME}/{WEIGHT_FNAME}'
-
-    if not(os.path.isdir(f'/{SAVED_PATH}/{LOG_TIME}')):
-        os.makedirs(f'/{SAVED_PATH}/{LOG_TIME}')
-
-    checkpointer = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
-                                                      monitor='val_categorical_accuracy',
-                                                      save_best_only=True,
-                                                      mode='max')
-    earlystopper = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
-
-    train_total, valid_total = len(train_images), len(valid_images)
-    print(train_total, valid_total)
-    TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(train_total/ BATCH_SIZE).numpy())
-    VALID_STEP_PER_EPOCH = int(tf.math.ceil(valid_total / BATCH_SIZE).numpy())
-
-    model = get_model()    
-    history = model.fit(get_train_dataset(train_images, train_labels),
-                        epochs=EPOCHS,
-                        callbacks=[lr_schedule, checkpointer, earlystopper],
-                        steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
-                        verbose=1,
-                        validation_data=get_valid_dataset(valid_images, valid_labels),
-                        validation_steps=VALID_STEP_PER_EPOCH)
-
-    model.save(f'{SAVED_PATH}/{LOG_TIME}/main_model.h5')
-    model.save(f'{SAVED_PATH}/{LOG_TIME}/pb_model', save_format='tf')
+    train_cross_validate(total_images, total_labels)
