@@ -29,11 +29,11 @@ else:
 
 
 def data_preprocess(images, labels):
-    images = tf.image.resize(images, (IMG_SIZE, IMG_SIZE))
     images = tf.image.grayscale_to_rgb(images)
     images = tf.cast(images, tf.float32) / 255.0
-    # images = tf.keras.applications.efficientnet.preprocess_input(images)
-    labels = tf.one_hot(labels, CLASSES)
+    images = tf.image.resize(images, (IMG_SIZE, IMG_SIZE))
+    
+    labels = tf.one_hot(labels, len(CLASSES), dtype='float32')
 
     return images, labels
 
@@ -57,15 +57,14 @@ def get_model():
         base_model = tf.keras.applications.EfficientNetB5(input_shape=(IMG_SIZE, IMG_SIZE, 3),
                                                           weights="imagenet", # noisy-student
                                                           include_top=False)
-        for layer in base_model.layers:
-            layer.trainable = True
+        base_model.trainable = True
             
         avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
-        output = tf.keras.layers.Dense(CLASSES, activation="softmax")(avg)
+        output = tf.keras.layers.Dense(len(CLASSES), activation="softmax")(avg)
         model = tf.keras.Model(inputs=base_model.input, outputs=output)
 
     model.compile(optimizer='adam', loss = 'categorical_crossentropy', metrics = ['categorical_accuracy'])
-    model.summary()
+    # model.summary()
 
     return model
 
@@ -92,6 +91,7 @@ def train_cross_validate(images, labels, folds=5):
     kfold = KFold(n_splits=5, random_state=0, shuffle=True)
 
     for f, (train_index, valid_index) in enumerate(kfold.split(images, labels)):
+        print("##################################################################################################################")
         print('FOLD', f + 1)
         # print(train_index, valid_index)
         train_images, train_labels = images[train_index[0] : (train_index[-1] + 1)], labels[train_index[0] : (train_index[-1] + 1)]
@@ -103,14 +103,7 @@ def train_cross_validate(images, labels, folds=5):
         lrfn = build_lrfn()
         lr_schedule = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1)
 
-        SAVED_PATH = f'/data/tf_workspace/model/{DATASET_NAME}'
-        LOG_TIME = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M")
-        WEIGHT_FNAME = '{epoch:02d}-{val_categorical_accuracy:.2f}.hdf5'
         checkpoint_path = f'/{SAVED_PATH}/{LOG_TIME}/{f+1}-{WEIGHT_FNAME}'
-
-        if not(os.path.isdir(f'/{SAVED_PATH}/{LOG_TIME}')):
-            os.makedirs(f'/{SAVED_PATH}/{LOG_TIME}')
-
         checkpointer = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
                                                         monitor='val_categorical_accuracy',
                                                         save_best_only=True,
@@ -118,11 +111,14 @@ def train_cross_validate(images, labels, folds=5):
         earlystopper = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
 
         train_total, valid_total = len(train_images), len(valid_images)
-        print(train_total, valid_total)
         TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(train_total/ BATCH_SIZE).numpy())
         VALID_STEP_PER_EPOCH = int(tf.math.ceil(valid_total / BATCH_SIZE).numpy())
 
-        model = get_model()    
+        model = get_model()
+        
+        if f == 0:
+            model.summary()
+
         history = model.fit(get_dataset(train_images, train_labels),
                             epochs=EPOCHS,
                             callbacks=[lr_schedule, checkpointer, earlystopper],
@@ -139,18 +135,26 @@ if __name__ == "__main__":
     IMG_SIZE = 32
     IMAGE_SIZE = [IMG_SIZE, IMG_SIZE]
     EPOCHS = 1000
-    CLASSES = 26
-    BATCH_SIZE = 32 * strategy.num_replicas_in_sync
+    BATCH_SIZE = 128
     DATASET_NAME = 'mnist'
 
+    SAVED_PATH = f'/data/tf_workspace/model/{DATASET_NAME}'
+    LOG_TIME = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M")
+    WEIGHT_FNAME = '{epoch:02d}-{val_categorical_accuracy:.2f}.hdf5'
+
+    if not(os.path.isdir(f'/{SAVED_PATH}/{LOG_TIME}')):
+        os.makedirs(f'/{SAVED_PATH}/{LOG_TIME}')
+
+    # Load MNIST/Letters dataset
     (images1, labels1), (images2, labels2) = tfds.as_numpy(tfds.load('emnist/letters', split=['train', 'test'], batch_size=-1, as_supervised=True,))
 
-    print(images1.shape, labels1.shape)
-    print(images2.shape, labels2.shape)
-                                                        
+    # Merge train, valid
     total_images = np.concatenate((images1, images2))
     total_labels = np.concatenate((labels1, labels2))
-
     print(total_images.shape, total_labels.shape)
+
+    total_labels -= 1
+    CLASSES = np.unique(total_labels)
+    print(CLASSES)
 
     train_cross_validate(total_images, total_labels)
