@@ -7,6 +7,9 @@ import albumentations as A
 from tqdm import tqdm
 from functools import partial
 from sklearn.model_selection import KFold
+from matplotlib import pyplot as plt
+import matplotlib
+matplotlib.use('Agg')
 
 # GPU setup
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -30,7 +33,8 @@ else:
 
 def data_preprocess(images, labels):
     images = tf.image.grayscale_to_rgb(images)
-    images = tf.cast(images, tf.float32) / 255.0
+    # images = tf.cast(images, tf.float32) / 255.0
+    images = tf.keras.applications.resnet.preprocess_input(images)
     images = tf.image.resize(images, (IMG_SIZE, IMG_SIZE))
     
     labels = tf.one_hot(labels, len(CLASSES), dtype='float32')
@@ -57,15 +61,14 @@ def get_model():
         base_model = tf.keras.applications.EfficientNetB5(input_shape=(IMG_SIZE, IMG_SIZE, 3),
                                                           weights="imagenet", # noisy-student
                                                           include_top=False)
-        base_model.trainable = True
+        for layer in base_model.layers:
+            layer.trainable = True
             
         avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
         output = tf.keras.layers.Dense(len(CLASSES), activation="softmax")(avg)
         model = tf.keras.Model(inputs=base_model.input, outputs=output)
 
     model.compile(optimizer='adam', loss = 'categorical_crossentropy', metrics = ['categorical_accuracy'])
-    # model.summary()
-
     return model
 
 
@@ -85,6 +88,32 @@ def build_lrfn(lr_start=0.00001, lr_max=0.00005,
                                 - lr_sustain_epochs) + lr_min
         return lr
     return lrfn
+
+
+def display_training_curves(history, idx):
+    acc = history.history['categorical_accuracy']
+    val_acc = history.history['val_categorical_accuracy']
+
+    loss = history.history['loss']
+    val_loss = history.history['val_loss']
+
+    epochs_range = range(len(history.history['loss']))
+
+    plt.figure(figsize=(8, 8))
+    plt.subplot(1, 2, 1)
+    plt.plot(epochs_range, acc, label='Training Accuracy')
+    plt.plot(epochs_range, val_acc, label='Validation Accuracy')
+    plt.legend(loc='lower right')
+    plt.title('Training and Validation Accuracy')
+
+    plt.subplot(1, 2, 2)
+    plt.plot(epochs_range, loss, label='Training Loss')
+    plt.plot(epochs_range, val_loss, label='Validation Loss')
+    plt.legend(loc='upper right')
+    plt.title('Training and Validation Loss')
+    
+    plt.savefig(f'/{SAVED_PATH}/{LOG_TIME}/train_result_{idx+1}.png')
+    plt.show()
 
 
 def train_cross_validate(images, labels, folds=5):
@@ -121,13 +150,14 @@ def train_cross_validate(images, labels, folds=5):
 
         history = model.fit(get_dataset(train_images, train_labels),
                             epochs=EPOCHS,
-                            callbacks=[lr_schedule, checkpointer, earlystopper],
                             steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
                             verbose=1,
                             validation_data=get_dataset(valid_images, valid_labels),
-                            validation_steps=VALID_STEP_PER_EPOCH)
+                            validation_steps=VALID_STEP_PER_EPOCH,
+                            callbacks=[lr_schedule, checkpointer, earlystopper])
 
         model.save(f'{SAVED_PATH}/{LOG_TIME}/{f+1}_model.h5')
+        display_training_curves(history, f)
 
 
 if __name__ == "__main__":
@@ -138,7 +168,7 @@ if __name__ == "__main__":
     BATCH_SIZE = 128
     DATASET_NAME = 'mnist'
 
-    SAVED_PATH = f'/data/tf_workspace/model/{DATASET_NAME}'
+    SAVED_PATH = f'/home/v100/tf_workspace/model/{DATASET_NAME}'
     LOG_TIME = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M")
     WEIGHT_FNAME = '{epoch:02d}-{val_categorical_accuracy:.2f}.hdf5'
 
