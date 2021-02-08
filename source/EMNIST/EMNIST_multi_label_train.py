@@ -33,7 +33,7 @@ def read_dataset():
 
     images = []
     labels = []
-    image_dir = '/data/tf_workspace/datasets/dirty_mnist_2/dirty_mnist_2nd'
+    image_dir = '/home/v100/tf_workspace/datasets/dirty_mnist_2/dirty_mnist_2nd'
     for idx in tqdm(range(len(df))):
         file_name = str(df.iloc[idx, 0]).zfill(5)
         image = f'{image_dir}/{file_name}.png'
@@ -63,7 +63,8 @@ def process_data(image, label):
 def data_preprocess(images, labels):
     images = tf.io.read_file(images)
     images = tf.image.decode_png(images, channels=3)
-    images = tf.keras.applications.efficientnet.preprocess_input(images)
+    images = tf.cast(images, tf.float32) / 255.0
+    # images = tf.keras.applications.efficientnet.preprocess_input(images)
     
     return images, labels
 
@@ -178,12 +179,13 @@ if __name__ == "__main__":
     IMG_SIZE = 256
     IMAGE_SIZE = [IMG_SIZE, IMG_SIZE]
     AUTOTUNE = tf.data.experimental.AUTOTUNE
-    BATCH_SIZE = 8 * strategy.num_replicas_in_sync
+    BATCH_SIZE = 32
     DATASET_NAME = 'dirty_mnist'
-    SAVED_PATH = f'/data/tf_workspace/model/{DATASET_NAME}'
+    SAVED_PATH = f'/home/v100/tf_workspace/model/{DATASET_NAME}'
     LOG_TIME = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M")
 
     transforms = A.Compose([
+                    # A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225), p=1),
                     A.MedianBlur(blur_limit=3, always_apply=True, p=1),
                     A.HorizontalFlip(p=0.4),
                     A.VerticalFlip(p=0.3),
@@ -192,7 +194,7 @@ if __name__ == "__main__":
     if not(os.path.isdir(f'/{SAVED_PATH}/{LOG_TIME}')):
         os.makedirs(f'/{SAVED_PATH}/{LOG_TIME}')
 
-    df = pd.read_csv('/data/tf_workspace/datasets/dirty_mnist_2/dirty_mnist_2nd_answer.csv')
+    df = pd.read_csv('/home/v100/tf_workspace/datasets/dirty_mnist_2/dirty_mnist_2nd_answer.csv')
     total_images, total_labels, CLASSES = read_dataset()
     histories, models = train_cross_validate(total_images, total_labels, folds=5)   
 
