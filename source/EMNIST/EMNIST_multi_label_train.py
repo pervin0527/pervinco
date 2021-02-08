@@ -54,7 +54,7 @@ def aug_fn(image):
     return aug_img
 
 
-def process_data(image, label):
+def augmentation(image, label):
     aug_img = tf.numpy_function(func=aug_fn, inp=[image], Tout=tf.float32)
 
     return aug_img, label
@@ -63,8 +63,8 @@ def process_data(image, label):
 def data_preprocess(images, labels):
     images = tf.io.read_file(images)
     images = tf.image.decode_png(images, channels=3)
-    images = tf.cast(images, tf.float32) / 255.0
-    # images = tf.keras.applications.efficientnet.preprocess_input(images)
+    # images = tf.cast(images, tf.float32) / 255.0
+    images = tf.keras.applications.efficientnet.preprocess_input(images)
     
     return images, labels
 
@@ -74,9 +74,9 @@ def get_train_dataset(images, labels):
     labels = tf.data.Dataset.from_tensor_slices(labels)
 
     dataset = tf.data.Dataset.zip((images, labels))
-    dataset = dataset.map(partial(data_preprocess), num_parallel_calls=AUTOTUNE)
+    dataset = dataset.map(data_preprocess, num_parallel_calls=AUTOTUNE)
     dataset = dataset.repeat()
-    dataset = dataset.map(partial(process_data), num_parallel_calls=AUTOTUNE)
+    dataset = dataset.map(partial(augmentation), num_parallel_calls=AUTOTUNE)
     dataset = dataset.batch(BATCH_SIZE)
     dataset = dataset.prefetch(AUTOTUNE)
 
@@ -185,7 +185,7 @@ if __name__ == "__main__":
     LOG_TIME = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M")
 
     transforms = A.Compose([
-                    # A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225), p=1),
+                    # A.Normalize(mean(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225), p=1),
                     A.MedianBlur(blur_limit=3, always_apply=True, p=1),
                     A.HorizontalFlip(p=0.4),
                     A.VerticalFlip(p=0.3),
