@@ -84,7 +84,7 @@ def get_train_dataset(images, labels):
 
     dataset = tf.data.Dataset.zip((images, labels))
     dataset = dataset.repeat()
-    # dataset = dataset.map(partial(process_data), num_parallel_calls=AUTOTUNE)
+    dataset = dataset.map(partial(process_data), num_parallel_calls=AUTOTUNE)
     dataset = dataset.batch(BATCH_SIZE)
     dataset = dataset.prefetch(AUTOTUNE)
 
@@ -201,7 +201,7 @@ if __name__ == "__main__":
                 ])
 
     TRAIN_DS_PATH = f'{DS_PATH}/dirty_mnist_2nd'
-    df = pd.read_csv(f'{DS_PATH}/sample_answer.csv')
+    df = pd.read_csv(f'{DS_PATH}/dirty_mnist_2nd_answer.csv')
 
     os.system('clear')
     images, labels, CLASSES = get_dataset()
