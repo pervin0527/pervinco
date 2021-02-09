@@ -65,8 +65,8 @@ def load_and_predict(test_images):
 if __name__ == "__main__":
     IMG_SIZE = 256
     LOG_TIME = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M:%s")
-    BASE_PATH = '/data/backup/pervinco/dataset/dirty_mnist/dirty_mnist_2'
-    MODEL_PATH = '/data/backup/pervinco/model/dirty_mnist/2021.02.09_14:10/1-244-1.00.hdf5'
+    BASE_PATH = '/data/backup/pervinco/datasets/dirty_mnist_2'
+    MODEL_PATH = '/data/backup/pervinco/model/dirty_mnist/2021.02.09_14:10/1-45-0.86.hdf5'
     
     test_image_path = f'{BASE_PATH}/test_dirty_mnist_2nd'
     sample_submission = f'{BASE_PATH}/sample_submission.csv'
