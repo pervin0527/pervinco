@@ -11,6 +11,7 @@ from functools import partial
 from tqdm import tqdm
 from sklearn.model_selection import KFold
 
+
 # GPU setup
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if len(gpus) > 1:
@@ -41,14 +42,19 @@ def get_dataset():
 
     for idx in tqdm(range(len(df))):
         file_name = str(df.iloc[idx, 0]).zfill(5)
+        # image = cv2.imread(f'{TRAIN_DS_PATH}/{file_name}.png', cv2.IMREAD_GRAYSCALE)
         image = cv2.imread(f'{TRAIN_DS_PATH}/{file_name}.png')
 
         image2 = np.where((image <= 254) & (image != 0), 0, image)
         image3 = cv2.dilate(image2, kernel=np.ones((2, 2), np.uint8), iterations=1)
         image4 = cv2.medianBlur(image3, 5)
         image5 = image4 - image2
-
+        # image5 = np.expand_dims(image5, axis=-1)
         X[idx] = image5
+
+        # image4 = np.expand_dims(image4, axis=-1)
+        # image4 = image4.astype(float)
+        # X[idx] = image4
 
         label = df.iloc[idx, 1:].values.astype('float')
         y[idx] = label
@@ -60,7 +66,8 @@ def aug_fn(image):
     data = {"image":image}
     aug_data = transforms(**data)
     aug_img = aug_data["image"]
-    aug_img = tf.cast(aug_img / 255.0, tf.float32)
+    # aug_img = tf.cast(aug_img / 255.0, tf.float32)
+    aug_img = tf.cast(aug_img, tf.float32)
 
     return aug_img
 
@@ -77,7 +84,7 @@ def get_train_dataset(images, labels):
 
     dataset = tf.data.Dataset.zip((images, labels))
     dataset = dataset.repeat()
-    dataset = dataset.map(partial(process_data), num_parallel_calls=AUTOTUNE)
+    # dataset = dataset.map(partial(process_data), num_parallel_calls=AUTOTUNE)
     dataset = dataset.batch(BATCH_SIZE)
     dataset = dataset.prefetch(AUTOTUNE)
 
@@ -90,7 +97,6 @@ def get_valid_dataset(images, labels):
 
     dataset = tf.data.Dataset.zip((images, labels))
     dataset = dataset.repeat()
-    dataset = dataset.map(partial(process_data), num_parallel_calls=AUTOTUNE)
     dataset = dataset.batch(BATCH_SIZE)
     dataset = dataset.prefetch(AUTOTUNE)
 
@@ -117,8 +123,8 @@ def build_lrfn(lr_start=0.00001, lr_max=0.00005,
 
 def get_model():
     with strategy.scope():
-        base_model = tf.keras.applications.EfficientNetB5(input_shape=(IMG_SIZE, IMG_SIZE, 3),
-                                                          weights="imagenet", # noisy-student
+        base_model = tf.keras.applications.EfficientNetB2(input_shape=(IMG_SIZE, IMG_SIZE, 3),
+                                                          weights='imagenet', # noisy-student
                                                           include_top=False)
         for layer in base_model.layers:
             layer.trainable = True
@@ -132,30 +138,7 @@ def get_model():
     return model
 
 
-def tf_data_visualize(augmentation_element, name):
-    row, col, idx = 5, 4, 0
-    row = min(row, BATCH_SIZE // col)
-
-    for (image, label) in augmentation_element:
-        print(image.shape, label.shape)
-        
-        # image = tf.cast(image, tf.uint8) * 255
-
-        plt.figure(figsize=(15, int(15 * row / col)))
-        for j in range(row * col):
-            plt.subplot(row, col, j + 1)
-            plt.axis('off')
-            plt.imshow(image[j, ])
-
-        plt.savefig(f'{SAVED_PATH}/{LOG_TIME}/{name}_{idx}.jpg')
-        plt.show()
-        idx += 1
-
-        if idx == 3:
-            break
-
-
-def train_cross_validate(images, labels, folds=5):
+def train_cross_validate(images, labels, folds=2):
     histories = []
     models = []
 
@@ -173,13 +156,10 @@ def train_cross_validate(images, labels, folds=5):
                                                              mode='max')
         lrfn = build_lrfn()
         cb_lr_callback = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose = True)        
-        cb_early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)      
+        cb_early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)      
 
         TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_x) / BATCH_SIZE).numpy())
         VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_x) / BATCH_SIZE).numpy())
-
-        tf_data_visualize(get_train_dataset(train_x, train_y), 'train')
-        tf_data_visualize(get_valid_dataset(valid_x, valid_y), 'valid')
 
         model = get_model()
         history = model.fit(get_train_dataset(train_x, train_y), 
@@ -189,7 +169,7 @@ def train_cross_validate(images, labels, folds=5):
                             validation_steps = VALID_STEPS_PER_EPOCH,
                             verbose=1,
                             callbacks = [cb_lr_callback, cb_early_stopping, cb_checkpointer],
-                            # callbacks = [cb_checkpointer],
+                            # callbacks = [cb_checkpointer, cb_early_stopping],
                             )
 
         model.save(f'{SAVED_PATH}/{LOG_TIME}/{f+1}_dmnist.h5')
@@ -201,11 +181,11 @@ def train_cross_validate(images, labels, folds=5):
 
 
 if __name__ == "__main__":
-    EPOCHS = 100
+    EPOCHS = 1000
     IMG_SIZE = 256
     IMAGE_SIZE = [IMG_SIZE, IMG_SIZE]
     AUTOTUNE = tf.data.experimental.AUTOTUNE
-    BATCH_SIZE = 10 * strategy.num_replicas_in_sync
+    BATCH_SIZE = 20 * strategy.num_replicas_in_sync
     DS_PATH = '/data/tf_workspace/datasets/dirty_mnist_2'
     SAVED_PATH = '/data/tf_workspace/model/dirty_mnist'
     LOG_TIME = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M")
@@ -215,12 +195,13 @@ if __name__ == "__main__":
                     A.HorizontalFlip(p=0.4),
                     A.VerticalFlip(p=0.4),
                     A.RandomRotate90(p=0.5),
+                    A.IAASharpen(p=1)
                     # A.RandomBrightness(limit=0.1),
                     # A.RandomContrast(limit=0.2, p=0.5),
                 ])
 
     TRAIN_DS_PATH = f'{DS_PATH}/dirty_mnist_2nd'
-    df = pd.read_csv(f'{DS_PATH}/dirty_mnist_2nd_answer.csv')
+    df = pd.read_csv(f'{DS_PATH}/sample_answer.csv')
 
     os.system('clear')
     images, labels, CLASSES = get_dataset()
