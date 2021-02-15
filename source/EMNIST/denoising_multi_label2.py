@@ -3,17 +3,12 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 import albumentations as A
-import matplotlib
-matplotlib.use('Agg')
 
 from matplotlib import pyplot as plt
 from functools import partial
 from tqdm import tqdm
 from sklearn.model_selection import KFold
 
-# os.environ['CUDA_VISIBLE_DEVICES'] = '0'
-
-# GPU setup
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if len(gpus) > 1:
     try:
@@ -43,14 +38,14 @@ def get_dataset():
 
     for idx in tqdm(range(len(df))):
         file_name = str(df.iloc[idx, 0]).zfill(5)
-        # image = cv2.imread(f'{TRAIN_DS_PATH}/{file_name}.png', cv2.IMREAD_GRAYSCALE)
         image = cv2.imread(f'{TRAIN_DS_PATH}/{file_name}.png')
 
         image2 = np.where((image <= 254) & (image != 0), 0, image)
         image3 = cv2.dilate(image2, kernel=np.ones((2, 2), np.uint8), iterations=1)
         image4 = cv2.medianBlur(image3, 5)
         image5 = image4 - image2
-        X[idx] = image
+        # image5 = image5 / 255
+        X[idx] = image5.astype('float')
 
         label = df.iloc[idx, 1:].values.astype('float')
         y[idx] = label
@@ -80,7 +75,7 @@ def get_train_dataset(images, labels):
 
     dataset = tf.data.Dataset.zip((images, labels))
     dataset = dataset.repeat()
-    # dataset = dataset.map(partial(process_data), num_parallel_calls=AUTOTUNE)
+    dataset = dataset.map(partial(process_data), num_parallel_calls=AUTOTUNE)
     dataset = dataset.batch(BATCH_SIZE)
     dataset = dataset.prefetch(AUTOTUNE)
 
@@ -134,56 +129,42 @@ def get_model():
     return model
 
 
-def train_cross_validate(images, labels, folds=2):
-    histories = []
-    models = []
+def train(images, labels):
+    WEIGHT_FNAME = '{epoch:02d}-{val_binary_accuracy:.2f}.hdf5'
+    checkpoint_path = f'{SAVED_PATH}/{LOG_TIME}/{WEIGHT_FNAME}'
+    cb_checkpointer = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
+                                                         monitor='val_binary_accuracy',
+                                                         save_best_only=True,
+                                                         mode='max')
+    lrfn = build_lrfn()
+    cb_lr_callback = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=True)        
+    cb_early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)      
 
-    kfold = KFold(folds, shuffle=True, random_state=777)
-    for f, (train_index, valid_index) in enumerate(kfold.split(images, labels)):
-        print('FOLD', f + 1)
-        train_x, train_y = images[train_index[0] : (train_index[-1] + 1)], labels[train_index[0] : (train_index[-1] + 1)]
-        valid_x, valid_y = images[valid_index[0] : (valid_index[-1] + 1)], labels[valid_index[0] : (valid_index[-1] + 1)]
+    TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(images) / BATCH_SIZE).numpy())
+    VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(images) / BATCH_SIZE).numpy())
 
-        WEIGHT_FNAME = '{epoch:02d}-{val_binary_accuracy:.2f}.hdf5'
-        checkpoint_path = f'{SAVED_PATH}/{LOG_TIME}/{f+1}-{WEIGHT_FNAME}'
-        cb_checkpointer = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
-                                                             monitor='val_binary_accuracy',
-                                                             save_best_only=True,
-                                                             mode='max')
-        lrfn = build_lrfn()
-        cb_lr_callback = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose = True)        
-        cb_early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)      
+    model = get_model()
+    history = model.fit(get_train_dataset(images, labels), 
+                        steps_per_epoch = TRAIN_STEPS_PER_EPOCH,
+                        epochs = EPOCHS,
+                        validation_data = get_train_dataset(images, labels),
+                        validation_steps = VALID_STEPS_PER_EPOCH,
+                        verbose=1,
+                        # callbacks = [cb_lr_callback, cb_early_stopping, cb_checkpointer],
+                        callbacks = [cb_checkpointer],
+                        )
 
-        TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_x) / BATCH_SIZE).numpy())
-        VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_x) / BATCH_SIZE).numpy())
-
-        model = get_model()
-        history = model.fit(get_train_dataset(train_x, train_y), 
-                            steps_per_epoch = TRAIN_STEPS_PER_EPOCH,
-                            epochs = EPOCHS,
-                            validation_data = get_valid_dataset(valid_x, valid_y),
-                            validation_steps = VALID_STEPS_PER_EPOCH,
-                            verbose=1,
-                            callbacks = [cb_lr_callback, cb_early_stopping, cb_checkpointer],
-                            # callbacks = [cb_checkpointer, cb_early_stopping],
-                            )
-
-        model.save(f'{SAVED_PATH}/{LOG_TIME}/{f+1}_dmnist.h5')
-
-        models.append(model)
-        histories.append(history)
-
-    return histories, models
+    model.save(f'{SAVED_PATH}/{LOG_TIME}/dirty_mnist.h5')
 
 
 if __name__ == "__main__":
-    EPOCHS = 10000
+    EPOCHS = 1000
     IMG_SIZE = 256
     IMAGE_SIZE = [IMG_SIZE, IMG_SIZE]
     AUTOTUNE = tf.data.experimental.AUTOTUNE
-    BATCH_SIZE = 25
-    DS_PATH = '/data/backup/pervinco/datasets/dirty_mnist_2'
-    SAVED_PATH = '/data/backup/pervinco/model/dirty_mnist'
+    BATCH_SIZE = 10 * strategy.num_replicas_in_sync
+    DS_PATH = '/data/tf_workspace/datasets/dirty_mnist_2'
+    SAVED_PATH = '/data/tf_workspace/model/dirty_mnist'
     LOG_TIME = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M")
 
     transforms = A.Compose([
@@ -191,13 +172,13 @@ if __name__ == "__main__":
                     A.HorizontalFlip(p=0.4),
                     A.VerticalFlip(p=0.4),
                     A.RandomRotate90(p=0.5),
-                    A.IAASharpen(p=1)
-                    # A.RandomBrightness(limit=0.1),
-                    # A.RandomContrast(limit=0.2, p=0.5),
+                    # A.IAASharpen(p=1),
+                    A.RandomBrightness(limit=0.1),
+                    A.RandomContrast(limit=0.2, p=0.5),
                 ])
 
     TRAIN_DS_PATH = f'{DS_PATH}/dirty_mnist_2nd'
-    df = pd.read_csv(f'{DS_PATH}/sample_answer.csv')
+    df = pd.read_csv(f'{DS_PATH}/dirty_mnist_2nd_answer.csv')
 
     os.system('clear')
     images, labels, CLASSES = get_dataset()
@@ -211,4 +192,4 @@ if __name__ == "__main__":
         
         f.close()
 
-    train_cross_validate(images, labels)    
+    train(images, labels)    

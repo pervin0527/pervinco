@@ -29,7 +29,7 @@ def get_model():
                                                           weights='imagenet', # noisy-student
                                                           include_top=False)
         for layer in base_model.layers:
-            layer.trainable = True
+            layer.trainable = False
             
         avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
         output = tf.keras.layers.Dense(len(CLASSES), activation="sigmoid")(avg)
@@ -47,8 +47,6 @@ def get_images(test_files):
         image3 = cv2.dilate(image2, kernel=np.ones((2, 2), np.uint8), iterations=1)
         image4 = cv2.medianBlur(image3, 5)
         image5 = image4 - image2
-        # image5 = np.expand_dims(image5, axis=0)
-        
         images.append(image5)
 
     return np.array(images)
@@ -56,6 +54,7 @@ def get_images(test_files):
 def load_and_predict(test_images):
     model = get_model()
     model.load_weights(MODEL_PATH)
+    # model = tf.keras.models.load_model(MODEL_PATH)
 
     pred = model.predict(test_images)
     pred = (pred > 0.5) * 1
@@ -64,9 +63,9 @@ def load_and_predict(test_images):
 
 if __name__ == "__main__":
     IMG_SIZE = 256
-    LOG_TIME = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M:%s")
+    LOG_TIME = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
     BASE_PATH = '/data/backup/pervinco/datasets/dirty_mnist_2'
-    MODEL_PATH = '/data/backup/pervinco/model/dirty_mnist/2021.02.09_14:10/1-45-0.86.hdf5'
+    MODEL_PATH = '/data/backup/pervinco/model/dirty_mnist/582-0.98.hdf5'
     
     test_image_path = f'{BASE_PATH}/test_dirty_mnist_2nd'
     sample_submission = f'{BASE_PATH}/sample_submission.csv'
@@ -79,6 +78,11 @@ if __name__ == "__main__":
     print(test_images.shape)
 
     predictions = load_and_predict(test_images)
+    for p, img in zip(predictions, test_images):
+       print(p)
+       cv2.imshow('image', img)
+       cv2.waitKey(0)
+
     result_df = pd.read_csv(sample_submission)
     result_df.iloc[:, 1:] = predictions
     result_df.to_csv(f'{BASE_PATH}/result_csv/result_{LOG_TIME}.csv', index=False)
