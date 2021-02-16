@@ -29,8 +29,11 @@ def get_images(test_files):
     for path in test_files:
         image = cv2.imread(f'{test_image_path}/{path}.png')
         image2 = np.where((image <= 254) & (image != 0), 0, image)
-        image2 = tf.keras.applications.resnet.preprocess_input(image2)
-        images.append(image2)
+        image3 = cv2.dilate(image2, kernel=np.ones((2, 2), np.uint8), iterations=1)
+        image4 = cv2.medianBlur(image3, 5)
+        image5 = image4 - image2
+        image5 = tf.keras.applications.resnet.preprocess_input(image5)
+        images.append(image5)
 
     return np.array(images)
 

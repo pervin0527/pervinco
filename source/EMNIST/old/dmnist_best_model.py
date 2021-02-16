@@ -12,7 +12,7 @@ from sklearn.model_selection import KFold
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if len(gpus) > 1:
     try:
-        print("Activate Multi GPU")
+        print("ActivateMulti GPU")
         for gpu in gpus:
             tf.config.experimental.set_memory_growth(gpu, True)
         strategy = tf.distribute.MirroredStrategy(cross_device_ops=tf.distribute.HierarchicalCopyAllReduce())
@@ -110,12 +110,12 @@ def build_lrfn(lr_start=0.00001, lr_max=0.00005,
 
 def get_model():
     with strategy.scope():
-        base_model = tf.keras.applications.EfficientNetB6(input_shape=(IMG_SIZE, IMG_SIZE, 3),
+        inputs = tf.keras.Input(shape=(IMG_SIZE, IMG_SIZE, 3))
+        base_model = tf.keras.applications.EfficientNetB6(input_tensor=inputs,
                                                           weights='imagenet', # noisy-student
                                                           include_top=False)
-        for layer in base_model.layers:
-            layer.trainable = True
-            
+        base_model.trainable = True
+
         avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
         output = tf.keras.layers.Dense(len(CLASSES), activation="sigmoid")(avg)
         model = tf.keras.Model(inputs=base_model.input, outputs=output)
@@ -146,6 +146,7 @@ def train(images, labels):
                         validation_data = get_train_dataset(images, labels),
                         validation_steps = VALID_STEPS_PER_EPOCH,
                         verbose=1,
+                        # callbacks = [cb_lr_callback, cb_early_stopping, cb_checkpointer],
                         callbacks = [cb_checkpointer, cb_early_stopping],
                         )
 
@@ -157,9 +158,9 @@ if __name__ == "__main__":
     IMG_SIZE = 256
     IMAGE_SIZE = [IMG_SIZE, IMG_SIZE]
     AUTOTUNE = tf.data.experimental.AUTOTUNE
-    BATCH_SIZE = 10 * strategy.num_replicas_in_sync
-    DS_PATH = '/data/tf_workspace/datasets/dirty_mnist_2'
-    SAVED_PATH = '/data/tf_workspace/model/dirty_mnist'
+    BATCH_SIZE = 50
+    DS_PATH = '/home/v100/tf_workspace/datasets/dirty_mnist_2'
+    SAVED_PATH = '/home/v100/tf_workspace/model/dirty_mnist'
     LOG_TIME = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")
 
     transforms = A.Compose([
@@ -185,4 +186,4 @@ if __name__ == "__main__":
         
         f.close()
 
-    train(images, labels)
+    train(images, labels)    
