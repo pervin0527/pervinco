@@ -42,10 +42,6 @@ def get_dataset():
 
         image2 = np.where((image <= 254) & (image != 0), 0, image)
         X[idx] = image2.astype('float')
-        # image3 = cv2.dilate(image2, kernel=np.ones((2, 2), np.uint8), iterations=1)
-        # image4 = cv2.medianBlur(image3, 5)
-        # image5 = image4 - image2
-        # X[idx] = image5.astype('float')
 
         label = df.iloc[idx, 1:].values.astype('float')
         y[idx] = label
@@ -57,7 +53,6 @@ def aug_fn(image):
     data = {"image":image}
     aug_data = transforms(**data)
     aug_img = aug_data["image"]
-    # aug_img = tf.cast(aug_img / 255.0, tf.float32)
     aug_img = tf.cast(aug_img, tf.float32)
     aug_img = tf.keras.applications.resnet.preprocess_input(aug_img)
 
@@ -151,7 +146,6 @@ def train(images, labels):
                         validation_data = get_train_dataset(images, labels),
                         validation_steps = VALID_STEPS_PER_EPOCH,
                         verbose=1,
-                        # callbacks = [cb_lr_callback, cb_early_stopping, cb_checkpointer],
                         callbacks = [cb_checkpointer, cb_early_stopping],
                         )
 
@@ -191,4 +185,4 @@ if __name__ == "__main__":
         
         f.close()
 
-    train(images, labels)    
+    train(images, labels)

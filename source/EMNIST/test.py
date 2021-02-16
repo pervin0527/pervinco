@@ -23,19 +23,6 @@ else:
     except RuntimeError as e:
         print(e)
 
-def get_model():
-    with strategy.scope():
-        base_model = tf.keras.applications.EfficientNetB2(input_shape=(IMG_SIZE, IMG_SIZE, 3),
-                                                          weights='imagenet', # noisy-student
-                                                          include_top=False)
-                                                                      
-        avg = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
-        output = tf.keras.layers.Dense(len(CLASSES), activation="sigmoid")(avg)
-        model = tf.keras.Model(inputs=base_model.input, outputs=output)
-
-    model.compile(optimizer='adam', loss = 'binary_crossentropy', metrics = ['binary_accuracy'])
-    
-    return model
 
 def get_images(test_files):
     images = []
@@ -53,21 +40,21 @@ def get_images(test_files):
 
     return np.array(images)
 
+
 def load_and_predict(test_images):
-    # model = get_model()
-    # model.load_weights(MODEL_PATH)
     model = tf.keras.models.load_model(MODEL_PATH)
 
     pred = model.predict(test_images)
-    pred = (pred > 0.5) * 1
+    pred = (pred > 0.6) * 1
 
     return pred
+
 
 if __name__ == "__main__":
     IMG_SIZE = 256
     LOG_TIME = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
     BASE_PATH = '/data/backup/pervinco/datasets/dirty_mnist_2'
-    MODEL_PATH = '/data/backup/pervinco/model/dirty_mnist/2021_02_15_15_41/dirty_mnist.h5'
+    MODEL_PATH = '/data/backup/pervinco/model/dirty_mnist/2021_02_16_09_12/dirty_mnist.h5'
     
     test_image_path = f'{BASE_PATH}/test_dirty_mnist_2nd'
     sample_submission = f'{BASE_PATH}/sample_submission.csv'
@@ -80,10 +67,6 @@ if __name__ == "__main__":
     print(test_images.shape)
 
     predictions = load_and_predict(test_images)
-    # for p, img in zip(predictions, test_images):
-    #    print(p)
-    #    cv2.imshow('image', img)
-    #    cv2.waitKey(0)
 
     result_df = pd.read_csv(sample_submission)
     result_df.iloc[:, 1:] = predictions
