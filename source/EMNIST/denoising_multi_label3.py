@@ -41,11 +41,11 @@ def get_dataset():
         image = cv2.imread(f'{TRAIN_DS_PATH}/{file_name}.png')
 
         image2 = np.where((image <= 254) & (image != 0), 0, image)
-        image3 = cv2.dilate(image2, kernel=np.ones((2, 2), np.uint8), iterations=1)
-        image4 = cv2.medianBlur(image3, 5)
-        image5 = image4 - image2
-        
-        X[idx] = image5.astype('float')
+        X[idx] = image2.astype('float')
+        # image3 = cv2.dilate(image2, kernel=np.ones((2, 2), np.uint8), iterations=1)
+        # image4 = cv2.medianBlur(image3, 5)
+        # image5 = image4 - image2
+        # X[idx] = image5.astype('float')
 
         label = df.iloc[idx, 1:].values.astype('float')
         y[idx] = label
