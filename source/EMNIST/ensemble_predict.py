@@ -57,7 +57,7 @@ if __name__ == "__main__":
     IMG_SIZE = 256
     LOG_TIME = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
     BASE_PATH = '/data/backup/pervinco/datasets/dirty_mnist_2'
-    MODEL_PATH = '/data/backup/pervinco/model/dirty_mnist/2021_02_17_17_41'
+    MODEL_PATH = '/data/backup/pervinco/model/dirty_mnist/merge'
     
     test_image_path = f'{BASE_PATH}/test_dirty_mnist_2nd'
     sample_submission = f'{BASE_PATH}/sample_submission.csv'
