@@ -27,6 +27,7 @@ else:
     except RuntimeError as e:
         print(e)
 
+
 def get_dataset(df):
     CLASSES = [c for c in df]
     CLASSES = CLASSES[1:]
@@ -47,6 +48,7 @@ def get_dataset(df):
 
     return X, y, CLASSES
 
+
 def normalize_image(image, label):
     image = tf.image.resize(image, [RE_SIZE, RE_SIZE])
     image = tf.cast(image, tf.float32)
@@ -55,6 +57,7 @@ def normalize_image(image, label):
     label = tf.cast(label, tf.float32)
     
     return image, label
+
 
 def make_tf_dataset(images, labels):
     images = tf.data.Dataset.from_tensor_slices(images)
@@ -67,6 +70,7 @@ def make_tf_dataset(images, labels):
     dataset = dataset.prefetch(AUTOTUNE)
 
     return dataset
+
 
 def get_model():
     with strategy.scope():
@@ -83,6 +87,7 @@ def get_model():
     
     return model
 
+
 def split_dataset():
     df = pd.read_csv(f'{DS_PATH}/dirty_mnist_2nd_answer.csv')
     kfold = KFold(n_splits=N_FOLD)
@@ -94,6 +99,7 @@ def split_dataset():
         os.makedirs(f'{DS_PATH}/custom_split')
 
     df.to_csv(f'{DS_PATH}/custom_split/split_kfold.csv', index=False)
+
 
 def train_cross_validate():
     split_dataset()
@@ -147,6 +153,7 @@ def train_cross_validate():
 
         del train_x, train_y
         del valid_x, valid_y
+
 
 if __name__ == "__main__":
     EPOCHS = 100

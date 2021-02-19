@@ -28,6 +28,7 @@ def get_images(test_files):
     for path in test_files:
         image = cv2.imread(f'{test_image_path}/{path}.png')
         image2 = np.where((image <= 254) & (image != 0), 0, image)
+        image2 = cv2.resize(image2, (330, 330))
         image2 = tf.keras.applications.resnet.preprocess_input(image2)
         images.append(image2)
 
@@ -56,8 +57,8 @@ def ensemble(test_images):
 if __name__ == "__main__":
     IMG_SIZE = 256
     LOG_TIME = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
-    BASE_PATH = '/data/backup/pervinco/datasets/dirty_mnist_2'
-    MODEL_PATH = '/data/backup/pervinco/model/dirty_mnist/merge'
+    BASE_PATH = '/data/tf_workspace/datasets/dirty_mnist_2'
+    MODEL_PATH = '/data/tf_workspace/model/dirty_mnist/merge2'
     
     test_image_path = f'{BASE_PATH}/test_dirty_mnist_2nd'
     sample_submission = f'{BASE_PATH}/sample_submission.csv'

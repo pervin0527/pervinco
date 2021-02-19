@@ -194,6 +194,7 @@ def train_cross_validate():
         del train_x, train_y
         del valid_x, valid_y
 
+
 if __name__ == "__main__":
     EPOCHS = 100
     IMG_SIZE = 256
