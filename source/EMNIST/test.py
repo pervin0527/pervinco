@@ -4,7 +4,7 @@ import numpy as np
 import datetime
 import tensorflow as tf
 
-# GPU setup
+# GPU setup ##
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if len(gpus) > 1:
     try:
