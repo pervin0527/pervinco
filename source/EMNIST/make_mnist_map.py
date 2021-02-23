@@ -4,6 +4,35 @@ import pandas as pd
 import albumentations as A
 from random import randrange, choice, sample, randint, shuffle
 from sklearn.preprocessing import OneHotEncoder
+from albumentations.core.transforms_interface import ImageOnlyTransform
+
+def opening(img):
+    img = cv2.erode(img, kernel=np.ones((3, 3), np.uint8), iterations=1)
+    img = cv2.dilate(img, kernel=np.ones((3, 3), np.uint8), iterations=1)
+    return img
+
+
+def closing(img):
+    img = cv2.dilate(img, kernel=np.ones((3, 3), np.uint8), iterations=1)
+    img = cv2.erode(img, kernel=np.ones((3, 3), np.uint8), iterations=1)
+    return img
+
+
+class Closing(ImageOnlyTransform):
+    def __init__(self, always_apply=False, p=1):
+        super(Closing, self).__init__(always_apply, p)
+
+    def apply(self, img, **params):
+        return closing(img)
+
+
+class Opening(ImageOnlyTransform):
+    def __init__(self, always_apply=False, p=1):
+        super(Opening, self).__init__(always_apply, p)
+        
+    def apply(self, img, **params):
+        return opening(img)
+
 
 def get_mnist_letters():
     csv = pd.read_csv(input_path)
@@ -73,12 +102,14 @@ def overlay(foreground, num_outputs):
             x, y = x_coords[idx], y_coords[idx]
             # print(x, y)
 
-            IMG_RESIZE = randrange(23, 38)
+            IMG_RESIZE = randrange(23, 45)
             transforms = A.Compose([
                 A.Resize(IMG_RESIZE, IMG_RESIZE, p=1),
                 A.HorizontalFlip(p=0.7),
                 A.VerticalFlip(p=0.7),
                 A.RandomRotate90(p=0.9),
+                # Closing(p=0.7),
+                # Opening(p=0.7)
             ])
             fg_image = transforms(image=fg_image)['image']
             
@@ -117,8 +148,8 @@ def overlay(foreground, num_outputs):
         
 
 if __name__ == "__main__":
-    input_path = '/data/tf_workspace/datasets/dirty_mnist_2/mnist_data_2nd/train.csv'
-    output_path = f'/data/tf_workspace/test_code/'
+    input_path = '/data/backup/pervinco/datasets/dirty_mnist_2/mnist_data_2nd/train.csv'
+    output_path = f'/data/backup/pervinco/test_code/'
     foreground, CLASSES = get_mnist_letters()
     CLASSES = list(map(str.lower, CLASSES))
     result_df = overlay(foreground, 10000)

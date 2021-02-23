@@ -12,7 +12,7 @@ from sklearn.model_selection import KFold
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if len(gpus) > 1:
     try:
-        print("ActivateMulti GPU")
+        print("Activate Multi GPU")
         for gpu in gpus:
             tf.config.experimental.set_memory_growth(gpu, True)
         strategy = tf.distribute.MirroredStrategy(cross_device_ops=tf.distribute.HierarchicalCopyAllReduce())
