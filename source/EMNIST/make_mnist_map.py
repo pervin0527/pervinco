@@ -1,4 +1,4 @@
-import cv2, string
+import cv2, string, os
 import numpy as np
 import pandas as pd
 import albumentations as A
@@ -6,9 +6,10 @@ from random import randrange, choice, sample, randint, shuffle
 from sklearn.preprocessing import OneHotEncoder
 
 def get_mnist_letters():
-    csv = pd.read_csv('/data/backup/pervinco/datasets/dirty_mnist_2/mnist_data_2nd/train.csv')
+    csv = pd.read_csv(input_path)
     images = csv.drop(['id', 'digit', 'letter'], axis=1).values
     images = images.reshape(-1, 28, 28, 1)
+    images = np.where((images > 20) & (images != 0), 255, images)
     images = np.where((images <= 20) & (images != 0), 0, images)
 
     CLASSES = list(string.ascii_uppercase)
@@ -47,7 +48,18 @@ def overlay(foreground, num_outputs):
     for i in range(num_outputs):
         num_letters = randrange(1, 12)
 
-        fg = sample(foreground, num_letters)
+        check = []
+        fg = []
+        for _ in range(num_letters):
+            ch = randint(0, len(foreground)-1)
+            data = foreground[ch]
+
+            if data[1] in check:
+                pass
+            else:
+                check.append(data[1])
+                fg.append(data)
+
         bg = make_background()
         bg_height, bg_width = bg.shape[0], bg.shape[1]
 
@@ -61,13 +73,12 @@ def overlay(foreground, num_outputs):
             x, y = x_coords[idx], y_coords[idx]
             # print(x, y)
 
-            IMG_RESIZE = randrange(28, 30)
+            IMG_RESIZE = randrange(23, 38)
             transforms = A.Compose([
                 A.Resize(IMG_RESIZE, IMG_RESIZE, p=1),
-                A.HorizontalFlip(p=0.4),
-                A.VerticalFlip(p=0.4),
-                A.RandomRotate90(p=0.5),
-                A.IAASharpen(p=1)
+                A.HorizontalFlip(p=0.7),
+                A.VerticalFlip(p=0.7),
+                A.RandomRotate90(p=0.9),
             ])
             fg_image = transforms(image=fg_image)['image']
             
@@ -89,21 +100,28 @@ def overlay(foreground, num_outputs):
 
             bg[y : y + fg_height, x : x + fg_width] = (1.0 - mask) * bg[y : y + fg_height, x : x + fg_width] + mask * overlay_image
 
-            labels[fg_label] = 1
-
             # cv2.imshow('result', bg)
             # cv2.waitKey(0)
 
-        cv2.imwrite(f'/data/backup/pervinco/datasets/dirty_mnist_2/make/{i}.png', bg)
+        if not os.path.isdir(f'{output_path}/custom_mnist'):
+            os.makedirs(f'{output_path}/custom_mnist')
+
+        bg_transform = A.Cutout(always_apply=False, p=1.0, num_holes=20, max_h_size=4, max_w_size=4, fill_value=(255))
+        bg = bg_transform(image=bg)['image']
+        labels[fg_label] += 1
+
+        cv2.imwrite(f'{output_path}/custom_mnist/{i}.png', bg)
+        label_df.append(labels)
+
+    return label_df
         
-        for label in labels:
-            label_df.append(label)
-
-        print(label_df)
-    # label_df = pd.DataFrame(label_df)
-    # label_df.to_csv(f'/data/backup/pervinco/test_code/make_result.csv')
-
 
 if __name__ == "__main__":
+    input_path = '/data/tf_workspace/datasets/dirty_mnist_2/mnist_data_2nd/train.csv'
+    output_path = f'/data/tf_workspace/test_code/'
     foreground, CLASSES = get_mnist_letters()
-    overlay(foreground, 10)
+    CLASSES = list(map(str.lower, CLASSES))
+    result_df = overlay(foreground, 10000)
+
+    result_df = pd.DataFrame(result_df)
+    result_df.to_csv(f'{output_path}/result.csv', index_label='index', header=CLASSES)
