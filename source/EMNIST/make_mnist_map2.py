@@ -81,17 +81,17 @@ def overlay(foreground, num_outputs):
         
         idx = randint(0, len(foreground)-1)
         (fg_image, fg_label) = foreground[idx]
-        x = randrange(10, 256-26)
-        y = randrange(10, 256-26)
+        x = randrange(10, 256-56)
+        y = randrange(10, 256-56)
 
-        IMG_RESIZE = randrange(28, 68)
+        IMG_RESIZE = randrange(35, 68)
         transforms = A.Compose([
             A.Resize(IMG_RESIZE, IMG_RESIZE, p=1),
-            A.HorizontalFlip(p=0.7),
-            A.VerticalFlip(p=0.7),
-            A.RandomRotate90(p=0.9),
-            Closing(p=0.7),
-            Opening(p=0.7)
+            # A.HorizontalFlip(p=0.7),
+            # A.VerticalFlip(p=0.7),
+            # A.RandomRotate90(p=0.9),
+            # Closing(p=0.7),
+            # Opening(p=0.7)
         ])
         fg_image = transforms(image=fg_image)['image']
         
@@ -122,8 +122,13 @@ def overlay(foreground, num_outputs):
         if not os.path.isdir(f'{output_path}/custom_mnist'):
             os.makedirs(f'{output_path}/custom_mnist')
 
-        bg_transform = A.Cutout(always_apply=False, p=1.0, num_holes=20, max_h_size=4, max_w_size=4, fill_value=(255))
-        bg = bg_transform(image=bg)['image']
+        # bg_transform = A.Cutout(always_apply=False, p=1.0, num_holes=20, max_h_size=4, max_w_size=4, fill_value=(255))
+        # bg = bg_transform(image=bg)['image']
+
+        # result = cv2.cvtColor(bg, cv2.COLOR_BGR2GRAY)
+        # result = result + 0.5 * np.random.normal(loc=0, scale=1, size=result.shape)
+        # result = np.uint8(result)
+        # result = cv2.cvtColor(result, cv2.COLOR_GRAY2BGR)
 
         cv2.imwrite(f'{output_path}/custom_mnist/{i}.png', bg)
         label_df.append(labels)
@@ -136,7 +141,7 @@ if __name__ == "__main__":
     output_path = f'/data/backup/pervinco/test_code/'
     foreground, CLASSES = get_mnist_letters()
     CLASSES = list(map(str.lower, CLASSES))
-    result_df = overlay(foreground, 10000)
+    result_df = overlay(foreground, 2000)
 
     result_df = pd.DataFrame(result_df)
     result_df.to_csv(f'{output_path}/custom_mnist.csv', index_label='index', header=CLASSES)
