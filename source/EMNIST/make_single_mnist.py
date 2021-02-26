@@ -15,13 +15,13 @@ def get_random_kernel():
 
 def opening(img):
     img = cv2.erode(img, get_random_kernel(), iterations=1)
-    img = cv2.dilate(img, get_random_kernel(), iterations=1)
+
     return img
 
 
 def closing(img):
     img = cv2.dilate(img, get_random_kernel(), iterations=1)
-    img = cv2.erode(img, get_random_kernel(), iterations=1)
+    
     return img
 
 
@@ -87,9 +87,9 @@ def overlay(foreground, num_outputs):
         IMG_RESIZE = randrange(35, 68)
         transforms = A.Compose([
             A.Resize(IMG_RESIZE, IMG_RESIZE, p=1),
-            # A.HorizontalFlip(p=0.7),
-            # A.VerticalFlip(p=0.7),
-            # A.RandomRotate90(p=0.9),
+            A.HorizontalFlip(p=0.7),
+            A.VerticalFlip(p=0.7),
+            A.RandomRotate90(p=0.9),
             # Closing(p=0.7),
             # Opening(p=0.7)
         ])
@@ -119,29 +119,31 @@ def overlay(foreground, num_outputs):
         # cv2.waitKey(0)
         # cv2.destroyAllWindows()
 
-        if not os.path.isdir(f'{output_path}/custom_mnist'):
-            os.makedirs(f'{output_path}/custom_mnist')
+        if not os.path.isdir(f'{output_path}/custom_single'):
+            os.makedirs(f'{output_path}/custom_single')
 
-        # bg_transform = A.Cutout(always_apply=False, p=1.0, num_holes=20, max_h_size=4, max_w_size=4, fill_value=(255))
-        # bg = bg_transform(image=bg)['image']
+        # cv2.imwrite(f'{output_path}/custom_single/{i}.png', bg)
+        # label_df.append(labels)
 
-        # result = cv2.cvtColor(bg, cv2.COLOR_BGR2GRAY)
-        # result = result + 0.5 * np.random.normal(loc=0, scale=1, size=result.shape)
-        # result = np.uint8(result)
-        # result = cv2.cvtColor(result, cv2.COLOR_GRAY2BGR)
+        noise_factor = 0.5
+        result = bg + noise_factor * np.random.normal(loc=0., scale=3.5, size=bg.shape)
+        result = np.uint8(result)
+        result = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY)
+        result = np.where((result > 100), 255, result)
 
-        cv2.imwrite(f'{output_path}/custom_mnist/{i}.png', bg)
+        cv2.imwrite(f'{output_path}/custom_single/{i}.png', result)
         label_df.append(labels)
+
 
     return label_df
         
 
 if __name__ == "__main__":
-    input_path = '/data/backup/pervinco/datasets/dirty_mnist_2/mnist_data_2nd/train.csv'
-    output_path = f'/data/backup/pervinco/test_code/'
+    input_path = '/data/tf_workspace/datasets/dirty_mnist_2/mnist_data_2nd/train.csv'
+    output_path = f'/data/tf_workspace/test_code/'
     foreground, CLASSES = get_mnist_letters()
     CLASSES = list(map(str.lower, CLASSES))
-    result_df = overlay(foreground, 2000)
+    result_df = overlay(foreground, 10000)
 
     result_df = pd.DataFrame(result_df)
-    result_df.to_csv(f'{output_path}/custom_mnist.csv', index_label='index', header=CLASSES)
+    result_df.to_csv(f'{output_path}/custom_single.csv', index_label='index', header=CLASSES)
