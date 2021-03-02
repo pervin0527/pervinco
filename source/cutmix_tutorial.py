@@ -43,15 +43,15 @@ def cutmix(image, label, PROBABILITY = 1.0):
         xb = tf.math.minimum(DIM, x + WIDTH // 2)
         print(ya, yb, xa, xb)
         
-        one = image[j, ya : yb, 0 : xa, :]
-        two = image[k, ya : yb, xa : xb, :]
-        three = image[j, ya : yb, xb : DIM, :]
-        middle = tf.concat([one, two, three], axis=1)
-        img = tf.concat([image[j, 0 : ya, : , :], middle, image[j, yb : DIM, :, :]], axis=0)
+        one = image[j, ya : yb, 0 : xa] # image j의 [ya:yb, 0:xa]
+        two = image[k, ya : yb, xa : xb] # image k의 [ya:yb, xa:xb]
+        three = image[j, ya : yb, xb : DIM] # image j의 [ya:yb, xb:DIM]
+        middle = tf.concat([one, two, three], axis=1) # concat 해서 cutmix image 생성.
+        img = tf.concat([image[j, 0 : ya, : ], middle, image[j, yb : DIM, :]], axis=0) # 원래 이미지 image j에 붙여주는데, top, middle, bottom으로 붙여준다.
         
         a = tf.cast(WIDTH * WIDTH / DIM / DIM, tf.float32)
         print(a)
-        
+
         lab1 = tf.one_hot(label[j], CLASSES)
         lab2 = tf.one_hot(label[k], CLASSES)
         print(lab1, lab2)

@@ -119,11 +119,11 @@ def cutmix(image, label, PROBABILITY = 1.0):
         xa = tf.math.maximum(0, x - WIDTH // 2)
         xb = tf.math.minimum(DIM, x + WIDTH // 2)
         
-        one = image[j, ya : yb, 0 : xa, :]
-        two = image[k, ya : yb, xa : xb, :]
-        three = image[j, ya : yb, xb : DIM, :]
+        one = image[j, ya : yb, 0 : xa]
+        two = image[k, ya : yb, xa : xb]
+        three = image[j, ya : yb, xb : DIM]
         middle = tf.concat([one, two, three], axis=1)
-        img = tf.concat([image[j, 0 : ya, : , :], middle, image[j, yb : DIM, :, :]], axis=0)
+        img = tf.concat([image[j, 0 : ya, : ], middle, image[j, yb : DIM, :]], axis=0)
         imgs.append(img)
         
         a = tf.cast(WIDTH * WIDTH / DIM / DIM, tf.float32)

@@ -4,7 +4,7 @@ from matplotlib.pyplot import imshow
 import numpy as np
 import cv2
 
-img_path = "/data/backup/pervinco_2020/colab_dataset/plant-pathology-2020-fgvc7/images/Test_14.jpg"
+img_path = "/data/backup/pervinco/datasets/plant-pathology-2020-fgvc7/images/Test_3.jpg"
 print(f"Load Image : {img_path}")
 image = tf.io.read_file(img_path)
 image = tf.image.decode_jpeg(image, channels=3)

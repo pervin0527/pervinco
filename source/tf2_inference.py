@@ -132,7 +132,7 @@ def inference_test_images():
     spliter = []
 
     folder = store_name.split('_')[0]
-    device_id = os.listdir(f'./inference/test_sets/{folder}/')
+    device_id = os.listdir(f'./inference/logs/saved_img/{folder}/')
     print(device_id)
 
     if len(device_id) > 1:
@@ -141,12 +141,12 @@ def inference_test_images():
     else:
         device_id = device_id[0]
 
-    testsets = sorted(os.listdir(f'./inference/test_sets/{folder}/{device_id}/0/l/'))
+    testsets = sorted(os.listdir(f'./inference/logs/saved_img/{folder}/{device_id}/0/l/'))
     print(testsets)
     testset_name = str(input("choose testset : "))
 
-    left_images = sorted(glob.glob(f'./inference/test_sets/{folder}/{device_id}/*/l/{testset_name}/*.jpg'))
-    right_images = sorted(glob.glob(f'./inference/test_sets/{folder}/{device_id}/*/r/{testset_name}/*.jpg'))
+    left_images = sorted(glob.glob(f'./inference/logs/saved_img/{folder}/{device_id}/*/l/{testset_name}/*.jpg'))
+    right_images = sorted(glob.glob(f'./inference/logs/saved_img/{folder}/{device_id}/*/r/{testset_name}/*.jpg'))
     
     for left_img, right_img in zip(left_images, right_images):
         inferencer = inferences
@@ -214,8 +214,8 @@ def inference_test_images():
         for (xmin, ymin, xmax, ymax) in right_em_boxes:
             right_show = cv2.rectangle(right_show, (xmin, ymin), (xmax, ymax), (0, 255, 0), 3)
 
-        left_show = cv2.resize(left_show, (940, 700))
-        right_show = cv2.resize(right_show, (940, 700))
+        left_show = cv2.resize(left_show, (700, 500))
+        right_show = cv2.resize(right_show, (700, 500))
         concat_frame = np.concatenate((left_show, right_show), axis=1)
 
         cv2.imshow('Inference Result', concat_frame)
@@ -269,7 +269,7 @@ def inference_video():
     """CAM SETTING"""
 
     folder = store_name.split('_')[0]
-    device_id = os.listdir(f'./inference/test_sets/{folder}/')
+    device_id = os.listdir(f'./inference/logs/saved_img/{folder}/')
     print(device_id)
 
     if len(device_id) > 1:

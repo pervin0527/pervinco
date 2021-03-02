@@ -137,6 +137,7 @@ def overlay(foreground, num_outputs):
             mask = fg_image[..., 3:] / 255.0
 
             bg[y : y + fg_height, x : x + fg_width] = (1.0 - mask) * bg[y : y + fg_height, x : x + fg_width] + mask * overlay_image
+            labels[fg_label] += 1
 
         if not os.path.isdir(f'{output_path}/custom_multi'):
             os.makedirs(f'{output_path}/custom_multi')
@@ -144,21 +145,20 @@ def overlay(foreground, num_outputs):
         # cv2.imshow('result', result)
         # cv2.waitKey(0)
 
-        labels[fg_label] += 1
-
         # cv2.imwrite(f'{output_path}/custom_multi/{i}.png', bg)
         # label_df.append(labels)
 
-        noise_factor = 0.5
-        result = bg + noise_factor * np.random.normal(loc=0., scale=3.5, size=bg.shape)
+        noise_factor = 0.75
+        result = bg + noise_factor * np.random.normal(loc=0., scale=1.0, size=bg.shape)
         result = np.uint8(result)
         result = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY)
-        result = np.where((result > 100), 255, result)
+        # den = np.where((result <= 254) & (result != 0), 0, result)
         
-        cv2.imshow('result', result)
-        cv2.waitKey(0)
+        # cv2.imshow('result', result)
+        # cv2.imshow('den', den)
+        # cv2.waitKey(0)
 
-        # cv2.imwrite(f'{output_path}/custom_multi/{i}.png', result)
+        cv2.imwrite(f'{output_path}/custom_multi/{i}.png', result)
         label_df.append(labels)
 
     return label_df
@@ -169,7 +169,7 @@ if __name__ == "__main__":
     output_path = f'/data/backup/pervinco/test_code/'
     foreground, CLASSES = get_mnist_letters()
     CLASSES = list(map(str.lower, CLASSES))
-    result_df = overlay(foreground, 10)
+    result_df = overlay(foreground, 2000)
 
     result_df = pd.DataFrame(result_df)
     result_df.to_csv(f'{output_path}/custom_multi.csv', index_label='index', header=CLASSES)
