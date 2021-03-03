@@ -2,7 +2,7 @@
 
    ### 1. Albumentations
 
-   <p align="left"><img src="../doc_imgs/albumentation.jpeg" width=70%></p>
+   <p align="left"><img src="../0.doc_imgs/albumentation.jpeg" width=70%></p>
 
    - [Blog Post](https://www.notion.so/pervin0527/Albumentation-540221895eb04681969a43ee6d8acf71)
 
