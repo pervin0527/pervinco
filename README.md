@@ -12,7 +12,11 @@ This is my blog, and you can see everything I've studied here.
 
 ## 2. Image Classification
    - [Multi Class Image Classification](https://github.com/pervin0527/pervinco/tree/master/source/2.image_classification#2-image-classification--efficientnet)
+   - [Train with Multi GPUs](https://github.com/pervin0527/pervinco/blob/master/source/2.image_classification/tf2_Multi_gpu_training.py)
+   - [tf.data API + augmentations](https://github.com/pervin0527/pervinco/blob/master/source/2.image_classification/tf2_EfficientNet_ver2.py)
+
    - [Multi Label Image Classification](https://github.com/pervin0527/pervinco/tree/master/source/2.image_classification#3-multi-label-image-classification)
+   
    - [K-Fold Cross Validation & Ensemble](https://github.com/pervin0527/pervinco/tree/master/source/2.image_classification#4-k-fold-cross-validation--ensemble)
 
 ## 3. Object Detection

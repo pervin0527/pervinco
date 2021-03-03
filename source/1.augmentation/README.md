@@ -1,12 +1,12 @@
-## 🚁[Image Dataset Augmentation](https://github.com/pervin0527/pervinco/blob/master/docs/Image_Dataset_Augmentation.md)
+# 🚁[Image Dataset Augmentation]
 
-   ### 1. Albumentations
+   ## 1. Albumentations
 
    <p align="left"><img src="../0.doc_imgs/albumentation.jpeg" width=70%></p>
 
    - [Blog Post](https://www.notion.so/pervin0527/Albumentation-540221895eb04681969a43ee6d8acf71)
 
-   ### 2. Image classification dataset에 Augmentation 적용하기
+   ## 2. Image classification dataset에 Augmentation 적용하기
 
    <table border="0">
    <tr>
@@ -27,7 +27,7 @@
          --num_of_aug=1000 \
          --output_path=/data/backup/pervinco_2020/Auged_datasets/test
 
-   ### 3. Object Detecion dataset에 Augmentation 적용하기
+   ## 3. Object Detecion dataset에 Augmentation 적용하기
 
    <table border="0">
    <tr>

@@ -1,11 +1,11 @@
-## ✈[Image Classification](https://github.com/pervin0527/pervinco/blob/master/docs/image_classification.md)
+# ✈[Image Classification]
 
-   ### 1. Image 인식 개요 및 tensorflow 예제
+   ## 1. Image 인식 개요 및 tensorflow 예제
 
    - [Example](http://research.sualab.com/practice/2018/01/17/image-classification-deep-learning.html)
    - [Tensorflow 2.1 simple example](https://www.kaggle.com/philculliton/a-simple-tf-2-1-notebook)
 
-   ### 2. Image Classification + EfficientNet
+   ## 2. Image Classification + EfficientNet
 
    <table border="0">
       <tr>
@@ -47,13 +47,13 @@
    - [Source Code - Accuracy Test](https://github.com/pervin0527/pervinco/blob/master/source/2.image_classification/tf2_multi_label_predict.py)
 
 
-   ### 4. K-Fold Cross Validation & Ensemble
+   ## 4. K-Fold Cross Validation & Ensemble
    <p align="left"><img src="../0.doc_imgs/k-fold.png" width=80%></p>
    <p align="left"><img src="../0.doc_imgs/ensemble_train.png" width=100%></p>
    
    - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/4.competitions/landmark_classification/k_fold_train.py)
 
-   ### 5. CutMix & MixUp Augmentation & K-Fold Cross Validation Training
+   ## 5. CutMix & MixUp Augmentation & K-Fold Cross Validation Training
    <p align="left"><img src="../0.doc_imgs/cutmix.png" width=70%></p>
    <p align="left"><img src="../0.doc_imgs/mixup.png" width=70%></p>
    

@@ -1,5 +1,5 @@
-## 🚝[Object Detection](https://github.com/pervin0527/pervinco/blob/master/docs/Object_Detection.md)  
-   ### 1. Tensorflow Object Detection API 소개 및 사용방법
+# 🚝[Object Detection](https://github.com/pervin0527/pervinco/blob/master/docs/Object_Detection.md)  
+   ## 1. Tensorflow Object Detection API 소개 및 사용방법
    
    <p align="center"><img src="../0.doc_imgs/tensorflow2objectdetection.png"></p>
    
@@ -9,7 +9,7 @@
    - [Source Code - Test image inference](https://github.com/pervin0527/pervinco/blob/master/source/3.object_detection/tensorflow_object_detection/tf2_object_detection_image_inference.py)
    - [Source Code - Test Video inference](https://github.com/pervin0527/pervinco/blob/master/source/3.object_detection/tensorflow_object_detection/tf2_object_detection_video_inference.py)
 
-   ### 2. Yolo V4
+   ## 2. Yolo V4
 
    <p align="center"><img src="../0.doc_imgs/yolov4.png"></p>
 
@@ -17,7 +17,7 @@
    - [Source Code - Test image inference](https://github.com/pervin0527/pervinco/blob/master/source/3.object_detection/yolov4/yolov4_image_inference.py)
    - [Source Code - Test Video inference](https://github.com/pervin0527/pervinco/blob/master/source/3.object_detection/yolov4/yolov4_video_inference.py)
 
-   ### 3. Google/Automl - EfficientDet
+   ## 3. Google/Automl - EfficientDet
 
    <p align="center"><img src="../0.doc_imgs/efficientdet.png"></p>
 
