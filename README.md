@@ -5,12 +5,13 @@ This is my blog, and you can see everything I've studied here.
 
 # Repository configuration
 ### 1. Image Data Augmentations  
-   - Use Albumentations, pandas, matplotlib, opencv-python, etc.
+   - **Albumentations, pandas, matplotlib, opencv-python, etc.**
    - [Dataset augmentation for Image Classification](https://github.com/pervin0527/pervinco/tree/master/source/1.augmentation#1-dataset-augmentation-for-image-classification)
    - [Dataset augmentation for Object Detection](https://github.com/pervin0527/pervinco/tree/master/source/1.augmentation#2-dataset-augmentation-for-object-detection)
    - [Cutmix & Mixup augmentation](https://github.com/pervin0527/pervinco/tree/master/source/2.image_classification#5-cutmix--mixup-augmentation--k-fold-cross-validation-training)
 
 ### 2. Image Classification
+   - **Tensorflow, Keras, scikit-learn**
    - [Multi Class Image Classification](https://github.com/pervin0527/pervinco/tree/master/source/2.image_classification#2-image-classification--efficientnet)
    - [Train with Multi GPUs](https://github.com/pervin0527/pervinco/blob/master/source/2.image_classification/tf2_Multi_gpu_training.py)
    - [tf.data API + augmentations](https://github.com/pervin0527/pervinco/blob/master/source/2.image_classification/tf2_EfficientNet_ver2.py)
