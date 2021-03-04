@@ -31,4 +31,6 @@ This is my blog, and you can see everything I've studied here.  [https://www.not
 
 ## DL_Note
 It summarizes the details of machine learning and deep learning that are easier to understand.   
-I am writing down the contents of my study in a subjective opinion, so please tell me if there is something wrong with this as well.
+
+- 1. Simple Linear Regression
+- 2. How to minimize cost?
