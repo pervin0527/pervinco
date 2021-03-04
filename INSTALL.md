@@ -1,41 +1,11 @@
-Tensorflow 2.0 INSTALL GUIDE
-=
+### Tensorflow
+To be flexible in version update, we use tensorflow through docker.  
+[Docker_hub tensorflow/tensorflow](https://hub.docker.com/r/tensorflow/tensorflow)
+
+In addition, there are more information needed to use docker, so come in and read if you need it.
+[https://www.notion.so/pervin0527/Docker_Guide](https://www.notion.so/pervin0527/Docker-a7d7e955304940a28c4caa3c0d669807)
 
 
-2019.11.20일 기준 
-
-Release 2.0.0 
-[참고 사이트](https://github.com/tensorflow/tensorflow/releases)
-
-## System requirements
-- **pip 19.0 or later (requires manylinux2010 support)** 중요 pip 버전 안 맞으면 2.0.0다운 안 됨
-- Ubuntu 16.04 or later (64-bit)
-- macOS 10.12.6 (Sierra) or later (64-bit) (no GPU support)
-- Windows 7 or later (64-bit) (Python 3 only)
-- Raspbian 9.0 or later
-
-
-
-## pip version 맞추기
- 
-```console
-$ pip --version
-```
-
-
-만약 버전이 맞지 않는다면 아래 진행
-
-pip version upgrade
-sudo -H pip3 install --upgrade pip
-sudo -H pip install --upgrade pip
-
-
-```console
-$ pip3 install --user --upgrade tensorflow  # install in $HOME
-$ pip3 install --user --upgrade tensorflow-gpu  # install in $HOME
-
-If version 2.0 wasn't installed
-
-$ pip3 install --upgrade tensorflow==2.0.0
-$ pip3 install --upgrade tensorflow-gpu==2.0.0
-```
+### Nvidia, CUDA, CuDNN install guide
+ This is my blog, and there is a guide on installing nvidia graphics drivers, CUDA, and Cudnn.
+[https://www.notion.so/pervin0527/Install_Tensorflow_env](https://www.notion.so/pervin0527/Ubuntu-18-04-Local-Tensorflow-setup-52a3197a86a843c487cd20d014d64720)
