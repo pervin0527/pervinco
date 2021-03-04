@@ -1,4 +1,4 @@
-# Welcome! 👋 ![](https://visitor-badge.glitch.me/badge?page_id=pervin0527)
+# Welcome! 👋 ![](https://visitor-badge.glitch.me/badge?page_id=pervin0527.pervinco)
 I am a computer vision deep learning developer working in Korea.  
 This is my blog, and you can see everything I've studied here.  [https://www.notion.so/pervin0527](https://www.notion.so/pervin0527/932d8e6e02b243f5991078c7f890c479)
 
