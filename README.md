@@ -34,3 +34,4 @@ It summarizes the details of machine learning and deep learning that are easier 
 1. Simple Linear Regression
 2. How to minimize cost?
 3. Multi variable linear regression
+4. Logistic Regression
