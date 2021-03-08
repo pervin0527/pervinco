@@ -27,7 +27,7 @@ This is my blog, and you can see everything I've studied here.  [https://www.not
 
 ### 4. Competitions
    - [Dacon] [landmark image classification(26th / 387teams)](https://github.com/pervin0527/pervinco/tree/master/source/4.competitions#20201116-dacon---landmark-classification-competition)
-   - [Dacon] Dirty Mnist multi label classification(10th / 780teams)
+   - [Dacon] [Dirty Mnist multi label classification(10th / 780teams)]()
 
 ## DL_Note
 It summarizes the details of machine learning and deep learning that are easier to understand.   
