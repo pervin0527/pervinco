@@ -12,9 +12,11 @@ for step in range(300):
     cost = tf.reduce_mean(tf.square(hypothesis - y_data))
 
     learning_rate = 0.01
+    # gradient = tf.reduce_mean(tf.multiply(W, x_data) - y_data)
     gradient = tf.reduce_mean(tf.multiply(tf.multiply(W, x_data) - y_data, x_data)) # sum((hypothesis - y_data) * x_data) / len(x_data)
     descent = W - tf.multiply(learning_rate, gradient) # W - (alpha * gradient)
     W.assign(descent)
 
     if step % 10 == 0:
         print('{:5} | {:10.4f} | {:10.6f}'.format(step, cost.numpy(), W.numpy()[0]))
+        # print(step, cost.numpy(), W.numpy()[0])

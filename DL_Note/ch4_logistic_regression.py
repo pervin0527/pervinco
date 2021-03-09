@@ -17,7 +17,7 @@ y_train = [[0.],
 x_test = [[5.,2.]]
 y_test = [[1.]]
 
-dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train)).batch(len(x_train)) #tf.data API형태로 적용
+dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train)).batch(len(x_train)) # tf.data API형태로 적용
 
 # 값이 모두 0인 2행 1열 Weight, 값이 0인 상수 bias
 W = tf.Variable(tf.zeros([2, 1]), name='weight')
@@ -25,12 +25,13 @@ b = tf.Variable(tf.zeros([1]), name='bias')
 print(W, b)
 
 # Logistic Regression에 맞는 hypothesis를 정의
+# Sigmoid 함수
 def logistic_regression(features):
     hypothesis = tf.divide(1., 1. + tf.exp(tf.matmul(features, W) + b))
 
     return hypothesis
 
-
+# Cross entropy와 같다?
 def loss_fn(hypothesis, features, labels):
     cost = -tf.reduce_mean(labels * tf.math.log(logistic_regression(features)) + (1 - labels) * tf.math.log(1 - hypothesis))
     

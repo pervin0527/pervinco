@@ -41,17 +41,17 @@ for i in range(100+1):
         hypothesis = W * x_data + b
         cost = tf.reduce_mean(tf.square(hypothesis - y_data))
 
-    W_grad, b_grad = tape.gradient(cost, [W, b])
+        W_grad, b_grad = tape.gradient(cost, [W, b])
 
 
-    """
-    A.assign_sub(B) == A -= B 를 통해서
-    가중치 업데이트
-    learning rate 값을 곱해서 weight, bias를 각각 업데이트 해준다.
-    즉, 앞서 구했던 기울기 값을 얼마만큼 반영할 것인가를 결정
-    """
-    W.assign_sub(learning_rate * W_grad)
-    b.assign_sub(learning_rate * b_grad)
+        """
+        A.assign_sub(B) == A -= B 를 통해서
+        가중치 업데이트
+        learning rate 값을 곱해서 weight, bias를 각각 업데이트 해준다.
+        즉, 앞서 구했던 기울기 값을 얼마만큼 반영할 것인가를 결정
+        """
+        W.assign_sub(learning_rate * W_grad)
+        b.assign_sub(learning_rate * b_grad)
 
     if i % 10 == 0:
         print("{:5}|{:10.4f}|{:10.4}|{:10.6f}".format(i, W.numpy(), b.numpy(), cost))
