@@ -22,4 +22,4 @@
 6. Learning rate decay, Overfitting  
 [Blog](https://www.notion.so/pervin0527/6-Learning-rate-Decay-Overfitting-f693b91705fa486486fac18ae914d2ef)  
 [Code1 - Learning rate decay](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch6-1_learning_rate.py)  
-[Code2 - Overfitting](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch6-overfitting.py)
+[Code2 - Overfitting](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch6-2_overfitting.py)
