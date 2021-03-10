@@ -18,3 +18,8 @@
 [Blog](https://www.notion.so/pervin0527/5-Softmax-930e1a4fd2014efa982a3a05ff633a6d)  
 [Code1 - softmax classifier](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch5-1_softmax_classifier.py)  
 [Code2 - softmax with logist](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch5-2_softmax_classification.py)
+
+6. Learning rate decay, Overfitting  
+[Blog](https://www.notion.so/pervin0527/6-Learning-rate-Decay-Overfitting-f693b91705fa486486fac18ae914d2ef)  
+[Code1 - Learning rate decay](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch6-1_learning_rate.py)  
+[Code2 - Overfitting](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch6-overfitting.py)

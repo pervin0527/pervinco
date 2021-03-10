@@ -36,3 +36,4 @@ It summarizes the details of machine learning and deep learning that are easier 
 3. Multi variable linear regression
 4. Logistic Regression
 5. Softmax
+6. learning rate decay, overfitting
