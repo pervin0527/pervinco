@@ -37,3 +37,5 @@ It summarizes the details of machine learning and deep learning that are easier 
 4. Logistic Regression
 5. Softmax
 6. learning rate decay, overfitting
+7. Dataset, Learning method
+8. Neural Network, XOR gate

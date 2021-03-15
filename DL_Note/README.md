@@ -28,3 +28,9 @@
 [Blog](https://www.notion.so/pervin0527/7-Dataset-Training-cf8f60b405544b6eacaf67671e5613b5)  
 [Code1 - Mnist](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch7-1_mnist_train.py)  
 [Code2 - Fashion Mnist](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch7-2_fashion_mnist.py)
+
+8. Neural Network, XOR gate  
+[Blog](https://www.notion.so/pervin0527/8-Deep-Learning-40d45ad355504e4ab7f543c9360f50d0)  
+[Code1 - XOR gate](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch8-1_XOR.py)  
+[Code2 - XOR and Neural Network](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch8-2_XOR_Neural_network.py)  
+[Code3 - XOR and Wide Deep NN](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch8-3_XOR_wide_deep_nn.py)
