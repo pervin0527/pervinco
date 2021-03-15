@@ -23,3 +23,8 @@
 [Blog](https://www.notion.so/pervin0527/6-Learning-rate-Decay-Overfitting-f693b91705fa486486fac18ae914d2ef)  
 [Code1 - Learning rate decay](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch6-1_learning_rate.py)  
 [Code2 - Overfitting](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch6-2_overfitting.py)
+
+7. Dataset, Learning method  
+[Blog](https://www.notion.so/pervin0527/7-Dataset-Training-cf8f60b405544b6eacaf67671e5613b5)  
+[Code1 - Mnist](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch7-1_mnist_train.py)  
+[Code2 - Fashion Mnist](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch7-2_fashion_mnist.py)
