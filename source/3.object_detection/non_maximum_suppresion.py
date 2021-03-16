@@ -156,11 +156,10 @@ if __name__ == "__main__":
     # 7 * 7 * 30
     prediction = predict[0].numpy()
     print(prediction[0][0])
-    print(sum(prediction[0][0]) / 30)
-    # print(prediction.shape)
+    print(prediction.shape)
     # # print(prediction)
 
-    # boxes, scores = get_boxes_and_scores(prediction)
-    # print(boxes.shape, scores.shape)
+    boxes, scores = get_boxes_and_scores(prediction)
+    print(boxes.shape, scores.shape)
 
-    # non_maximum_suppression(boxes, scores, threshold, iou_threshold)
+    non_maximum_suppression(boxes, scores, threshold, iou_threshold)
