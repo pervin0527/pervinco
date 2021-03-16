@@ -128,8 +128,8 @@ def non_maximum_suppression(boxes, scores, threshold, iou_threshold):
         print(scores[:, label])
         
 if __name__ == "__main__":
-    input_width = 224
-    input_height = 224
+    input_width = 448
+    input_height = 448
     cell_size = 7
     num_classes = 20
     boxes_per_cell = 2
@@ -138,7 +138,7 @@ if __name__ == "__main__":
     classes = ["aeroplane", "bicycle", "bird", "boat", "bottle", "bus", "car", "cat", "chair", "cow", "diningtable", "dog", "horse", "motorbike", "person", "pottedplant", "sheep", "sofa", "train", "tvmonitor"]
 
     image = '/data/backup/pervinco/test_code/dog.jpg'
-    latest_ckpt = tf.train.latest_checkpoint('/data/backup/pervinco/test_code/ckpt-7750.index')
+    latest_ckpt = tf.train.latest_checkpoint('/data/backup/pervinco/test_code/saved_model/ckpt-17250.index')
     YOLOv1_model = YOLOv1(input_height, input_width, cell_size, boxes_per_cell, num_classes)
 
     if latest_ckpt:
@@ -146,7 +146,7 @@ if __name__ == "__main__":
         print('global_step : {}, checkpoint is restored!'.format(int(ckpt.step)))
 
     test_image = cv2.imread(image)
-    test_image = cv2.resize(test_image, (224, 224))
+    test_image = cv2.resize(test_image, (448, 448))
     test_image = tf.expand_dims(test_image, axis=0)
 
     os.system('clear')
@@ -155,9 +155,7 @@ if __name__ == "__main__":
 
     # 7 * 7 * 30
     prediction = predict[0].numpy()
-    print(prediction[0][0])
     print(prediction.shape)
-    # # print(prediction)
 
     boxes, scores = get_boxes_and_scores(prediction)
     print(boxes.shape, scores.shape)
