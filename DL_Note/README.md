@@ -29,7 +29,7 @@
 [Code1 - Mnist](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch7-1_mnist_train.py)  
 [Code2 - Fashion Mnist](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch7-2_fashion_mnist.py)
 
-8. Neural Network, XOR gate  
+8. XOR, Neural Network  
 [Blog](https://www.notion.so/pervin0527/8-Deep-Learning-40d45ad355504e4ab7f543c9360f50d0)  
 [Code1 - XOR gate](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch8-1_XOR.py)  
 [Code2 - XOR and Neural Network](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch8-2_XOR_Neural_network.py)  
