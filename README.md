@@ -40,3 +40,4 @@ It summarizes the details of machine learning and deep learning that are easier 
 7. Dataset, Learning method
 8. Neural Network, XOR gate
 9. ReLU activation func
+10. weight initialization, dropout

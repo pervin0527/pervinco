@@ -35,7 +35,12 @@
 [Code2 - XOR and Neural Network](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch8-2_XOR_Neural_network.py)  
 [Code3 - XOR and Wide Deep NN](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch8-3_XOR_wide_deep_nn.py)
 
-9. ReLU activation func.
-[Blog](https://www.notion.so/pervin0527/9-ReLU-f211ee4e9da94e67a22749537a5c23ed)
-[Code1 - MNIST sigmoid activation func](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch9-1_mnist_sigmoid.py)
-[Code2 - MNIST ReLU actiavtion func](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch9-2_mnist_relu.py)
+9. ReLU  
+[Blog](https://www.notion.so/pervin0527/9-ReLU-f211ee4e9da94e67a22749537a5c23ed)  
+[Code1 - mnist_sigmoid](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch9-1_mnist_sigmoid.py)  
+[Code2 - mnist_ReLU](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch9-2_mnist_relu.py)  
+
+10. Weight Initialize, Dropout  
+[Blog]()  
+[Code1 - weight_initialization](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch10-1_weight_initialization.py)  
+[Code2 - dropout](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch10-2_dropout.py)  
