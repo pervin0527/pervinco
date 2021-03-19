@@ -41,6 +41,6 @@
 [Code2 - mnist_ReLU](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch09-2_mnist_relu.py)  
 
 10. Weight Initialize, Dropout  
-[Blog]()  
+[Blog](https://www.notion.so/pervin0527/10-Weight-initialization-Drop-out-cab240c5863e49f5b5e751f923edec6f)  
 [Code1 - weight_initialization](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch10-1_weight_initialization.py)  
 [Code2 - dropout](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch10-2_dropout.py)  
