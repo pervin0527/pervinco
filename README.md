@@ -41,3 +41,4 @@ It summarizes the details of machine learning and deep learning that are easier 
 8. Neural Network, XOR gate
 9. ReLU activation func
 10. weight initialization, dropout, batch normalization
+11. Convolutional Neural Network
