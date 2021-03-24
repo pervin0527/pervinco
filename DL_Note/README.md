@@ -47,6 +47,6 @@
 [Code3 - batch normalization](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch10-3_batch_normalization.py)  
 
 11. Convolutional Neural Network  
-[Blog](https://www.notion.so/pervin0527/11-Convolutional-Neural-Network-ef919427042a423ca0c01a73d3390fe0)  
+[Blog1 - Convolution layer](https://www.notion.so/pervin0527/11-Convolutional-Neural-Network-ef919427042a423ca0c01a73d3390fe0)  
 [Code1 - mnist_nn](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch11-1_just_nn.py)  
 [Code2 - mnist_CNN](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch11-2_cnn.py)
