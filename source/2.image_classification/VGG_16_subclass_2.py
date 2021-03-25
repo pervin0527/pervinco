@@ -29,7 +29,6 @@ def preprocess_image(images, label=None):
 
     return image, label
 
-
 def get_dataset(ds_path, is_train):
     ds_path = pathlib.Path(ds_path)
 
@@ -73,32 +72,32 @@ class VGG16(tf.keras.Model):
 
         self.img_input = tf.keras.layers.Input(shape=(INPUT_SHAPE))
         
-        self.block1_conv1 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv1')
-        self.block1_conv2 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv2')
-        self.block1_pool = tf.keras.layers.MaxPooling2D((2, 2), strides=(2, 2), name='block1_pool')
+        self.block1_conv1 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv1', kernel_initializer='he_uniform')
+        self.block1_conv2 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv2', kernel_initializer='he_uniform')
+        self.block1_pool = tf.keras.layers.MaxPool2D((2, 2), strides=(2, 2), name='block1_pool')
 
-        self.block2_conv1 = tf.keras.layers.Conv2D(128, (3, 3), activation='relu', padding='same', name='block2_conv1')
-        self.block2_conv2 = tf.keras.layers.Conv2D(128, (3, 3), activation='relu', padding='same', name='block2_conv2')
-        self.block2_pool = tf.keras.layers.MaxPooling2D((2, 2), strides=(2, 2), name='block2_pool')
+        self.block2_conv1 = tf.keras.layers.Conv2D(128, (3, 3), activation='relu', padding='same', name='block2_conv1', kernel_initializer='he_uniform')
+        self.block2_conv2 = tf.keras.layers.Conv2D(128, (3, 3), activation='relu', padding='same', name='block2_conv2', kernel_initializer='he_uniform')
+        self.block2_pool = tf.keras.layers.MaxPool2D((2, 2), strides=(2, 2), name='block2_pool')
 
-        self.block3_conv1 = tf.keras.layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv1')
-        self.block3_conv2 = tf.keras.layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv2')
-        self.block3_conv3 = tf.keras.layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv3')
-        self.block3_pool = tf.keras.layers.MaxPooling2D((2, 2), strides=(2, 2), name='block3_pool')
+        self.block3_conv1 = tf.keras.layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv1', kernel_initializer='he_uniform')
+        self.block3_conv2 = tf.keras.layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv2', kernel_initializer='he_uniform')
+        self.block3_conv3 = tf.keras.layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv3', kernel_initializer='he_uniform')
+        self.block3_pool = tf.keras.layers.MaxPool2D((2, 2), strides=(2, 2), name='block3_pool')
 
-        self.block4_conv1 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv1')
-        self.block4_conv2 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv2')
-        self.block4_conv3 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv3')
-        self.block4_pool = tf.keras.layers.MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool')
+        self.block4_conv1 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv1', kernel_initializer='he_uniform')
+        self.block4_conv2 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv2', kernel_initializer='he_uniform')
+        self.block4_conv3 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv3', kernel_initializer='he_uniform')
+        self.block4_pool = tf.keras.layers.MaxPool2D((2, 2), strides=(2, 2), name='block4_pool')
 
-        self.block5_conv1 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv1')
-        self.block5_conv2 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv2')
-        self.block5_conv3 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv3')
-        self.block5_pool = tf.keras.layers.MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool')
+        self.block5_conv1 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv1', kernel_initializer='he_uniform')
+        self.block5_conv2 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv2', kernel_initializer='he_uniform')
+        self.block5_conv3 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv3', kernel_initializer='he_uniform')
+        self.block5_pool = tf.keras.layers.MaxPool2D((2, 2), strides=(2, 2), name='block5_pool')
 
         self.flatten = tf.keras.layers.Flatten(name='flatten')
-        self.fc1 = tf.keras.layers.Dense(4096, activation='relu', name='fc1')
-        self.fc2 = tf.keras.layers.Dense(4096, activation='relu', name='fc2')
+        self.fc1 = tf.keras.layers.Dense(4096, activation='relu', name='fc1', kernel_initializer='he_uniform')
+        self.fc2 = tf.keras.layers.Dense(4096, activation='relu', name='fc2', kernel_initializer='he_uniform')
         self.prediction = tf.keras.layers.Dense(n_classes, activation='softmax', name='predictions')
 
     def call(self, x):
@@ -135,32 +134,6 @@ class VGG16(tf.keras.Model):
         x = tf.keras.Input(shape=(INPUT_SHAPE))
         return tf.keras.Model(inputs=[x], outputs=self.call(x))
 
-@tf.function
-def loss_fn(model, images, labels):
-    logits = model(images, training=True)
-    loss = tf.reduce_mean(tf.keras.losses.categorical_crossentropy(y_pred=logits, y_true=labels))
-
-    return loss
-
-@tf.function
-def grad(model, images, labels):
-    with tf.GradientTape() as tape:
-        loss = loss_fn(model, images, labels)
-
-    return tape.gradient(loss, model.variables)
-
-@tf.function
-def evaluate(model, images, labels):
-    logits = model(images, training=False)
-    correct_prediction = tf.equal(tf.argmax(logits, 1), tf.argmax(labels, 1))
-    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-    return accuracy
-
-@tf.function
-def train(model, images, labels):
-    grads = grad(model, images, labels)
-    optimizer.apply_gradients(zip(grads, model.trainable_variables))
-
 if __name__ == "__main__":
     IMG_SIZE = 224
     BATCH_SIZE = 50
@@ -179,44 +152,8 @@ if __name__ == "__main__":
 
     print()
     print('Learning started. It takes sometime.')
-    # for epoch in range(EPOCHS):
-    #     avg_loss = 0.
-    #     avg_train_acc = 0.
-    #     avg_test_acc = 0.
-    #     train_step = 0
-    #     test_step = 0    
-        
-    #     for images, labels in train_dataset:
-    #         train(model, images, labels)
-    #         #grads = grad(model, images, labels)                
-    #         #optimizer.apply_gradients(zip(grads, model.variables))
-    #         loss = loss_fn(model, images, labels)
-    #         acc = evaluate(model, images, labels)
-    #         avg_loss = avg_loss + loss
-    #         avg_train_acc = avg_train_acc + acc
-    #         train_step += 1
-
-    #     avg_loss = avg_loss / train_step
-    #     avg_train_acc = avg_train_acc / train_step
-        
-    #     # print('Epoch:', '{}'.format(epoch + 1), 'loss =', '{:.8f}'.format(avg_loss), 
-    #     #       'train accuracy = ', '{:.4f}'.format(avg_train_acc))
-
-    #     for images, labels in test_dataset:        
-    #         acc = evaluate(model, images, labels)        
-    #         avg_test_acc = avg_test_acc + acc
-    #         test_step += 1    
-    #     avg_test_acc = avg_test_acc / test_step    
-
-    #     print('Epoch:', '{}'.format(epoch + 1), 
-    #           'loss =', '{:.8f}'.format(avg_loss), 
-    #           'train accuracy = ', '{:.4f}'.format(avg_train_acc), 
-    #           'test accuracy = ', '{:.4f}'.format(avg_test_acc))
-        
-    # print('Learning Finished!')
 
     model.build(input_shape=(None, *INPUT_SHAPE))
-    model.summary()
     model.build_graph().summary()
     model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['categorical_accuracy'])
     
