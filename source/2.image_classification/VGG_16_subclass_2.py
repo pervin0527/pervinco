@@ -97,7 +97,9 @@ class VGG16(tf.keras.Model):
 
         self.flatten = tf.keras.layers.Flatten(name='flatten')
         self.fc1 = tf.keras.layers.Dense(4096, activation='relu', name='fc1', kernel_initializer='he_uniform')
+        self.dp1 = tf.keras.layers.Dropout(rate=0.5)
         self.fc2 = tf.keras.layers.Dense(4096, activation='relu', name='fc2', kernel_initializer='he_uniform')
+        self.dp2 = tf.keras.layers.Dropout(rate=0.5)
         self.prediction = tf.keras.layers.Dense(n_classes, activation='softmax', name='predictions')
 
     def call(self, x):
@@ -126,7 +128,10 @@ class VGG16(tf.keras.Model):
 
         x = self.flatten(x)
         x = self.fc1(x)
+        x = self.dp1(x)
+
         x = self.fc2(x)
+        x = self.dp2(x)
 
         return self.prediction(x)
 
@@ -136,13 +141,13 @@ class VGG16(tf.keras.Model):
 
 if __name__ == "__main__":
     IMG_SIZE = 224
-    BATCH_SIZE = 50
+    BATCH_SIZE = 100
     LR_INIT = 0.00001
     EPOCHS = 200
     AUTOTUNE = tf.data.experimental.AUTOTUNE
 
-    train_dataset, _, n_classes = get_dataset('/home/v100/tf_workspace/datasets/flower_set/train', True)
-    test_dataset, _, _ = get_dataset('/home/v100/tf_workspace/datasets/flower_set/test', False)
+    train_dataset, _, n_classes = get_dataset('/home/v100/tf_workspace/datasets/Auged_datasets/natural_images/2021.03.26_09:26:52/train', True)
+    valid_dataset, _, _ = get_dataset('/home/v100/tf_workspace/datasets/Auged_datasets/natural_images/2021.03.26_09:26:52/valid', False)
     n_classes = len(n_classes)
 
     INPUT_SHAPE = (IMG_SIZE, IMG_SIZE, 3)
@@ -157,4 +162,11 @@ if __name__ == "__main__":
     model.build_graph().summary()
     model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['categorical_accuracy'])
     
-    model.fit(train_dataset, epochs=EPOCHS, verbose=1, validation_data=test_dataset)
+    callbacks = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)]
+    model.fit(train_dataset,
+              epochs=EPOCHS,
+              verbose=1,
+              validation_data=valid_dataset,
+              callbacks=callbacks)
+
+    model.save('/home/v100/tf_workspace/model/vgg16')
