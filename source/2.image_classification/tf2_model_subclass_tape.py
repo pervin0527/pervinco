@@ -123,106 +123,95 @@ class VGG16(tf.keras.Model):
         return net
 
 @tf.function
-def loss_fn(model, images, labels):
-    logits = model(images, training=True)
-    loss = tf.reduce_mean(tf.keras.losses.categorical_crossentropy(y_pred=logits, y_true=labels))
-
-    return loss
-
-@tf.function
-def grad(model, images, labels):
-    with tf.GradientTape() as tape:
-        loss = loss_fn(model, images, labels)
-
-    return tape.gradient(loss, model.variables)
-
-@tf.function
-def evaluate(model, images, labels):
-    logits = model(images, training=False)
-    correct_prediction = tf.equal(tf.argmax(logits, 1), tf.argmax(labels, 1))
-    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-    return accuracy
-
-@tf.function
 def train(model, images, labels):
-    grads = grad(model, images, labels)
-    optimizer.apply_gradients(zip(grads, model.trainable_variables))
+    with tf.GradientTape() as tape:
+        y_pred = model(images, training=True)
+        loss = LOSS(labels, y_pred)
+        grads = tape.gradient(loss, model.trainable_variables)
+    
+    optimizer.apply_gradients(grads_and_vars=zip(grads, model.trainable_variables))
+    train_acc.update_state(labels, y_pred)
+    train_loss.update_state(loss)
+
+@tf.function
+def validation(model, images, labels):
+    y_pred = model(images, training=False)
+    loss = LOSS(labels, y_pred)
+    val_acc.update_state(labels, y_pred)
+    val_loss.update_state(loss)
+
+def lrfn():
+    if epoch < LR_RAMPUP_EPOCHS:
+        lr = (LR_MAX - LR_START) / LR_RAMPUP_EPOCHS * epoch + LR_START
+    elif epoch < LR_RAMPUP_EPOCHS + LR_SUSTAIN_EPOCHS:
+        lr = LR_MAX
+    else:
+        lr = (LR_MAX - LR_MIN) * LR_EXP_DECAY**(epoch - LR_RAMPUP_EPOCHS - LR_SUSTAIN_EPOCHS) + LR_MIN
+    return lr
 
 if __name__ == "__main__":
     IMG_SIZE = 224
     BATCH_SIZE = 32
-    LR_INIT = 0.00001
     EPOCHS = 200
     minimum_loss = 2147000000    
     PATIENCE = 3
     INPUT_SHAPE = (IMG_SIZE, IMG_SIZE, 3)
     AUTOTUNE = tf.data.experimental.AUTOTUNE
 
-    train_dataset, _, n_classes = get_dataset('/home/v100/tf_workspace/Auged_datasets/natural_images/2021.03.26_09:26:52/train', True)
-    test_dataset, _, _ = get_dataset('/home/v100/tf_workspace/Auged_datasets/natural_images/2021.03.26_09:26:52/valid', False)
+    LR_START = 0.00001
+    LR_MAX = 0.00005 * strategy.num_replicas_in_sync
+    LR_MIN = 0.00001
+    LR_RAMPUP_EPOCHS = 5
+    LR_SUSTAIN_EPOCHS = 0
+    LR_EXP_DECAY = .8
+
+    train_dataset, total_train, n_classes = get_dataset('/data/backup/pervinco/Auged_datasets/natural_images/2021.03.26_09:26:52/train', True)
+    test_dataset, total_valid, _ = get_dataset('/data/backup/pervinco/Auged_datasets/natural_images/2021.03.26_09:26:52/valid', False)
     n_classes = len(n_classes)
 
-    optimizer = tf.keras.optimizers.SGD(learning_rate=LR_INIT)
-    inputs = tf.keras.Input(shape=(IMG_SIZE, IMG_SIZE, 3))
+    LOSS = tf.keras.losses.CategoricalCrossentropy()
+    optimizer = tf.keras.optimizers.SGD(learning_rate=lrfn)
+    inputs = tf.keras.Input(shape=(INPUT_SHAPE))
     model = VGG16()
-    model(inputs)
+    model(inputs=inputs)
     model.summary()
+
+    train_acc = tf.metrics.CategoricalAccuracy()
+    train_loss = tf.metrics.Mean()
+    val_acc = tf.metrics.CategoricalAccuracy()
+    val_loss = tf.metrics.Mean()
 
     print()
     print('Learning started. It takes sometime.')
     for epoch in range(EPOCHS):
-        avg_train_loss = 0.
-        avg_train_acc = 0.
+        print("Current Learning Rate : ", optimizer._decayed_lr('float32').numpy())
+        tf.print("Epoch {}/{}".format(epoch + 1, EPOCHS))
+        prog_bar = tf.keras.utils.Progbar(target=total_train)
+
+        train_acc.reset_states()
+        train_loss.reset_states()
+        val_acc.reset_states()
+        val_loss.reset_states()
         
-        avg_test_acc = 0.
-        avg_test_loss = 0.
-        
-        train_step = 0
-        test_step = 0
-        
-        for images, labels in train_dataset:
+        for idx, (images, labels) in enumerate(train_dataset):
             train(model, images, labels)
+            values=[('train_loss', train_loss.result().numpy()), ('train_acc', train_acc.result().numpy())]
+            prog_bar.update(BATCH_SIZE*idx, values=values)
 
-            loss = loss_fn(model, images, labels)
-            acc = evaluate(model, images, labels)
-            avg_train_loss = avg_train_loss + loss
-            avg_train_acc = avg_train_acc + acc
-            train_step += 1
-
-        avg_train_loss = avg_train_loss / train_step
-        avg_train_acc = avg_train_acc / train_step
-        
         for images, labels in test_dataset:
-            loss = loss_fn(model, images, labels)        
-            acc = evaluate(model, images, labels)        
-            avg_test_acc = avg_test_acc + acc
-            avg_test_loss = avg_test_loss + loss
-            test_step += 1
+            validation(model, images, labels)
+        
+        values = [('train_loss', train_loss.result().numpy()), ('train_acc', train_acc.result().numpy()), ('valid_loss', val_loss.result().numpy()), ('valid_acc', val_acc.result().numpy())]
+        prog_bar.update(total_train, values=values, finalize=True)
 
-        avg_test_loss = avg_test_loss / test_step
-        avg_test_acc = avg_test_acc / test_step    
-
-        if avg_test_loss < minimum_loss:
-            minimum_loss = avg_test_loss
+        if val_loss < minimum_loss:
+            minimum_loss = val_loss
             PATIENCE = 3
-
-            print('Epoch:', '{}'.format(epoch + 1), 
-                  'train_loss =', '{:.8f}'.format(avg_train_loss), 
-                  'train_accuracy = ', '{:.4f}'.format(avg_train_acc), 
-                  'test_loss = ', '{:.8f}'.format(avg_test_loss),
-                  'test_accuracy = ', '{:.4f}'.format(avg_test_acc))
 
         else:
             PATIENCE -= 1
 
-            print('Epoch:', '{}'.format(epoch + 1), 
-                  'train_loss =', '{:.8f}'.format(avg_train_loss), 
-                  'train_accuracy = ', '{:.4f}'.format(avg_train_acc), 
-                  'test_loss = ', '{:.8f}'.format(avg_test_loss),
-                  'test_accuracy = ', '{:.4f}'.format(avg_test_acc),
-                  'patience = ', PATIENCE)
-
             if PATIENCE == 0:
-                break            
-        
-    print('Learning Finished!')
+                break
+
+    print('Learning Finished')
