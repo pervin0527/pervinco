@@ -152,8 +152,8 @@ def lrfn():
 if __name__ == "__main__":
     IMG_SIZE = 224
     BATCH_SIZE = 32
-    EPOCHS = 200
-    minimum_loss = 2147000000    
+    EPOCHS = 1000
+    minimum_loss = float(2147000000)    
     PATIENCE = 3
     INPUT_SHAPE = (IMG_SIZE, IMG_SIZE, 3)
     AUTOTUNE = tf.data.experimental.AUTOTUNE
@@ -204,8 +204,9 @@ if __name__ == "__main__":
         values = [('train_loss', train_loss.result().numpy()), ('train_acc', train_acc.result().numpy()), ('valid_loss', val_loss.result().numpy()), ('valid_acc', val_acc.result().numpy())]
         prog_bar.update(total_train, values=values, finalize=True)
 
-        if val_loss < minimum_loss:
-            minimum_loss = val_loss
+        tmp_loss = (val_loss.result().numpy())
+        if tmp_loss < minimum_loss:
+            minimum_loss = tmp_loss
             PATIENCE = 3
 
         else:
@@ -215,3 +216,4 @@ if __name__ == "__main__":
                 break
 
     print('Learning Finished')
+    model.save('/data/backup/pervinco/test_code/test_model')
