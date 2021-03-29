@@ -53,7 +53,7 @@ class MNISTModel(tf.keras.Model):
         self.drop4 = tf.keras.layers.Dropout(rate=0.4)
         self.dense5 = tf.keras.layers.Dense(units=10)
 
-    def call(selfm inputs, trainig=False):
+    def call(self, inputs, trainig=False):
         net = self.conv1(inputs)
         net = self.pool1(net)
         net = self.conv2(net)

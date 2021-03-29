@@ -29,6 +29,7 @@ def preprocess_image(images, label=None):
 
     return image, label
 
+
 def get_dataset(ds_path, is_train):
     ds_path = pathlib.Path(ds_path)
 
@@ -46,32 +47,23 @@ def get_dataset(ds_path, is_train):
     labels = tf.keras.utils.to_categorical(labels, num_classes=len(classes), dtype='float32')
 
     if is_train:
-        dataset = (tf.data.Dataset
-                   .from_tensor_slices((images, labels))
-                   .map(preprocess_image, num_parallel_calls=AUTOTUNE)
-                #    .repeat()
-                   .shuffle(512)
-                   .batch(BATCH_SIZE)
-                   .prefetch(AUTOTUNE)
-        )
+        dataset = tf.data.Dataset.from_tensor_slices((images, labels))
+        dataset = dataset.map(preprocess_image, num_parallel_calls=AUTOTUNE)
+        dataset = dataset.shuffle(512)
+        dataset = dataset.batch(BATCH_SIZE)
+        dataset = dataset.prefetch(AUTOTUNE)
     
     else:
-        dataset = (tf.data.Dataset
-                   .from_tensor_slices((images, labels))
-                   .map(preprocess_image, num_parallel_calls=AUTOTUNE)
-                #    .repeat()
-                   .batch(BATCH_SIZE)
-                   .prefetch(AUTOTUNE)
-        )
+        dataset = tf.data.Dataset.from_tensor_slices((images, labels))
+        dataset = dataset.map(preprocess_image, num_parallel_calls=AUTOTUNE)
+        dataset = dataset.batch(BATCH_SIZE)
+        dataset = dataset.prefetch(AUTOTUNE)
 
     return dataset, total_images, classes
 
 class VGG16(tf.keras.Model):
-    def __init__(self, INPUT_SHAPE):
-        super(VGG16, self).__init__()
-
-        self.img_input = tf.keras.layers.Input(shape=(INPUT_SHAPE))
-        
+    def __init__(self):
+        super(VGG16, self).__init__()        
         self.block1_conv1 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv1', kernel_initializer='he_uniform')
         self.block1_conv2 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv2', kernel_initializer='he_uniform')
         self.block1_pool = tf.keras.layers.MaxPool2D((2, 2), strides=(2, 2), name='block1_pool')
@@ -102,71 +94,135 @@ class VGG16(tf.keras.Model):
         self.dp2 = tf.keras.layers.Dropout(rate=0.5)
         self.prediction = tf.keras.layers.Dense(n_classes, activation='softmax', name='predictions')
 
-    def call(self, x):
-        x = self.block1_conv1(x)
-        x = self.block1_conv2(x)
-        x = self.block1_pool(x)
+    def call(self, inputs, training):
+        net = self.block1_conv1(inputs)
+        net = self.block1_conv2(net)
+        net = self.block1_pool(net)
+        net = self.block2_conv1(net)
+        net = self.block2_conv2(net)
+        net = self.block2_pool(net)
+        net = self.block3_conv1(net)
+        net = self.block3_conv2(net)
+        net = self.block3_conv3(net)
+        net = self.block3_pool(net)
+        net = self.block4_conv1(net)
+        net = self.block4_conv2(net)
+        net = self.block4_conv3(net)
+        net = self.block4_pool(net)
+        net = self.block5_conv1(net)
+        net = self.block5_conv2(net)
+        net = self.block5_conv3(net)
+        net = self.block5_pool(net)
+        net = self.flatten(net)
+        net = self.fc1(net)        
+        net = self.dp1(net)            
+        net = self.fc2(net)
+        net = self.dp2(net)
+        net = self.prediction(net)
 
-        x = self.block2_conv1(x)
-        x = self.block2_conv2(x)
-        x = self.block2_pool(x)
+        return net
 
-        x = self.block3_conv1(x)
-        x = self.block3_conv2(x)
-        x = self.block3_conv3(x)
-        x = self.block3_pool(x)
+@tf.function
+def loss_fn(model, images, labels):
+    logits = model(images, training=True)
+    loss = tf.reduce_mean(tf.keras.losses.categorical_crossentropy(y_pred=logits, y_true=labels))
 
-        x = self.block4_conv1(x)
-        x = self.block4_conv2(x)
-        x = self.block4_conv3(x)
-        x = self.block4_pool(x)
+    return loss
 
-        x = self.block5_conv1(x)
-        x = self.block5_conv2(x)
-        x = self.block5_conv3(x)
-        x = self.block5_pool(x)
+@tf.function
+def grad(model, images, labels):
+    with tf.GradientTape() as tape:
+        loss = loss_fn(model, images, labels)
 
-        x = self.flatten(x)
-        x = self.fc1(x)
-        x = self.dp1(x)
+    return tape.gradient(loss, model.variables)
 
-        x = self.fc2(x)
-        x = self.dp2(x)
+@tf.function
+def evaluate(model, images, labels):
+    logits = model(images, training=False)
+    correct_prediction = tf.equal(tf.argmax(logits, 1), tf.argmax(labels, 1))
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+    return accuracy
 
-        return self.prediction(x)
-
-    def build_graph(self):
-        x = tf.keras.Input(shape=(INPUT_SHAPE))
-        return tf.keras.Model(inputs=[x], outputs=self.call(x))
+@tf.function
+def train(model, images, labels):
+    grads = grad(model, images, labels)
+    optimizer.apply_gradients(zip(grads, model.trainable_variables))
 
 if __name__ == "__main__":
     IMG_SIZE = 224
-    BATCH_SIZE = 100
+    BATCH_SIZE = 32
     LR_INIT = 0.00001
     EPOCHS = 200
+    minimum_loss = 2147000000    
+    PATIENCE = 3
+    INPUT_SHAPE = (IMG_SIZE, IMG_SIZE, 3)
     AUTOTUNE = tf.data.experimental.AUTOTUNE
 
-    train_dataset, _, n_classes = get_dataset('/home/v100/tf_workspace/datasets/Auged_datasets/natural_images/2021.03.26_09:26:52/train', True)
-    valid_dataset, _, _ = get_dataset('/home/v100/tf_workspace/datasets/Auged_datasets/natural_images/2021.03.26_09:26:52/valid', False)
+    train_dataset, _, n_classes = get_dataset('/home/v100/tf_workspace/Auged_datasets/natural_images/2021.03.26_09:26:52/train', True)
+    test_dataset, _, _ = get_dataset('/home/v100/tf_workspace/Auged_datasets/natural_images/2021.03.26_09:26:52/valid', False)
     n_classes = len(n_classes)
 
-    INPUT_SHAPE = (IMG_SIZE, IMG_SIZE, 3)
-    model = VGG16((INPUT_SHAPE))
-
     optimizer = tf.keras.optimizers.SGD(learning_rate=LR_INIT)
+    inputs = tf.keras.Input(shape=(IMG_SIZE, IMG_SIZE, 3))
+    model = VGG16()
+    model(inputs)
+    model.summary()
 
     print()
     print('Learning started. It takes sometime.')
+    for epoch in range(EPOCHS):
+        avg_train_loss = 0.
+        avg_train_acc = 0.
+        
+        avg_test_acc = 0.
+        avg_test_loss = 0.
+        
+        train_step = 0
+        test_step = 0
+        
+        for images, labels in train_dataset:
+            train(model, images, labels)
 
-    model.build(input_shape=(None, *INPUT_SHAPE))
-    model.build_graph().summary()
-    model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['categorical_accuracy'])
-    
-    callbacks = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)]
-    model.fit(train_dataset,
-              epochs=EPOCHS,
-              verbose=1,
-              validation_data=valid_dataset,
-              callbacks=callbacks)
+            loss = loss_fn(model, images, labels)
+            acc = evaluate(model, images, labels)
+            avg_train_loss = avg_train_loss + loss
+            avg_train_acc = avg_train_acc + acc
+            train_step += 1
 
-    model.save('/home/v100/tf_workspace/model/vgg16')
+        avg_train_loss = avg_train_loss / train_step
+        avg_train_acc = avg_train_acc / train_step
+        
+        for images, labels in test_dataset:
+            loss = loss_fn(model, images, labels)        
+            acc = evaluate(model, images, labels)        
+            avg_test_acc = avg_test_acc + acc
+            avg_test_loss = avg_test_loss + loss
+            test_step += 1
+
+        avg_test_loss = avg_test_loss / test_step
+        avg_test_acc = avg_test_acc / test_step    
+
+        if avg_test_loss < minimum_loss:
+            minimum_loss = avg_test_loss
+            PATIENCE = 3
+
+            print('Epoch:', '{}'.format(epoch + 1), 
+                  'train_loss =', '{:.8f}'.format(avg_train_loss), 
+                  'train_accuracy = ', '{:.4f}'.format(avg_train_acc), 
+                  'test_loss = ', '{:.8f}'.format(avg_test_loss),
+                  'test_accuracy = ', '{:.4f}'.format(avg_test_acc))
+
+        else:
+            PATIENCE -= 1
+
+            print('Epoch:', '{}'.format(epoch + 1), 
+                  'train_loss =', '{:.8f}'.format(avg_train_loss), 
+                  'train_accuracy = ', '{:.4f}'.format(avg_train_acc), 
+                  'test_loss = ', '{:.8f}'.format(avg_test_loss),
+                  'test_accuracy = ', '{:.4f}'.format(avg_test_acc),
+                  'patience = ', PATIENCE)
+
+            if PATIENCE == 0:
+                break            
+        
+    print('Learning Finished!')
