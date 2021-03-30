@@ -21,14 +21,13 @@ else:
     except RuntimeError as e:
         print(e)
 
-def preprocess_image(images, label=None):
+def preprocess_image(images, label):
     image = tf.io.read_file(images)
     image = tf.image.decode_jpeg(image, channels=3)
+    image = tf.cast(image, tf.float32) / 255.0
     image = tf.image.resize(image, [IMG_SIZE, IMG_SIZE])
-    # image = tf.keras.applications.efficientnet.preprocess_input(image)
 
     return image, label
-
 
 def get_dataset(ds_path, is_train):
     ds_path = pathlib.Path(ds_path)
@@ -150,23 +149,28 @@ def lrfn():
     return lr
 
 if __name__ == "__main__":
+    # hyper parameters
+    AUTOTUNE = tf.data.experimental.AUTOTUNE
     IMG_SIZE = 224
+    INPUT_SHAPE = (IMG_SIZE, IMG_SIZE, 3)
     BATCH_SIZE = 32
     EPOCHS = 1000
-    minimum_loss = float(2147000000)    
-    PATIENCE = 3
-    INPUT_SHAPE = (IMG_SIZE, IMG_SIZE, 3)
-    AUTOTUNE = tf.data.experimental.AUTOTUNE
 
+    # learning rate scheduler
     LR_START = 0.00001
     LR_MAX = 0.00005 * strategy.num_replicas_in_sync
     LR_MIN = 0.00001
     LR_RAMPUP_EPOCHS = 5
     LR_SUSTAIN_EPOCHS = 0
     LR_EXP_DECAY = .8
+    
+    # early stopping
+    PATIENCE = 3
+    EARLY_STOPPING = True
+    minimum_loss = float(2147000000)
 
-    train_dataset, total_train, n_classes = get_dataset('/data/backup/pervinco/Auged_datasets/natural_images/2021.03.26_09:26:52/train', True)
-    test_dataset, total_valid, _ = get_dataset('/data/backup/pervinco/Auged_datasets/natural_images/2021.03.26_09:26:52/valid', False)
+    train_dataset, total_train, n_classes = get_dataset('/home/v100/tf_workspace/Auged_datasets/natural_images/2021.03.26_09:26:52/train', True)
+    test_dataset, total_valid, _ = get_dataset('/home/v100/tf_workspace/Auged_datasets/natural_images/2021.03.26_09:26:52/valid', False)
     n_classes = len(n_classes)
 
     LOSS = tf.keras.losses.CategoricalCrossentropy()
@@ -204,16 +208,17 @@ if __name__ == "__main__":
         values = [('train_loss', train_loss.result().numpy()), ('train_acc', train_acc.result().numpy()), ('valid_loss', val_loss.result().numpy()), ('valid_acc', val_acc.result().numpy())]
         prog_bar.update(total_train, values=values, finalize=True)
 
-        tmp_loss = (val_loss.result().numpy())
-        if tmp_loss < minimum_loss:
-            minimum_loss = tmp_loss
-            PATIENCE = 3
+        if EARLY_STOPPING:
+            tmp_loss = (val_loss.result().numpy())
+            if tmp_loss < minimum_loss:
+                minimum_loss = tmp_loss
+                PATIENCE = 3
 
-        else:
-            PATIENCE -= 1
+            else:
+                PATIENCE -= 1
 
-            if PATIENCE == 0:
-                break
+                if PATIENCE == 0:
+                    break
 
     print('Learning Finished')
-    model.save('/data/backup/pervinco/test_code/test_model')
+    model.save('/home/v100/tf_workspace/model/test_model')
