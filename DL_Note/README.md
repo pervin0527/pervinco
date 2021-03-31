@@ -52,3 +52,6 @@
 [Code2 - mnist_CNN](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch11-2_cnn.py)  
 [Code3 - Conv2d layer details](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch11-3_convolution_detail.py)  
 [Code4 - Max_pooling2d layer details](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch11-4_maxpooling_detail.py)
+
+12. RNN  
+[Code1 - RNN basic](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch12-0_rnn_basics.py)
