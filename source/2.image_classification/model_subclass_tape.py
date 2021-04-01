@@ -25,6 +25,7 @@ def preprocess_image(images, label):
     image = tf.io.read_file(images)
     image = tf.image.decode_jpeg(image, channels=3)
     image = tf.cast(image, tf.float32) / 255.0
+    image = tf.image.per_image_standardization(image)
     image = tf.image.resize(image, [IMG_SIZE, IMG_SIZE])
 
     return image, label
