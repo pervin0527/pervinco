@@ -170,7 +170,7 @@ if __name__ == "__main__":
     test_dataset, total_valid, _ = get_dataset('/data/backup/pervinco/Auged_datasets/natural_images/2021.03.26_09:26:52/valid', False)
     n_classes = len(n_classes)
 
-    LOSS = tf.keras.losses.CategoricalCrossentropy()
+    cost_fn = tf.keras.losses.CategoricalCrossentropy()
     optimizer = tf.keras.optimizers.SGD(learning_rate=lrfn)
     inputs = tf.keras.Input(shape=(INPUT_SHAPE))
     model = ResNet50()
