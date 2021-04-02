@@ -120,19 +120,21 @@ def ResNet50():
 def train(model, images, labels):
     with tf.GradientTape() as tape:
         y_pred = model(images, training=True)
-        loss = LOSS(labels, y_pred)
-        grads = tape.gradient(loss, model.trainable_variables)
+        loss = cost_fn(labels, y_pred)
     
+    grads = tape.gradient(loss, model.trainable_variables)
     optimizer.apply_gradients(grads_and_vars=zip(grads, model.trainable_variables))
+
     train_acc.update_state(labels, y_pred)
-    train_loss.update_state(loss)
+    train_loss.update_state(labels, y_pred)
 
 @tf.function
 def validation(model, images, labels):
     y_pred = model(images, training=False)
-    loss = LOSS(labels, y_pred)
+    loss = cost_fn(labels, y_pred)
+    
     val_acc.update_state(labels, y_pred)
-    val_loss.update_state(loss)
+    val_loss.update_state(labels, y_pred)
 
 def lrfn():
     if epoch < LR_RAMPUP_EPOCHS:
@@ -177,9 +179,9 @@ if __name__ == "__main__":
     tf.keras.utils.plot_model(model, show_shapes=True)
 
     train_acc = tf.metrics.CategoricalAccuracy()
-    train_loss = tf.metrics.Mean()
+    train_loss = tf.metrics.CategoricalCrossentropy()
     val_acc = tf.metrics.CategoricalAccuracy()
-    val_loss = tf.metrics.Mean()
+    val_loss = tf.metrics.CategoricalCrossentropy()
 
     print()
     print('Learning started. It takes sometime.')
