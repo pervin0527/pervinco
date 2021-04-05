@@ -2,6 +2,9 @@ import pathlib, random, cv2
 import tensorflow as tf
 import numpy as np
 import tensorflow.keras.backend as K
+import albumentations as A
+from functools import partial
+from sklearn.model_selection import train_test_split
 
 # GPU setup
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -22,24 +25,24 @@ else:
     except RuntimeError as e:
         print(e)
 
-def preprocess_image(images, label):
+
+def preprocess_image(images):
     image = tf.io.read_file(images)
     image = tf.image.decode_jpeg(image, channels=3)
-    image = tf.cast(image, tf.float32) / 255.0
+    # image = tf.cast(image, tf.float32) / 255.0
+    image = (tf.cast(image, tf.float32) / 127.5) - 1
     image = tf.image.per_image_standardization(image)
     image = tf.image.resize(image, [IMG_SIZE, IMG_SIZE])
 
-    return image, label
+    return image
 
-def get_dataset(ds_path, is_train):
+
+def get_dataset(ds_path):
     ds_path = pathlib.Path(ds_path)
 
     images = list(ds_path.glob('*/*.jpg'))
     images = [str(path) for path in images]
     total_images = len(images)
-
-    if is_train:
-        random.shuffle(images)
 
     labels = sorted(item.name for item in ds_path.glob('*/') if item.is_dir())
     classes = labels
@@ -47,20 +50,50 @@ def get_dataset(ds_path, is_train):
     labels = [labels[pathlib.Path(path).parent.name] for path in images]
     labels = tf.keras.utils.to_categorical(labels, num_classes=len(classes), dtype='float32')
 
-    if is_train:
-        dataset = tf.data.Dataset.from_tensor_slices((images, labels))
-        dataset = dataset.map(preprocess_image, num_parallel_calls=AUTOTUNE)
-        dataset = dataset.shuffle(512)
-        dataset = dataset.batch(BATCH_SIZE)
-        dataset = dataset.prefetch(AUTOTUNE)
-    
-    else:
-        dataset = tf.data.Dataset.from_tensor_slices((images, labels))
-        dataset = dataset.map(preprocess_image, num_parallel_calls=AUTOTUNE)
-        dataset = dataset.batch(BATCH_SIZE)
-        dataset = dataset.prefetch(AUTOTUNE)
+    return images, labels, classes
 
-    return dataset, total_images, classes
+
+def aug_fn(image):
+    data = {"image":image}
+    aug_data = transforms(**data)
+    aug_img = aug_data["image"]
+    aug_img = tf.cast(aug_img, tf.float32)
+
+    return aug_img
+
+
+def process_data(image, label):
+    aug_img = tf.numpy_function(func=aug_fn, inp=[image], Tout=tf.float32)
+
+    return aug_img, label
+
+
+def get_train_dataset(images, labels):
+    images = tf.data.Dataset.from_tensor_slices(images)
+    images = images.map(preprocess_image, num_parallel_calls=AUTOTUNE)
+    labels = tf.data.Dataset.from_tensor_slices(labels)
+
+    dataset = tf.data.Dataset.zip((images, labels))
+    dataset = dataset.repeat()
+    dataset = dataset.map(partial(process_data), num_parallel_calls=AUTOTUNE)
+    dataset = dataset.batch(BATCH_SIZE)
+    dataset = dataset.prefetch(AUTOTUNE)
+
+    return dataset
+
+
+def get_valid_dataset(images, labels):
+    images = tf.data.Dataset.from_tensor_slices(images)
+    images = images.map(preprocess_image, num_parallel_calls=AUTOTUNE)
+    labels = tf.data.Dataset.from_tensor_slices(labels)
+    
+    dataset = tf.data.Dataset.zip((images, labels))
+    dataset = dataset.repeat()
+    dataset = dataset.batch(BATCH_SIZE)
+    dataset = dataset.prefetch(AUTOTUNE)
+
+    return dataset
+
 
 def residual_block(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
     if conv_shortcut:
@@ -86,6 +119,7 @@ def residual_block(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name
 
     return x
 
+
 def residual_stack(x, filters, blocks, stride1=2, name=None):
     x = residual_block(x, filters, stride=stride1, name=name + '_block1')
 
@@ -94,6 +128,7 @@ def residual_stack(x, filters, blocks, stride1=2, name=None):
 
     return x
 
+
 def ResNet50():
     inputs = tf.keras.layers.Input(shape=INPUT_SHAPE)
     x = tf.keras.layers.ZeroPadding2D(padding=((3, 3), (3, 3)), name='conv1_pad')(inputs)
@@ -101,7 +136,7 @@ def ResNet50():
     x = tf.keras.layers.BatchNormalization(axis=3, name='conv1_bn')(x)
     x = tf.keras.layers.Activation('relu', name='conv1_relu')(x)
 
-    # x = tf.keras.layers.ZeroPadding2D(padding=((1, 1), (1, 1)), name='pool1_pad')(x)
+    x = tf.keras.layers.ZeroPadding2D(padding=((1, 1), (1, 1)), name='pool1_pad')(x)
     x = tf.keras.layers.MaxPooling2D(3, strides=2, name='pool1_pool')(x)
 
     x = residual_stack(x, 64, 3, stride1=1, name='conv2')
@@ -116,11 +151,12 @@ def ResNet50():
 
     return model
 
+
 @tf.function
 def train(model, images, labels):
     with tf.GradientTape() as tape:
         y_pred = model(images, training=True)
-        loss = cost_fn(labels, y_pred)
+        loss = tf.reduce_mean(cost_fn(labels, y_pred))
     
     grads = tape.gradient(loss, model.trainable_variables)
     optimizer.apply_gradients(grads_and_vars=zip(grads, model.trainable_variables))
@@ -128,13 +164,15 @@ def train(model, images, labels):
     train_acc.update_state(labels, y_pred)
     train_loss.update_state(labels, y_pred)
 
+
 @tf.function
 def validation(model, images, labels):
     y_pred = model(images, training=False)
-    loss = cost_fn(labels, y_pred)
+    loss = tf.reduce_mean(cost_fn(labels, y_pred))
     
     val_acc.update_state(labels, y_pred)
     val_loss.update_state(labels, y_pred)
+
 
 def lrfn():
     if epoch < LR_RAMPUP_EPOCHS:
@@ -144,6 +182,7 @@ def lrfn():
     else:
         lr = (LR_MAX - LR_MIN) * LR_EXP_DECAY**(epoch - LR_RAMPUP_EPOCHS - LR_SUSTAIN_EPOCHS) + LR_MIN
     return lr
+
 
 if __name__ == "__main__":
     # hyper parameters
@@ -166,9 +205,13 @@ if __name__ == "__main__":
     EARLY_STOPPING = True
     minimum_loss = float(2147000000)
 
-    train_dataset, total_train, n_classes = get_dataset('/data/backup/pervinco/Auged_datasets/natural_images/2021.03.26_09:26:52/train', True)
-    test_dataset, total_valid, _ = get_dataset('/data/backup/pervinco/Auged_datasets/natural_images/2021.03.26_09:26:52/valid', False)
-    n_classes = len(n_classes)
+    total_images, total_labels, CLASSES = get_dataset('/home/v100/tf_workspace/datasets/natural_images/natural_images')
+    n_classes = len(CLASSES)
+
+    train_images, valid_images, train_labels, valid_labels = train_test_split(total_images, total_labels, test_size=.3, shuffle=True, random_state=777)
+
+    TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_images)/ BATCH_SIZE).numpy())
+    VALID_STEP_PER_EPOCH = int(tf.math.ceil(len(valid_images) / BATCH_SIZE).numpy())
 
     cost_fn = tf.keras.losses.CategoricalCrossentropy()
     optimizer = tf.keras.optimizers.SGD(learning_rate=lrfn)
@@ -183,28 +226,51 @@ if __name__ == "__main__":
     val_acc = tf.metrics.CategoricalAccuracy()
     val_loss = tf.metrics.CategoricalCrossentropy()
 
+    transforms = A.Compose([
+        A.Resize(IMG_SIZE, IMG_SIZE, 3, p=1),
+
+        A.OneOf([
+            A.HorizontalFlip(p=0.8),
+            A.VerticalFlip(p=0.8),
+         ], p=0.9),
+
+        A.Cutout(num_holes=15, max_h_size=4, max_w_size=4, fill_value=[0, 0, 0], p=0.7),
+        
+        A.OneOf([
+            A.RandomRotate90(p=0.8),
+            A.ShiftScaleRotate(p=0.8, border_mode=1)
+        ], p=0.9)
+    ])
+
+    stateful_matrices = ['train_acc', 'train_loss', 'valid_acc', 'valid_loss']
     print()
     print('Learning started. It takes sometime.')
     for epoch in range(EPOCHS):
         print("Current Learning Rate : ", optimizer._decayed_lr('float32').numpy())
         tf.print("Epoch {}/{}".format(epoch + 1, EPOCHS))
-        prog_bar = tf.keras.utils.Progbar(target=total_train)
+        prog_bar = tf.keras.utils.Progbar(target=TRAIN_STEPS_PER_EPOCH, stateful_metrics=stateful_matrices)
 
         train_acc.reset_states()
         train_loss.reset_states()
         val_acc.reset_states()
         val_loss.reset_states()
         
-        for idx, (images, labels) in enumerate(train_dataset):
+        for idx, (images, labels) in enumerate(get_train_dataset(train_images, train_labels)):
             train(model, images, labels)
             values=[('train_loss', train_loss.result().numpy()), ('train_acc', train_acc.result().numpy())]
-            prog_bar.update(BATCH_SIZE*idx, values=values)
+            prog_bar.update(idx, values=values)
 
-        for images, labels in test_dataset:
+            if idx+1 >= TRAIN_STEPS_PER_EPOCH:
+                break
+
+        for idx, (images, labels) in enumerate(get_valid_dataset(valid_images, valid_labels)):
             validation(model, images, labels)
+
+            if idx+1 >= VALID_STEP_PER_EPOCH:
+                break
         
         values = [('train_loss', train_loss.result().numpy()), ('train_acc', train_acc.result().numpy()), ('valid_loss', val_loss.result().numpy()), ('valid_acc', val_acc.result().numpy())]
-        prog_bar.update(total_train, values=values, finalize=True)
+        prog_bar.update(TRAIN_STEPS_PER_EPOCH, values=values, finalize=True)
 
         if EARLY_STOPPING:
             tmp_loss = (val_loss.result().numpy())
@@ -219,4 +285,4 @@ if __name__ == "__main__":
                     break
 
     print('Learning Finished')
-    model.save('/data/backup/pervinco/model/resnet50')
+    model.save('/home/v100/tf_workspace/model/resnet50')
