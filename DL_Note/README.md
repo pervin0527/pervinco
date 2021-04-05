@@ -54,4 +54,5 @@
 [Code4 - Max_pooling2d layer details](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch11-4_maxpooling_detail.py)
 
 12. RNN  
+[Blog - RNN](https://www.notion.so/pervin0527/12-RNN-3a3d60b5c77e409a93b9534aceb02d07)  
 [Code1 - RNN basic](https://github.com/pervin0527/pervinco/blob/master/DL_Note/ch12-0_rnn_basics.py)

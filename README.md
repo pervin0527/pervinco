@@ -42,3 +42,4 @@ It summarizes the details of machine learning and deep learning that are easier 
 9. ReLU activation func
 10. weight initialization, dropout, batch normalization
 11. Convolutional Neural Network
+12. Recurrent Neural Network
