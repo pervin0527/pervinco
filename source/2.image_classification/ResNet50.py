@@ -22,14 +22,16 @@ else:
     except RuntimeError as e:
         print(e)
 
+
 def preprocess_image(images, label):
     image = tf.io.read_file(images)
     image = tf.image.decode_jpeg(image, channels=3)
-    image = tf.cast(image, tf.float32) / 255.0
+    image = (tf.cast(image, tf.float32) / 127.5) - 1
     image = tf.image.per_image_standardization(image)
     image = tf.image.resize(image, [IMG_SIZE, IMG_SIZE])
 
     return image, label
+
 
 def get_dataset(ds_path, is_train):
     ds_path = pathlib.Path(ds_path)
@@ -62,29 +64,31 @@ def get_dataset(ds_path, is_train):
 
     return dataset, total_images, classes
 
+
 def residual_block(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
     if conv_shortcut:
-        shortcut = tf.keras.layers.Conv2D(4 * filters, 1, strides=stride, name=name+'_0_conv', kernel_initializer='he_uniform')(x)
+        shortcut = tf.keras.layers.Conv2D(4 * filters, 1, strides=stride, name=name+'_0_conv', kernel_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
         shortcut = tf.keras.layers.BatchNormalization(axis=3, name=name+'_0_bn')(shortcut)
 
     else:
         shortcut = x
 
-    x = tf.keras.layers.Conv2D(filters, 1, strides=stride, name=name + '_1_conv', kernel_initializer='he_uniform')(x)
+    x = tf.keras.layers.Conv2D(filters, 1, strides=stride, name=name + '_1_conv', kernel_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
     x = tf.keras.layers.BatchNormalization(axis=3, name=name + '_1_bn')(x)
     x = tf.keras.layers.Activation('relu', name=name + '_1_relu')(x)
 
-    x = tf.keras.layers.Conv2D(filters, kernel_size, padding='SAME', name=name + '_2_conv', kernel_initializer='he_uniform')(x)
+    x = tf.keras.layers.Conv2D(filters, kernel_size, padding='SAME', name=name + '_2_conv', kernel_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
     x = tf.keras.layers.BatchNormalization(axis=3, name=name + '_2_bn')(x)
     x = tf.keras.layers.Activation('relu', name=name + '_2_relu')(x)
 
-    x = tf.keras.layers.Conv2D(4 * filters, 1, name=name + '_3_conv', kernel_initializer='he_uniform')(x)
+    x = tf.keras.layers.Conv2D(4 * filters, 1, name=name + '_3_conv', kernel_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
     x = tf.keras.layers.BatchNormalization(axis=3, name=name + '_3_bn')(x)
 
     x = tf.keras.layers.Add(name=name + '_add')([shortcut, x])
     x = tf.keras.layers.Activation('relu', name=name + '_out')(x)
 
     return x
+
 
 def residual_stack(x, filters, blocks, stride1=2, name=None):
     x = residual_block(x, filters, stride=stride1, name=name + '_block1')
@@ -94,14 +98,15 @@ def residual_stack(x, filters, blocks, stride1=2, name=None):
 
     return x
 
+
 def ResNet50():
     inputs = tf.keras.layers.Input(shape=INPUT_SHAPE)
     x = tf.keras.layers.ZeroPadding2D(padding=((3, 3), (3, 3)), name='conv1_pad')(inputs)
-    x = tf.keras.layers.Conv2D(64, 7, strides=2, use_bias=True, name='conv1_conv', kernel_initializer='he_uniform')(x)
+    x = tf.keras.layers.Conv2D(64, 7, strides=2, use_bias=True, name='conv1_conv', kernel_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
     x = tf.keras.layers.BatchNormalization(axis=3, name='conv1_bn')(x)
     x = tf.keras.layers.Activation('relu', name='conv1_relu')(x)
 
-    # x = tf.keras.layers.ZeroPadding2D(padding=((1, 1), (1, 1)), name='pool1_pad')(x)
+    x = tf.keras.layers.ZeroPadding2D(padding=((1, 1), (1, 1)), name='pool1_pad')(x)
     x = tf.keras.layers.MaxPooling2D(3, strides=2, name='pool1_pool')(x)
 
     x = residual_stack(x, 64, 3, stride1=1, name='conv2')
@@ -116,11 +121,12 @@ def ResNet50():
 
     return model
 
+
 @tf.function
 def train(model, images, labels):
     with tf.GradientTape() as tape:
         y_pred = model(images, training=True)
-        loss = cost_fn(labels, y_pred)
+        loss = tf.reduce_mean(cost_fn(labels, y_pred))
     
     grads = tape.gradient(loss, model.trainable_variables)
     optimizer.apply_gradients(grads_and_vars=zip(grads, model.trainable_variables))
@@ -128,13 +134,15 @@ def train(model, images, labels):
     train_acc.update_state(labels, y_pred)
     train_loss.update_state(labels, y_pred)
 
+
 @tf.function
 def validation(model, images, labels):
     y_pred = model(images, training=False)
-    loss = cost_fn(labels, y_pred)
+    loss = tf.reduce_mean(cost_fn(labels, y_pred))
     
     val_acc.update_state(labels, y_pred)
     val_loss.update_state(labels, y_pred)
+
 
 def lrfn():
     if epoch < LR_RAMPUP_EPOCHS:
@@ -144,6 +152,7 @@ def lrfn():
     else:
         lr = (LR_MAX - LR_MIN) * LR_EXP_DECAY**(epoch - LR_RAMPUP_EPOCHS - LR_SUSTAIN_EPOCHS) + LR_MIN
     return lr
+
 
 if __name__ == "__main__":
     # hyper parameters
@@ -166,8 +175,8 @@ if __name__ == "__main__":
     EARLY_STOPPING = True
     minimum_loss = float(2147000000)
 
-    train_dataset, total_train, n_classes = get_dataset('/data/backup/pervinco/Auged_datasets/natural_images/2021.03.26_09:26:52/train', True)
-    test_dataset, total_valid, _ = get_dataset('/data/backup/pervinco/Auged_datasets/natural_images/2021.03.26_09:26:52/valid', False)
+    train_dataset, total_train, n_classes = get_dataset('/home/v100/tf_workspace/Auged_datasets/natural_images/2021.03.26_09:26:52/train', True)
+    test_dataset, total_valid, _ = get_dataset('/home/v100/tf_workspace/Auged_datasets/natural_images/2021.03.26_09:26:52/valid', False)
     n_classes = len(n_classes)
 
     cost_fn = tf.keras.losses.CategoricalCrossentropy()
@@ -185,10 +194,11 @@ if __name__ == "__main__":
 
     print()
     print('Learning started. It takes sometime.')
+    stateful_matrices = ['train_acc', 'train_loss', 'valid_acc', 'valid_loss']
     for epoch in range(EPOCHS):
         print("Current Learning Rate : ", optimizer._decayed_lr('float32').numpy())
         tf.print("Epoch {}/{}".format(epoch + 1, EPOCHS))
-        prog_bar = tf.keras.utils.Progbar(target=total_train)
+        prog_bar = tf.keras.utils.Progbar(target=(total_train // BATCH_SIZE), stateful_metrics=stateful_matrices)
 
         train_acc.reset_states()
         train_loss.reset_states()
@@ -198,13 +208,19 @@ if __name__ == "__main__":
         for idx, (images, labels) in enumerate(train_dataset):
             train(model, images, labels)
             values=[('train_loss', train_loss.result().numpy()), ('train_acc', train_acc.result().numpy())]
-            prog_bar.update(BATCH_SIZE*idx, values=values)
+            prog_bar.update(idx, values=values)
+
+            if idx+1 >= (total_train // BATCH_SIZE):
+                break
 
         for images, labels in test_dataset:
             validation(model, images, labels)
+
+            if idx+1 >= (total_valid // BATCH_SIZE):
+                break
         
         values = [('train_loss', train_loss.result().numpy()), ('train_acc', train_acc.result().numpy()), ('valid_loss', val_loss.result().numpy()), ('valid_acc', val_acc.result().numpy())]
-        prog_bar.update(total_train, values=values, finalize=True)
+        prog_bar.update((total_train // BATCH_SIZE), values=values, finalize=True)
 
         if EARLY_STOPPING:
             tmp_loss = (val_loss.result().numpy())
@@ -219,4 +235,4 @@ if __name__ == "__main__":
                     break
 
     print('Learning Finished')
-    model.save('/data/backup/pervinco/model/resnet50')
+    model.save('/home/v100/tf_workspace/model/l2_regular')
