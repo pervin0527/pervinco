@@ -163,9 +163,9 @@ if __name__ == "__main__":
     EPOCHS = 1000
 
     # learning rate scheduler
-    LR_START = 0.001
-    LR_MAX = 0.005 * strategy.num_replicas_in_sync
-    LR_MIN = 0.001
+    LR_START = 0.0001
+    LR_MAX = 0.0005
+    LR_MIN = 0.0001
     LR_RAMPUP_EPOCHS = 5
     LR_SUSTAIN_EPOCHS = 0
     LR_EXP_DECAY = .8
@@ -175,12 +175,12 @@ if __name__ == "__main__":
     EARLY_STOPPING = True
     minimum_loss = float(2147000000)
 
-    train_dataset, total_train, n_classes = get_dataset('/home/v100/tf_workspace/Auged_datasets/natural_images/2021.03.26_09:26:52/train', True)
-    test_dataset, total_valid, _ = get_dataset('/home/v100/tf_workspace/Auged_datasets/natural_images/2021.03.26_09:26:52/valid', False)
+    train_dataset, total_train, n_classes = get_dataset('/data/backup/pervinco/datasets/dog_breeds/train', True)
+    test_dataset, total_valid, _ = get_dataset('/data/backup/pervinco/datasets/dog_breeds/valid', False)
     n_classes = len(n_classes)
 
     cost_fn = tf.keras.losses.CategoricalCrossentropy()
-    optimizer = tf.keras.optimizers.SGD(learning_rate=lrfn)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=lrfn)
     inputs = tf.keras.Input(shape=(INPUT_SHAPE))
     model = ResNet50()
     model(inputs=inputs)
@@ -235,4 +235,4 @@ if __name__ == "__main__":
                     break
 
     print('Learning Finished')
-    model.save('/home/v100/tf_workspace/model/l2_regular')
+    model.save('/data/backup/pervinco/model/resnet_he_l2_adam')
