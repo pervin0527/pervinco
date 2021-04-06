@@ -68,27 +68,17 @@ def process_data(image, label):
     return aug_img, label
 
 
-def get_train_dataset(images, labels):
+def make_tf_data(images, labels, augmentation):
     images = tf.data.Dataset.from_tensor_slices(images)
     images = images.map(preprocess_image, num_parallel_calls=AUTOTUNE)
     labels = tf.data.Dataset.from_tensor_slices(labels)
 
     dataset = tf.data.Dataset.zip((images, labels))
     dataset = dataset.repeat()
-    dataset = dataset.map(partial(process_data), num_parallel_calls=AUTOTUNE)
-    dataset = dataset.batch(BATCH_SIZE)
-    dataset = dataset.prefetch(AUTOTUNE)
-
-    return dataset
-
-
-def get_valid_dataset(images, labels):
-    images = tf.data.Dataset.from_tensor_slices(images)
-    images = images.map(preprocess_image, num_parallel_calls=AUTOTUNE)
-    labels = tf.data.Dataset.from_tensor_slices(labels)
     
-    dataset = tf.data.Dataset.zip((images, labels))
-    dataset = dataset.repeat()
+    if augmentation:
+        dataset = dataset.map(partial(process_data), num_parallel_calls=AUTOTUNE)
+
     dataset = dataset.batch(BATCH_SIZE)
     dataset = dataset.prefetch(AUTOTUNE)
 
@@ -209,7 +199,7 @@ if __name__ == "__main__":
 
     train_images, valid_images, train_labels, valid_labels = train_test_split(total_images, total_labels, test_size=.3, shuffle=True, random_state=777)
 
-    TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_images)/ BATCH_SIZE).numpy())
+    TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_images) / BATCH_SIZE).numpy())
     VALID_STEP_PER_EPOCH = int(tf.math.ceil(len(valid_images) / BATCH_SIZE).numpy())
 
     cost_fn = tf.keras.losses.CategoricalCrossentropy()
@@ -229,16 +219,16 @@ if __name__ == "__main__":
         A.Resize(IMG_SIZE, IMG_SIZE, 3, p=1),
 
         A.OneOf([
-            A.HorizontalFlip(p=0.8),
-            A.VerticalFlip(p=0.8),
-         ], p=0.9),
+            A.HorizontalFlip(p=0.6),
+            A.VerticalFlip(p=0.6),
+         ], p=0.7),
 
-        A.Cutout(num_holes=15, max_h_size=4, max_w_size=4, fill_value=[0, 0, 0], p=0.7),
+        # A.Cutout(num_holes=15, max_h_size=4, max_w_size=4, fill_value=[0, 0, 0], p=0.7),
         
         A.OneOf([
-            A.RandomRotate90(p=0.8),
-            A.ShiftScaleRotate(p=0.8, border_mode=1)
-        ], p=0.9)
+            A.RandomRotate90(p=0.6),
+            # A.ShiftScaleRotate(p=0.6, border_mode=1)
+        ], p=0.7)
     ])
 
     stateful_matrices = ['train_acc', 'train_loss', 'valid_acc', 'valid_loss']
@@ -254,7 +244,7 @@ if __name__ == "__main__":
         val_acc.reset_states()
         val_loss.reset_states()
         
-        for idx, (images, labels) in enumerate(get_train_dataset(train_images, train_labels)):
+        for idx, (images, labels) in enumerate(make_tf_data(train_images, train_labels, True)):
             train(model, images, labels)
             values=[('train_loss', train_loss.result().numpy()), ('train_acc', train_acc.result().numpy())]
             prog_bar.update(idx, values=values)
@@ -262,7 +252,7 @@ if __name__ == "__main__":
             if idx+1 >= TRAIN_STEPS_PER_EPOCH:
                 break
 
-        for idx, (images, labels) in enumerate(get_valid_dataset(valid_images, valid_labels)):
+        for idx, (images, labels) in enumerate(make_tf_data(valid_images, valid_labels, True)):
             validation(model, images, labels)
 
             if idx+1 >= VALID_STEP_PER_EPOCH:
