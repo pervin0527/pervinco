@@ -97,16 +97,22 @@ def augmentation(images, is_train, info, aug_num):
             for c in range(cnt):
                 transform = A.Compose([
                     A.Resize(224, 224, p=1),
-                    A.HorizontalFlip(p=0.4),
-                    A.VerticalFlip(p=0.3),
-                    A.Blur(p=0.1),
+
+                    A.RandomRotate90(p=1),
 
                     A.OneOf([
-                        A.RandomContrast(p=0.5, limit=(-0.5, 0.3)),
-                        A.RandomBrightness(p=0.5, limit=(-0.2, 0.3))
-                    ], p=0.5)
+                        A.HorizontalFlip(p=0.7),
+                        A.VerticalFlip(p=0.7),
+                    ], p=0.7),
+
+                    A.OneOf([
+                        A.RandomContrast(p=0.7, limit=(-0.5, 0.3)),
+                        A.RandomBrightness(p=0.7, limit=(-0.2, 0.3))
+                    ], p=0.7),
+
+                    # A.Cutout(p=0.5)
                 ])
-                augmented_image =transform(image=image)['image']
+                augmented_image = transform(image=image)['image']
                 cv2.imwrite(f'{output_path}/{label}/aug{c}_{image_name}', augmented_image)
 
     return output_path 
@@ -121,10 +127,11 @@ if __name__ == "__main__":
     seed_path = args.input_path
     aug_num = args.num_of_aug
 
-    TODAY = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M:%S")
+    TODAY = datetime.datetime.now().strftime("%Y.%m.%d_%H-%M-%S")
     DATASET_NAME = seed_path.split('/')[-1]
-    OUTPUT_PATH = seed_path.split('/')[:-2]
+    OUTPUT_PATH = seed_path.split('/')[:-3]
     OUTPUT_PATH = '/'.join(OUTPUT_PATH) + f'/Auged_datasets/{DATASET_NAME}/{TODAY}'
+    print(OUTPUT_PATH)
 
     label_list = sorted(os.listdir(seed_path + '/'))
     n_classes = len(label_list)

@@ -3,6 +3,7 @@ import tensorflow as tf
 import numpy as np
 import tensorflow.keras.backend as K
 import albumentations as A
+from matplotlib import pyplot as plt
 from functools import partial
 from sklearn.model_selection import train_test_split
 
@@ -30,8 +31,8 @@ def preprocess_image(images):
     image = tf.io.read_file(images)
     image = tf.image.decode_jpeg(image, channels=3)
     # image = tf.cast(image, tf.float32) / 255.0
-    image = (tf.cast(image, tf.float32) / 127.5) - 1
-    image = tf.image.per_image_standardization(image)
+    # image = (tf.cast(image, tf.float32) / 127.5) - 1
+    # image = tf.image.per_image_standardization(image)
     image = tf.image.resize(image, [IMG_SIZE, IMG_SIZE])
 
     return image
@@ -57,7 +58,9 @@ def aug_fn(image):
     data = {"image":image}
     aug_data = transforms(**data)
     aug_img = aug_data["image"]
-    aug_img = tf.cast(aug_img, tf.float32)
+    aug_img = tf.cast(aug_img, tf.float32) / 255.0
+    aug_img = tf.image.per_image_standardization(aug_img)
+    # aug_img = tf.keras.applications.resnet.preprocess_input(aug_img)
 
     return aug_img
 
@@ -87,21 +90,21 @@ def make_tf_data(images, labels, augmentation):
 
 def residual_block(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
     if conv_shortcut:
-        shortcut = tf.keras.layers.Conv2D(4 * filters, 1, strides=stride, name=name+'_0_conv', kernel_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
+        shortcut = tf.keras.layers.Conv2D(4 * filters, 1, strides=stride, name=name+'_0_conv', kernel_initializer='he_uniform', bias_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
         shortcut = tf.keras.layers.BatchNormalization(axis=3, name=name+'_0_bn')(shortcut)
 
     else:
         shortcut = x
 
-    x = tf.keras.layers.Conv2D(filters, 1, strides=stride, name=name + '_1_conv', kernel_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
+    x = tf.keras.layers.Conv2D(filters, 1, strides=stride, name=name + '_1_conv', kernel_initializer='he_uniform', bias_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
     x = tf.keras.layers.BatchNormalization(axis=3, name=name + '_1_bn')(x)
     x = tf.keras.layers.Activation('relu', name=name + '_1_relu')(x)
 
-    x = tf.keras.layers.Conv2D(filters, kernel_size, padding='SAME', name=name + '_2_conv', kernel_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
+    x = tf.keras.layers.Conv2D(filters, kernel_size, padding='SAME', name=name + '_2_conv', kernel_initializer='he_uniform', bias_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
     x = tf.keras.layers.BatchNormalization(axis=3, name=name + '_2_bn')(x)
     x = tf.keras.layers.Activation('relu', name=name + '_2_relu')(x)
 
-    x = tf.keras.layers.Conv2D(4 * filters, 1, name=name + '_3_conv', kernel_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
+    x = tf.keras.layers.Conv2D(4 * filters, 1, name=name + '_3_conv', kernel_initializer='he_uniform', bias_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
     x = tf.keras.layers.BatchNormalization(axis=3, name=name + '_3_bn')(x)
 
     x = tf.keras.layers.Add(name=name + '_add')([shortcut, x])
@@ -122,7 +125,7 @@ def residual_stack(x, filters, blocks, stride1=2, name=None):
 def ResNet50():
     inputs = tf.keras.layers.Input(shape=INPUT_SHAPE)
     x = tf.keras.layers.ZeroPadding2D(padding=((3, 3), (3, 3)), name='conv1_pad')(inputs)
-    x = tf.keras.layers.Conv2D(64, 7, strides=2, use_bias=True, name='conv1_conv', kernel_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
+    x = tf.keras.layers.Conv2D(64, 7, strides=2, use_bias=True, name='conv1_conv', kernel_initializer='he_uniform', bias_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
     x = tf.keras.layers.BatchNormalization(axis=3, name='conv1_bn')(x)
     x = tf.keras.layers.Activation('relu', name='conv1_relu')(x)
 
@@ -173,6 +176,27 @@ def lrfn():
     return lr
 
 
+def tf_data_visualize(augmentation_element, name):
+    row, col, idx = 5, 4, 0
+    row = min(row, BATCH_SIZE // col)
+
+    for (image, label) in augmentation_element:
+        print(image.shape, label.shape)
+        image = image / 255.0
+        plt.figure(figsize=(15, int(15 * row / col)))
+        for j in range(row * col):
+            plt.subplot(row, col, j + 1)
+            plt.axis('off')
+            plt.imshow(image[j, ])
+
+        # plt.savefig(f'{SAVED_PATH}/{LOG_TIME}/{name}_{idx}.jpg')
+        plt.show()
+        idx += 1
+
+        if idx == 3:
+            break
+
+
 if __name__ == "__main__":
     # hyper parameters
     AUTOTUNE = tf.data.experimental.AUTOTUNE
@@ -203,7 +227,8 @@ if __name__ == "__main__":
     VALID_STEP_PER_EPOCH = int(tf.math.ceil(len(valid_images) / BATCH_SIZE).numpy())
 
     cost_fn = tf.keras.losses.CategoricalCrossentropy()
-    optimizer = tf.keras.optimizers.Adam(learning_rate=lrfn)
+    # optimizer = tf.keras.optimizers.Adam(learning_rate=lrfn)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=0.00001)
     inputs = tf.keras.Input(shape=(INPUT_SHAPE))
     model = ResNet50()
     model(inputs=inputs)
@@ -216,7 +241,7 @@ if __name__ == "__main__":
     val_loss = tf.metrics.CategoricalCrossentropy()
 
     transforms = A.Compose([
-        A.Resize(IMG_SIZE, IMG_SIZE, 3, p=1),
+        # A.Resize(IMG_SIZE, IMG_SIZE, 3, p=1),
 
         A.OneOf([
             A.HorizontalFlip(p=0.6),
@@ -227,9 +252,15 @@ if __name__ == "__main__":
         
         A.OneOf([
             A.RandomRotate90(p=0.6),
-            # A.ShiftScaleRotate(p=0.6, border_mode=1)
-        ], p=0.7)
+            A.ShiftScaleRotate(p=0.6, border_mode=1)
+        ], p=0.7),
+
+        # A.RandomBrightness(limit=0.1, p=0.5),
+        # A.HueSaturationValue(hue_shift_limit=20, sat_shift_limit=30, val_shift_limit=20, p=0.5),
+        # A.RandomContrast(limit=0.2, p=0.5),
     ])
+
+    # tf_data_visualize(make_tf_data(train_images, train_labels, True), 'train')
 
     stateful_matrices = ['train_acc', 'train_loss', 'valid_acc', 'valid_loss']
     print()
@@ -274,4 +305,4 @@ if __name__ == "__main__":
                     break
 
     print('Learning Finished')
-    model.save('/home/v100/tf_workspace/model/resnet50_adam_he_l2_aug')
+    model.save('/home/v100/tf_workspace/model/resnet50_adam_he_l2_aug.h5')
