@@ -24,11 +24,12 @@ else:
 def preprocess_image(images, label):
     image = tf.io.read_file(images)
     image = tf.image.decode_jpeg(image, channels=3)
+    image = tf.image.resize(image, [IMG_SIZE, IMG_SIZE])
     image = tf.cast(image, tf.float32) / 255.0
     image = tf.image.per_image_standardization(image)
-    image = tf.image.resize(image, [IMG_SIZE, IMG_SIZE])
 
     return image, label
+
 
 def get_dataset(ds_path, is_train):
     ds_path = pathlib.Path(ds_path)
@@ -64,33 +65,33 @@ def get_dataset(ds_path, is_train):
 class VGG16(tf.keras.Model):
     def __init__(self):
         super(VGG16, self).__init__()        
-        self.block1_conv1 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv1', kernel_initializer='he_uniform')
-        self.block1_conv2 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv2', kernel_initializer='he_uniform')
+        self.block1_conv1 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv1', kernel_initializer='he_normal', bias_initializer='he_normal')
+        self.block1_conv2 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv2', kernel_initializer='he_normal', bias_initializer='he_normal')
         self.block1_pool = tf.keras.layers.MaxPool2D((2, 2), strides=(2, 2), name='block1_pool')
 
-        self.block2_conv1 = tf.keras.layers.Conv2D(128, (3, 3), activation='relu', padding='same', name='block2_conv1', kernel_initializer='he_uniform')
-        self.block2_conv2 = tf.keras.layers.Conv2D(128, (3, 3), activation='relu', padding='same', name='block2_conv2', kernel_initializer='he_uniform')
+        self.block2_conv1 = tf.keras.layers.Conv2D(128, (3, 3), activation='relu', padding='same', name='block2_conv1', kernel_initializer='he_normal', bias_initializer='he_normal')
+        self.block2_conv2 = tf.keras.layers.Conv2D(128, (3, 3), activation='relu', padding='same', name='block2_conv2', kernel_initializer='he_normal', bias_initializer='he_normal')
         self.block2_pool = tf.keras.layers.MaxPool2D((2, 2), strides=(2, 2), name='block2_pool')
 
-        self.block3_conv1 = tf.keras.layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv1', kernel_initializer='he_uniform')
-        self.block3_conv2 = tf.keras.layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv2', kernel_initializer='he_uniform')
-        self.block3_conv3 = tf.keras.layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv3', kernel_initializer='he_uniform')
+        self.block3_conv1 = tf.keras.layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv1', kernel_initializer='he_normal', bias_initializer='he_normal')
+        self.block3_conv2 = tf.keras.layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv2', kernel_initializer='he_normal', bias_initializer='he_normal')
+        self.block3_conv3 = tf.keras.layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv3', kernel_initializer='he_normal', bias_initializer='he_normal')
         self.block3_pool = tf.keras.layers.MaxPool2D((2, 2), strides=(2, 2), name='block3_pool')
 
-        self.block4_conv1 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv1', kernel_initializer='he_uniform')
-        self.block4_conv2 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv2', kernel_initializer='he_uniform')
-        self.block4_conv3 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv3', kernel_initializer='he_uniform')
+        self.block4_conv1 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv1', kernel_initializer='he_normal', bias_initializer='he_normal')
+        self.block4_conv2 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv2', kernel_initializer='he_normal', bias_initializer='he_normal')
+        self.block4_conv3 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv3', kernel_initializer='he_normal', bias_initializer='he_normal')
         self.block4_pool = tf.keras.layers.MaxPool2D((2, 2), strides=(2, 2), name='block4_pool')
 
-        self.block5_conv1 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv1', kernel_initializer='he_uniform')
-        self.block5_conv2 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv2', kernel_initializer='he_uniform')
-        self.block5_conv3 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv3', kernel_initializer='he_uniform')
+        self.block5_conv1 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv1', kernel_initializer='he_normal', bias_initializer='he_normal')
+        self.block5_conv2 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv2', kernel_initializer='he_normal', bias_initializer='he_normal')
+        self.block5_conv3 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv3', kernel_initializer='he_normal', bias_initializer='he_normal')
         self.block5_pool = tf.keras.layers.MaxPool2D((2, 2), strides=(2, 2), name='block5_pool')
 
         self.flatten = tf.keras.layers.Flatten(name='flatten')
-        self.fc1 = tf.keras.layers.Dense(4096, activation='relu', name='fc1', kernel_initializer='he_uniform')
+        self.fc1 = tf.keras.layers.Dense(4096, activation='relu', name='fc1', kernel_initializer='he_normal', bias_initializer='he_normal')
         self.dp1 = tf.keras.layers.Dropout(rate=0.5)
-        self.fc2 = tf.keras.layers.Dense(4096, activation='relu', name='fc2', kernel_initializer='he_uniform')
+        self.fc2 = tf.keras.layers.Dense(4096, activation='relu', name='fc2', kernel_initializer='he_normal', bias_initializer='he_normal')
         self.dp2 = tf.keras.layers.Dropout(rate=0.5)
         self.prediction = tf.keras.layers.Dense(n_classes, activation='softmax', name='predictions')
 
@@ -126,7 +127,7 @@ class VGG16(tf.keras.Model):
 def train(model, images, labels):
     with tf.GradientTape() as tape:
         y_pred = model(images, training=True)
-        loss = cost_fn(labels, y_pred)
+        loss = tf.reduce_mean(cost_fn(labels, y_pred))
     
     grads = tape.gradient(loss, model.trainable_variables)
     optimizer.apply_gradients(grads_and_vars=zip(grads, model.trainable_variables))
@@ -134,10 +135,11 @@ def train(model, images, labels):
     train_acc.update_state(labels, y_pred)
     train_loss.update_state(labels, y_pred)
 
+
 @tf.function
 def validation(model, images, labels):
     y_pred = model(images, training=False)
-    loss = cost_fn(labels, y_pred)
+    loss = tf.reduce_mean(cost_fn(labels, y_pred))
     
     val_acc.update_state(labels, y_pred)
     val_loss.update_state(labels, y_pred)
@@ -159,10 +161,10 @@ if __name__ == "__main__":
     BATCH_SIZE = 32
     EPOCHS = 1000
 
-    # learning rate scheduler
-    LR_START = 0.00001
-    LR_MAX = 0.00005 * strategy.num_replicas_in_sync
-    LR_MIN = 0.00001
+   # learning rate scheduler
+    LR_START = 0.001
+    LR_MAX = 0.005 * strategy.num_replicas_in_sync
+    LR_MIN = 0.001
     LR_RAMPUP_EPOCHS = 5
     LR_SUSTAIN_EPOCHS = 0
     LR_EXP_DECAY = .8
@@ -172,16 +174,18 @@ if __name__ == "__main__":
     EARLY_STOPPING = True
     minimum_loss = float(2147000000)
 
-    train_dataset, total_train, n_classes = get_dataset('/home/v100/tf_workspace/Auged_datasets/natural_images/2021.03.26_09:26:52/train', True)
-    test_dataset, total_valid, _ = get_dataset('/home/v100/tf_workspace/Auged_datasets/natural_images/2021.03.26_09:26:52/valid', False)
+    train_dataset, total_train, n_classes = get_dataset('/home/v100/tf_workspace/Auged_datasets/natural_images/2021_04_06_15_51_45/train', True)
+    test_dataset, total_valid, _ = get_dataset('/home/v100/tf_workspace/Auged_datasets/natural_images/2021_04_06_15_51_45/valid', True)
     n_classes = len(n_classes)
 
-    LOSS = tf.keras.losses.CategoricalCrossentropy()
-    optimizer = tf.keras.optimizers.SGD(learning_rate=lrfn)
+    cost_fn = tf.keras.losses.CategoricalCrossentropy()
+    # optimizer = tf.keras.optimizers.Adam(learning_rate=lrfn)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=0.00001)
     inputs = tf.keras.Input(shape=(INPUT_SHAPE))
     model = VGG16()
     model(inputs=inputs)
     model.summary()
+    # tf.keras.utils.plot_model(model, show_shapes=True)
 
     train_acc = tf.metrics.CategoricalAccuracy()
     train_loss = tf.metrics.CategoricalCrossentropy()
@@ -190,10 +194,11 @@ if __name__ == "__main__":
 
     print()
     print('Learning started. It takes sometime.')
+    stateful_matrices = ['train_acc', 'train_loss', 'valid_acc', 'valid_loss']
     for epoch in range(EPOCHS):
         print("Current Learning Rate : ", optimizer._decayed_lr('float32').numpy())
         tf.print("Epoch {}/{}".format(epoch + 1, EPOCHS))
-        prog_bar = tf.keras.utils.Progbar(target=total_train)
+        prog_bar = tf.keras.utils.Progbar(target=(total_train // BATCH_SIZE), stateful_metrics=stateful_matrices)
 
         train_acc.reset_states()
         train_loss.reset_states()
@@ -203,13 +208,19 @@ if __name__ == "__main__":
         for idx, (images, labels) in enumerate(train_dataset):
             train(model, images, labels)
             values=[('train_loss', train_loss.result().numpy()), ('train_acc', train_acc.result().numpy())]
-            prog_bar.update(BATCH_SIZE*idx, values=values)
+            prog_bar.update(idx, values=values)
+
+            if idx+1 >= (total_train // BATCH_SIZE):
+                break
 
         for images, labels in test_dataset:
             validation(model, images, labels)
+
+            if idx+1 >= (total_valid // BATCH_SIZE):
+                break
         
         values = [('train_loss', train_loss.result().numpy()), ('train_acc', train_acc.result().numpy()), ('valid_loss', val_loss.result().numpy()), ('valid_acc', val_acc.result().numpy())]
-        prog_bar.update(total_train, values=values, finalize=True)
+        prog_bar.update((total_train // BATCH_SIZE), values=values, finalize=True)
 
         if EARLY_STOPPING:
             tmp_loss = (val_loss.result().numpy())
@@ -224,4 +235,4 @@ if __name__ == "__main__":
                     break
 
     print('Learning Finished')
-    model.save('/home/v100/tf_workspace/model/test_model')
+    model.save('/home/v100/tf_workspace/model/vgg16.h5')

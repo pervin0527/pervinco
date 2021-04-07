@@ -26,9 +26,9 @@ else:
 def preprocess_image(images, label):
     image = tf.io.read_file(images)
     image = tf.image.decode_jpeg(image, channels=3)
-    image = (tf.cast(image, tf.float32) / 127.5) - 1
-    image = tf.image.per_image_standardization(image)
     image = tf.image.resize(image, [IMG_SIZE, IMG_SIZE])
+    image = tf.cast(image, tf.float32) / 255.0
+    image = tf.image.per_image_standardization(image)
 
     return image, label
 
@@ -67,21 +67,21 @@ def get_dataset(ds_path, is_train):
 
 def residual_block(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
     if conv_shortcut:
-        shortcut = tf.keras.layers.Conv2D(4 * filters, 1, strides=stride, name=name+'_0_conv', kernel_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
+        shortcut = tf.keras.layers.Conv2D(4 * filters, 1, strides=stride, name=name+'_0_conv', kernel_initializer='he_normal', bias_initializer='he_normal',)(x)
         shortcut = tf.keras.layers.BatchNormalization(axis=3, name=name+'_0_bn')(shortcut)
 
     else:
         shortcut = x
 
-    x = tf.keras.layers.Conv2D(filters, 1, strides=stride, name=name + '_1_conv', kernel_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
+    x = tf.keras.layers.Conv2D(filters, 1, strides=stride, name=name + '_1_conv', kernel_initializer='he_normal', bias_initializer='he_normal',)(x)
     x = tf.keras.layers.BatchNormalization(axis=3, name=name + '_1_bn')(x)
     x = tf.keras.layers.Activation('relu', name=name + '_1_relu')(x)
 
-    x = tf.keras.layers.Conv2D(filters, kernel_size, padding='SAME', name=name + '_2_conv', kernel_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
+    x = tf.keras.layers.Conv2D(filters, kernel_size, padding='SAME', name=name + '_2_conv', kernel_initializer='he_normal', bias_initializer='he_normal',)(x)
     x = tf.keras.layers.BatchNormalization(axis=3, name=name + '_2_bn')(x)
     x = tf.keras.layers.Activation('relu', name=name + '_2_relu')(x)
 
-    x = tf.keras.layers.Conv2D(4 * filters, 1, name=name + '_3_conv', kernel_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
+    x = tf.keras.layers.Conv2D(4 * filters, 1, name=name + '_3_conv', kernel_initializer='he_normal', bias_initializer='he_normal',)(x)
     x = tf.keras.layers.BatchNormalization(axis=3, name=name + '_3_bn')(x)
 
     x = tf.keras.layers.Add(name=name + '_add')([shortcut, x])
@@ -102,7 +102,7 @@ def residual_stack(x, filters, blocks, stride1=2, name=None):
 def ResNet50():
     inputs = tf.keras.layers.Input(shape=INPUT_SHAPE)
     x = tf.keras.layers.ZeroPadding2D(padding=((3, 3), (3, 3)), name='conv1_pad')(inputs)
-    x = tf.keras.layers.Conv2D(64, 7, strides=2, use_bias=True, name='conv1_conv', kernel_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
+    x = tf.keras.layers.Conv2D(64, 7, strides=2, use_bias=True, name='conv1_conv', kernel_initializer='he_normal', bias_initializer='he_normal',)(x)
     x = tf.keras.layers.BatchNormalization(axis=3, name='conv1_bn')(x)
     x = tf.keras.layers.Activation('relu', name='conv1_relu')(x)
 
@@ -162,9 +162,9 @@ if __name__ == "__main__":
     BATCH_SIZE = 32
     EPOCHS = 1000
 
-    # learning rate scheduler
+   # learning rate scheduler
     LR_START = 0.001
-    LR_MAX = 0.005
+    LR_MAX = 0.005 * strategy.num_replicas_in_sync
     LR_MIN = 0.001
     LR_RAMPUP_EPOCHS = 5
     LR_SUSTAIN_EPOCHS = 0
@@ -175,12 +175,13 @@ if __name__ == "__main__":
     EARLY_STOPPING = True
     minimum_loss = float(2147000000)
 
-    train_dataset, total_train, n_classes = get_dataset('/home/v100/tf_workspace/Auged_datasets/natural_images/2021.03.26_09:26:52/train', True)
-    test_dataset, total_valid, _ = get_dataset('/home/v100/tf_workspace/Auged_datasets/natural_images/2021.03.26_09:26:52/valid', False)
+    train_dataset, total_train, n_classes = get_dataset('/home/v100/tf_workspace/Auged_datasets/natural_images/2021_04_06_15_51_45/train', True)
+    test_dataset, total_valid, _ = get_dataset('/home/v100/tf_workspace/Auged_datasets/natural_images/2021_04_06_15_51_45/valid', True)
     n_classes = len(n_classes)
 
     cost_fn = tf.keras.losses.CategoricalCrossentropy()
-    optimizer = tf.keras.optimizers.Adam(learning_rate=lrfn)
+    # optimizer = tf.keras.optimizers.Adam(learning_rate=lrfn)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=0.00001)
     inputs = tf.keras.Input(shape=(INPUT_SHAPE))
     model = ResNet50()
     model(inputs=inputs)
@@ -235,4 +236,4 @@ if __name__ == "__main__":
                     break
 
     print('Learning Finished')
-    model.save('/home/v100/tf_workspace/model/resnet_he_l2_adam')
+    model.save('/home/v100/tf_workspace/model/resnet_he_l2_adam.h5')

@@ -90,21 +90,21 @@ def make_tf_data(images, labels, augmentation):
 
 def residual_block(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
     if conv_shortcut:
-        shortcut = tf.keras.layers.Conv2D(4 * filters, 1, strides=stride, name=name+'_0_conv', kernel_initializer='he_uniform', bias_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
+        shortcut = tf.keras.layers.Conv2D(4 * filters, 1, strides=stride, name=name+'_0_conv', kernel_initializer='he_uniform', bias_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(x)
         shortcut = tf.keras.layers.BatchNormalization(axis=3, name=name+'_0_bn')(shortcut)
 
     else:
         shortcut = x
 
-    x = tf.keras.layers.Conv2D(filters, 1, strides=stride, name=name + '_1_conv', kernel_initializer='he_uniform', bias_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
+    x = tf.keras.layers.Conv2D(filters, 1, strides=stride, name=name + '_1_conv', kernel_initializer='he_uniform', bias_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(x)
     x = tf.keras.layers.BatchNormalization(axis=3, name=name + '_1_bn')(x)
     x = tf.keras.layers.Activation('relu', name=name + '_1_relu')(x)
 
-    x = tf.keras.layers.Conv2D(filters, kernel_size, padding='SAME', name=name + '_2_conv', kernel_initializer='he_uniform', bias_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
+    x = tf.keras.layers.Conv2D(filters, kernel_size, padding='SAME', name=name + '_2_conv', kernel_initializer='he_uniform', bias_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(x)
     x = tf.keras.layers.BatchNormalization(axis=3, name=name + '_2_bn')(x)
     x = tf.keras.layers.Activation('relu', name=name + '_2_relu')(x)
 
-    x = tf.keras.layers.Conv2D(4 * filters, 1, name=name + '_3_conv', kernel_initializer='he_uniform', bias_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
+    x = tf.keras.layers.Conv2D(4 * filters, 1, name=name + '_3_conv', kernel_initializer='he_uniform', bias_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(x)
     x = tf.keras.layers.BatchNormalization(axis=3, name=name + '_3_bn')(x)
 
     x = tf.keras.layers.Add(name=name + '_add')([shortcut, x])
@@ -125,7 +125,7 @@ def residual_stack(x, filters, blocks, stride1=2, name=None):
 def ResNet50():
     inputs = tf.keras.layers.Input(shape=INPUT_SHAPE)
     x = tf.keras.layers.ZeroPadding2D(padding=((3, 3), (3, 3)), name='conv1_pad')(inputs)
-    x = tf.keras.layers.Conv2D(64, 7, strides=2, use_bias=True, name='conv1_conv', kernel_initializer='he_uniform', bias_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
+    x = tf.keras.layers.Conv2D(64, 7, strides=2, use_bias=True, name='conv1_conv', kernel_initializer='he_uniform', bias_initializer='he_uniform', kernel_regularizer=tf.keras.regularizers.l2(0.0001))(x)
     x = tf.keras.layers.BatchNormalization(axis=3, name='conv1_bn')(x)
     x = tf.keras.layers.Activation('relu', name='conv1_relu')(x)
 
