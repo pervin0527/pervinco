@@ -25,8 +25,9 @@ def preprocess_image(images, label):
     image = tf.io.read_file(images)
     image = tf.image.decode_jpeg(image, channels=3)
     image = tf.image.resize(image, [IMG_SIZE, IMG_SIZE])
-    image = tf.cast(image, tf.float32) / 255.0
-    image = tf.image.per_image_standardization(image)
+    # image = tf.cast(image, tf.float32) / 255.0
+    image = (tf.cast(image, tf.float32) / 127.5) - 1
+    # image = tf.image.per_image_standardization(image)
 
     return image, label
 
@@ -65,35 +66,35 @@ def get_dataset(ds_path, is_train):
 class VGG16(tf.keras.Model):
     def __init__(self):
         super(VGG16, self).__init__()        
-        self.block1_conv1 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv1', kernel_initializer='he_normal', bias_initializer='he_normal')
-        self.block1_conv2 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv2', kernel_initializer='he_normal', bias_initializer='he_normal')
+        self.block1_conv1 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv1', kernel_initializer='he_normal', bias_initializer='he_normal',)
+        self.block1_conv2 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv2', kernel_initializer='he_normal', bias_initializer='he_normal',)
         self.block1_pool = tf.keras.layers.MaxPool2D((2, 2), strides=(2, 2), name='block1_pool')
 
-        self.block2_conv1 = tf.keras.layers.Conv2D(128, (3, 3), activation='relu', padding='same', name='block2_conv1', kernel_initializer='he_normal', bias_initializer='he_normal')
-        self.block2_conv2 = tf.keras.layers.Conv2D(128, (3, 3), activation='relu', padding='same', name='block2_conv2', kernel_initializer='he_normal', bias_initializer='he_normal')
+        self.block2_conv1 = tf.keras.layers.Conv2D(128, (3, 3), activation='relu', padding='same', name='block2_conv1', kernel_initializer='he_normal', bias_initializer='he_normal',)
+        self.block2_conv2 = tf.keras.layers.Conv2D(128, (3, 3), activation='relu', padding='same', name='block2_conv2', kernel_initializer='he_normal', bias_initializer='he_normal',)
         self.block2_pool = tf.keras.layers.MaxPool2D((2, 2), strides=(2, 2), name='block2_pool')
 
-        self.block3_conv1 = tf.keras.layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv1', kernel_initializer='he_normal', bias_initializer='he_normal')
-        self.block3_conv2 = tf.keras.layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv2', kernel_initializer='he_normal', bias_initializer='he_normal')
-        self.block3_conv3 = tf.keras.layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv3', kernel_initializer='he_normal', bias_initializer='he_normal')
+        self.block3_conv1 = tf.keras.layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv1', kernel_initializer='he_normal', bias_initializer='he_normal',)
+        self.block3_conv2 = tf.keras.layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv2', kernel_initializer='he_normal', bias_initializer='he_normal',)
+        self.block3_conv3 = tf.keras.layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv3', kernel_initializer='he_normal', bias_initializer='he_normal',)
         self.block3_pool = tf.keras.layers.MaxPool2D((2, 2), strides=(2, 2), name='block3_pool')
 
-        self.block4_conv1 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv1', kernel_initializer='he_normal', bias_initializer='he_normal')
-        self.block4_conv2 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv2', kernel_initializer='he_normal', bias_initializer='he_normal')
-        self.block4_conv3 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv3', kernel_initializer='he_normal', bias_initializer='he_normal')
+        self.block4_conv1 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv1', kernel_initializer='he_normal', bias_initializer='he_normal',)
+        self.block4_conv2 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv2', kernel_initializer='he_normal', bias_initializer='he_normal',)
+        self.block4_conv3 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv3', kernel_initializer='he_normal', bias_initializer='he_normal',)
         self.block4_pool = tf.keras.layers.MaxPool2D((2, 2), strides=(2, 2), name='block4_pool')
 
-        self.block5_conv1 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv1', kernel_initializer='he_normal', bias_initializer='he_normal')
-        self.block5_conv2 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv2', kernel_initializer='he_normal', bias_initializer='he_normal')
-        self.block5_conv3 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv3', kernel_initializer='he_normal', bias_initializer='he_normal')
+        self.block5_conv1 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv1', kernel_initializer='he_normal', bias_initializer='he_normal',)
+        self.block5_conv2 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv2', kernel_initializer='he_normal', bias_initializer='he_normal',)
+        self.block5_conv3 = tf.keras.layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv3', kernel_initializer='he_normal', bias_initializer='he_normal',)
         self.block5_pool = tf.keras.layers.MaxPool2D((2, 2), strides=(2, 2), name='block5_pool')
 
         self.flatten = tf.keras.layers.Flatten(name='flatten')
-        self.fc1 = tf.keras.layers.Dense(4096, activation='relu', name='fc1', kernel_initializer='he_normal', bias_initializer='he_normal')
+        self.fc1 = tf.keras.layers.Dense(4096, activation='relu', name='fc1', kernel_initializer='he_normal', bias_initializer='he_normal',)
         self.dp1 = tf.keras.layers.Dropout(rate=0.5)
-        self.fc2 = tf.keras.layers.Dense(4096, activation='relu', name='fc2', kernel_initializer='he_normal', bias_initializer='he_normal')
+        self.fc2 = tf.keras.layers.Dense(4096, activation='relu', name='fc2', kernel_initializer='he_normal', bias_initializer='he_normal',)
         self.dp2 = tf.keras.layers.Dropout(rate=0.5)
-        self.prediction = tf.keras.layers.Dense(n_classes, activation='softmax', name='predictions')
+        self.prediction = tf.keras.layers.Dense(n_classes, activation='softmax', kernel_initializer='he_normal', bias_initializer='he_normal', name='predictions')
 
     def call(self, inputs, training):
         net = self.block1_conv1(inputs)
@@ -174,13 +175,14 @@ if __name__ == "__main__":
     EARLY_STOPPING = True
     minimum_loss = float(2147000000)
 
-    train_dataset, total_train, n_classes = get_dataset('/home/v100/tf_workspace/Auged_datasets/natural_images/2021_04_06_15_51_45/train', True)
-    test_dataset, total_valid, _ = get_dataset('/home/v100/tf_workspace/Auged_datasets/natural_images/2021_04_06_15_51_45/valid', True)
+    train_dataset, total_train, n_classes = get_dataset('/home/v100/tf_workspace/Auged_datasets/natural_images/2021.04.08_08-51-48/train', True)
+    test_dataset, total_valid, _ = get_dataset('/home/v100/tf_workspace/Auged_datasets/natural_images/2021.04.08_08-51-48/valid', False)
     n_classes = len(n_classes)
 
     cost_fn = tf.keras.losses.CategoricalCrossentropy()
+    # lr_decay = tf.keras.optimizers.schedules.ExponentialDecay(0.00001, (total_train / BATCH_SIZE), 0.5, staircase=True)
     # optimizer = tf.keras.optimizers.Adam(learning_rate=lrfn)
-    optimizer = tf.keras.optimizers.Adam(learning_rate=0.00001)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=0.000001) # lr_decay
     inputs = tf.keras.Input(shape=(INPUT_SHAPE))
     model = VGG16()
     model(inputs=inputs)
@@ -235,4 +237,4 @@ if __name__ == "__main__":
                     break
 
     print('Learning Finished')
-    model.save('/home/v100/tf_workspace/model/vgg16.h5')
+    model.save('/home/v100/tf_workspace/model/vgg16')

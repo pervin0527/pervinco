@@ -1,7 +1,7 @@
 import pathlib, random, cv2
 import tensorflow as tf
 import numpy as np
-import tensorflow.keras.backend as K
+from matplotlib import pyplot as plt
 
 # GPU setup
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -27,8 +27,9 @@ def preprocess_image(images, label):
     image = tf.io.read_file(images)
     image = tf.image.decode_jpeg(image, channels=3)
     image = tf.image.resize(image, [IMG_SIZE, IMG_SIZE])
-    image = tf.cast(image, tf.float32) / 255.0
-    image = tf.image.per_image_standardization(image)
+    # image = tf.cast(image, tf.float32) / 255.0
+    image = (tf.cast(image, tf.float32) / 127.5) - 1
+    # image = tf.image.per_image_standardization(image)
 
     return image, label
 
@@ -68,21 +69,21 @@ def get_dataset(ds_path, is_train):
 def residual_block(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
     if conv_shortcut:
         shortcut = tf.keras.layers.Conv2D(4 * filters, 1, strides=stride, name=name+'_0_conv', kernel_initializer='he_normal', bias_initializer='he_normal',)(x)
-        shortcut = tf.keras.layers.BatchNormalization(axis=3, name=name+'_0_bn')(shortcut)
+        shortcut = tf.keras.layers.BatchNormalization(axis=3, epsilon=1.001e-5, name=name+'_0_bn')(shortcut)
 
     else:
         shortcut = x
 
     x = tf.keras.layers.Conv2D(filters, 1, strides=stride, name=name + '_1_conv', kernel_initializer='he_normal', bias_initializer='he_normal',)(x)
-    x = tf.keras.layers.BatchNormalization(axis=3, name=name + '_1_bn')(x)
+    x = tf.keras.layers.BatchNormalization(axis=3, epsilon=1.001e-5, name=name + '_1_bn')(x)
     x = tf.keras.layers.Activation('relu', name=name + '_1_relu')(x)
 
     x = tf.keras.layers.Conv2D(filters, kernel_size, padding='SAME', name=name + '_2_conv', kernel_initializer='he_normal', bias_initializer='he_normal',)(x)
-    x = tf.keras.layers.BatchNormalization(axis=3, name=name + '_2_bn')(x)
+    x = tf.keras.layers.BatchNormalization(axis=3, epsilon=1.001e-5, name=name + '_2_bn')(x)
     x = tf.keras.layers.Activation('relu', name=name + '_2_relu')(x)
 
     x = tf.keras.layers.Conv2D(4 * filters, 1, name=name + '_3_conv', kernel_initializer='he_normal', bias_initializer='he_normal',)(x)
-    x = tf.keras.layers.BatchNormalization(axis=3, name=name + '_3_bn')(x)
+    x = tf.keras.layers.BatchNormalization(axis=3, epsilon=1.001e-5, name=name + '_3_bn')(x)
 
     x = tf.keras.layers.Add(name=name + '_add')([shortcut, x])
     x = tf.keras.layers.Activation('relu', name=name + '_out')(x)
@@ -103,7 +104,7 @@ def ResNet50():
     inputs = tf.keras.layers.Input(shape=INPUT_SHAPE)
     x = tf.keras.layers.ZeroPadding2D(padding=((3, 3), (3, 3)), name='conv1_pad')(inputs)
     x = tf.keras.layers.Conv2D(64, 7, strides=2, use_bias=True, name='conv1_conv', kernel_initializer='he_normal', bias_initializer='he_normal',)(x)
-    x = tf.keras.layers.BatchNormalization(axis=3, name='conv1_bn')(x)
+    x = tf.keras.layers.BatchNormalization(axis=3, epsilon=1.001e-5, name='conv1_bn')(x)
     x = tf.keras.layers.Activation('relu', name='conv1_relu')(x)
 
     x = tf.keras.layers.ZeroPadding2D(padding=((1, 1), (1, 1)), name='pool1_pad')(x)
@@ -115,7 +116,7 @@ def ResNet50():
     x = residual_stack(x, 512, 3, name='conv5')
 
     x = tf.keras.layers.GlobalAveragePooling2D(name='avg_pool')(x)
-    outputs = tf.keras.layers.Dense(n_classes, activation='softmax', name='predictions')(x)
+    outputs = tf.keras.layers.Dense(n_classes, activation='softmax', kernel_initializer='he_normal', bias_initializer='he_normal', name='predictions')(x)
 
     model = tf.keras.Model(inputs=inputs, outputs=outputs)
 
@@ -154,6 +155,30 @@ def lrfn():
     return lr
 
 
+def tf_data_visualize(augmentation_element, name):
+    row, col, idx = 5, 4, 0
+    row = min(row, BATCH_SIZE // col)
+
+    for (image, label) in augmentation_element:
+        print(image.shape, label.shape)
+        image = (image + 1) * 127.5
+        image = np.array(image, dtype=np.uint8)
+        # image = image * 255.0
+        
+        plt.figure(figsize=(15, int(15 * row / col)))
+        for j in range(row * col):
+            plt.subplot(row, col, j + 1)
+            plt.axis('off')
+            plt.imshow(image[j, ])
+
+        # plt.savefig(f'{SAVED_PATH}/{LOG_TIME}/{name}_{idx}.jpg')
+        plt.show()
+        idx += 1
+
+        if idx == 3:
+            break
+
+
 if __name__ == "__main__":
     # hyper parameters
     AUTOTUNE = tf.data.experimental.AUTOTUNE
@@ -175,13 +200,16 @@ if __name__ == "__main__":
     EARLY_STOPPING = True
     minimum_loss = float(2147000000)
 
-    train_dataset, total_train, n_classes = get_dataset('/home/v100/tf_workspace/Auged_datasets/natural_images/2021_04_06_15_51_45/train', True)
-    test_dataset, total_valid, _ = get_dataset('/home/v100/tf_workspace/Auged_datasets/natural_images/2021_04_06_15_51_45/valid', True)
+    train_dataset, total_train, n_classes = get_dataset('/home/v100/tf_workspace/Auged_datasets/natural_images/2021.04.08_08-51-48/train', True)
+    test_dataset, total_valid, _ = get_dataset('/home/v100/tf_workspace/Auged_datasets/natural_images/2021.04.08_08-51-48/valid', False)
     n_classes = len(n_classes)
 
+    # tf_data_visualize(train_dataset, 'train')    
+
     cost_fn = tf.keras.losses.CategoricalCrossentropy()
+    # lr_decay = tf.keras.optimizers.schedules.ExponentialDecay(0.00001, (total_train / BATCH_SIZE), 0.5, staircase=True)
     # optimizer = tf.keras.optimizers.Adam(learning_rate=lrfn)
-    optimizer = tf.keras.optimizers.Adam(learning_rate=0.00001)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=0.000001) # lr_decay
     inputs = tf.keras.Input(shape=(INPUT_SHAPE))
     model = ResNet50()
     model(inputs=inputs)
@@ -236,4 +264,4 @@ if __name__ == "__main__":
                     break
 
     print('Learning Finished')
-    model.save('/home/v100/tf_workspace/model/resnet_he_l2_adam.h5')
+    model.save('/home/v100/tf_workspace/model/resnet50')
