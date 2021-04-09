@@ -185,7 +185,7 @@ if __name__ == "__main__":
     IMG_SIZE = 224
     INPUT_SHAPE = (IMG_SIZE, IMG_SIZE, 3)
     BATCH_SIZE = 32
-    EPOCHS = 1000
+    EPOCHS = 100
 
    # learning rate scheduler
     LR_START = 0.001
@@ -197,11 +197,11 @@ if __name__ == "__main__":
     
     # early stopping
     PATIENCE = 3
-    EARLY_STOPPING = True
+    EARLY_STOPPING = False
     minimum_loss = float(2147000000)
 
-    train_dataset, total_train, n_classes = get_dataset('/home/v100/tf_workspace/Auged_datasets/natural_images/2021.04.08_08-51-48/train', True)
-    test_dataset, total_valid, _ = get_dataset('/home/v100/tf_workspace/Auged_datasets/natural_images/2021.04.08_08-51-48/valid', False)
+    train_dataset, total_train, n_classes = get_dataset('/data/backup/pervinco/Auged_datasets/natural_images/2021.04.08_08-51-48/train', True)
+    test_dataset, total_valid, _ = get_dataset('/data/backup/pervinco/Auged_datasets/natural_images/2021.04.08_08-51-48/valid', False)
     n_classes = len(n_classes)
 
     # tf_data_visualize(train_dataset, 'train')    
@@ -209,7 +209,7 @@ if __name__ == "__main__":
     cost_fn = tf.keras.losses.CategoricalCrossentropy()
     # lr_decay = tf.keras.optimizers.schedules.ExponentialDecay(0.00001, (total_train / BATCH_SIZE), 0.5, staircase=True)
     # optimizer = tf.keras.optimizers.Adam(learning_rate=lrfn)
-    optimizer = tf.keras.optimizers.Adam(learning_rate=0.000001) # lr_decay
+    optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001) # lr_decay
     inputs = tf.keras.Input(shape=(INPUT_SHAPE))
     model = ResNet50()
     model(inputs=inputs)
@@ -264,4 +264,4 @@ if __name__ == "__main__":
                     break
 
     print('Learning Finished')
-    model.save('/home/v100/tf_workspace/model/resnet50')
+    model.save('/data/backup/pervinco/model/resnet50')
