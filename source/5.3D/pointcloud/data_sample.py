@@ -32,7 +32,7 @@ print(vertices.shape, faces.shape)
 show_point_cloud(vertices)
 
 """ using sample .off file """
-keras_mesh = trimesh.load('cow.obj')
+keras_mesh = trimesh.load('./cow.obj')
 keras_mesh.show()
 
 keras_points, keras_faces = keras_mesh.vertices, keras_mesh.faces

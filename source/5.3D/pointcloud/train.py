@@ -187,7 +187,7 @@ if __name__ == "__main__":
     MOMENTUM = 0.9
     DECAY_STEP = 200000
     DECAY_RATE = 0.7
-    SAVED_PATH = '/home/barcelona/pervinco/source/5.3D/model/'
+    SAVED_PATH = '/home/barcelona/pervinco/source/5.3D/pointcloud/model/'
 
     TRAIN_FILES = "/data/data/modelnet40_ply_hdf5_2048/train_files.txt"
     VALID_FILES = "/data/data/modelnet40_ply_hdf5_2048/test_files.txt"
