@@ -54,6 +54,7 @@ if __name__ == "__main__":
                'piano', 'plant', 'radio', 'range_hood', 'sink',
                'sofa', 'stairs', 'stool', 'table', 'tent',
                'toilet', 'tv_stand', 'vase', 'wardrobe', 'xbox']
+    CLASSES = sorted(CLASSES)
 
     TEST_FILES = '/data/data/modelnet40_ply_hdf5_2048/test_files.txt'
     TEST_FILES = get_data_files(TEST_FILES)

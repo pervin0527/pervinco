@@ -1,3 +1,4 @@
+# https://docs.opencv.org/master/dc/dbb/tutorial_py_calibration.html
 import cv2, glob
 import numpy as np
 
