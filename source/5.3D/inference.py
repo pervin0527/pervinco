@@ -1,6 +1,8 @@
+import trimesh
 import numpy as np
 import tensorflow as tf
 from train import get_data_files, load_h5
+from matplotlib import pyplot as plt
 
 # GPU setup
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -30,6 +32,18 @@ def preprocessing(x, y):
     return (x, y)
 
 
+def show_point_cloud(test_images, test_labels, results):
+    fig = plt.figure(figsize=(15, 10))
+
+    for i in range(len(results)):
+        ax = fig.add_subplot(5, 2, i + 1, projection="3d")
+        ax.scatter(test_images[i, :, 0], test_images[i, :, 1], test_images[i, :, 2])
+        ax.set_title(f"P : {results[i]}, A : {CLASSES[test_labels[i][0]]}")
+        ax.set_axis_off()
+
+    plt.show()
+
+
 if __name__ == "__main__":
     NUM_POINT = 2048
     CLASSES = ['airplane', 'bathtub', 'bed', 'bench', 'bookshelf',
@@ -46,10 +60,14 @@ if __name__ == "__main__":
 
     test_data, test_label = load_h5(TEST_FILES[0])
     test_data = test_data[:, 0:NUM_POINT, :]
+
+    start = np.random.randint((len(test_label) - 10))
+    end = start + 10
+    print(start, end)
     
-    test_image = test_data[:5]
-    answers = test_label[:5]
-    print(test_image.shape, answers.shape)
+    test_image = test_data[start:end]
+    test_label = test_label[start:end]
+    print(test_image.shape, test_label.shape)
 
     model = tf.keras.models.load_model('./model/pointnet')
     model.summary()
@@ -57,11 +75,13 @@ if __name__ == "__main__":
     predictions = model.predict(test_image)
     print(predictions.shape)
 
-    for pred, answer in zip(predictions, answers):
+    results = []
+    for pred in predictions:
         idx = np.argmax(pred)
         label = CLASSES[idx]
         score = pred[idx]
+        score = format(score, ".2f")
 
-        answer = CLASSES[answer[0]]
+        results.append([label, score])
 
-        print(f"predict result : {label}, {score}, answer : {answer}")
+    show_point_cloud(test_image, test_label, results)

@@ -17,18 +17,18 @@ class ConvBN(tf.keras.layers.Layer):
         self.check = bn
         if use_xavier:
             self.conv2d = tf.keras.layers.Conv2D(filters,
-                                              kernel_size=kernal_size,
-                                              padding=padding,
-                                              strides=strides,
-                                              kernel_regularizer=tf.keras.regularizers.l2(weight_decay)
-                                             )
+                                                 kernel_size=kernal_size,
+                                                 padding=padding,
+                                                 strides=strides,
+                                                 kernel_regularizer=tf.keras.regularizers.l2(weight_decay))
         else:
             self.conv2d = tf.keras.layers.Conv2D(filters,
-                                              kernal_size=kernal_size,
-                                              padding=padding,
-                                              strides=strides,
-                                              kernel_initializer=tf.keras.initializers.TruncatedNormal(stddev=stddev),
-                                              kernel_regularizer=tf.keras.regularizers.l2(weight_decay))
+                                                 kernal_size=kernal_size,
+                                                 padding=padding,
+                                                 strides=strides,
+                                                 kernel_initializer=tf.keras.initializers.TruncatedNormal(stddev=stddev),
+                                                 kernel_regularizer=tf.keras.regularizers.l2(weight_decay))
+
         self.bn = tf.keras.layers.BatchNormalization()
         self.activation = tf.keras.layers.Activation('relu')
 
@@ -121,8 +121,6 @@ class Feature_Transform_Net(tf.keras.Model):
 
 
     def call(self, inputs, training=None):
-
-
             out = self.conv1(inputs)
             out = self.conv2(out)
             out = self.conv3(out)

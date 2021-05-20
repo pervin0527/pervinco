@@ -31,22 +31,29 @@ class ClsModel(tf.keras.Model):
         # input_transform
         end_points = {}
         transform = self.input_transform(inputs)
+
+        # mlp(64, 64)
         inputs = tf.matmul(inputs, transform)
         inputs= tf.expand_dims(inputs, -1)
         out = self.conv1(inputs)
         out = self.conv2(out)
+
         # feature_transform
         transform2 = self.feature_transform(out)
         end_points['transform'] = transform2
         out_transform = tf.matmul(tf.squeeze(out, axis=2), transform2)
         out_transform = tf.expand_dims(out_transform, axis=2)
 
+        # mlp(64, 128, 1024)
         out_transform = self.conv3(out_transform)
         out_transform = self.conv4(out_transform)
         out_transform = self.conv5(out_transform)
 
+        # max pool
         out_transform = self.maxpooling(out_transform)
         out_transform = self.flatten(out_transform)
+
+        # mlp(512, 256, k)
         out_transform = self.fc1(out_transform)
         out_transform = self.drop1(out_transform)
         out_transform = self.fc2(out_transform)
