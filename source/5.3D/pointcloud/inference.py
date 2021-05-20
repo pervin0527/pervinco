@@ -62,7 +62,8 @@ if __name__ == "__main__":
     test_data, test_label = load_h5(TEST_FILES[0])
     test_data = test_data[:, 0:NUM_POINT, :]
 
-    start = np.random.randint((len(test_label) - 10))
+    start = 0
+    # start = np.random.randint((len(test_label) - 10))
     end = start + 10
     print(start, end)
     
