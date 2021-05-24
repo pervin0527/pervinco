@@ -45,7 +45,7 @@ def show_point_cloud(test_images, test_labels, results):
 
 
 if __name__ == "__main__":
-    NUM_POINT = 2048
+    NUM_POINT = 1024
     CLASSES = ['airplane', 'bathtub', 'bed', 'bench', 'bookshelf',
                'bottle', 'bowl', 'car', 'chair', 'cone',
                'cup', 'curtain', 'desk', 'door', 'dresser',
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     test_label = test_answer[start:end]
     print(test_image.shape, test_label.shape)
 
-    model = tf.keras.models.load_model('/data/Models/pointnet/2021.05.24_11:40/pointnet')
+    model = tf.keras.models.load_model('/data/Models/pointnet/2021.05.24_18:53/pointnet')
     model.summary()
 
     predictions = model.predict(test_image)

@@ -121,22 +121,6 @@ def jitter_point_cloud(batch_data, sigma=0.01, clip=0.05):
     jittered_data += batch_data
 
     return jittered_data
-
-
-def get_loss(pred, label, end_points, reg_weights=0.001):
-    loss = tf.losses.categorical_crossentropy(y_pred=pred, y_true=label)
-    cls_loss = tf.reduce_mean(loss)
-
-    tf.summary.scalar('cls_loss', cls_loss)
-    
-    transform = end_points['transform']
-    K = transform.shape[1]
-    mat_diff = tf.matmul(transform, tf.transpose(transform, perm=[0, 2, 1]))
-    mat_diff -= tf.constant(np.eye(K), dtype=tf.float32)
-    mat_diff_loss = tf.nn.l2_loss(mat_diff)
-    tf.summary.scalar('mat_loss', mat_diff_loss)
-
-    return cls_loss + mat_diff_loss * reg_weights
     
 
 def preprocessing(x, y):
@@ -147,8 +131,8 @@ def preprocessing(x, y):
     return (x, y)
 
 
-def build_lrfn(lr_start=0.0001, lr_max=0.0005, 
-               lr_min=0.0001, lr_rampup_epochs=5, 
+def build_lrfn(lr_start=0.00001, lr_max=0.00005, 
+               lr_min=0.00001, lr_rampup_epochs=5, 
                lr_sustain_epochs=0, lr_exp_decay=.8):
     lr_max = lr_max * strategy.num_replicas_in_sync
 
@@ -191,55 +175,39 @@ def display_training_curves(history):
     plt.show()
 
 
-def train():
-    pc_data, pc_label = load_h5(TRAIN_FILES[0])
-    pc_data = pc_data[:, 0:NUM_POINT, :]
-    pc_data, pc_label, _ = shuffle_data(pc_data, pc_label)
-    all_data, all_label = pc_data, pc_label
+def read_data(FILES_PATH, is_aug):
+    total_pc = np.zeros(shape=[0, NUM_POINT, 3])
+    total_label = np.zeros(shape=[0, 1])
 
-    for i in range(1, len(TRAIN_FILES)):
+    for i in range(0, len(FILES_PATH)):
         pc_data, pc_label = load_h5(TRAIN_FILES[i])
         pc_data = pc_data[:, 0:NUM_POINT, :]
         pc_data, pc_label, _ = shuffle_data(pc_data, pc_label)
         
-        all_data = np.concatenate((all_data, pc_data), axis=0)
-        all_label = np.concatenate((all_label, pc_label), axis=0)
+        total_pc = np.append(total_pc, pc_data, axis=0)
+        total_label = np.append(total_label, pc_label, axis=0)
 
-    pc_data, pc_label = load_h5(TRAIN_FILES[0])
-    pc_data = pc_data[:, 0:NUM_POINT, :]
-    pc_data, pc_label, _ = shuffle_data(pc_data, pc_label)
-    all_data = np.concatenate((all_data, pc_data), axis=0)
-    all_label = np.concatenate((all_label, pc_label), axis=0)
+    print(total_pc.shape, total_label.shape)
 
-    for i in range(1, len(TRAIN_FILES)):
-        pc_data, pc_label = load_h5(TRAIN_FILES[i])
-        pc_data = pc_data[:, 0:NUM_POINT, :]
-        # pc_data, pc_label, _ = shuffle_data(pc_data, pc_label)
-        pc_data = rotate_point_cloud(pc_data)
-        # pc_data = jitter_point_cloud(pc_data)
-        
-        all_data = np.concatenate((all_data, pc_data), axis=0)
-        all_label = np.concatenate((all_label, pc_label), axis=0)
+    if is_aug:
+        aug_pc = rotate_point_cloud(total_pc)
+        aug_label = total_label
 
-    pc_data, pc_label = load_h5(TRAIN_FILES[0])
-    pc_data = pc_data[:, 0:NUM_POINT, :]
-    pc_data, pc_label, _ = shuffle_data(pc_data, pc_label)
-    all_data = np.concatenate((all_data, pc_data), axis=0)
-    all_label = np.concatenate((all_label, pc_label), axis=0)
+        total_pc = np.append(total_pc, aug_pc, axis=0)
+        total_label = np.append(total_label, total_label, axis=0)
 
-    for i in range(1, len(TRAIN_FILES)):
-        pc_data, pc_label = load_h5(TRAIN_FILES[i])
-        pc_data = pc_data[:, 0:NUM_POINT, :]
-        # pc_data, pc_label, _ = shuffle_data(pc_data, pc_label)
-        # pc_data = rotate_point_cloud(pc_data)
-        pc_data = jitter_point_cloud(pc_data)
-        
-        all_data = np.concatenate((all_data, pc_data), axis=0)
-        all_label = np.concatenate((all_label, pc_label), axis=0)
+        print(total_pc.shape, total_label.shape)
 
-    TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(all_data) / BATCH_SIZE).numpy())
 
-    print(all_data.shape, all_label.shape)
+    return total_pc, total_label
+
+
+def train():
+    total_pc, total_label = read_data(TRAIN_FILES, True)
+
+    TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(total_pc) / BATCH_SIZE).numpy())
+
+    print(total_pc.shape, total_label.shape)
 
     val_data, val_label = load_h5(VALID_FILES[0])
     val_data = val_data[:, 0:NUM_POINT, :]
@@ -248,7 +216,7 @@ def train():
     val_dataset = tf.data.Dataset.from_tensor_slices((val_data, val_label))
     val_dataset = val_dataset.map(preprocessing).batch(BATCH_SIZE).repeat()
 
-    train_dataset = tf.data.Dataset.from_tensor_slices((all_data, all_label))
+    train_dataset = tf.data.Dataset.from_tensor_slices((total_pc, total_label))
     train_dataset = train_dataset.map(preprocessing).shuffle(10000).batch(BATCH_SIZE).repeat()
     
     model = ClsModel(NUM_POINT)
@@ -265,7 +233,7 @@ def train():
                         epochs=EPOCH,
                         validation_data=val_dataset,
                         validation_steps=VALID_STEPS_PER_EPOCH,
-                        callbacks=[lr_schedule]
+                        callbacks=[lr_schedule, earlystopper]
                         )
 
     tf.saved_model.save(model, f'{SAVED_PATH}/pointnet')
@@ -276,7 +244,7 @@ def train():
 if __name__ == "__main__":
     BATCH_SIZE = 64
     NUM_CLASSES = 40
-    NUM_POINT = 2048
+    NUM_POINT = 1024
     EPOCH = 250
     LEARNING_RATE = 0.0001
     MOMENTUM = 0.9
@@ -292,4 +260,4 @@ if __name__ == "__main__":
     VALID_FILES = get_data_files(VALID_FILES)
 
     history = train()
-    display_training_curves(history)
+    # display_training_curves(history)
