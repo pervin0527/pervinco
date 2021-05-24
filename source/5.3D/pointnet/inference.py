@@ -56,7 +56,7 @@ if __name__ == "__main__":
                'toilet', 'tv_stand', 'vase', 'wardrobe', 'xbox']
     CLASSES = sorted(CLASSES)
 
-    TEST_FILES = '/data/data/modelnet40_ply_hdf5_2048/test_files.txt'
+    TEST_FILES = '/data/datasets/modelnet40_ply_hdf5_2048/test_files.txt'
     TEST_FILES = get_data_files(TEST_FILES)
 
     test_data, test_answer = load_h5(TEST_FILES[0])
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     test_label = test_answer[start:end]
     print(test_image.shape, test_label.shape)
 
-    model = tf.keras.models.load_model('./model/pointnet')
+    model = tf.keras.models.load_model('/data/Models/pointnet/2021.05.24_11:40/pointnet')
     model.summary()
 
     predictions = model.predict(test_image)

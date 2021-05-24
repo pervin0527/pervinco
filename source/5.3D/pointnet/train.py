@@ -147,8 +147,8 @@ def preprocessing(x, y):
     return (x, y)
 
 
-def build_lrfn(lr_start=0.00001, lr_max=0.00005, 
-               lr_min=0.00001, lr_rampup_epochs=5, 
+def build_lrfn(lr_start=0.0001, lr_max=0.0005, 
+               lr_min=0.0001, lr_rampup_epochs=5, 
                lr_sustain_epochs=0, lr_exp_decay=.8):
     lr_max = lr_max * strategy.num_replicas_in_sync
 
@@ -205,21 +205,37 @@ def train():
         all_data = np.concatenate((all_data, pc_data), axis=0)
         all_label = np.concatenate((all_label, pc_label), axis=0)
 
-    # pc_data, pc_label = load_h5(TRAIN_FILES[0])
-    # pc_data = pc_data[:, 0:NUM_POINT, :]
-    # pc_data, pc_label, _ = shuffle_data(pc_data, pc_label)
-    # all_data = np.concatenate((all_data, pc_data), axis=0)
-    # all_label = np.concatenate((all_label, pc_label), axis=0)
+    pc_data, pc_label = load_h5(TRAIN_FILES[0])
+    pc_data = pc_data[:, 0:NUM_POINT, :]
+    pc_data, pc_label, _ = shuffle_data(pc_data, pc_label)
+    all_data = np.concatenate((all_data, pc_data), axis=0)
+    all_label = np.concatenate((all_label, pc_label), axis=0)
 
-    # for i in range(1, len(TRAIN_FILES)):
-    #     pc_data, pc_label = load_h5(TRAIN_FILES[i])
-    #     pc_data = pc_data[:, 0:NUM_POINT, :]
-    #     # pc_data, pc_label, _ = shuffle_data(pc_data, pc_label)
-    #     pc_data = rotate_point_cloud(pc_data)
-    #     # pc_data = jitter_point_cloud(pc_data)
+    for i in range(1, len(TRAIN_FILES)):
+        pc_data, pc_label = load_h5(TRAIN_FILES[i])
+        pc_data = pc_data[:, 0:NUM_POINT, :]
+        # pc_data, pc_label, _ = shuffle_data(pc_data, pc_label)
+        pc_data = rotate_point_cloud(pc_data)
+        # pc_data = jitter_point_cloud(pc_data)
         
-    #     all_data = np.concatenate((all_data, pc_data), axis=0)
-    #     all_label = np.concatenate((all_label, pc_label), axis=0)
+        all_data = np.concatenate((all_data, pc_data), axis=0)
+        all_label = np.concatenate((all_label, pc_label), axis=0)
+
+    pc_data, pc_label = load_h5(TRAIN_FILES[0])
+    pc_data = pc_data[:, 0:NUM_POINT, :]
+    pc_data, pc_label, _ = shuffle_data(pc_data, pc_label)
+    all_data = np.concatenate((all_data, pc_data), axis=0)
+    all_label = np.concatenate((all_label, pc_label), axis=0)
+
+    for i in range(1, len(TRAIN_FILES)):
+        pc_data, pc_label = load_h5(TRAIN_FILES[i])
+        pc_data = pc_data[:, 0:NUM_POINT, :]
+        # pc_data, pc_label, _ = shuffle_data(pc_data, pc_label)
+        # pc_data = rotate_point_cloud(pc_data)
+        pc_data = jitter_point_cloud(pc_data)
+        
+        all_data = np.concatenate((all_data, pc_data), axis=0)
+        all_label = np.concatenate((all_label, pc_label), axis=0)
 
     TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(all_data) / BATCH_SIZE).numpy())
 
@@ -227,8 +243,10 @@ def train():
 
     val_data, val_label = load_h5(VALID_FILES[0])
     val_data = val_data[:, 0:NUM_POINT, :]
+    VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(val_data) / BATCH_SIZE).numpy())
+
     val_dataset = tf.data.Dataset.from_tensor_slices((val_data, val_label))
-    val_dataset = val_dataset.map(preprocessing).batch(BATCH_SIZE)
+    val_dataset = val_dataset.map(preprocessing).batch(BATCH_SIZE).repeat()
 
     train_dataset = tf.data.Dataset.from_tensor_slices((all_data, all_label))
     train_dataset = train_dataset.map(preprocessing).shuffle(10000).batch(BATCH_SIZE).repeat()
@@ -246,7 +264,9 @@ def train():
                         steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
                         epochs=EPOCH,
                         validation_data=val_dataset,
-                        callbacks=[lr_schedule, earlystopper])
+                        validation_steps=VALID_STEPS_PER_EPOCH,
+                        callbacks=[lr_schedule]
+                        )
 
     tf.saved_model.save(model, f'{SAVED_PATH}/pointnet')
 
@@ -263,10 +283,10 @@ if __name__ == "__main__":
     DECAY_STEP = 200000
     DECAY_RATE = 0.7
     LOG_TIME = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M")
-    SAVED_PATH = f'/home/barcelona/pervinco/source/5.3D/pointnet/model/{LOG_TIME}'
+    SAVED_PATH = f'/data/Models/pointnet/{LOG_TIME}'
 
-    TRAIN_FILES = "/data/data/modelnet40_ply_hdf5_2048/train_files.txt"
-    VALID_FILES = "/data/data/modelnet40_ply_hdf5_2048/test_files.txt"
+    TRAIN_FILES = "/data/datasets/modelnet40_ply_hdf5_2048/train_files.txt"
+    VALID_FILES = "/data/datasets/modelnet40_ply_hdf5_2048/test_files.txt"
 
     TRAIN_FILES = get_data_files(TRAIN_FILES)
     VALID_FILES = get_data_files(VALID_FILES)
