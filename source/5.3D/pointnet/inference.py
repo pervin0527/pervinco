@@ -73,7 +73,7 @@ if __name__ == "__main__":
     test_label = test_answer[start:end]
     print(test_image.shape, test_label.shape)
 
-    model = tf.keras.models.load_model('/data/Models/pointnet/2021.05.24_18:53/pointnet')
+    model = tf.keras.models.load_model('/data/Models/pointnet/2021.05.25_12:25/pointnet')
     model.summary()
 
     predictions = model.predict(test_image)

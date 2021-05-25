@@ -1,8 +1,10 @@
+import datetime
+import pandas as pd
 import numpy as np
 import tensorflow as tf
-import os, sys, h5py, datetime
-from matplotlib import pyplot as plt
+from tqdm import tqdm
 from transform_net import Input_Transform_Net, Feature_Transform_Net, ConvBN, FC
+
 
 # GPU setup
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -22,6 +24,70 @@ else:
         strategy = tf.distribute.experimental.CentralStorageStrategy()
     except RuntimeError as e:
         print(e)
+
+
+def rotate_point_cloud(points):
+    rotated_data = np.zeros(points.shape, dtype=np.float32)
+
+    for k in range(points.shape[0]):
+        rotation_angle = np.random.uniform() * 2 * np.pi
+        cosval = np.cos(rotation_angle)
+        sinval = np.sin(rotation_angle)
+        rotation_matrix = np.array([[cosval, 0, sinval], [0, 1, 0], [-sinval, 0, cosval]])
+        shape_pc = points[k, ...]
+        rotated_data[k, ...] = np.dot(shape_pc.reshape((-1, 3)), rotation_matrix)
+
+    return rotated_data
+
+
+def jitter_point_cloud(points, sigma=0.01, clip=0.05):
+    B, N, C = points.shape
+
+    assert(clip > 0)
+    jittered_data = np.clip(sigma * np.random.randn(B, N, C), -1*clip, clip)
+    jittered_data += points
+
+    return jittered_data
+
+
+def read_data_list(file_path):
+    files = pd.read_csv(file_path, sep=' ', index_col=False, header=None)
+    files = sorted(files[0].tolist())
+
+    points = np.zeros(shape=[0, NUM_POINT, 3])
+    labels = np.zeros(shape=[0, 1])
+
+    for i in tqdm(range(len(files))):
+        label = files[i].split('_')
+        label = label[:-1]
+        label = '_'.join(label)
+        path = f'{DATA_PATH}/{label}/{files[i]}.txt'
+        point = pd.read_csv(path, sep=',', index_col=False, header=None, names=['x', 'y', 'z', 'r', 'g', 'b'])
+
+        point = point.loc[:,['x','y','z']]
+        point = np.array(point)
+        point = point[0:NUM_POINT, :]
+        # print(point.shape)
+
+        label = np.array([CLASSES.index(label)])
+        # print(point.shape, label.shape)
+
+        points = np.append(points, [point], axis=0)
+        labels = np.append(labels, [label], axis=0)
+
+    # print(points.shape, labels.shape)
+
+    rotated_points = rotate_point_cloud(points)
+    jitted_points = jitter_point_cloud(points)
+
+    total_points = np.append(points, rotated_points, axis=0)
+    total_points = np.append(total_points, jitted_points, axis=0)
+    total_labels = np.append(labels, labels, axis=0)
+    total_labels = np.append(total_labels, labels, axis=0)
+
+    print(total_points.shape, total_labels.shape)
+
+    return total_points, total_labels
 
 
 class ClsModel(tf.keras.Model):
@@ -81,56 +147,6 @@ class ClsModel(tf.keras.Model):
         return tf.keras.Model(inputs=[x], outputs=self.call(x))
 
 
-def get_data_files(list_filename):
-    return [line.rstrip() for line in open(list_filename)]
-
-
-def load_h5(h5_filename):
-    f = h5py.File(h5_filename, 'r')
-    data = f['data'][:]
-    label = f['label'][:]
-    return (data, label)
-
-
-def shuffle_data(data, labels):
-    idx = np.arange(len(labels))
-    np.random.shuffle(idx)
-
-    return data[idx, ...], labels[idx, :], idx
-
-
-def rotate_point_cloud(batch_data):
-    rotated_data = np.zeros(batch_data.shape, dtype=np.float32)
-
-    for k in range(batch_data.shape[0]):
-        rotation_angle = np.random.uniform() * 2 * np.pi
-        cosval = np.cos(rotation_angle)
-        sinval = np.sin(rotation_angle)
-        rotation_matrix = np.array([[cosval, 0, sinval], [0, 1, 0], [-sinval, 0, cosval]])
-        shape_pc = batch_data[k, ...]
-        rotated_data[k, ...] = np.dot(shape_pc.reshape((-1, 3)), rotation_matrix)
-
-    return rotated_data
-
-
-def jitter_point_cloud(batch_data, sigma=0.01, clip=0.05):
-    B, N, C = batch_data.shape
-
-    assert(clip > 0)
-    jittered_data = np.clip(sigma * np.random.randn(B, N, C), -1*clip, clip)
-    jittered_data += batch_data
-
-    return jittered_data
-    
-
-def preprocessing(x, y):
-    x = tf.cast(x, dtype=tf.float32)
-    y = tf.cast(y, dtype=tf.int64)
-    y = tf.one_hot(y, depth=NUM_CLASSES)
-    y = tf.squeeze(y, axis=0)
-    return (x, y)
-
-
 def build_lrfn(lr_start=0.00001, lr_max=0.00005, 
                lr_min=0.00001, lr_rampup_epochs=5, 
                lr_sustain_epochs=0, lr_exp_decay=.8):
@@ -149,74 +165,23 @@ def build_lrfn(lr_start=0.00001, lr_max=0.00005,
     return lrfn
 
 
-def display_training_curves(history):
-    acc = history.history['categorical_accuracy']
-    val_acc = history.history['val_categorical_accuracy']
-
-    loss = history.history['loss']
-    val_loss = history.history['val_loss']
-
-    epochs_range = range(len(history.history['loss']))
-
-    plt.figure(figsize=(8, 8))
-    plt.subplot(1, 2, 1)
-    plt.plot(epochs_range, acc, label='Training Accuracy')
-    plt.plot(epochs_range, val_acc, label='Validation Accuracy')
-    plt.legend(loc='lower right')
-    plt.title('Training and Validation Accuracy')
-
-    plt.subplot(1, 2, 2)
-    plt.plot(epochs_range, loss, label='Training Loss')
-    plt.plot(epochs_range, val_loss, label='Validation Loss')
-    plt.legend(loc='upper right')
-    plt.title('Training and Validation Loss')
-    
-    plt.savefig(f'/{SAVED_PATH}/train_result.png')
-    plt.show()
+def preprocessing(x, y):
+    x = tf.cast(x, dtype=tf.float32)
+    y = tf.cast(y, dtype=tf.int64)
+    y = tf.one_hot(y, depth=NUM_CLASSES)
+    y = tf.squeeze(y, axis=0)
+    return (x, y)
 
 
-def read_data(FILES_PATH, is_aug):
-    total_pc = np.zeros(shape=[0, NUM_POINT, 3])
-    total_label = np.zeros(shape=[0, 1])
+def train(train_points, train_labels, valid_points, valid_labels):
+    TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_labels) / BATCH_SIZE).numpy())
+    VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_labels) / BATCH_SIZE).numpy())
 
-    for i in range(0, len(FILES_PATH)):
-        pc_data, pc_label = load_h5(TRAIN_FILES[i])
-        pc_data = pc_data[:, 0:NUM_POINT, :]
-        pc_data, pc_label, _ = shuffle_data(pc_data, pc_label)
-        
-        total_pc = np.append(total_pc, pc_data, axis=0)
-        total_label = np.append(total_label, pc_label, axis=0)
-
-    print(total_pc.shape, total_label.shape)
-
-    if is_aug:
-        aug_pc = rotate_point_cloud(total_pc)
-        aug_label = total_label
-
-        total_pc = np.append(total_pc, aug_pc, axis=0)
-        total_label = np.append(total_label, total_label, axis=0)
-
-        print(total_pc.shape, total_label.shape)
-
-
-    return total_pc, total_label
-
-
-def train():
-    total_pc, total_label = read_data(TRAIN_FILES, True)
-    print(total_pc.shape, total_label.shape)
-
-    TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(total_pc) / BATCH_SIZE).numpy())
-
-    val_data, val_label = load_h5(VALID_FILES[0])
-    val_data = val_data[:, 0:NUM_POINT, :]
-    VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(val_data) / BATCH_SIZE).numpy())
-
-    val_dataset = tf.data.Dataset.from_tensor_slices((val_data, val_label))
-    val_dataset = val_dataset.map(preprocessing).batch(BATCH_SIZE).repeat()
-
-    train_dataset = tf.data.Dataset.from_tensor_slices((total_pc, total_label))
+    train_dataset = tf.data.Dataset.from_tensor_slices((train_points, train_labels))
     train_dataset = train_dataset.map(preprocessing).shuffle(10000).batch(BATCH_SIZE).repeat()
+
+    val_dataset = tf.data.Dataset.from_tensor_slices((valid_points, valid_labels))
+    val_dataset = val_dataset.map(preprocessing).batch(BATCH_SIZE).repeat()
     
     model = ClsModel(NUM_POINT)
     model.active().summary()
@@ -241,9 +206,10 @@ def train():
 
 
 if __name__ == "__main__":
+    DATA_PATH = '/data/datasets/modelnet40_normal_resampled'
     BATCH_SIZE = 64
     NUM_CLASSES = 40
-    NUM_POINT = 1024
+    NUM_POINT = 8192
     EPOCH = 250
     LEARNING_RATE = 0.0001
     MOMENTUM = 0.9
@@ -252,11 +218,15 @@ if __name__ == "__main__":
     LOG_TIME = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M")
     SAVED_PATH = f'/data/Models/pointnet/{LOG_TIME}'
 
-    TRAIN_FILES = "/data/datasets/modelnet40_ply_hdf5_2048/train_files.txt"
-    VALID_FILES = "/data/datasets/modelnet40_ply_hdf5_2048/test_files.txt"
+    CLASS_FILE = f'{DATA_PATH}/modelnet40_shape_names.txt'
+    CLASS_FILE = pd.read_csv(CLASS_FILE, sep=' ', index_col=False, header=None)
+    CLASSES = sorted(CLASS_FILE[0].tolist())
+    print(CLASSES)
 
-    TRAIN_FILES = get_data_files(TRAIN_FILES)
-    VALID_FILES = get_data_files(VALID_FILES)
+    TRAIN_FILE = f'{DATA_PATH}/modelnet40_train.txt'
+    VALID_FILE = f'{DATA_PATH}/modelnet40_test.txt'
 
-    history = train()
-    display_training_curves(history)
+    train_points, train_labels = read_data_list(TRAIN_FILE)
+    valid_points, valid_labels = read_data_list(VALID_FILE)
+
+    train(train_points, train_labels, valid_points, valid_labels)
