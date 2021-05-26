@@ -130,14 +130,14 @@ def preprocessing(x, y):
     y = tf.cast(y, dtype=tf.int64)
     y = tf.one_hot(y, depth=NUM_CLASSES)
     y = tf.squeeze(y, axis=0)
+    
     return (x, y)
 
 
-def train(train_points, train_labels, valid_points, valid_labels):
-    idx = np.random.randint(len(train_labels)-1-NUM_POINT)
-
-    train_points = train_points[:, idx:(NUM_POINT + idx), :]
-    valid_points = valid_points[:, idx:(NUM_POINT + idx), :]
+def train(train_points, train_labels, valid_points, valid_labels, start, end):
+    train_points = train_points[:, start:end, :]
+    valid_points = valid_points[:, start:end, :]
+    print(train_points.shape, valid_points.shape)
 
     TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_labels) / BATCH_SIZE).numpy())
     VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_labels) / BATCH_SIZE).numpy())
@@ -212,7 +212,7 @@ if __name__ == "__main__":
     CLASSES = sorted(CLASS_FILE[0].tolist())
     print(CLASSES)
 
-    TRAIN_FILE = f'{DATA_PATH}/modelnet40_test.txt'
+    TRAIN_FILE = f'{DATA_PATH}/modelnet40_train.txt'
     VALID_FILE = f'{DATA_PATH}/modelnet40_test.txt'
 
     train_points, train_labels = read_data_list(TRAIN_FILE)
@@ -221,5 +221,9 @@ if __name__ == "__main__":
     valid_points, valid_labels = read_data_list(VALID_FILE)
     print(valid_points.shape, valid_labels.shape)
 
-    for _ in range(5):
-        train(train_points, train_labels, valid_points, valid_labels)
+    start = 0
+    end = NUM_POINT
+    for i in range(5):
+        train(train_points, train_labels, valid_points, valid_labels, start, end)
+        start = end
+        end = NUM_POINT * (i+1)

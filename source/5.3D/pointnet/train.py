@@ -180,14 +180,14 @@ def read_data(FILES_PATH, is_aug):
     total_label = np.zeros(shape=[0, 1])
 
     for i in range(0, len(FILES_PATH)):
-        pc_data, pc_label = load_h5(TRAIN_FILES[i])
-        pc_data = pc_data[:, 0:NUM_POINT, :]
+        pc_data, pc_label = load_h5(FILES_PATH[i])
+        pc_data = pc_data[:, NUM_POINT:2048, :]
         pc_data, pc_label, _ = shuffle_data(pc_data, pc_label)
         
         total_pc = np.append(total_pc, pc_data, axis=0)
         total_label = np.append(total_label, pc_label, axis=0)
 
-    print(total_pc.shape, total_label.shape)
+    # print(total_pc.shape, total_label.shape)
 
     if is_aug:
         rotated_pc = rotate_point_cloud(total_pc)
@@ -200,26 +200,24 @@ def read_data(FILES_PATH, is_aug):
         total_label = np.append(total_label, rotated_label, axis=0)
         total_label = np.append(total_label, jitted_label, axis=0)
 
-        print(total_pc.shape, total_label.shape)
+        # print(total_pc.shape, total_label.shape)
 
     return total_pc, total_label
 
 
 def train():
-    total_pc, total_label = read_data(TRAIN_FILES, True)
-    print(total_pc.shape, total_label.shape)
+    train_pc, train_label = read_data(TRAIN_FILES, True)
+    valid_pc, valid_label = read_data(VALID_FILES, False)
 
-    TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(total_pc) / BATCH_SIZE).numpy())
+    print(train_pc.shape, train_label.shape, valid_pc.shape, valid_label.shape)
 
-    val_data, val_label = load_h5(VALID_FILES[0])
-    val_data = val_data[:, 0:NUM_POINT, :]
-    VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(val_data) / BATCH_SIZE).numpy())
-
-    val_dataset = tf.data.Dataset.from_tensor_slices((val_data, val_label))
-    val_dataset = val_dataset.map(preprocessing).batch(BATCH_SIZE).repeat()
-
-    train_dataset = tf.data.Dataset.from_tensor_slices((total_pc, total_label))
+    TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_pc) / BATCH_SIZE).numpy())
+    train_dataset = tf.data.Dataset.from_tensor_slices((train_pc, train_label))
     train_dataset = train_dataset.map(preprocessing).shuffle(10000).batch(BATCH_SIZE).repeat()
+
+    VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_pc) / BATCH_SIZE).numpy())
+    valid_dataset = tf.data.Dataset.from_tensor_slices((valid_pc, valid_label))
+    valid_dataset = valid_dataset.map(preprocessing).batch(BATCH_SIZE).repeat()
     
     model = ClsModel(NUM_POINT)
     model.active().summary()
@@ -233,7 +231,7 @@ def train():
     history = model.fit(train_dataset,
                         steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
                         epochs=EPOCH,
-                        validation_data=val_dataset,
+                        validation_data=valid_dataset,
                         validation_steps=VALID_STEPS_PER_EPOCH,
                         callbacks=[lr_schedule, earlystopper]
                         )
@@ -241,7 +239,6 @@ def train():
     tf.saved_model.save(model, f'{SAVED_PATH}/pointnet')
 
     return history
-
 
 if __name__ == "__main__":
     BATCH_SIZE = 64
