@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from tqdm import tqdm
+from matplotlib import pyplot as plt
 
 # GPU setup
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -21,6 +22,18 @@ else:
         strategy = tf.distribute.experimental.CentralStorageStrategy()
     except RuntimeError as e:
         print(e)
+
+
+def show_point_cloud(test_images, test_labels, results):
+    fig = plt.figure(figsize=(15, 10))
+
+    for i in range(len(results)):
+        ax = fig.add_subplot(5, 2, i + 1, projection="3d")
+        ax.scatter(test_images[i, :, 0], test_images[i, :, 1], test_images[i, :, 2])
+        ax.set_title(f"P : {results[i]}, A : {CLASSES[int(test_labels[i][0])]}")
+        ax.set_axis_off()
+
+    plt.show()
 
 
 def read_data_list(file_path):
@@ -56,7 +69,7 @@ def read_data_list(file_path):
 if __name__ == "__main__":
     DATA_PATH = '/data/datasets/modelnet40_normal_resampled'
     BATCH_SIZE = 64
-    NUM_POINT = 8192
+    NUM_POINT = 1024
 
     CLASS_FILE = f'{DATA_PATH}/modelnet40_shape_names.txt'
     CLASS_FILE = pd.read_csv(CLASS_FILE, sep=' ', index_col=False, header=None)
@@ -66,8 +79,27 @@ if __name__ == "__main__":
     TEST_FILE = f'{DATA_PATH}/modelnet40_test.txt'
     test_points, test_labels = read_data_list(TEST_FILE)
 
-    model = tf.keras.models.load_model('/data/Models/pointnet/2021.05.25_17:56/pointnet')
+    model = tf.keras.models.load_model('/data/Models/pointnet/2021.05.26_15:10/pointnet')
     model.summary()
+
+    start, end = 0, 10
+    test_image = test_points[start:end]
+    test_label = test_labels[start:end]
+    print(test_image.shape, test_label.shape)
+
+    predictions = model.predict(test_image)
+    print(predictions.shape)
+
+    results = []
+    for pred in predictions:
+        idx = np.argmax(pred)
+        label = CLASSES[idx]
+        score = pred[idx]
+        score = format(score, ".2f")
+
+        results.append([label, score])
+
+    show_point_cloud(test_image, test_label, results)
 
     predictions = model.predict(test_points)
     is_correct = 0

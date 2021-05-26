@@ -50,46 +50,6 @@ def jitter_point_cloud(points, sigma=0.01, clip=0.05):
     return jittered_data
 
 
-def read_data_list(file_path):
-    files = pd.read_csv(file_path, sep=' ', index_col=False, header=None)
-    files = sorted(files[0].tolist())
-
-    points = np.zeros(shape=[0, NUM_POINT, 3])
-    labels = np.zeros(shape=[0, 1])
-
-    for i in tqdm(range(len(files))):
-        label = files[i].split('_')
-        label = label[:-1]
-        label = '_'.join(label)
-        path = f'{DATA_PATH}/{label}/{files[i]}.txt'
-        point = pd.read_csv(path, sep=',', index_col=False, header=None, names=['x', 'y', 'z', 'r', 'g', 'b'])
-
-        point = point.loc[:,['x','y','z']]
-        point = np.array(point)
-        point = point[0:NUM_POINT, :]
-        # print(point.shape)
-
-        label = np.array([CLASSES.index(label)])
-        # print(point.shape, label.shape)
-
-        points = np.append(points, [point], axis=0)
-        labels = np.append(labels, [label], axis=0)
-
-    # print(points.shape, labels.shape)
-
-    rotated_points = rotate_point_cloud(points)
-    jitted_points = jitter_point_cloud(points)
-
-    total_points = np.append(points, rotated_points, axis=0)
-    total_points = np.append(total_points, jitted_points, axis=0)
-    total_labels = np.append(labels, labels, axis=0)
-    total_labels = np.append(total_labels, labels, axis=0)
-
-    print(total_points.shape, total_labels.shape)
-
-    return total_points, total_labels
-
-
 class ClsModel(tf.keras.Model):
 
     def __init__(self, num_points):
@@ -174,6 +134,11 @@ def preprocessing(x, y):
 
 
 def train(train_points, train_labels, valid_points, valid_labels):
+    idx = np.random.randint(len(train_labels)-1-NUM_POINT)
+
+    train_points = train_points[:, idx:(NUM_POINT + idx), :]
+    valid_points = valid_points[:, idx:(NUM_POINT + idx), :]
+
     TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_labels) / BATCH_SIZE).numpy())
     VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_labels) / BATCH_SIZE).numpy())
 
@@ -205,6 +170,30 @@ def train(train_points, train_labels, valid_points, valid_labels):
     return history
 
 
+def read_data_list(file_path):
+    files = pd.read_csv(file_path, sep=' ', index_col=False, header=None)
+    files = sorted(files[0].tolist())
+
+    total_points = np.zeros(shape=[0, 10000, 3])
+    total_labels = np.zeros(shape=[0, 1])
+
+    for i in tqdm(range(len(files))):
+        label = files[i].split('_')
+        label = '_'.join(label[:-1])
+        path = f'{DATA_PATH}/{label}/{files[i]}.txt'
+        point = pd.read_csv(path, sep=',', index_col=False, header=None, names=['x', 'y', 'z', 'r', 'g', 'b'])
+
+        point = point.loc[:,['x','y','z']]
+        point = np.array(point)
+
+        label = np.array([CLASSES.index(label)])
+
+        total_points = np.append(total_points, [point], axis=0)
+        total_labels = np.append(total_labels, [label], axis=0)
+
+    return total_points, total_labels
+
+
 if __name__ == "__main__":
     DATA_PATH = '/data/datasets/modelnet40_normal_resampled'
     BATCH_SIZE = 64
@@ -223,10 +212,14 @@ if __name__ == "__main__":
     CLASSES = sorted(CLASS_FILE[0].tolist())
     print(CLASSES)
 
-    TRAIN_FILE = f'{DATA_PATH}/modelnet40_train.txt'
+    TRAIN_FILE = f'{DATA_PATH}/modelnet40_test.txt'
     VALID_FILE = f'{DATA_PATH}/modelnet40_test.txt'
 
     train_points, train_labels = read_data_list(TRAIN_FILE)
-    valid_points, valid_labels = read_data_list(VALID_FILE)
+    print(train_points.shape, train_labels.shape)
 
-    train(train_points, train_labels, valid_points, valid_labels)
+    valid_points, valid_labels = read_data_list(VALID_FILE)
+    print(valid_points.shape, valid_labels.shape)
+
+    for _ in range(5):
+        train(train_points, train_labels, valid_points, valid_labels)
