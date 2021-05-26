@@ -181,7 +181,7 @@ def read_data(FILES_PATH, is_aug):
 
     for i in range(0, len(FILES_PATH)):
         pc_data, pc_label = load_h5(FILES_PATH[i])
-        pc_data = pc_data[:, NUM_POINT:2048, :]
+        pc_data = pc_data[:, 0:NUM_POINT, :]
         pc_data, pc_label, _ = shuffle_data(pc_data, pc_label)
         
         total_pc = np.append(total_pc, pc_data, axis=0)
