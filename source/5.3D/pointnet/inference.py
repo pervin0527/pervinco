@@ -1,6 +1,7 @@
 import trimesh
 import numpy as np
 import tensorflow as tf
+import pandas as pd
 from train import get_data_files, load_h5
 from matplotlib import pyplot as plt
 
@@ -29,6 +30,7 @@ def preprocessing(x, y):
     y = tf.cast(y, dtype=tf.int64)
     y = tf.one_hot(y, depth=NUM_CLASSES)
     y = tf.squeeze(y, axis=0)
+    
     return (x, y)
 
 
@@ -46,15 +48,11 @@ def show_point_cloud(test_images, test_labels, results):
 
 if __name__ == "__main__":
     NUM_POINT = 1024
-    CLASSES = ['airplane', 'bathtub', 'bed', 'bench', 'bookshelf',
-               'bottle', 'bowl', 'car', 'chair', 'cone',
-               'cup', 'curtain', 'desk', 'door', 'dresser',
-               'flower_pot', 'glass_box', 'guitar', 'keyboard', 'lamp',
-               'laptop', 'mantel', 'monitor', 'night_stand', 'person',
-               'piano', 'plant', 'radio', 'range_hood', 'sink',
-               'sofa', 'stairs', 'stool', 'table', 'tent',
-               'toilet', 'tv_stand', 'vase', 'wardrobe', 'xbox']
-    CLASSES = sorted(CLASSES)
+    CLASSES = pd.read_csv('/data/datasets/modelnet40_ply_hdf5_2048/shape_names.txt',
+                          sep=' ',
+                          index_col=False,
+                          header=None)
+    CLASSES = sorted(CLASSES[0].tolist())
 
     TEST_FILES = '/data/datasets/modelnet40_ply_hdf5_2048/test_files.txt'
     TEST_FILES = get_data_files(TEST_FILES)
@@ -73,7 +71,7 @@ if __name__ == "__main__":
     test_label = test_answer[start:end]
     print(test_image.shape, test_label.shape)
 
-    model = tf.keras.models.load_model('/data/Models/pointnet/2021.05.25_12:25/pointnet')
+    model = tf.keras.models.load_model('/data/Models/pointnet/2021.05.26_12:25/pointnet')
     model.summary()
 
     predictions = model.predict(test_image)

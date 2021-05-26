@@ -115,8 +115,7 @@ def rotate_point_cloud(batch_data):
 
 def jitter_point_cloud(batch_data, sigma=0.01, clip=0.05):
     B, N, C = batch_data.shape
-
-    assert(clip > 0)
+    
     jittered_data = np.clip(sigma * np.random.randn(B, N, C), -1*clip, clip)
     jittered_data += batch_data
 
@@ -128,6 +127,7 @@ def preprocessing(x, y):
     y = tf.cast(y, dtype=tf.int64)
     y = tf.one_hot(y, depth=NUM_CLASSES)
     y = tf.squeeze(y, axis=0)
+
     return (x, y)
 
 
@@ -190,14 +190,17 @@ def read_data(FILES_PATH, is_aug):
     print(total_pc.shape, total_label.shape)
 
     if is_aug:
-        aug_pc = rotate_point_cloud(total_pc)
-        aug_label = total_label
+        rotated_pc = rotate_point_cloud(total_pc)
+        rotated_label = total_label
+        jitted_pc = jitter_point_cloud(total_pc)
+        jitted_label = total_label
 
-        total_pc = np.append(total_pc, aug_pc, axis=0)
-        total_label = np.append(total_label, total_label, axis=0)
+        total_pc = np.append(total_pc, rotated_pc, axis=0)
+        total_pc = np.append(total_pc, jitted_pc, axis=0)
+        total_label = np.append(total_label, rotated_label, axis=0)
+        total_label = np.append(total_label, jitted_label, axis=0)
 
         print(total_pc.shape, total_label.shape)
-
 
     return total_pc, total_label
 

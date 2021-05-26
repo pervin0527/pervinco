@@ -11,29 +11,29 @@ def show_point_cloud(points):
     ax.set_axis_off()
     plt.show()
 
-""" Understanding mesh data """
-# trimesh.util.attach_to_log()
+# """ Understanding mesh data """
+# # trimesh.util.attach_to_log()
 
-sample = trimesh.Trimesh(vertices=[[0, 0, 0], [0, 0, 1], [0, 1, 0], 
-                                   [0, 1, 1], [1, 0, 1], [1, 1, 1]],
-                         faces=[[0, 1, 2], [0, 1, 5]],
-                         process=False)
-print(sample)
-sample.show()
+# sample = trimesh.Trimesh(vertices=[[0, 0, 0], [0, 0, 1], [0, 1, 0], 
+#                                    [0, 1, 1], [1, 0, 1], [1, 1, 1]],
+#                          faces=[[0, 1, 2], [0, 1, 5]],
+#                          process=False)
+# print(sample)
+# sample.show()
 
 """ Convert mesh -> point cloud """
 if not os.path.isfile('./cow.obj'):
     url = 'https://storage.googleapis.com/tensorflow-graphics/notebooks/index/cow.obj'
     wget.download(url)
 
+""" using sample .off file """
+keras_mesh = trimesh.load('./cow.obj')
+keras_mesh.show()
+
 mesh = trimesh.load('cow.obj')
 vertices, faces = mesh.vertices, mesh.faces
 print(vertices.shape, faces.shape)
 show_point_cloud(vertices)
-
-""" using sample .off file """
-keras_mesh = trimesh.load('./cow.obj')
-keras_mesh.show()
 
 keras_points, keras_faces = keras_mesh.vertices, keras_mesh.faces
 sample_faces = keras_faces.flatten()
