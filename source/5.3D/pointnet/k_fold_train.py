@@ -134,11 +134,7 @@ def preprocessing(x, y):
     return (x, y)
 
 
-def train(train_points, train_labels, valid_points, valid_labels, start, end):
-    train_points = train_points[:, start:end, :]
-    valid_points = valid_points[:, start:end, :]
-    print(train_points.shape, valid_points.shape)
-
+def train(idx):
     TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_labels) / BATCH_SIZE).numpy())
     VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_labels) / BATCH_SIZE).numpy())
 
@@ -165,16 +161,16 @@ def train(train_points, train_labels, valid_points, valid_labels, start, end):
                         callbacks=[lr_schedule, earlystopper]
                         )
 
-    tf.saved_model.save(model, f'{SAVED_PATH}/pointnet')
+    tf.saved_model.save(model, f'{SAVED_PATH}/pointnet_{idx}')
 
     return history
 
 
-def read_data_list(file_path):
+def read_data_list(file_path, is_train):
     files = pd.read_csv(file_path, sep=' ', index_col=False, header=None)
     files = sorted(files[0].tolist())
 
-    total_points = np.zeros(shape=[0, 10000, 3])
+    total_points = np.zeros(shape=[0, NUM_POINT, 3])
     total_labels = np.zeros(shape=[0, 1])
 
     for i in tqdm(range(len(files))):
@@ -185,11 +181,23 @@ def read_data_list(file_path):
 
         point = point.loc[:,['x','y','z']]
         point = np.array(point)
+        point = point[start:end, :]
 
         label = np.array([CLASSES.index(label)])
 
         total_points = np.append(total_points, [point], axis=0)
         total_labels = np.append(total_labels, [label], axis=0)
+
+    if is_train:
+        rotate_points = rotate_point_cloud(total_points)
+        rotate_labels = total_labels
+        jitter_points = jitter_point_cloud(total_points)
+        jitter_labels = total_labels
+
+        total_points = np.append(total_points, rotate_points, axis=0)
+        total_points = np.append(total_points, jitter_points, axis=0)
+        total_labels = np.append(total_labels, rotate_labels, axis=0)
+        total_labels = np.append(total_labels, jitter_labels, axis=0)
 
     return total_points, total_labels
 
@@ -215,15 +223,16 @@ if __name__ == "__main__":
     TRAIN_FILE = f'{DATA_PATH}/modelnet40_train.txt'
     VALID_FILE = f'{DATA_PATH}/modelnet40_test.txt'
 
-    train_points, train_labels = read_data_list(TRAIN_FILE)
-    print(train_points.shape, train_labels.shape)
-
-    valid_points, valid_labels = read_data_list(VALID_FILE)
-    print(valid_points.shape, valid_labels.shape)
-
     start = 0
     end = NUM_POINT
-    for i in range(5):
-        train(train_points, train_labels, valid_points, valid_labels, start, end)
-        start = end
-        end = NUM_POINT * (i+1)
+    for f in range(5):
+        train_points, train_labels = read_data_list(TRAIN_FILE, True)
+        print(train_points.shape, train_labels.shape)
+
+        valid_points, valid_labels = read_data_list(VALID_FILE, False)
+        print(valid_points.shape, valid_labels.shape)
+
+        train(f)
+
+        start += NUM_POINT
+        end += NUM_POINT
