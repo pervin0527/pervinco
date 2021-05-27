@@ -84,9 +84,9 @@ if __name__ == "__main__":
     final_predictions = np.zeros(shape=(2468, 40))
 
     for idx in range(5):
-        model = tf.keras.models.load_model(f'/data/Models/pointnet/2021.05.27_09:42/pointnet_{idx}')
+        model = tf.keras.models.load_model(f'/data/Models/pointnet/2021.05.27_11:56/pointnet_{idx}')
         test_points, test_labels = read_data_list(TEST_FILE, start, end)
-        
+
         predictions = model.predict(test_points)
         final_predictions += predictions
 

@@ -50,6 +50,33 @@ def jitter_point_cloud(points, sigma=0.01, clip=0.05):
     return jittered_data
 
 
+def build_lrfn(lr_start=0.00001, lr_max=0.00005, 
+               lr_min=0.00001, lr_rampup_epochs=5, 
+               lr_sustain_epochs=0, lr_exp_decay=.8):
+    lr_max = lr_max * strategy.num_replicas_in_sync
+
+    def lrfn(epoch):
+        if epoch < lr_rampup_epochs:
+            lr = (lr_max - lr_start) / lr_rampup_epochs * epoch + lr_start
+        elif epoch < lr_rampup_epochs + lr_sustain_epochs:
+            lr = lr_max
+        else:
+            lr = (lr_max - lr_min) *\
+                 lr_exp_decay**(epoch - lr_rampup_epochs\
+                                - lr_sustain_epochs) + lr_min
+        return lr
+    return lrfn
+
+
+def preprocessing(x, y):
+    x = tf.cast(x, dtype=tf.float32)
+    y = tf.cast(y, dtype=tf.int64)
+    y = tf.one_hot(y, depth=NUM_CLASSES)
+    y = tf.squeeze(y, axis=0)
+    
+    return (x, y)
+
+
 class ClsModel(tf.keras.Model):
 
     def __init__(self, num_points):
@@ -107,34 +134,8 @@ class ClsModel(tf.keras.Model):
         return tf.keras.Model(inputs=[x], outputs=self.call(x))
 
 
-def build_lrfn(lr_start=0.00001, lr_max=0.00005, 
-               lr_min=0.00001, lr_rampup_epochs=5, 
-               lr_sustain_epochs=0, lr_exp_decay=.8):
-    lr_max = lr_max * strategy.num_replicas_in_sync
-
-    def lrfn(epoch):
-        if epoch < lr_rampup_epochs:
-            lr = (lr_max - lr_start) / lr_rampup_epochs * epoch + lr_start
-        elif epoch < lr_rampup_epochs + lr_sustain_epochs:
-            lr = lr_max
-        else:
-            lr = (lr_max - lr_min) *\
-                 lr_exp_decay**(epoch - lr_rampup_epochs\
-                                - lr_sustain_epochs) + lr_min
-        return lr
-    return lrfn
-
-
-def preprocessing(x, y):
-    x = tf.cast(x, dtype=tf.float32)
-    y = tf.cast(y, dtype=tf.int64)
-    y = tf.one_hot(y, depth=NUM_CLASSES)
-    y = tf.squeeze(y, axis=0)
-    
-    return (x, y)
-
-
 def train(idx):
+    print(f"======================================= Fold_{idx} =======================================")
     TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_labels) / BATCH_SIZE).numpy())
     VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_labels) / BATCH_SIZE).numpy())
 
@@ -145,7 +146,7 @@ def train(idx):
     val_dataset = val_dataset.map(preprocessing).batch(BATCH_SIZE).repeat()
     
     model = ClsModel(NUM_POINT)
-    model.active().summary()
+    # model.active().summary()
     model.compile(optimizer=tf.keras.optimizers.Adam(LEARNING_RATE), loss=tf.keras.losses.categorical_crossentropy, metrics=['categorical_accuracy'])
 
     # model.load_weights(checkpoint_prefix)
@@ -193,11 +194,15 @@ def read_data_list(file_path, is_train):
         rotate_labels = total_labels
         jitter_points = jitter_point_cloud(total_points)
         jitter_labels = total_labels
+        merge_points = jitter_point_cloud(rotate_points)
+        merge_labels = total_labels
 
         total_points = np.append(total_points, rotate_points, axis=0)
         total_points = np.append(total_points, jitter_points, axis=0)
         total_labels = np.append(total_labels, rotate_labels, axis=0)
         total_labels = np.append(total_labels, jitter_labels, axis=0)
+        total_points = np.append(total_points, merge_points, axis=0)
+        total_labels = np.append(total_labels, merge_labels, axis=0)
 
     return total_points, total_labels
 
@@ -209,9 +214,6 @@ if __name__ == "__main__":
     NUM_POINT = 1024
     EPOCH = 250
     LEARNING_RATE = 0.0001
-    MOMENTUM = 0.9
-    DECAY_STEP = 200000
-    DECAY_RATE = 0.7
     LOG_TIME = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M")
     SAVED_PATH = f'/data/Models/pointnet/{LOG_TIME}'
 
