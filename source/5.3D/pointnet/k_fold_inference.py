@@ -69,7 +69,7 @@ def show_point_cloud(test_images, test_labels, results):
 
 
 if __name__ == "__main__":
-    NUM_POINT = 1024
+    NUM_POINT = 2048
     CLASSES = pd.read_csv('/data/datasets/modelnet40_ply_hdf5_2048/shape_names.txt',
                           sep=' ',
                           index_col=False,
@@ -84,8 +84,8 @@ if __name__ == "__main__":
     final_predictions = np.zeros(shape=(2468, 40))
 
     for idx in range(5):
-        model = tf.keras.models.load_model(f'/data/Models/pointnet/2021.05.27_11:56/pointnet_{idx}')
         test_points, test_labels = read_data_list(TEST_FILE, start, end)
+        model = tf.keras.models.load_model(f'/data/Models/pointnet/2021.05.27_15:38/pointnet_{idx}')
 
         predictions = model.predict(test_points)
         final_predictions += predictions

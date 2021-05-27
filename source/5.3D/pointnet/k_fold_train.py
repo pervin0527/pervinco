@@ -211,7 +211,7 @@ if __name__ == "__main__":
     DATA_PATH = '/data/datasets/modelnet40_normal_resampled'
     BATCH_SIZE = 64
     NUM_CLASSES = 40
-    NUM_POINT = 1024
+    NUM_POINT = 2048
     EPOCH = 250
     LEARNING_RATE = 0.0001
     LOG_TIME = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M")
