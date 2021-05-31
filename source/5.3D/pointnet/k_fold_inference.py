@@ -83,9 +83,9 @@ if __name__ == "__main__":
     end = NUM_POINT
     final_predictions = np.zeros(shape=(2468, 40))
 
-    for idx in range(5):
+    for idx in range(4):
         test_points, test_labels = read_data_list(TEST_FILE, start, end)
-        model = tf.keras.models.load_model(f'/data/Models/pointnet/2021.05.27_15:38/pointnet_{idx}')
+        model = tf.keras.models.load_model(f'/data/Models/pointnet/2021.05.27_17:15/pointnet_{idx}')
 
         predictions = model.predict(test_points)
         final_predictions += predictions
@@ -94,7 +94,7 @@ if __name__ == "__main__":
         end += NUM_POINT
 
     print(final_predictions.shape)
-    final_predictions /= 5
+    final_predictions /= 4
 
     is_correct = 0
     for pred, answer in zip(final_predictions, test_labels):

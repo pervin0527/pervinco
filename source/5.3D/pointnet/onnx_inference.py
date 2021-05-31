@@ -4,6 +4,7 @@ import tensorflow as tf
 import pandas as pd
 from train import get_data_files, load_h5
 from matplotlib import pyplot as plt
+from tqdm import tqdm
 
 # GPU setup
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -57,25 +58,26 @@ if __name__ == "__main__":
     TEST_FILES = '/data/datasets/modelnet40_ply_hdf5_2048/test_files.txt'
     TEST_FILES = get_data_files(TEST_FILES)
 
+    model = tf.saved_model.load('/data/Models/pointnet/tf')
+
     test_data, test_answer = load_h5(TEST_FILES[0])
-    test_point1 = test_data[:, 0:NUM_POINT, :]
-    test_point2 = test_data[:, NUM_POINT:2408, :]
-
-    model = tf.keras.models.load_model('/data/Models/pointnet/0_1024/pointnet')
-    predictions1 = model.predict(test_point1)
-
-
-    model = tf.keras.models.load_model('/data/Models/pointnet/1024_2048/pointnet')
-    predictions2 = model.predict(test_point2)
-
-    final_predictions = (predictions1 + predictions2) / 2
+    test_data = test_data[:, 0:NUM_POINT, :]
 
     is_correct = 0
-    for pred, answer in zip(final_predictions, test_answer):
-        idx = np.argmax(pred)
-        label = CLASSES[idx]
+    for i in tqdm(range(len(test_answer))):
+        test_point, test_label = test_data[i], test_answer[i]
+        # test_point = np.reshape(test_point, (3, 1024))
+        test_point = np.transpose(test_point, axes=(1, 0))
+        test_point = np.expand_dims(test_point, axis=0)
 
-        if label == CLASSES[answer[0]]:
+        pred = model(**{'x.1' : test_point})
+        pred = np.array(pred[0])
+        
+        idx = np.argmax(pred)
+        name = CLASSES[idx]
+        score = pred[0][idx]
+
+        if name == CLASSES[test_label[0]]:
             is_correct += 1
 
     print(f'Total Accuracy = {(is_correct / len(test_answer)) * 100 : .2f}')
