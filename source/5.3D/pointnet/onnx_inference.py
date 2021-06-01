@@ -58,7 +58,7 @@ if __name__ == "__main__":
     TEST_FILES = '/data/datasets/modelnet40_ply_hdf5_2048/test_files.txt'
     TEST_FILES = get_data_files(TEST_FILES)
 
-    model = tf.saved_model.load('/data/Models/pointnet/tf')
+    model = tf.saved_model.load('/data/Models/onnx/tf')
 
     test_data, test_answer = load_h5(TEST_FILES[0])
     test_data = test_data[:, 0:NUM_POINT, :]
@@ -71,11 +71,12 @@ if __name__ == "__main__":
         test_point = np.expand_dims(test_point, axis=0)
 
         pred = model(**{'x.1' : test_point})
+        pred = list(pred.values())[0].numpy()
         pred = np.array(pred[0])
         
         idx = np.argmax(pred)
         name = CLASSES[idx]
-        score = pred[0][idx]
+        score = pred[idx]
 
         if name == CLASSES[test_label[0]]:
             is_correct += 1
