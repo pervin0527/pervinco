@@ -8,10 +8,10 @@ import argparse
 from threading import Thread, enumerate
 from queue import Queue
 
-weight_file = "/data/backup/pervinco_2020/darknet/weights/cigar_box_2020.12.30/yolov4-custom_cigar_box_last.weights"
-config_file = "/data/backup/pervinco_2020/darknet/build/darknet/x64/cfg/yolov4-custom_cigar_box.cfg"
-data_file = "/data/backup/pervinco_2020/darknet/build/darknet/x64/data/cigar_box_obj.data"
-thresh_hold = .6
+weight_file = "/home/barcelona/darknet/models/in_office/yolov4-in_office_tiny_last.weights"
+config_file = "/home/barcelona/darknet/yolov4-in_office_tiny.cfg"
+data_file = "/home/barcelona/darknet/build/darknet/x64/data/in_office.data"
+thresh_hold = .4
 
 network, class_names, class_colors = darknet.load_network(config_file, data_file, weight_file, batch_size=1)
 
@@ -20,7 +20,7 @@ height = darknet.network_height(network)
 darknet_image = darknet.make_image(width, height, 3)
 
 
-test_image = cv2.imread("/data/backup/pervinco_2020/darknet/build/darknet/x64/data/obj/cigarette_case/1.seed/backup_images/part2_1217_nm/2020-12-17-09:48:03_part2_1217_nm_left.jpg")
+test_image = cv2.imread("./test.jpg")
 frame_rgb = cv2.cvtColor(test_image, cv2.COLOR_BGR2RGB)
 frame_resized = cv2.resize(frame_rgb, (width, height), interpolation=cv2.INTER_LINEAR)
 darknet.copy_image_from_bytes(darknet_image, frame_resized.tobytes())
@@ -34,7 +34,7 @@ for i in range(len(detections)):
 
 image = darknet.draw_boxes(detections, frame_resized, class_colors)
 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-cv2.imwrite("/data/backup/pervinco_2020/darknet/build/darknet/x64/results/predictions.jpg", image)
+# cv2.imwrite("/data/backup/pervinco_2020/darknet/build/darknet/x64/results/predictions.jpg", image)
 
 print(res)
 cv2.imshow("inference", image)
