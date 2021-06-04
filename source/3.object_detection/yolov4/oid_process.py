@@ -1,5 +1,6 @@
 import os
 import cv2
+import time
 import pathlib
 import pandas as pd
 import argparse
@@ -46,23 +47,11 @@ def make_ds():
         os.makedirs(f'{output_path}')
 
     for (class_name_index, class_name) in enumerate(sorted(labels)):
-
-        if class_name == 'Man' or class_name == 'Woman':
-            class_name_index = labels.index('Person')
-
-        elif class_name == 'Table':
-            class_name_index = labels.index('Desk')
-
-        elif class_name == 'Television':
-            class_name_index = labels.index('Computer monitor')
-
         class_id = get_class_id(class_descriptions_boxable, class_name)
-        # print(class_name_index, class_name, class_id)
         
         images = list(ds_path.glob(f'{class_name}/*.jpg'))
         images = [str(path) for path in images]
 
-        print(class_name_index, class_name)
         for i in tqdm(range(len(images))):
             img_file = images[i]
             
@@ -77,9 +66,6 @@ def make_ds():
             df = get_annotations_dataframe(train_annotations_bbox, class_id, file_name)
             create_darknet_annotation(df, save_name, class_name_index, output_path)
 
-            if i == 4000:
-                break
-
         print()
 
 
@@ -87,24 +73,22 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='OID dataset post-processing')
     parser.add_argument('--oid_path', type=str)
     parser.add_argument('--output_path', type=str)
-    parser.add_argument('--is_train', type=str, default=True)
+    parser.add_argument('--class_file', type=str)
     args = parser.parse_args()
 
     dataset_path = args.oid_path
     output_path = args.output_path
+    class_file = args.class_file
+
+    CLASSES = pd.read_csv(f'{class_file}', sep=' ', index_col=False, header=None)
+    CLASSES = sorted(CLASSES[0].tolist())
 
     train_annotations_bbox = pd.read_csv(f'{dataset_path}/csv_folder/train-annotations-bbox.csv')
     class_descriptions_boxable = pd.read_csv(f'{dataset_path}/csv_folder/class-descriptions-boxable.csv')
 
-    is_train = ''
-    if args.is_train:
-        is_train = 'train'
-
-    else:
-        is_train = 'valid'
-
-    ds_path = pathlib.Path(f'{dataset_path}/Dataset/{is_train}')
+    ds_path = pathlib.Path(f'{dataset_path}/Dataset/train')
     labels = sorted(item.name for item in ds_path.glob('*/') if item.is_dir())
     print(labels)
+    print(CLASSES)
 
     make_ds()

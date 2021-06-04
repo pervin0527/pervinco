@@ -8,8 +8,8 @@ import argparse
 from threading import Thread, enumerate
 from queue import Queue
 
-weight_file = "/home/barcelona/darknet/models/in_office/yolov4-in_office_tiny_last.weights"
-config_file = "/home/barcelona/darknet/yolov4-in_office_tiny.cfg"
+weight_file = "/home/barcelona/darknet/models/in_office_3l/yolov4-in_office_tiny-3l_last.weights"
+config_file = "/home/barcelona/darknet/yolov4-in_office_tiny-3l.cfg"
 data_file = "/home/barcelona/darknet/build/darknet/x64/data/in_office.data"
 thresh_hold = .4
 

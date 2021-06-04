@@ -9,17 +9,18 @@ args = parser.parse_args()
 
 dataset_path = args.input_images_path
 splited_path = dataset_path.split('/')[:-1]
-output_path = '/'.join(splited_path)
+output_path = './build/darknet/x64/data/'
 print(output_path)
-
-# Percentage of images to be used for the test set
-percentage_test = 10
 
 file_train = open(output_path + '/' + args.train_file_name, 'w')  
 file_test = open(output_path + '/' + args.test_file_name, 'w')  
 
+# Percentage of images to be used for the test set
+percentage_test = 10
 counter = 1  
-index_test = round(100 / percentage_test)  
+index_test = round(100 / percentage_test)
+print(index_test)  
+
 for pathAndFilename in glob.iglob(os.path.join(dataset_path, "*.jpg")):  
     title, ext = os.path.splitext(os.path.basename(pathAndFilename))
 
