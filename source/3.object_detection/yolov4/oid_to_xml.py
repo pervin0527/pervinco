@@ -103,7 +103,8 @@ def write_xml():
                 annotation.append(obj)
 
                 name = etree.Element("name")
-                name.text = class_name
+                # name.text = class_name
+                name.text = label
                 obj.append(name)
 
                 pose = etree.Element("pose")
