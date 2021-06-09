@@ -19,245 +19,32 @@ FLAGS = flags.FLAGS
 
 
 def class_text_to_int(row_label):
-    if row_label == 'airplane':
+    if row_label == 'Chair':
         return 1
 
-    elif row_label == 'apple':
+    elif row_label == 'Coffee_cup':
         return 2
 
-    elif row_label == 'backpack':
+    elif row_label == 'Computer_keyboard':
         return 3
 
-    elif row_label == 'banana':
+    elif row_label == 'Computer_mouse':
         return 4
 
-    elif row_label == 'baseball bat':
+    elif row_label == 'Laptop':
         return 5
 
-    elif row_label == 'baseball glove':
+    elif row_label == 'Man':
         return 6
     
-    elif row_label == 'bear':
+    elif row_label == 'Mobile_phone':
         return 7
 
-    elif row_label == 'bed':
+    elif row_label == 'Table':
         return 8
 
-    elif row_label == 'bench':
+    elif row_label == 'Television':
         return 9
-
-    elif row_label == 'bicycle':
-        return 10
-
-    elif row_label == 'bird':
-        return 11
-
-    elif row_label == 'boat':
-        return 12
-
-    elif row_label == 'book':
-        return 13
-
-    elif row_label == 'bottle':
-        return 14
-
-    elif row_label == 'bowl':
-        return 15
-
-    elif row_label == 'broccoli':
-        return 16
-
-    elif row_label == 'bus':
-        return 17
-
-    elif row_label == 'cake':
-        return 18
-
-    elif row_label == 'car':
-        return 19
-
-    elif row_label == 'carrot':
-        return 20
-
-    elif row_label == 'cat':
-        return 21
-
-    elif row_label == 'cell phone':
-        return 22
-
-    elif row_label == 'chair':
-        return 23
-
-    elif row_label == 'clock':
-        return 24
-
-    elif row_label == 'couch':
-        return 25
-
-    elif row_label == 'cow':
-        return 26
-
-    elif row_label == 'cup':
-        return 27
-
-    elif row_label == 'dining table':
-        return 28
-
-    elif row_label == 'dog':
-        return 29
-
-    elif row_label == 'donut':
-        return 30
-
-    elif row_label == 'elephant':
-        return 31
-
-    elif row_label == 'fire hydrant':
-        return 32
-
-    elif row_label == 'fork':
-        return 33
-
-    elif row_label == 'frisbee':
-        return 34
-
-    elif row_label == 'giraffe':
-        return 35
-
-    elif row_label == 'hair drier':
-        return 36
-
-    elif row_label == 'handbag':
-        return 37
-
-    elif row_label == 'horse':
-        return 38
-
-    elif row_label == 'hot dog':
-        return 39
-
-    elif row_label == 'keyboard':
-        return 40
-
-    elif row_label == 'kite':
-        return 41
-
-    elif row_label == 'knife':
-        return 42
-
-    elif row_label == 'laptop':
-        return 43
-
-    elif row_label == 'microwave':
-        return 44
-
-    elif row_label == 'motorcycle':
-        return 45
-
-    elif row_label == 'mouse':
-        return 46
-
-    elif row_label == 'orange':
-        return 47
-
-    elif row_label == 'oven':
-        return 48
-
-    elif row_label == 'parking meter':
-        return 49
-
-    elif row_label == 'person':
-        return 50
-
-    elif row_label == 'pizza':
-        return 51
-
-    elif row_label == 'potted plant':
-        return 52
-
-    elif row_label == 'refrigerator':
-        return 53
-
-    elif row_label == 'remote':
-        return 54
-
-    elif row_label == 'sandwich':
-        return 55
-
-    elif row_label == 'scissors':
-        return 56
-
-    elif row_label == 'sheep':
-        return 57
-
-    elif row_label == 'sink':
-        return 58
-
-    elif row_label == 'skateboard':
-        return 59
-
-    elif row_label == 'skis':
-        return 60
-
-    elif row_label == 'snowboard':
-        return 61
-
-    elif row_label == 'spoon':
-        return 62
-
-    elif row_label == 'sports ball':
-        return 63
-
-    elif row_label == 'stop sign':
-        return 64
-
-    elif row_label == 'suitcase':
-        return 65
-
-    elif row_label == 'surfboard':
-        return 66
-
-    elif row_label == 'teddy bear':
-        return 67
-
-    elif row_label == 'tennis racket':
-        return 68
-
-    elif row_label == 'tie':
-        return 69
-
-    elif row_label == 'toaster':
-        return 70
-
-    elif row_label == 'toilet':
-        return 71
-
-    elif row_label == 'toothbrush':
-        return 72
-
-    elif row_label == 'traffic light':
-        return 73
-
-    elif row_label == 'train':
-        return 74
-
-    elif row_label == 'truck':
-        return 75
-
-    elif row_label == 'tv':
-        return 76
-
-    elif row_label == 'umbrella':
-        return 77
-
-    elif row_label == 'vase':
-        return 78
-
-    elif row_label == 'wine glass':
-        return 79
-
-    elif row_label == 'zebra':
-        return 80
 
     else:
         None

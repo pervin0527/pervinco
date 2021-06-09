@@ -16,12 +16,12 @@ from object_detection.builders import model_builder
 from datetime import datetime
 
 
-pipe_config_path = './VOC2012/Deploy/ssd_efficientdet_d0_512x512_coco17_tpu-8.config'
-model_dir = './VOC2012/Models/train_0911'
-ckpt_value = 'ckpt-3001'
-image_path = './test_image/dog.jpg'
-label_map_path = "./VOC2012/label_map.txt"
-min_score = 0.8
+pipe_config_path = '/home/barcelona/tensorflow/models/research/object_detection/custom/ssd_efficientdet_d0_512x512_coco17_tpu-8.config'
+model_dir = '/home/barcelona/tensorflow/models/research/object_detection/custom/train'
+ckpt_value = 'ckpt-100'
+image_path = '/home/barcelona/darknet/data/person.jpg'
+label_map_path = "/home/barcelona/tensorflow/models/research/object_detection/custom/in_office.txt"
+min_score = 0.4
 
 
 def load_image_into_numpy_array(path):
@@ -75,6 +75,7 @@ categories = label_map_util.convert_label_map_to_categories(
 category_index = label_map_util.create_category_index(categories)
 label_map_dict = label_map_util.get_label_map_dict(label_map, use_display_name=True)
 
+# image_np = cv2.resize(image_np, (512, 512))
 input_tensor = tf.convert_to_tensor(np.expand_dims(image_np, 0), dtype=tf.float32)
 detections, predictions_dict, shapes = detect_fn(input_tensor)
 
@@ -101,6 +102,6 @@ viz_utils.visualize_boxes_and_labels_on_image_array(
       keypoint_edges=get_keypoint_tuples(configs['eval_config']))
 
 save_img = cv2.cvtColor(image_np_with_detections, cv2.COLOR_BGR2RGB)
-save_img = cv2.resize(save_img, (1920, 1080))
+# save_img = cv2.resize(save_img, (1920, 1080))
 cv2.imshow('Result', save_img)
 cv2.waitKey(0)
