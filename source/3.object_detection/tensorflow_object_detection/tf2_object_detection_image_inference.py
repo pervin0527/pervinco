@@ -15,13 +15,31 @@ from object_detection.utils import visualization_utils as viz_utils
 from object_detection.builders import model_builder
 from datetime import datetime
 
+# GPU setup
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if len(gpus) > 1:
+    try:
+        print("Activate Multi GPU")
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+        strategy = tf.distribute.MirroredStrategy(cross_device_ops=tf.distribute.HierarchicalCopyAllReduce())
+    except RuntimeError as e:
+        print(e)
 
-pipe_config_path = '/home/barcelona/tensorflow/models/research/object_detection/custom/ssd_efficientdet_d0_512x512_coco17_tpu-8.config'
-model_dir = '/home/barcelona/tensorflow/models/research/object_detection/custom/train'
-ckpt_value = 'ckpt-100'
-image_path = '/home/barcelona/darknet/data/person.jpg'
-label_map_path = "/home/barcelona/tensorflow/models/research/object_detection/custom/in_office.txt"
-min_score = 0.4
+else:
+    try:
+        print("Activate Sigle GPU")
+        tf.config.experimental.set_memory_growth(gpus[0], True)
+        strategy = tf.distribute.experimental.CentralStorageStrategy()
+    except RuntimeError as e:
+        print(e)
+
+pipe_config_path = '/home/barcelona/tensorflow/models/research/object_detection/custom/deploy/ssd_mobilenet_v2_320/pipeline.config'
+model_dir = '/home/barcelona/tensorflow/models/research/object_detection/custom/models/21_06_10_mobilenet_v2_640'
+ckpt_value = 'ckpt-501'
+image_path = "/home/barcelona/tensorflow/models/research/object_detection/custom/test.jpg"
+label_map_path = "/home/barcelona/tensorflow/models/research/object_detection/custom/labels/in_office.txt"
+min_score = 0.3
 
 
 def load_image_into_numpy_array(path):
@@ -101,7 +119,13 @@ viz_utils.visualize_boxes_and_labels_on_image_array(
       keypoint_scores=keypoint_scores,
       keypoint_edges=get_keypoint_tuples(configs['eval_config']))
 
-save_img = cv2.cvtColor(image_np_with_detections, cv2.COLOR_BGR2RGB)
-# save_img = cv2.resize(save_img, (1920, 1080))
-cv2.imshow('Result', save_img)
+# save_img = cv2.cvtColor(image_np_with_detections, cv2.COLOR_BGR2RGB)
+# save_img = cv2.resize(save_img, (640, 480))
+# cv2.imshow('Result', save_img)
+
+image_np_with_detections = cv2.cvtColor(image_np_with_detections, cv2.COLOR_BGR2RGB)
+image_np_with_detections = cv2.resize(image_np_with_detections, (1920, 1080))
+cv2.imshow('Result', image_np_with_detections)
+
+
 cv2.waitKey(0)
