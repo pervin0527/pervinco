@@ -7,30 +7,28 @@ from object_detection.utils import config_util
 from object_detection.utils import visualization_utils as viz_utils
 from object_detection.builders import model_builder
 
-
-PATH_TO_CFG = './COCO2017/Deploy/ssd_efficientdet_d0_512x512_coco17_tpu-8.config'
-PATH_TO_CKPT = './COCO2017/Models/train_0915'
-PATH_TO_LABELS = './COCO2017/label_map.pbtxt'
-CKPT_VALUE = 'ckpt-300'
-
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'    
-tf.get_logger().setLevel('ERROR')
-
+# GPU setup
 gpus = tf.config.experimental.list_physical_devices('GPU')
-for gpu in gpus:
-    tf.config.experimental.set_memory_growth(gpu, True)
+if len(gpus) > 1:
+    try:
+        print("Activate Multi GPU")
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+        strategy = tf.distribute.MirroredStrategy(cross_device_ops=tf.distribute.HierarchicalCopyAllReduce())
+    except RuntimeError as e:
+        print(e)
 
-configs = config_util.get_configs_from_pipeline_file(PATH_TO_CFG)
-model_config = configs['model']
-detection_model = model_builder.build(model_config=model_config, is_training=False)
+else:
+    try:
+        print("Activate Sigle GPU")
+        tf.config.experimental.set_memory_growth(gpus[0], True)
+        strategy = tf.distribute.experimental.CentralStorageStrategy()
+    except RuntimeError as e:
+        print(e)
 
-ckpt = tf.compat.v2.train.Checkpoint(model=detection_model)
-ckpt.restore(os.path.join(PATH_TO_CKPT, CKPT_VALUE)).expect_partial()
 
 @tf.function
-def detect_fn(image):
-    """Detect objects in image."""
-
+def detect_fn(image, detection_model):
     image, shapes = detection_model.preprocess(image)
     prediction_dict = detection_model.predict(image, shapes)
     detections = detection_model.postprocess(prediction_dict, shapes)
@@ -38,47 +36,47 @@ def detect_fn(image):
     return detections, prediction_dict, tf.reshape(shapes, [-1])
 
 
-category_index = label_map_util.create_category_index_from_labelmap(PATH_TO_LABELS,
-                                                                    use_display_name=True)
+if __name__ == "__main__":
+    PATH_TO_CFG = '/home/barcelona/tensorflow/models/research/object_detection/custom/deploy/efficientdet/pipeline.config'
+    PATH_TO_CKPT = '/home/barcelona/tensorflow/models/research/object_detection/custom/models/21_06_09_efnet'
+    PATH_TO_LABELS = '/home/barcelona/tensorflow/models/research/object_detection/custom/labels/in_office.txt'
+    CKPT_VALUE = 'ckpt-109'
 
-cap = cv2.VideoCapture(-1)
-while True:
-    # Read frame from camera
-    ret, image_np = cap.read()
+    configs = config_util.get_configs_from_pipeline_file(PATH_TO_CFG)
+    model_config = configs['model']
+    detection_model = model_builder.build(model_config=model_config, is_training=False)
 
-    # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
-    image_np_expanded = np.expand_dims(image_np, axis=0)
+    ckpt = tf.compat.v2.train.Checkpoint(model=detection_model)
+    ckpt.restore(os.path.join(PATH_TO_CKPT, CKPT_VALUE)).expect_partial()
 
-    # Things to try:
-    # Flip horizontally
-    # image_np = np.fliplr(image_np).copy()
+    category_index = label_map_util.create_category_index_from_labelmap(PATH_TO_LABELS, use_display_name=True)
 
-    # Convert image to grayscale
-    # image_np = np.tile(
-    #     np.mean(image_np, 2, keepdims=True), (1, 1, 3)).astype(np.uint8)
+    cap = cv2.VideoCapture(-1)
+    while True:
+        ret, image_np = cap.read()
+        print(image_np.shape)
 
-    input_tensor = tf.convert_to_tensor(np.expand_dims(image_np, 0), dtype=tf.float32)
-    detections, predictions_dict, shapes = detect_fn(input_tensor)
+        input_tensor = tf.convert_to_tensor(np.expand_dims(image_np, 0), dtype=tf.float32)
+        detections, predictions_dict, shapes = detect_fn(input_tensor, detection_model)
 
-    label_id_offset = 1
-    image_np_with_detections = image_np.copy()
+        label_id_offset = 1
+        image_np_with_detections = image_np.copy()
 
-    viz_utils.visualize_boxes_and_labels_on_image_array(
-          image_np_with_detections,
-          detections['detection_boxes'][0].numpy(),
-          (detections['detection_classes'][0].numpy() + label_id_offset).astype(int),
-          detections['detection_scores'][0].numpy(),
-          category_index,
-          use_normalized_coordinates=True,
-          max_boxes_to_draw=200,
-          min_score_thresh=.7,
-          agnostic_mode=False)
+        viz_utils.visualize_boxes_and_labels_on_image_array(image_np_with_detections,
+                                                            detections['detection_boxes'][0].numpy(),
+                                                            (detections['detection_classes'][0].numpy() + label_id_offset).astype(int),
+                                                            detections['detection_scores'][0].numpy(),
+                                                            category_index,
+                                                            use_normalized_coordinates=True,
+                                                            max_boxes_to_draw=10,
+                                                            min_score_thresh=.4,
+                                                            agnostic_mode=False)
 
-    # Display output
-    cv2.imshow('object detection', cv2.resize(image_np_with_detections, (1920, 1080)))
+        # Display output
+        cv2.imshow('object detection', cv2.resize(image_np_with_detections, (800, 600)))
 
-    if cv2.waitKey(25) & 0xFF == ord('q'):
-        break
+        if cv2.waitKey(25) & 0xFF == ord('q'):
+            break
 
-cap.release()
-cv2.destroyAllWindows()
+    cap.release()
+    cv2.destroyAllWindows()
