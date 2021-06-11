@@ -34,13 +34,6 @@ else:
     except RuntimeError as e:
         print(e)
 
-pipe_config_path = '/home/barcelona/tensorflow/models/research/object_detection/custom/deploy/ssd_mobilenet_v2_320/pipeline.config'
-model_dir = '/home/barcelona/tensorflow/models/research/object_detection/custom/models/21_06_10_mobilenet_v2_640'
-ckpt_value = 'ckpt-501'
-image_path = "/home/barcelona/tensorflow/models/research/object_detection/custom/test.jpg"
-label_map_path = "/home/barcelona/tensorflow/models/research/object_detection/custom/labels/in_office.txt"
-min_score = 0.3
-
 
 def load_image_into_numpy_array(path):
     img_data = tf.io.gfile.GFile(path, 'rb').read()
@@ -48,27 +41,13 @@ def load_image_into_numpy_array(path):
     (im_width, im_height) = image.size
     return np.array(image.getdata()).reshape((im_height, im_width, 3)).astype(np.uint8)
 
+
 def get_keypoint_tuples(eval_config):
     tuple_list = []
     kp_list = eval_config.keypoint_edge
     for edge in kp_list:
       tuple_list.append((edge.start, edge.end))
     return tuple_list
-
-
-pipeline_config = os.path.join(pipe_config_path)
-image_np = load_image_into_numpy_array(image_path)
-
-
-configs = config_util.get_configs_from_pipeline_file(pipeline_config)
-model_config = configs['model']
-detection_model = model_builder.build(
-      model_config=model_config, is_training=False)
-
-
-ckpt = tf.compat.v2.train.Checkpoint(
-      model=detection_model)
-ckpt.restore(os.path.join(model_dir, ckpt_value)).expect_partial()
 
 
 def get_model_detection_function(model):
@@ -84,48 +63,58 @@ def get_model_detection_function(model):
 
     return detect_fn
 
-detect_fn = get_model_detection_function(detection_model)
-label_map = label_map_util.load_labelmap(label_map_path)
-categories = label_map_util.convert_label_map_to_categories(
-    label_map,
-    max_num_classes=label_map_util.get_max_label_map_index(label_map),
-    use_display_name=True)
-category_index = label_map_util.create_category_index(categories)
-label_map_dict = label_map_util.get_label_map_dict(label_map, use_display_name=True)
 
-# image_np = cv2.resize(image_np, (512, 512))
-input_tensor = tf.convert_to_tensor(np.expand_dims(image_np, 0), dtype=tf.float32)
-detections, predictions_dict, shapes = detect_fn(input_tensor)
+if __name__ == "__main__":
+    pipe_config_path = '/home/barcelona/tensorflow/models/research/object_detection/custom/deploy/efficientdet/pipeline.config'
+    model_dir = '/home/barcelona/tensorflow/models/research/object_detection/custom/models/2021_06_10_efnet'
+    ckpt_value = 'ckpt-55'
+    image_path = "/home/barcelona/tensorflow/models/research/object_detection/custom/test.jpg"
+    label_map_path = "/home/barcelona/tensorflow/models/research/object_detection/custom/labels/in_office.txt"
+    min_score = 0.3
 
-label_id_offset = 1
-image_np_with_detections = image_np.copy()
+    pipeline_config = os.path.join(pipe_config_path)
+    image_np = load_image_into_numpy_array(image_path)
 
-keypoints, keypoint_scores = None, None
-if 'detection_keypoints' in detections:
-    keypoints = detections['detection_keypoints'][0].numpy()
-    keypoint_scores = detections['detection_keypoint_scores'][0].numpy()
+    configs = config_util.get_configs_from_pipeline_file(pipeline_config)
+    model_config = configs['model']
+    detection_model = model_builder.build(model_config=model_config, is_training=False)
 
-viz_utils.visualize_boxes_and_labels_on_image_array(
-      image_np_with_detections,
-      detections['detection_boxes'][0].numpy(),
-      (detections['detection_classes'][0].numpy() + label_id_offset).astype(int),
-      detections['detection_scores'][0].numpy(),
-      category_index,
-      use_normalized_coordinates=True,
-      max_boxes_to_draw=200,
-      min_score_thresh=min_score,
-      agnostic_mode=False,
-      keypoints=keypoints,
-      keypoint_scores=keypoint_scores,
-      keypoint_edges=get_keypoint_tuples(configs['eval_config']))
+    ckpt = tf.compat.v2.train.Checkpoint(model=detection_model)
+    ckpt.restore(os.path.join(model_dir, ckpt_value)).expect_partial()
 
-# save_img = cv2.cvtColor(image_np_with_detections, cv2.COLOR_BGR2RGB)
-# save_img = cv2.resize(save_img, (640, 480))
-# cv2.imshow('Result', save_img)
+    detect_fn = get_model_detection_function(detection_model)
+    label_map = label_map_util.load_labelmap(label_map_path)
+    categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=label_map_util.get_max_label_map_index(label_map), use_display_name=True)
+    category_index = label_map_util.create_category_index(categories)
+    label_map_dict = label_map_util.get_label_map_dict(label_map, use_display_name=True)
 
-image_np_with_detections = cv2.cvtColor(image_np_with_detections, cv2.COLOR_BGR2RGB)
-image_np_with_detections = cv2.resize(image_np_with_detections, (1920, 1080))
-cv2.imshow('Result', image_np_with_detections)
+    image_np = cv2.resize(image_np, (512, 512))
+    input_tensor = tf.convert_to_tensor(np.expand_dims(image_np, 0), dtype=tf.float32)
+    detections, predictions_dict, shapes = detect_fn(input_tensor)
 
+    label_id_offset = 1
+    image_np_with_detections = image_np.copy()
 
-cv2.waitKey(0)
+    keypoints, keypoint_scores = None, None
+    if 'detection_keypoints' in detections:
+        keypoints = detections['detection_keypoints'][0].numpy()
+        keypoint_scores = detections['detection_keypoint_scores'][0].numpy()
+
+    viz_utils.visualize_boxes_and_labels_on_image_array(
+        image_np_with_detections,
+        detections['detection_boxes'][0].numpy(),
+        (detections['detection_classes'][0].numpy() + label_id_offset).astype(int),
+        detections['detection_scores'][0].numpy(),
+        category_index,
+        use_normalized_coordinates=True,
+        max_boxes_to_draw=200,
+        min_score_thresh=min_score,
+        agnostic_mode=False,
+        keypoints=keypoints,
+        keypoint_scores=keypoint_scores,
+        keypoint_edges=get_keypoint_tuples(configs['eval_config']))
+
+    image_np_with_detections = cv2.cvtColor(image_np_with_detections, cv2.COLOR_BGR2RGB)
+    cv2.imshow('Result', image_np_with_detections)
+
+    cv2.waitKey(0)

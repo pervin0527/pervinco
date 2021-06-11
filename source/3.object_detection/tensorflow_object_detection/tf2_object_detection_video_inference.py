@@ -37,10 +37,31 @@ def detect_fn(image, detection_model):
 
 
 if __name__ == "__main__":
-    PATH_TO_CFG = '/home/barcelona/tensorflow/models/research/object_detection/custom/deploy/efficientdet/pipeline.config'
-    PATH_TO_CKPT = '/home/barcelona/tensorflow/models/research/object_detection/custom/models/21_06_09_efnet'
+    PATH_TO_CFG = '/home/barcelona/tensorflow/models/research/object_detection/custom/deploy/ssd_mobilenet_v2_320/pipeline.config'
+    PATH_TO_CKPT = '/home/barcelona/tensorflow/models/research/object_detection/custom/models/21_06_12_mobilenet_v2_320'
     PATH_TO_LABELS = '/home/barcelona/tensorflow/models/research/object_detection/custom/labels/in_office.txt'
-    CKPT_VALUE = 'ckpt-109'
+    CKPT_VALUE = 'ckpt-399'
+    THRESH_HOLD = .4
+
+    ###############################################################################################
+    cap = cv2.VideoCapture(-1)
+    MJPG_CODEC = 1196444237.0 # MJPG
+    cap_AUTOFOCUS = 0
+    cap_FOCUS = 0
+    #cap_ZOOM = 400
+
+    frame_width = int(1920)
+    frame_height = int(1080)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, frame_width)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, frame_height)
+    # cv2.namedWindow('inference', cv2.WINDOW_FREERATIO)
+    # cv2.resizeWindow('inference', frame_width, frame_height)
+
+    cap.set(cv2.CAP_PROP_BRIGHTNESS, 0)
+    cap.set(cv2.CAP_PROP_FOURCC, MJPG_CODEC)
+    cap.set(cv2.CAP_PROP_AUTOFOCUS, cap_AUTOFOCUS)
+    cap.set(cv2.CAP_PROP_FOCUS, cap_FOCUS)
+    ##############################################################################################
 
     configs = config_util.get_configs_from_pipeline_file(PATH_TO_CFG)
     model_config = configs['model']
@@ -51,7 +72,6 @@ if __name__ == "__main__":
 
     category_index = label_map_util.create_category_index_from_labelmap(PATH_TO_LABELS, use_display_name=True)
 
-    cap = cv2.VideoCapture(-1)
     while True:
         ret, image_np = cap.read()
         print(image_np.shape)
@@ -69,7 +89,7 @@ if __name__ == "__main__":
                                                             category_index,
                                                             use_normalized_coordinates=True,
                                                             max_boxes_to_draw=10,
-                                                            min_score_thresh=.4,
+                                                            min_score_thresh=THRESH_HOLD,
                                                             agnostic_mode=False)
 
         # Display output
