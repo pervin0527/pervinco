@@ -38,10 +38,10 @@ def detect_fn(image, detection_model):
 
 if __name__ == "__main__":
     PATH_TO_CFG = '/home/barcelona/tensorflow/models/research/object_detection/custom/deploy/ssd_mobilenet_v2_320/pipeline.config'
-    PATH_TO_CKPT = '/home/barcelona/tensorflow/models/research/object_detection/custom/models/21_06_12_mobilenet_v2_320'
-    PATH_TO_LABELS = '/home/barcelona/tensorflow/models/research/object_detection/custom/labels/in_office.txt'
-    CKPT_VALUE = 'ckpt-399'
-    THRESH_HOLD = .4
+    PATH_TO_CKPT = '/home/barcelona/tensorflow/models/research/object_detection/custom/models/traffic_sign/21_06_14'
+    PATH_TO_LABELS = '/home/barcelona/tensorflow/models/research/object_detection/custom/labels/traffic_sign.txt'
+    CKPT_VALUE = 'ckpt-101'
+    THRESH_HOLD = .7
 
     ###############################################################################################
     cap = cv2.VideoCapture(-1)
@@ -88,12 +88,12 @@ if __name__ == "__main__":
                                                             detections['detection_scores'][0].numpy(),
                                                             category_index,
                                                             use_normalized_coordinates=True,
-                                                            max_boxes_to_draw=10,
+                                                            max_boxes_to_draw=100,
                                                             min_score_thresh=THRESH_HOLD,
                                                             agnostic_mode=False)
 
         # Display output
-        cv2.imshow('object detection', cv2.resize(image_np_with_detections, (800, 600)))
+        cv2.imshow('object detection', cv2.resize(image_np_with_detections, (640, 480)))
 
         if cv2.waitKey(25) & 0xFF == ord('q'):
             break

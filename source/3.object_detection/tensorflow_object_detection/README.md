@@ -19,3 +19,12 @@
     # cd tensorflow/models/research
 
     tensorboard --logdir=./object_detection/custom/models/21_06_09_efnet/train
+
+## Convert pb
+
+    python3 object_detection/export_tflite_graph_tf2.py
+    --pipeline_config_path object_detection/custom/deploy/ssd_mobilenet_v2_320/pipeline.config 
+    --trained_checkpoint_dir object_detection/custom/models/traffic_sign/21_06_14
+    --output_directory object_detection/custom/models/traffic_sign/21_06_14/
+
+    python3 convert_tflite.py

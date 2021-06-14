@@ -19,32 +19,17 @@ FLAGS = flags.FLAGS
 
 
 def class_text_to_int(row_label):
-    if row_label == 'Chair':
+    if row_label == 'trafficlight':
         return 1
 
-    elif row_label == 'Coffee_cup':
+    elif row_label == 'stop':
         return 2
 
-    elif row_label == 'Computer_keyboard':
+    elif row_label == 'speedlimit':
         return 3
 
-    elif row_label == 'Computer_mouse':
+    elif row_label == 'crosswalk':
         return 4
-
-    elif row_label == 'Laptop':
-        return 5
-
-    elif row_label == 'Man':
-        return 6
-    
-    elif row_label == 'Mobile_phone':
-        return 7
-
-    elif row_label == 'Table':
-        return 8
-
-    elif row_label == 'Television':
-        return 9
 
     else:
         None
