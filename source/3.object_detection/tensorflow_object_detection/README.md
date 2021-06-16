@@ -28,3 +28,18 @@
     --output_directory object_detection/custom/models/traffic_sign/21_06_14/
 
     python3 convert_tflite.py
+
+## EfficientDet
+
+    python3 object_detection/export_tflite_graph_tf2.py --pipeline_config_path=object_detection/custom/deploy/efficientdet/pipeline.config --trained_checkpoint_dir=object_detection/custom/models/traffic_sign/21_06_15 --output_directory=object_detection/custom/models/traffic_sign/21_06_15/ --config_override="\
+    model{ \
+      ssd{ \
+        image_resizer { \
+          fixed_shape_resizer { \
+            height: 512 \
+            width: 512 \
+          } \
+        } \
+      } \
+    }"
+

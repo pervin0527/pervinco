@@ -4,7 +4,7 @@ from tflite_support.metadata_writers import object_detector
 from tflite_support.metadata_writers import writer_utils
 
 label_file_paths='/data/datasets/traffic_sign/labels.txt'
-path = "/home/barcelona/tensorflow/models/research/object_detection/custom/models/traffic_sign/21_06_14"
+path = "/home/barcelona/tensorflow/models/research/object_detection/custom/models/traffic_sign/21_06_15"
 saved_model_dir = f"{path}/saved_model"
 
 converter = tf.lite.TFLiteConverter.from_saved_model(saved_model_dir, signature_keys=['serving_default'])
