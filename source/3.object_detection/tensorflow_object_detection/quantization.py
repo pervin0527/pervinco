@@ -4,6 +4,26 @@ from tensorflow.python.framework.convert_to_constants import convert_variables_t
 from tflite_support.metadata_writers import object_detector
 from tflite_support.metadata_writers import writer_utils
 
+# GPU setup
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if len(gpus) > 1:
+    try:
+        print("Activate Multi GPU")
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+        strategy = tf.distribute.MirroredStrategy(cross_device_ops=tf.distribute.HierarchicalCopyAllReduce())
+    except RuntimeError as e:
+        print(e)
+
+else:
+    try:
+        print("Activate Sigle GPU")
+        tf.config.experimental.set_memory_growth(gpus[0], True)
+        strategy = tf.distribute.experimental.CentralStorageStrategy()
+    except RuntimeError as e:
+        print(e)
+
+
 def representative_dataset():
   for _ in range(100):
     data = np.random.rand(1, 512, 512, 3)
@@ -21,8 +41,11 @@ converter.inference_input_type = tf.uint8
 converter.inference_output_type = tf.uint8
 tflite_model_quant = converter.convert()
 
-with tf.io.gfile.GFile(f'{path}/custom.tflite', 'wb') as f:
-  f.write(tflite_model)
+interpreter = tf.lite.Interpreter(model_content=tflite_model_quant)
+input_type = interpreter.get_input_details()[0]['dtype']
+print('##### input: ', input_type)
+output_type = interpreter.get_output_details()[0]['dtype']
+print('##### output: ', output_type)
 
-writer = object_detector.MetadataWriter.create_for_inference(writer_utils.load_file(f'{path}/custom.tflite'), input_norm_mean=[0], input_norm_std=[255], label_file_paths=[label_file_paths])
-writer_utils.save_file(writer.populate(), f'{path}/custom.tflite')
+tflite_model_quant_file = f'{path}/quantize.tflite'
+tflite_model_quant_file.write_bytes(tflite_model_quant)
