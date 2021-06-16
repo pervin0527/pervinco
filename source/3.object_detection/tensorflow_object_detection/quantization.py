@@ -1,3 +1,4 @@
+import pathlib
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2
@@ -33,19 +34,13 @@ label_file_paths='/data/datasets/traffic_sign/labels.txt'
 path = "/home/barcelona/tensorflow/models/research/object_detection/custom/models/traffic_sign/21_06_15"
 saved_model_dir = f"{path}/saved_model"
 
+tflite_models_dir = pathlib.Path(f'{path}')
+tflite_models_dir.mkdir(exist_ok=True, parents=True)
+
 converter = tf.lite.TFLiteConverter.from_saved_model(saved_model_dir, signature_keys=['serving_default'])
 converter.optimizations = [tf.lite.Optimize.DEFAULT]
-converter.representative_dataset = representative_dataset
-converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
-converter.inference_input_type = tf.uint8
-converter.inference_output_type = tf.uint8
-tflite_model_quant = converter.convert()
+converter.target_spec.supported_types = [tf.float16]
 
-interpreter = tf.lite.Interpreter(model_content=tflite_model_quant)
-input_type = interpreter.get_input_details()[0]['dtype']
-print('##### input: ', input_type)
-output_type = interpreter.get_output_details()[0]['dtype']
-print('##### output: ', output_type)
-
-tflite_model_quant_file = f'{path}/quantize.tflite'
-tflite_model_quant_file.write_bytes(tflite_model_quant)
+tflite_fp16_model = converter.convert()
+tflite_model_fp16_file = tflite_models_dir/'custom_fp16.tflite'
+tflite_model_fp16_file.write_bytes(tflite_fp16_model)

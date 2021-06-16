@@ -43,3 +43,6 @@
       } \
     }"
 
+## Quantization
+
+  Currently, only float type quantization is possible.
