@@ -63,3 +63,7 @@
 
 
     ssh -L oooo:localhost:oooo -p ^^^^ name@xxxx.xxxx.xxxx.xxxx
+
+    # shutdown process
+    lsof -i:6006
+    kill -9 PID  
