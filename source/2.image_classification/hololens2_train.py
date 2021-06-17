@@ -170,7 +170,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     dataset = args.input_dataset
-    DATASET_NAME = dataset.split('/')[-2]
+    DATASET_NAME = dataset.split('/')[-1]
     TRAIN_PATH = f'{dataset}/train'
     VALID_PATH = f'{dataset}/valid'
     # print(TRAIN_PATH, VALID_PATH)
@@ -179,7 +179,7 @@ if __name__ == "__main__":
     AUTO = tf.data.experimental.AUTOTUNE
     SAMPLE_LEN = 100
     EPOCHS = 1000
-    BATCH_SIZE = 32 * strategy.num_replicas_in_sync
+    BATCH_SIZE = 64 * strategy.num_replicas_in_sync
     IMG_SIZE = 224
 
     train_dataset, train_total, train_classes = make_tf_dataset(TRAIN_PATH, True)
@@ -200,7 +200,7 @@ if __name__ == "__main__":
     lr_schedule = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1)
 
     # Checkpoint callback setup
-    SAVED_PATH = f'/data/backup/pervinco/model/{DATASET_NAME}'
+    SAVED_PATH = f'/data/Models/{DATASET_NAME}'
     LOG_TIME = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M")
     WEIGHT_FNAME = '{epoch:02d}-{val_categorical_accuracy:.2f}.hdf5'
     checkpoint_path = f'/{SAVED_PATH}/{LOG_TIME}/{WEIGHT_FNAME}'
@@ -221,15 +221,14 @@ if __name__ == "__main__":
     earlystopper = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
 
     model = get_model()    
-    # history = model.fit(train_dataset,
-    #                     epochs=EPOCHS,
-    #                     callbacks=[lr_schedule, checkpointer, earlystopper],
-    #                     steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
-    #                     verbose=1,
-    #                     validation_data=valid_dataset,
-    #                     validation_steps=VALID_STEP_PER_EPOCH)
+    history = model.fit(train_dataset,
+                        epochs=EPOCHS,
+                        callbacks=[lr_schedule, checkpointer, earlystopper],
+                        steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
+                        verbose=1,
+                        validation_data=valid_dataset,
+                        validation_steps=VALID_STEP_PER_EPOCH)
 
-    # model.save(f'{SAVED_PATH}/{LOG_TIME}/main_model.h5')
-    # model.save(f'{SAVED_PATH}/{LOG_TIME}/pb_model', save_format='tf')
+    tf.saved_model.save(model, f'{SAVED_PATH}/{LOG_TIME}/')
 
-    # display_training_curves(history)
+    display_training_curves(history)
