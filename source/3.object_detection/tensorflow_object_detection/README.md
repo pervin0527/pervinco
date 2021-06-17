@@ -4,7 +4,7 @@
 ## change config files
 [tf2 object detection model zoo](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf2_detection_zoo.md)
 
-<p align="center"><img src="../0.doc_imgs/../../0.doc_imgs/tf2_odt_cfg.png"></p>
+<p align="left"><img src="../../0.doc_imgs/tf2_odt_cfg.png" width=85%></p>
 
 
 ## training
