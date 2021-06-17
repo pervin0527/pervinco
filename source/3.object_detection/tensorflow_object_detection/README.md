@@ -43,6 +43,23 @@
       } \
     }"
 
+## CenterNet
+  if you use centernet, refer to this link  
+  [https://github.com/tensorflow/models/issues/9414#issuecomment-791674050](https://github.com/tensorflow/models/issues/9414#issuecomment-791674050)
+
+
+
 ## Quantization
 
   Currently, only float type quantization is possible.
+
+
+## Tensorboard
+  if you train on server and want to monitor tensorboard.
+
+  oooo : tensorboard port number
+  xxxx : ip address  
+  ^^^^ : ip port
+
+
+    ssh -L oooo:localhost:oooo -p ^^^^ name@xxxx.xxxx.xxxx.xxxx
