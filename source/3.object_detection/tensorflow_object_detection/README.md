@@ -57,7 +57,7 @@
 ## Tensorboard
   if you train on server and want to monitor tensorboard.
 
-  oooo : tensorboard port number
+  oooo : tensorboard port number  
   xxxx : ip address  
   ^^^^ : ip port
 
