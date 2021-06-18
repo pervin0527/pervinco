@@ -33,8 +33,8 @@
 
     python3 object_detection/export_tflite_graph_tf2.py \
     --pipeline_config_path object_detection/custom/deploy/centernet_resnet50_v2_512/pipeline.config \
-    --trained_checkpoint_dir object_detection/custom/models/traffic_sign/21_06_17 \
-    --output_directory object_detection/custom/models/traffic_sign/21_06_17
+    --trained_checkpoint_dir object_detection/custom/models/traffic_sign/21_06_18 \
+    --output_directory object_detection/custom/models/traffic_sign/21_06_18 \
     --config_override="\
     model{ \
       ssd{ \
