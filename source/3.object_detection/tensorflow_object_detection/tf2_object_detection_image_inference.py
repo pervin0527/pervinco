@@ -65,12 +65,12 @@ def get_model_detection_function(model):
 
 
 if __name__ == "__main__":
-    pipe_config_path = '/home/barcelona/tensorflow/models/research/object_detection/custom/deploy/efficientdet/pipeline.config'
-    model_dir = '/home/barcelona/tensorflow/models/research/object_detection/custom/models/2021_06_10_efnet'
-    ckpt_value = 'ckpt-55'
-    image_path = "/home/barcelona/tensorflow/models/research/object_detection/custom/test.jpg"
-    label_map_path = "/home/barcelona/tensorflow/models/research/object_detection/custom/labels/in_office.txt"
-    min_score = 0.3
+    pipe_config_path = '/home/barcelona/tensorflow/models/research/object_detection/custom/deploy/centernet_resnet50_v2_512/pipeline.config'
+    model_dir = '/home/barcelona/tensorflow/models/research/object_detection/custom/models/traffic_sign/21_06_17/'
+    ckpt_value = 'ckpt-185'
+    image_path = "/data/datasets/traffic_sign/test/stop.jpg"
+    label_map_path = "/home/barcelona/tensorflow/models/research/object_detection/custom/labels/traffic_sign.txt"
+    min_score = 0.6
 
     pipeline_config = os.path.join(pipe_config_path)
     image_np = load_image_into_numpy_array(image_path)

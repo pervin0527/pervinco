@@ -31,7 +31,11 @@
 
 ## EfficientDet
 
-    python3 object_detection/export_tflite_graph_tf2.py --pipeline_config_path=object_detection/custom/deploy/efficientdet/pipeline.config --trained_checkpoint_dir=object_detection/custom/models/traffic_sign/21_06_15 --output_directory=object_detection/custom/models/traffic_sign/21_06_15/ --config_override="\
+    python3 object_detection/export_tflite_graph_tf2.py \
+    --pipeline_config_path object_detection/custom/deploy/centernet_resnet50_v2_512/pipeline.config \
+    --trained_checkpoint_dir object_detection/custom/models/traffic_sign/21_06_17 \
+    --output_directory object_detection/custom/models/traffic_sign/21_06_17
+    --config_override="\
     model{ \
       ssd{ \
         image_resizer { \
@@ -46,6 +50,24 @@
 ## CenterNet
   if you use centernet, refer to this link  
   [https://github.com/tensorflow/models/issues/9414#issuecomment-791674050](https://github.com/tensorflow/models/issues/9414#issuecomment-791674050)
+
+    python3 object_detection/export_tflite_graph_tf2.py \
+    --pipeline_config_path object_detection/custom/deploy/centernet_resnet50_v2_512/pipeline.config \
+    --trained_checkpoint_dir object_detection/custom/models/traffic_sign/21_06_17 \
+    --output_directory object_detection/custom/models/traffic_sign/21_06_17 \
+    --centernet_include_keypoints=false \
+    --max_detections=10 \
+    --config_override="\
+    model{ \
+      center_net{ \
+        image_resizer { \
+          fixed_shape_resizer { \
+            height: 512 \
+            width: 512 \
+          } \
+        } \
+      } \
+    }"
 
 
 
