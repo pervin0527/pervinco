@@ -1,5 +1,10 @@
-## Guide
+# Guide
 [Tensorflow 2 Object Detection API](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf2.md)
+
+NOTE: TFLite currently only supports SSD Architectures (excluding EfficientDet) for boxes-based detection. Support for EfficientDet is provided via the TFLite Model Maker library.
+
+The output model has the following inputs & outputs:
+
 
 ## change config files
 [tf2 object detection model zoo](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf2_detection_zoo.md)
@@ -32,9 +37,9 @@
 ## EfficientDet
 
     python3 object_detection/export_tflite_graph_tf2.py \
-    --pipeline_config_path object_detection/custom/deploy/centernet_resnet50_v2_512/pipeline.config \
-    --trained_checkpoint_dir object_detection/custom/models/traffic_sign/21_06_18 \
-    --output_directory object_detection/custom/models/traffic_sign/21_06_18 \
+    --pipeline_config_path object_detection/custom/deploy/efficientdet/pipeline.config \
+    --trained_checkpoint_dir object_detection/custom/models/traffic_sign/21_06_17 \
+    --output_directory object_detection/custom/models/traffic_sign/21_06_17 \
     --config_override="\
     model{ \
       ssd{ \
@@ -53,8 +58,8 @@
 
     python3 object_detection/export_tflite_graph_tf2.py \
     --pipeline_config_path object_detection/custom/deploy/centernet_resnet50_v2_512/pipeline.config \
-    --trained_checkpoint_dir object_detection/custom/models/traffic_sign/21_06_17 \
-    --output_directory object_detection/custom/models/traffic_sign/21_06_17 \
+    --trained_checkpoint_dir object_detection/custom/models/traffic_sign/21_06_18 \
+    --output_directory object_detection/custom/models/traffic_sign/21_06_18 \
     --centernet_include_keypoints=false \
     --max_detections=10 \
     --config_override="\
