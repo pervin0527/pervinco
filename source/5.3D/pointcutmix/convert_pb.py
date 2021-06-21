@@ -41,12 +41,12 @@ NUM_POINT = 1024
 VALID_FILE = f'{DATA_PATH}/modelnet40_test.txt'
 test_points, test_labels = read_data_list(VALID_FILE, False)
 
-onnx_model = onnx.load('onnx/convert_model.onnx')
+onnx_model = onnx.load('/data/Models/pointcutmix/convert_model.onnx')
 # tf_rep = prepare(onnx_model, logging_level="WARN", auto_cast=True)
 tf_rep = prepare(onnx_model)
-tf_rep.export_graph('onnx/pointcutmix')
+tf_rep.export_graph('/data/Models/pointcutmix/tf')
 
-base_model = tf.keras.models.load_model('onnx/pointcutmix')
+base_model = tf.keras.models.load_model('/data/Models/pointcutmix/tf')
 # print(base_model)
 # print('loaded model inputs = ', base_model.signatures['serving_default'].inputs)
 # print('loaded model outputs = ', base_model.signatures['serving_default'].outputs)

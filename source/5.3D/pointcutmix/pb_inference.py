@@ -67,7 +67,7 @@ if __name__ == "__main__":
     TEST_FILES = '/data/datasets/modelnet40_ply_hdf5_2048/test_files.txt'
     TEST_FILES = get_data_files(TEST_FILES)
 
-    model = tf.saved_model.load('onnx/pointcutmix')
+    model = tf.saved_model.load('/data/Models/pointcutmix')
 
     test_data, test_answer = load_h5(TEST_FILES[0])
     test_data = test_data[:, 0:NUM_POINT, :]
@@ -78,6 +78,7 @@ if __name__ == "__main__":
         # test_point = np.reshape(test_point, (3, 1024))
         test_point = np.transpose(test_point, axes=(1, 0))
         test_point = np.expand_dims(test_point, axis=0)
+        test_point = test_point.astype('float32')
 
         pred = model(**{'x.1' : test_point})
         pred = pred[0]

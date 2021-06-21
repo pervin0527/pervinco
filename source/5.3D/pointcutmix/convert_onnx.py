@@ -50,7 +50,7 @@ criterion = cal_loss
 correct = 0
 total = 0
 
-model = torch.load('onnx/model.pt')
+model = torch.load('/data/model.pt')
 model.to(device)
 model.eval()
 
@@ -60,7 +60,7 @@ for j, data in enumerate(test_loader, 0):
     points = points.transpose(2, 1)  # to be shape batch_size*3*N
     
     if j == 0:
-        torch.onnx.export(model, points, 'onnx/convert_model.onnx')
+        torch.onnx.export(model, points, '/data/convert_model.onnx')
 
     pred = model(points)
     loss = criterion(pred, label.long())
