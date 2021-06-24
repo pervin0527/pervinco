@@ -28,15 +28,15 @@ output_path = f'{root}/3dhp/yolov4_person_detections.pkl'
 files_list = pd.read_csv(files_txt, sep=' ', index_col=False, header=None)
 files_list = sorted(files_list[0].tolist())
 
-os.system('clear')
-print(len(files_list))
-
-
+i = 0
 detections_per_image = {}
 for file in files_list:
+    os.system('clear')
+    print(len(files_list) - i)
+
     file = file.split('/')[5:]
     image_path = f'{root}' + '/'.join(file)
-    print(image_path)
+    # print(image_path)
 
     server_path = f'{server_root}' + '/'.join(file)
     # print(server_path)
@@ -59,12 +59,9 @@ for file in files_list:
             bbox = np.array([x1, y1, w, h])
 
             bbox_with_confidence = [bbox, confidence]
-            detections_per_image[image_path].append(bbox_with_confidence)
+            detections_per_image[server_path].append(bbox_with_confidence)
 
-        else:
-            break
-
-    # break
+    i += 1
 
 n_images_without_detections = len([1 for x in detections_per_image.values() if not x])
 n_detections = sum(len(v) for v in detections_per_image.values())
@@ -72,5 +69,5 @@ n_detections = sum(len(v) for v in detections_per_image.values())
 print(n_images_without_detections)
 print(n_detections)
 
-# with open(out_path, 'wb') as f:
-#     pickle.dump(detections_per_image, f, protocol=pickle.HIGHEST_PROTOCOL)
+with open(out_path, 'wb') as f:
+    pickle.dump(detections_per_image, f, protocol=pickle.HIGHEST_PROTOCOL)

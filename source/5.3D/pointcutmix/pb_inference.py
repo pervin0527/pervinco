@@ -1,4 +1,4 @@
-import trimesh, h5py
+import trimesh, h5py, random
 import numpy as np
 import tensorflow as tf
 import pandas as pd
@@ -48,6 +48,12 @@ def read_data_list(file_path, is_train):
         total_labels = np.append(total_labels, [label], axis=0)
         # print(total_points.shape, total_labels.shape)
 
+    indicies = np.arange(total_points.shape[0])
+    np.random.shuffle(indicies)
+
+    total_points = total_points[indicies]
+    total_labels = total_labels[indicies]
+
     return total_points, total_labels
 
 
@@ -91,7 +97,12 @@ if __name__ == "__main__":
         idx = np.argmax(pred)
         name = CLASSES[idx]
         score = pred[idx]
-        score = format(score, ".2f")
+
+        if score > 1.00:
+            score = 1.00
+
+        else:
+            score = format(score, ".2f")
 
         if i < 10:
             results.append([name, score])
@@ -100,5 +111,12 @@ if __name__ == "__main__":
             is_correct += 1
 
     print(f'Total Accuracy = {(is_correct / len(test_labels)) * 100 : .2f}')
+
+    # indexes = []
+    # for i in range(1, 10):
+    #     number = random.randint(0, len(test_label))
+    #     indexes.append(number)
+
+    # print(idxes)
     
     show_point_cloud(test_points[:10], test_labels[:10], results)
