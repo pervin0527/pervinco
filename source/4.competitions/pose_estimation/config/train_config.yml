@@ -1,0 +1,45 @@
+SEED:
+  random_seed: 42
+
+DATALOADER:
+  num_workers: 4
+  shuffle:
+  pin_memory:
+  drop_last:
+
+TRAIN:
+  num_epochs: 30
+  batch_size: 1
+  learning_rate: 0.0005
+  early_stopping_patience: 10
+  model: POSENET
+  optimizer:
+  scheduler:
+  momentum:
+  weight_decay: 0.00001
+  loss_function:
+  metric_function:
+  input_shape: 800
+  output_shape: 200
+  resnet_type: 18
+
+PERFORMANCE_RECORD:
+  column_list:
+    - train_serial
+    - train_timestamp
+    - model_str
+    - optimizer_str
+    - loss_function_str
+    - metric_function_str
+    - early_stopping_patience
+    - batch_size
+    - epoch
+    - learning_rate
+    - momentum
+    - random_seed # -----------key columns-------------
+    - epoch_index 
+    - train_loss
+    - validation_loss
+    - train_score
+    - validation_score
+    - elapsed_time

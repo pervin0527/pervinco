@@ -154,8 +154,7 @@ if __name__ == '__main__':
         # model = nn.DataParallel(model)
         optimizer = torch.optim.SGD(model.parameters(), lr=args.lr * 100,
                                     momentum=0.9, weight_decay=1e-4)
-        scheduler_c = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 250,
-                                                                 eta_min=1e-3)
+        scheduler_c = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 250, eta_min=1e-3)
     else:
         if args.model == 'pointnet_kcutmix':
             model = PointNetCls(num_classes, args.feature_transform)
