@@ -63,15 +63,16 @@ class CustomDataset(Dataset):
                                      't': t,
                                      'R': R})
 
-                        # if len(db) == 10:
-                        #     self.depth_max = max([np.max(np.abs(d['joint_img'][:, 2])) for d in db])
-                        #     return db
+                        if len(db) == 10:
+                            torch.save(db, os.path.join(self.data_dir, self.mode, self.mode + '.pt'))
+                            self.depth_max = max([np.max(np.abs(d['joint_img'][:, 2])) for d in db])
+                            return db
             
-            print(len(db))
-            torch.save(db, os.path.join(self.data_dir, self.mode, self.mode + '.pt'))
+        #     print(len(db))
+        #     torch.save(db, os.path.join(self.data_dir, self.mode, self.mode + '.pt'))
 
-        self.depth_max = max([np.max(np.abs(d['joint_img'][:, 2])) for d in db])
-        return db
+        # self.depth_max = max([np.max(np.abs(d['joint_img'][:, 2])) for d in db])
+        # return db
 
     def __len__(self):
         return len(self.db)

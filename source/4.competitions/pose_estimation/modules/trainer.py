@@ -60,8 +60,8 @@ class Trainer():
                 loss_coord = (loss_coord[:, :, 0] + loss_coord[:, :, 1] + loss_coord[:, :, 2]) / 3.
                 loss = loss_coord.mean()
                 self.val_total_loss += loss
-                msg = f'Epoch {epoch_index}, Batch {batch_index}, Validation loss: {loss.item()}'
-                print(msg)
+                # msg = f'Epoch {epoch_index}, Batch {batch_index}, Validation loss: {loss.item()}'
+                # print(msg)
                 target_lst.append(joint_img)
                 pred_lst.append(coord)
             self.val_mean_loss = self.val_total_loss / len(dataloader)
