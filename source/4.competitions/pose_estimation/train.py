@@ -62,8 +62,12 @@ if __name__ == '__main__':
     make_directory(PERFORMANCE_RECORD_DIR)
     system_logger = get_logger(name='train', file_path=os.path.join(PERFORMANCE_RECORD_DIR, 'train_log.log'))
     
-    train_dataset = CustomDataset(data_dir=DATA_DIR, mode='task04_train', input_shape=INPUT_SHAPE, output_shape=OUTPUT_SHAPE)
+    # train_dataset = CustomDataset(data_dir=DATA_DIR, mode='task04_train', input_shape=INPUT_SHAPE, output_shape=OUTPUT_SHAPE)
+    # validation_dataset = CustomDataset(data_dir=DATA_DIR, mode='task04_train', input_shape=INPUT_SHAPE, output_shape=OUTPUT_SHAPE)
+    # train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+    # validation_dataloader = DataLoader(validation_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
+    train_dataset = CustomDataset(data_dir=DATA_DIR, mode='task04_train', input_shape=INPUT_SHAPE, output_shape=OUTPUT_SHAPE)
     validation_split = .2
     dataset_size = len(train_dataset)
     indices = list(range(dataset_size))
@@ -75,10 +79,6 @@ if __name__ == '__main__':
 
     train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE, sampler=train_sampler)
     validation_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE, sampler=valid_sampler)
-
-    # validation_dataset = CustomDataset(data_dir=DATA_DIR, mode='task04_train', input_shape=INPUT_SHAPE, output_shape=OUTPUT_SHAPE)
-    # train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
-    # validation_dataloader = DataLoader(validation_dataset, batch_size=BATCH_SIZE, shuffle=False)
     
     print('Train set samples:',len(train_dataloader),  'Val set samples:', len(validation_dataloader))
 
@@ -142,5 +142,5 @@ if __name__ == '__main__':
             criterion = trainer.train_mean_loss
             performance_recorder.weight_path = os.path.join(PERFORMANCE_RECORD_DIR, 'best.pt')
             performance_recorder.save_weight()
-
+        
         print()

@@ -14,4 +14,3 @@ def cam2pixel(cam_coord, f, c, scaling_factor):
 def world2cam(world_coord, R, t):
     cam_coord = np.dot(R, world_coord.transpose(1,0)).transpose(1,0) + t.reshape(1,3)
     return cam_coord
-

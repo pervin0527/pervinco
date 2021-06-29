@@ -55,15 +55,16 @@ class CustomDataset(Dataset):
                         joint_img = cam2pixel(joint_cam, f, c, scale_factor_of_intrinsic_param)
                         joint_vis = np.ones((self.joint_num, 1))
                         db.append({'img_path': os.path.join(roots, file),
-                                     'joint_img': joint_img,
-                                     'joint_vis': joint_vis,
-                                     'joint_world': joint_world,
-                                     'f': f,
-                                     'c': c,
-                                     't': t,
-                                     'R': R})
+                                   'joint_img': joint_img,
+                                   'joint_vis': joint_vis,
+                                   'joint_world': joint_world,
+                                   'f': f,
+                                   'c': c,
+                                   't': t,
+                                   'R': R})
 
                         # if len(db) == 10:
+                        #     torch.save(db, os.path.join(self.data_dir, self.mode, self.mode + '.pt'))
                         #     self.depth_max = max([np.max(np.abs(d['joint_img'][:, 2])) for d in db])
                         #     return db
             
@@ -88,6 +89,7 @@ class CustomDataset(Dataset):
 
         # 2. crop patch from img & generate patch joint ground truth
         img_patch = self.transform(Image.fromarray(cvimg))
+
         joint_img[:, 0] = joint_img[:, 0] - (self.orig_img_shape[0] - self.input_shape[0]) / 2
         joint_img[:, 1] = joint_img[:, 1] - (self.orig_img_shape[1] - self.input_shape[1]) / 2
         joint_img[:, 2] /= self.depth_max # 0~1 normalize
@@ -103,14 +105,11 @@ class CustomDataset(Dataset):
             )
 
         # 3. change coordinates to output space
-        joint_img[:, 0] = joint_img[:, 0] / self.input_shape[0] * self.output_shape[0]
-        joint_img[:, 1] = joint_img[:, 1] / self.input_shape[1] * self.output_shape[1]
-        joint_img[:, 2] = joint_img[:, 2] * self.output_shape[2]
+        joint_img[:, 0] = joint_img[:, 0] / self.input_shape[0] * self.output_shape[0] * 4
+        joint_img[:, 1] = joint_img[:, 1] / self.input_shape[1] * self.output_shape[1] * 4
+        joint_img[:, 2] = joint_img[:, 2] * self.output_shape[2] * 4
 
         joint_img = joint_img.astype(np.float32)
         joint_vis = (joint_vis > 0).astype(np.float32)
 
         return img_patch, joint_img, joint_vis
-
-
-

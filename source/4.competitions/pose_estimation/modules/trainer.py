@@ -44,6 +44,8 @@ class Trainer():
         print(msg)
         self.logger.info(msg) if self.logger else print(msg)
 
+        torch.save(model, './model/saved_model.pt')
+
     def validate_epoch(self, dataloader, epoch_index):
         self.model.eval()
         self.val_total_loss = 0
@@ -55,7 +57,6 @@ class Trainer():
                 joint_img = joint_img.to(self.device)
                 joint_vis = joint_vis.to(self.device)
                 coord = self.model(img_patch)
-
                 ## coordinate loss
                 loss_coord = torch.abs(coord - joint_img) * joint_vis
                 loss_coord = (loss_coord[:, :, 0] + loss_coord[:, :, 1] + loss_coord[:, :, 2]) / 3.
