@@ -142,5 +142,6 @@ if __name__ == '__main__':
             criterion = trainer.train_mean_loss
             performance_recorder.weight_path = os.path.join(PERFORMANCE_RECORD_DIR, 'best.pt')
             performance_recorder.save_weight()
+            torch.save(model, './results/saved_model.pt')
         
         print()
