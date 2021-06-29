@@ -55,6 +55,7 @@ class Trainer():
                 joint_img = joint_img.to(self.device)
                 joint_vis = joint_vis.to(self.device)
                 coord = self.model(img_patch)
+
                 ## coordinate loss
                 loss_coord = torch.abs(coord - joint_img) * joint_vis
                 loss_coord = (loss_coord[:, :, 0] + loss_coord[:, :, 1] + loss_coord[:, :, 2]) / 3.
@@ -64,6 +65,7 @@ class Trainer():
                 # print(msg)
                 target_lst.append(joint_img)
                 pred_lst.append(coord)
+                
             self.val_mean_loss = self.val_total_loss / len(dataloader)
             self.validation_score = self.metric_fn(y_pred=pred_lst, y_answer=target_lst)
             msg = f'Epoch {epoch_index}, Validation loss: {self.val_mean_loss}, Score: {self.validation_score}'

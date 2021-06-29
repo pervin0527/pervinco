@@ -3,8 +3,10 @@ import random
 from tqdm import tqdm
 from datetime import datetime, timezone, timedelta
 import numpy as np
+import torch
 import torch.optim as optim
 import torch.nn as nn
+from model.model import get_pose_net
 from torch.utils.data import DataLoader
 from modules.metrics import get_metric_fn
 from modules.dataset import CustomDataset
@@ -13,9 +15,6 @@ from modules.utils import load_yaml, save_yaml, get_logger, make_directory
 from modules.earlystoppers import LossEarlyStopper
 from modules.recorders import PerformanceRecorder
 from torch.utils.data.sampler import SubsetRandomSampler
-
-import torch
-from model.model import get_pose_net
 
 DEBUG = False
 
@@ -116,11 +115,11 @@ if __name__ == '__main__':
                                                optimizer=optimizer,
                                                scheduler=scheduler)
 
-    # Train
     save_yaml(os.path.join(PERFORMANCE_RECORD_DIR, 'train_config.yaml'), config)
+
     criterion = 1E+8
     for epoch_index in range(EPOCHS):
-        print(f"#######EPOCH {epoch_index+1}#######")
+        print(f"####### EPOCH {epoch_index+1} #######")
         trainer.train_epoch(train_dataloader, epoch_index)
         trainer.validate_epoch(validation_dataloader, epoch_index)
 
@@ -143,3 +142,5 @@ if __name__ == '__main__':
             criterion = trainer.train_mean_loss
             performance_recorder.weight_path = os.path.join(PERFORMANCE_RECORD_DIR, 'best.pt')
             performance_recorder.save_weight()
+
+        print()
