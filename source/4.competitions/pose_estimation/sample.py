@@ -70,9 +70,9 @@ if __name__ == "__main__":
 
             joint_img[:, 0] = joint_img[:, 0] - (orig_img_shape[0] - input_shape[0]) / 2
             joint_img[:, 1] = joint_img[:, 1] - (orig_img_shape[1] - input_shape[1]) / 2
-
             joint_img[:, 2] /= depth_max # 0~1 normalize
             joint_img[:, 2] = (joint_img[:, 2] + 1.0) / 2.
+
             for i in range(joint_num):
                 joint_vis[i] *= (
                         (joint_img[i, 0] >= 0) & \
@@ -84,9 +84,9 @@ if __name__ == "__main__":
                 )
 
             # 3. change coordinates to output space
-            joint_img[:, 0] = joint_img[:, 0] / input_shape[0] * output_shape[0] * 4
-            joint_img[:, 1] = joint_img[:, 1] / input_shape[1] * output_shape[1] * 4
-            joint_img[:, 2] = joint_img[:, 2] * output_shape[2] * 4
+            joint_img[:, 0] = joint_img[:, 0] / input_shape[0] * output_shape[0]
+            joint_img[:, 1] = joint_img[:, 1] / input_shape[1] * output_shape[1]
+            joint_img[:, 2] = joint_img[:, 2] * output_shape[2]
 
             joint_img = joint_img.astype(np.float32)
             joint_vis = (joint_vis > 0).astype(np.float32)

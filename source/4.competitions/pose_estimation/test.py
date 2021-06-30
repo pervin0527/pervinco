@@ -1,6 +1,9 @@
 import cv2
 import json
+import datetime
 import torch
+import pytorch_model_summary
+import torchsummary
 import torch.optim as optim
 import numpy as np
 import pandas as pd
@@ -15,7 +18,7 @@ if __name__ == "__main__":
     RESNET_TYPE = 18
     INPUT_SHAPE = (800, 800)
     OUTPUT_SHAPE = 200
-    CKPT_PATH = "results/train/POSENET_20210628192919/best.pt"
+    CKPT_PATH = "/data/pose_estimation/results/backup/POSENET_20210629091405/best.pt"
     SM_PATH = "/data/pose_estimation/DATA/task04_test/sample_submission.json"
     IMG_PATH = "/data/pose_estimation/DATA/task04_test/images"
     CAM_PATH = "/data/pose_estimation/DATA/task04_test/camera"
@@ -24,8 +27,11 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = get_pose_net(RESNET_TYPE, OUTPUT_SHAPE, True, joint_num).to(device)
     model.load_state_dict(torch.load(CKPT_PATH), strict=False)
-    model.to(device)
+    # model.to(device)
     model.eval()
+
+    # print(pytorch_model_summary.summary(model, torch.zeros(1, 3, 800, 800).to(device), show_input=True))
+    torchsummary.summary(model, (3, 800, 800), device='cuda')
 
     with open(SM_PATH, encoding='utf-8', mode='r') as f:
         sm_arr = json.load(f)
@@ -44,13 +50,18 @@ if __name__ == "__main__":
         test_image = test_image.to(device)
         
         pred = model(test_image)
+        # print(pred)
+        # break
         
         for p_joints in pred[0]:
             p_joints = p_joints.cpu().data.numpy()
             joints.append([float(p_joints[0]), float(p_joints[1]), float(p_joints[2])])
+        
+        sm_arr[idx]['3d_pos'] = joints
 
-            results.append({'file_name' : file_name, '3d_pos' : joints})
-        # print(results)
-    
-    results_df = pd.DataFrame(results)
-    results_df.to_csv('/home/barcelona/results.csv')
+        # print(sm_arr[idx])
+        # break
+        
+    LOG_TIME = datetime.datetime.now().strftime("%m%d_%H%M%S")
+    with open(f'./{LOG_TIME}.json', 'w') as outfile:
+        json.dump(sm_arr, outfile)

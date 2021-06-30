@@ -87,6 +87,7 @@ if __name__ == '__main__':
     model = nn.DataParallel(model)
 
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
+    # scheduler =  optim.lr_scheduler.OneCycleLR(optimizer=optimizer, pct_start=0.1, div_factor=1e5, max_lr=0.0001, epochs=EPOCHS, steps_per_epoch=len(train_dataloader))
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, 250, eta_min=1e-3)
     metric_fn = get_metric_fn
 

@@ -1,0 +1,20 @@
+DIRECTORY:
+  data:
+  result:
+
+DATALOADER:
+  num_workers:
+  shuffle: False
+  pin_memory:
+  drop_last: False
+
+SEED:
+  random_seed: 42
+
+PREDICT:
+  train_serial:
+  batch_size: 1
+  input_shape: 800
+  output_shape: 200
+  resnet_type: 18
+

@@ -33,5 +33,8 @@ if __name__ == '__main__':
     plt.imshow(tmpimg)
     plt.show()
 
+    print(joint_img.shape)
+    print(joint_img)
+
     # cv2.imshow('result', np.uint8(tmpimg))
     # cv2.waitKey(0)

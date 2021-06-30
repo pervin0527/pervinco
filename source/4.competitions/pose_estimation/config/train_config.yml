@@ -21,7 +21,7 @@ TRAIN:
   metric_function:
   input_shape: 800
   output_shape: 200
-  resnet_type: 18
+  resnet_type: 50
 
 PERFORMANCE_RECORD:
   column_list:
