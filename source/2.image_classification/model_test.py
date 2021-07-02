@@ -25,7 +25,7 @@ else:
 
 def read_images(path):
     test_path = pathlib.Path(path)
-    test_path = list(test_path.glob('*'))
+    test_path = list(test_path.glob('*.jpg'))
     test_images = sorted([str(path) for path in test_path])
 
     return test_images
@@ -70,11 +70,13 @@ if __name__ == "__main__":
     
     predictions = model.predict(testset)
     os.system('clear')
+    print(len(test_images))
+    
     for pred, file_name in zip(predictions, test_images):
         pred = [(idx, score) for idx, score in enumerate(pred)]
         
         score_board = []
-        for _ in range(2):
+        for _ in range(3):
             tmp = max(pred, key=lambda x : x[1])
             pred.pop(tmp[0])
 

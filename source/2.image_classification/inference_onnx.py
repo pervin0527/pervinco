@@ -3,13 +3,15 @@ import onnx
 import onnxruntime as ort
 import numpy as np
 import pandas as pd
+import tensorflow as tf
 
-MODEL_PATH = "/data/Models/ETRI_custom/2021.07.02_14:47/converted.onnx"
+MODEL_PATH = "/data/Models/ETRI_custom/2021.07.02_17:14/converted.onnx"
 OUTPUT_PATH = MODEL_PATH.split('/')[:-1]
 OUTPUT_PATH = '/'.join(OUTPUT_PATH)
 
+DATASET_NAME = MODEL_PATH.split('/')[3]
 LABEL_FILE = pd.read_csv(f'{OUTPUT_PATH}/main_labels.txt', sep=' ', index_col=False, header=None)
-CLASSES = LABEL_FILE[0].tolist()
+CLASSES = sorted(LABEL_FILE[0].tolist())
 
 onnx_model = onnx.load(MODEL_PATH)
 
@@ -48,18 +50,23 @@ for i in range(len(onnx_model.graph.output)):
 
 onnx.save(onnx_model, f'{OUTPUT_PATH}/converted_mod.onnx')
 
+print(CLASSES)
 ort_session = ort.InferenceSession(f"{OUTPUT_PATH}/converted_mod.onnx")
 
-test_img = "/data/Datasets/Augmentations/ETRI_custom/test_sample5.jpg"
+## Preprocessing Channel first
+test_img = f"/data/Datasets/Augmentations/{DATASET_NAME}/test_sample2.jpg"
 test_img = cv2.imread(test_img)
+test_img = cv2.cvtColor(test_img, cv2.COLOR_BGR2RGB)
 test_img = cv2.resize(test_img, (224, 224))
-X_test = np.expand_dims(test_img, axis=0)
-X_test = np.reshape(X_test, [1, 3, 224, 224])
+X_test = np.transpose(test_img, [2, 0, 1])
+X_test = np.expand_dims(X_test, axis=0)
+X_test = tf.keras.applications.efficientnet.preprocess_input(X_test)
 print(X_test.shape)
 
 ort_inputs = {ort_session.get_inputs()[0].name: X_test.astype(np.float32)}
 ort_outs = ort_session.run(None, ort_inputs)
 img_out_y = ort_outs[0]
 
+print(img_out_y)
 idx = np.argmax(img_out_y)
 print(CLASSES[idx])

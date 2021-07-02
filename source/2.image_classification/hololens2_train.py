@@ -4,6 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
+from tensorflow.keras import backend as K
+
+K.set_image_data_format("channels_first")
 
 # GPU setup
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -30,6 +33,7 @@ def preprocess_image(images, label=None):
     image = tf.image.decode_jpeg(image, channels=3)
     image = tf.image.resize(image, [IMG_SIZE, IMG_SIZE])
     image = tf.keras.applications.efficientnet.preprocess_input(image)
+    image = tf.transpose(image, perm=(2, 0, 1))
 
     if label is None:
         return image
@@ -147,7 +151,7 @@ def str2bool(v):
 
 
 def get_model():
-    inputs = tf.keras.Input(shape=(IMG_SIZE, IMG_SIZE, 3), name="input_2")
+    inputs = tf.keras.Input(shape=(3, IMG_SIZE, IMG_SIZE), name="input_2")
 
     base_model = tf.keras.applications.EfficientNetB0(include_top=False,
                                                       weights="imagenet",
@@ -179,12 +183,15 @@ if __name__ == "__main__":
 
     # Load data & Set hyper-parameters
     AUTO = tf.data.experimental.AUTOTUNE
-    EPOCHS = 1000
+    EPOCHS = 5
     BATCH_SIZE = 64 * strategy.num_replicas_in_sync
     IMG_SIZE = 224
 
     train_dataset, train_total, train_classes = make_tf_dataset(TRAIN_PATH, True)
     valid_dataset, valid_total, valid_classes = make_tf_dataset(VALID_PATH, False)
+
+    # for item in train_dataset.take(1):
+    #     print(item)
 
     TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(train_total/ BATCH_SIZE).numpy())
     VALID_STEP_PER_EPOCH = int(tf.math.ceil(valid_total / BATCH_SIZE).numpy())
@@ -235,4 +242,5 @@ if __name__ == "__main__":
 
     display_training_curves(history)
 
-    os.system(f'python3 -m tf2onnx.convert --saved-model {SAVED_PATH}/{LOG_TIME}/saved_model --opset 9 --output {SAVED_PATH}/{LOG_TIME}/converted.onnx --fold_const --inputs-as-nchw input_2:0')
+    # os.system(f'python3 -m tf2onnx.convert --saved-model {SAVED_PATH}/{LOG_TIME}/saved_model --opset 9 --output {SAVED_PATH}/{LOG_TIME}/converted.onnx --fold_const --inputs-as-nchw input_2:0')
+    os.system(f'python3 -m tf2onnx.convert --saved-model {SAVED_PATH}/{LOG_TIME}/saved_model --opset 9 --output {SAVED_PATH}/{LOG_TIME}/converted.onnx --fold_const')
