@@ -1,3 +1,5 @@
+## python3 -m tf2onnx.convert --saved-model /data/Models/ETRI_custom/2021.07.02_10\:48/saved_model --opset 9 --output /data/Models/ETRI_custom/2021.07.02_10\:48/converted.onnx --fold_const --inputs-as-nchw input_2:
+
 import os, cv2, datetime, pathlib, random, argparse
 import pandas as pd
 import numpy as np
@@ -147,16 +149,18 @@ def str2bool(v):
 
 
 def get_model():
-    with strategy.scope():
-        base_model = tf.keras.applications.EfficientNetB0(input_shape=(IMG_SIZE, IMG_SIZE, 3),
-                                                          include_top=False,
-                                                          weights="imagenet",
-                                                          pooling="avg")
+    inputs = tf.keras.Input(shape=(IMG_SIZE, IMG_SIZE, 3), name="input_2:0")
 
-        x = tf.keras.layers.Dropout(0.2, name='top_dropout')(base_model.output)
-        x = tf.keras.layers.Dense(len(train_classes), activation="softmax", name="predictions")(x)
-        model = tf.keras.Model(inputs=base_model.input, outputs=x)
-        
+    base_model = tf.keras.applications.EfficientNetB0(include_top=False,
+                                                      weights="imagenet",
+                                                      pooling="avg")(inputs)
+
+    base_model.trainable = True
+
+    x = tf.keras.layers.Dropout(0.2, name='top_dropout')(base_model)
+    outputs = tf.keras.layers.Dense(len(train_classes), activation="softmax", name="predictions")(x)
+    model = tf.keras.Model(inputs=inputs, outputs=outputs)
+    
     model.compile(optimizer='adam', loss = 'categorical_crossentropy', metrics = ['categorical_accuracy'])
     model.summary()
 
@@ -170,7 +174,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     dataset = args.input_dataset
-    DATASET_NAME = dataset.split('/')[-1]
+    DATASET_NAME = dataset.split('/')[-2]
     TRAIN_PATH = f'{dataset}/train'
     VALID_PATH = f'{dataset}/valid'
     # print(TRAIN_PATH, VALID_PATH)
@@ -229,6 +233,7 @@ if __name__ == "__main__":
                         validation_data=valid_dataset,
                         validation_steps=VALID_STEP_PER_EPOCH)
 
-    tf.saved_model.save(model, f'{SAVED_PATH}/{LOG_TIME}/')
+    # tf.saved_model.save(model, f'{SAVED_PATH}/{LOG_TIME}/saved_model')
+    tf.keras.models.save_model(model, f'{SAVED_PATH}/{LOG_TIME}/saved_model')
 
     display_training_curves(history)

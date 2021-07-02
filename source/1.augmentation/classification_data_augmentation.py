@@ -59,7 +59,7 @@ def make_info(images):
 
 def split_seed(ds_path):
     ds_path = pathlib.Path(ds_path)
-    images = list(ds_path.glob('*/*'))
+    images = list(ds_path.glob('*/*.jpg'))
     images = [str(path) for path in images]
 
     train_images, valid_images = train_test_split(images, test_size=0.2)
@@ -129,8 +129,9 @@ if __name__ == "__main__":
 
     TODAY = datetime.datetime.now().strftime("%Y.%m.%d_%H-%M-%S")
     DATASET_NAME = seed_path.split('/')[-1]
-    OUTPUT_PATH = seed_path.split('/')[:-3]
-    OUTPUT_PATH = '/'.join(OUTPUT_PATH) + f'/Auged_datasets/{DATASET_NAME}/{TODAY}'
+    OUTPUT_PATH = seed_path.split('/')[:-1]
+
+    OUTPUT_PATH = '/'.join(OUTPUT_PATH) + f'/Augmentations/{DATASET_NAME}/{TODAY}'
     print(OUTPUT_PATH)
 
     label_list = sorted(os.listdir(seed_path + '/'))
