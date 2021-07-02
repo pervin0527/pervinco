@@ -1,5 +1,3 @@
-## python3 -m tf2onnx.convert --saved-model /data/Models/ETRI_custom/2021.07.02_10\:48/saved_model --opset 9 --output /data/Models/ETRI_custom/2021.07.02_10\:48/converted.onnx --fold_const --inputs-as-nchw input_2:
-
 import os, cv2, datetime, pathlib, random, argparse
 import pandas as pd
 import numpy as np
@@ -149,7 +147,7 @@ def str2bool(v):
 
 
 def get_model():
-    inputs = tf.keras.Input(shape=(IMG_SIZE, IMG_SIZE, 3), name="input_2:0")
+    inputs = tf.keras.Input(shape=(IMG_SIZE, IMG_SIZE, 3), name="input_2")
 
     base_model = tf.keras.applications.EfficientNetB0(include_top=False,
                                                       weights="imagenet",
@@ -158,7 +156,7 @@ def get_model():
     base_model.trainable = True
 
     x = tf.keras.layers.Dropout(0.2, name='top_dropout')(base_model)
-    outputs = tf.keras.layers.Dense(len(train_classes), activation="softmax", name="predictions")(x)
+    outputs = tf.keras.layers.Dense(len(train_classes), activation="softmax", name="Identity")(x)
     model = tf.keras.Model(inputs=inputs, outputs=outputs)
     
     model.compile(optimizer='adam', loss = 'categorical_crossentropy', metrics = ['categorical_accuracy'])
@@ -181,7 +179,6 @@ if __name__ == "__main__":
 
     # Load data & Set hyper-parameters
     AUTO = tf.data.experimental.AUTOTUNE
-    SAMPLE_LEN = 100
     EPOCHS = 1000
     BATCH_SIZE = 64 * strategy.num_replicas_in_sync
     IMG_SIZE = 224
@@ -237,3 +234,5 @@ if __name__ == "__main__":
     tf.keras.models.save_model(model, f'{SAVED_PATH}/{LOG_TIME}/saved_model')
 
     display_training_curves(history)
+
+    os.system(f'python3 -m tf2onnx.convert --saved-model {SAVED_PATH}/{LOG_TIME}/saved_model --opset 9 --output {SAVED_PATH}/{LOG_TIME}/converted.onnx --fold_const --inputs-as-nchw input_2:0')
