@@ -32,7 +32,7 @@ def preprocess_image(images, label=None):
     image = tf.io.read_file(images)
     image = tf.image.decode_jpeg(image, channels=3)
     image = tf.image.resize(image, [IMG_SIZE, IMG_SIZE])
-    image = tf.keras.applications.efficientnet.preprocess_input(image)
+    # image = tf.keras.applications.efficientnet.preprocess_input(image)
     image = tf.transpose(image, perm=(2, 0, 1))
 
     if label is None:
@@ -183,7 +183,7 @@ if __name__ == "__main__":
 
     # Load data & Set hyper-parameters
     AUTO = tf.data.experimental.AUTOTUNE
-    EPOCHS = 5
+    EPOCHS = 1000
     BATCH_SIZE = 64 * strategy.num_replicas_in_sync
     IMG_SIZE = 224
 
@@ -242,5 +242,5 @@ if __name__ == "__main__":
 
     display_training_curves(history)
 
-    # os.system(f'python3 -m tf2onnx.convert --saved-model {SAVED_PATH}/{LOG_TIME}/saved_model --opset 9 --output {SAVED_PATH}/{LOG_TIME}/converted.onnx --fold_const --inputs-as-nchw input_2:0')
-    os.system(f'python3 -m tf2onnx.convert --saved-model {SAVED_PATH}/{LOG_TIME}/saved_model --opset 9 --output {SAVED_PATH}/{LOG_TIME}/converted.onnx --fold_const')
+    # os.system(f'python3 -m tf2onnx.convert --saved-model {SAVED_PATH}/{LOG_TIME}/saved_model --opset 9 --output {SAVED_PATH}/{LOG_TIME}/converted.onnx --inputs-as-nchw input_2:0')
+    os.system(f'python3 -m tf2onnx.convert --saved-model {SAVED_PATH}/{LOG_TIME}/saved_model --opset 9 --output {SAVED_PATH}/{LOG_TIME}/converted.onnx')

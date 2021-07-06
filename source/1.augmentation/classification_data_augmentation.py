@@ -129,7 +129,8 @@ if __name__ == "__main__":
 
     TODAY = datetime.datetime.now().strftime("%Y.%m.%d_%H-%M-%S")
     DATASET_NAME = seed_path.split('/')[-1]
-    OUTPUT_PATH = seed_path.split('/')[:-1]
+    OUTPUT_PATH = seed_path.split('/')[:-2]
+    print(OUTPUT_PATH)
 
     OUTPUT_PATH = '/'.join(OUTPUT_PATH) + f'/Augmentations/{DATASET_NAME}/{TODAY}'
     print(OUTPUT_PATH)
