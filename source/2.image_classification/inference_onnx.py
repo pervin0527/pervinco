@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-MODEL_PATH = "/data/Models/ETRI_custom/2021.07.06_13:48/converted.onnx"
+MODEL_PATH = "/data/Models/ETRI_cropped/2021.07.06_16:51/converted.onnx"
 OUTPUT_PATH = MODEL_PATH.split('/')[:-1]
 OUTPUT_PATH = '/'.join(OUTPUT_PATH)
 
@@ -54,7 +54,7 @@ print(CLASSES)
 ort_session = ort.InferenceSession(f"{OUTPUT_PATH}/converted_mod.onnx")
 
 ## Preprocessing Channel first
-test_img = f"/data/Datasets/Augmentations/{DATASET_NAME}/test_sample7.jpg"
+test_img = f"/data/Datasets/Augmentations/{DATASET_NAME}/test_sample.jpg"
 test_img = cv2.imread(test_img)
 test_img = cv2.cvtColor(test_img, cv2.COLOR_BGR2RGB)
 test_img = cv2.resize(test_img, (224, 224))
