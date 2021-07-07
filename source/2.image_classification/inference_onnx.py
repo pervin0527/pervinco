@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-MODEL_PATH = "/data/Models/ETRI_cropped_large/2021.07.07_09:28/converted.onnx"
+MODEL_PATH = "/data/Models/ETRI_cropped_large/2021.07.07_12:13/converted.onnx"
 OUTPUT_PATH = MODEL_PATH.split('/')[:-1]
 OUTPUT_PATH = '/'.join(OUTPUT_PATH)
 
@@ -17,7 +17,7 @@ CLASSES = sorted(LABEL_FILE[0].tolist())
 
 onnx_model = onnx.load(MODEL_PATH)
 
-endpoint_names = ['input_1:0', 'Identity']
+endpoint_names = ['input_2:0', 'Identity']
 
 for i in range(len(onnx_model.graph.node)):
 	for j in range(len(onnx_model.graph.node[i].input)):
@@ -65,9 +65,9 @@ test_images = sorted([str(path) for path in test_images])
 for test_img in test_images:
 	file_name = test_img.split('/')[-1]
 	image = cv2.imread(test_img)
-	x_test = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-	x_test = cv2.resize(x_test, (224, 224))
-	X_test = np.transpose(x_test, [2, 0, 1])
+	X_test = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+	X_test = cv2.resize(X_test, (224, 224))
+	X_test = np.transpose(X_test, [2, 0, 1])
 	X_test = np.expand_dims(X_test, axis=0)
 	# X_test = tf.keras.applications.efficientnet.preprocess_input(X_test)
 	# print(X_test.shape)

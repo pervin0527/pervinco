@@ -32,8 +32,6 @@ def preprocess_image(images, label=None):
     image = tf.io.read_file(images)
     image = tf.image.decode_jpeg(image, channels=3)
     image = tf.image.resize(image, [IMG_SIZE, IMG_SIZE])
-    # image = tf.keras.applications.efficientnet.preprocess_input(image)
-    # image = tf.keras.applications.resnet.preprocess_input(image)
     # image = tf.transpose(image, perm=(2, 0, 1))
 
     if label is None:
@@ -171,20 +169,40 @@ def str2bool(v):
 
 ## BEST performance
 def get_model():
-    base_model = tf.keras.applications.EfficientNetB0(input_shape=(IMG_SIZE, IMG_SIZE, 3),
-                                                      weights="imagenet", # noisy-student
-                                                      include_top=False)
-    for layer in base_model.layers:
-        layer.trainable = True
+    inputs = tf.keras.Input(shape=(IMG_SIZE, IMG_SIZE, 3), name="input_2")
+    base_model = tf.keras.applications.EfficientNetB1(weights="imagenet", # noisy-student
+                                                      include_top=False)(inputs)
 
-    x = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
+    base_model.trainable = True
+
+    x = tf.keras.layers.GlobalAveragePooling2D()(base_model)
     outputs = tf.keras.layers.Dense(len(train_classes), activation="softmax", name="Identity")(x)
-    model = tf.keras.Model(inputs=base_model.input, outputs=outputs)
+    model = tf.keras.Model(inputs=inputs, outputs=outputs)
     
     model.compile(optimizer='adam', loss = 'categorical_crossentropy', metrics = ['categorical_accuracy'])
     model.summary()
 
     return model
+
+
+# def get_model():
+#     inputs = tf.keras.Input(shape=(IMG_SIZE, IMG_SIZE, 3), name="input_2")
+#     x = tf.keras.layers.experimental.preprocessing.Rescaling(1./127.5, offset=-1)(inputs)
+
+#     base_model = tf.keras.applications.EfficientNetB0(include_top=False,
+#                                                       weights="imagenet",
+#                                                       pooling="avg")(x)
+
+#     base_model.trainable = True
+
+#     x = tf.keras.layers.Dropout(0.2, name='top_dropout')(base_model)
+#     outputs = tf.keras.layers.Dense(len(train_classes), activation="softmax", name="Identity")(x)
+#     model = tf.keras.Model(inputs=inputs, outputs=outputs)
+    
+#     model.compile(optimizer='adam', loss = 'categorical_crossentropy', metrics = ['categorical_accuracy'])
+#     model.summary()
+
+#     return model
 
 
 if __name__ == "__main__":
