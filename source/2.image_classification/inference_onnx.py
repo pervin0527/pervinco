@@ -1,11 +1,13 @@
+import os
 import cv2
+import pathlib
 import onnx
 import onnxruntime as ort
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-MODEL_PATH = "/data/Models/ETRI_cropped/2021.07.06_16:51/converted.onnx"
+MODEL_PATH = "/data/Models/ETRI_cropped_large/2021.07.07_09:28/converted.onnx"
 OUTPUT_PATH = MODEL_PATH.split('/')[:-1]
 OUTPUT_PATH = '/'.join(OUTPUT_PATH)
 
@@ -15,7 +17,7 @@ CLASSES = sorted(LABEL_FILE[0].tolist())
 
 onnx_model = onnx.load(MODEL_PATH)
 
-endpoint_names = ['input_2:0', 'Identity']
+endpoint_names = ['input_1:0', 'Identity']
 
 for i in range(len(onnx_model.graph.node)):
 	for j in range(len(onnx_model.graph.node[i].input)):
@@ -54,19 +56,32 @@ print(CLASSES)
 ort_session = ort.InferenceSession(f"{OUTPUT_PATH}/converted_mod.onnx")
 
 ## Preprocessing Channel first
-test_img = f"/data/Datasets/Augmentations/{DATASET_NAME}/test_sample.jpg"
-test_img = cv2.imread(test_img)
-test_img = cv2.cvtColor(test_img, cv2.COLOR_BGR2RGB)
-test_img = cv2.resize(test_img, (224, 224))
-X_test = np.transpose(test_img, [2, 0, 1])
-X_test = np.expand_dims(X_test, axis=0)
-X_test = tf.keras.applications.efficientnet.preprocess_input(X_test)
-print(X_test.shape)
+test_path = f"/data/Datasets/testset/{DATASET_NAME}"
+test_path = pathlib.Path(test_path)
+test_images = list(test_path.glob('*.jpg'))
+test_images = sorted([str(path) for path in test_images])
 
-ort_inputs = {ort_session.get_inputs()[0].name: X_test.astype(np.float32)}
-ort_outs = ort_session.run(None, ort_inputs)
-img_out_y = ort_outs[0]
+# os.system('clear')
+for test_img in test_images:
+	file_name = test_img.split('/')[-1]
+	image = cv2.imread(test_img)
+	x_test = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+	x_test = cv2.resize(x_test, (224, 224))
+	X_test = np.transpose(x_test, [2, 0, 1])
+	X_test = np.expand_dims(X_test, axis=0)
+	# X_test = tf.keras.applications.efficientnet.preprocess_input(X_test)
+	# print(X_test.shape)
 
-print(img_out_y)
-idx = np.argmax(img_out_y)
-print(CLASSES[idx])
+	ort_inputs = {ort_session.get_inputs()[0].name: X_test.astype(np.float32)}
+	ort_outs = ort_session.run(None, ort_inputs)
+	img_out_y = ort_outs[0]
+
+	idx = np.argmax(img_out_y)
+	score = img_out_y[0][idx]
+	score = format(score, ".2f")
+	# print(file_name, CLASSES[idx], score)
+
+	image = cv2.resize(image, (640, 480))
+	cv2.putText(image, f"{CLASSES[idx]} : {score}%", (0, 40), cv2.FONT_HERSHEY_PLAIN, fontScale=1, color=(0, 0, 0), thickness=2)	
+	cv2.imshow("result", image)
+	cv2.waitKey(0)

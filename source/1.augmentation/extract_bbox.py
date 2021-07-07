@@ -2,6 +2,7 @@ import os
 import sys
 import cv2
 import pathlib
+import random
 import xml.etree.ElementTree as ET
 
 def show_sample():
@@ -16,8 +17,8 @@ def show_sample():
 
         print(xmin, ymin, xmax, ymax)
 
-        if not os.path.isdir(f"/data/Datasets/Seeds/ETRI_cropped/{label_name}"):
-            os.makedirs(f"/data/Datasets/Seeds/ETRI_cropped/{label_name}")
+        if not os.path.isdir(f"/data/Datasets/Seeds/test/{label_name}"):
+            os.makedirs(f"/data/Datasets/Seeds/test/{label_name}")
 
         img = cv2.imread(sample_img, cv2.IMREAD_COLOR | cv2.IMREAD_IGNORE_ORIENTATION)
         height, width, _ = img.shape
@@ -84,21 +85,45 @@ if __name__ == "__main__":
                     label_name = annot_data[idx][0]
                     xmin, ymin, xmax, ymax = annot_data[idx][1], annot_data[idx][2], annot_data[idx][3], annot_data[idx][4]
 
+                    img = cv2.imread(image)
+                    height, width, _ = img.shape                        
+
+                    rand = random.randint(50, 150)
+                    xmin -= rand
+                    ymin -= rand
+                    xmax += rand
+                    ymax += rand
+
+                    if xmin < 0:
+                        xmin = 0
+
+                    if ymin < 0:
+                        ymin = 0
+
+                    if ymax > height:
+                        ymax = height
+                        
+                    if xmax > width:
+                        xmax = width
+
                     img_file_name = image.split('/')[-1]
                     img_file_name = img_file_name.split('.')[0]
+                    xml_file_name = annot.split('/')[-1]
+                    xml_file_name = xml_file_name.split('.')[0]
 
-                    if not os.path.isdir(f"/data/Datasets/Seeds/ETRI_cropped/{label_name}"):
-                        os.makedirs(f"/data/Datasets/Seeds/ETRI_cropped/{label_name}")
+                    if not os.path.isdir(f"/data/Datasets/Seeds/test/{label_name}"):
+                        os.makedirs(f"/data/Datasets/Seeds/test/{label_name}")
 
                     try:
-                        img = cv2.imread(image, cv2.IMREAD_COLOR | cv2.IMREAD_IGNORE_ORIENTATION)
                         crop_img = img[ymin:ymax, xmin:xmax]
                         crop_img = cv2.resize(crop_img, (224, 224))
-                        cv2.imwrite(f"/data/Datasets/Seeds/ETRI_cropped/{label_name}/{img_file_name}.jpg", crop_img)
+                        cv2.imwrite(f"/data/Datasets/Seeds/test/{label_name}/{img_file_name}.jpg", crop_img)
 
                     except:
                         print(img_file_name)
-                        img = cv2.imread(image, cv2.IMREAD_COLOR | cv2.IMREAD_IGNORE_ORIENTATION)
                         crop_img = img[ymax:ymin, xmin:xmax]
                         crop_img = cv2.resize(crop_img, (224, 224))
-                        cv2.imwrite(f"/data/Datasets/Seeds/ETRI_cropped/{label_name}/{img_file_name}.jpg", crop_img)
+                        cv2.imwrite(f"/data/Datasets/Seeds/test/{label_name}/{img_file_name}.jpg", crop_img)
+
+                    # cv2.imshow(f"{img_file_name}_{xml_file_name}", crop_img)
+                    # cv2.waitKey(0)

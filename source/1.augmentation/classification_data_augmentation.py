@@ -103,12 +103,12 @@ def augmentation(images, is_train, info, aug_num):
                     A.OneOf([
                         A.HorizontalFlip(p=0.7),
                         A.VerticalFlip(p=0.7),
-                    ], p=0.7),
+                    ], p=0.6),
 
-                    A.OneOf([
-                        A.RandomContrast(p=0.7, limit=(-0.5, 0.3)),
-                        A.RandomBrightness(p=0.7, limit=(-0.2, 0.3))
-                    ], p=0.7),
+                    # A.OneOf([
+                    #     A.RandomContrast(p=0.7, limit=(-0.5, 0.3)),
+                    #     A.RandomBrightness(p=0.7, limit=(-0.2, 0.3))
+                    # ], p=0.7),
 
                     # A.Cutout(p=0.5)
                 ])

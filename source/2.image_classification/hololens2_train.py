@@ -6,7 +6,7 @@ import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from tensorflow.keras import backend as K
 
-K.set_image_data_format("channels_first")
+# K.set_image_data_format("channels_first")
 
 # GPU setup
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -33,7 +33,8 @@ def preprocess_image(images, label=None):
     image = tf.image.decode_jpeg(image, channels=3)
     image = tf.image.resize(image, [IMG_SIZE, IMG_SIZE])
     # image = tf.keras.applications.efficientnet.preprocess_input(image)
-    image = tf.transpose(image, perm=(2, 0, 1))
+    # image = tf.keras.applications.resnet.preprocess_input(image)
+    # image = tf.transpose(image, perm=(2, 0, 1))
 
     if label is None:
         return image
@@ -150,18 +151,35 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
+# def get_model():
+#     inputs = tf.keras.Input(shape=(3, IMG_SIZE, IMG_SIZE), name="input_2")
+
+#     base_model = tf.keras.applications.EfficientNetB0(include_top=False,
+#                                                       weights="imagenet",
+#                                                       pooling="avg")(inputs)
+
+#     base_model.trainable = True
+
+#     x = tf.keras.layers.Dropout(0.2, name='top_dropout')(base_model)
+#     outputs = tf.keras.layers.Dense(len(train_classes), activation="softmax", name="Identity")(x)
+#     model = tf.keras.Model(inputs=inputs, outputs=outputs)
+    
+#     model.compile(optimizer='adam', loss = 'categorical_crossentropy', metrics = ['categorical_accuracy'])
+#     model.summary()
+
+#     return model
+
+## BEST performance
 def get_model():
-    inputs = tf.keras.Input(shape=(3, IMG_SIZE, IMG_SIZE), name="input_2")
+    base_model = tf.keras.applications.EfficientNetB0(input_shape=(IMG_SIZE, IMG_SIZE, 3),
+                                                      weights="imagenet", # noisy-student
+                                                      include_top=False)
+    for layer in base_model.layers:
+        layer.trainable = True
 
-    base_model = tf.keras.applications.EfficientNetB0(include_top=False,
-                                                      weights="imagenet",
-                                                      pooling="avg")(inputs)
-
-    base_model.trainable = True
-
-    x = tf.keras.layers.Dropout(0.2, name='top_dropout')(base_model)
+    x = tf.keras.layers.GlobalAveragePooling2D()(base_model.output)
     outputs = tf.keras.layers.Dense(len(train_classes), activation="softmax", name="Identity")(x)
-    model = tf.keras.Model(inputs=inputs, outputs=outputs)
+    model = tf.keras.Model(inputs=base_model.input, outputs=outputs)
     
     model.compile(optimizer='adam', loss = 'categorical_crossentropy', metrics = ['categorical_accuracy'])
     model.summary()
@@ -184,7 +202,7 @@ if __name__ == "__main__":
     # Load data & Set hyper-parameters
     AUTO = tf.data.experimental.AUTOTUNE
     EPOCHS = 1000
-    BATCH_SIZE = 64 * strategy.num_replicas_in_sync
+    BATCH_SIZE = 128 * strategy.num_replicas_in_sync
     IMG_SIZE = 224
 
     train_dataset, train_total, train_classes = make_tf_dataset(TRAIN_PATH, True)
@@ -219,7 +237,7 @@ if __name__ == "__main__":
 
         for label in train_classes:
             f.write(f'{label}\n')
-        
+        pooling="avg"
         f.close()
 
     checkpointer = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
@@ -242,5 +260,5 @@ if __name__ == "__main__":
 
     display_training_curves(history)
 
-    # os.system(f'python3 -m tf2onnx.convert --saved-model {SAVED_PATH}/{LOG_TIME}/saved_model --opset 9 --output {SAVED_PATH}/{LOG_TIME}/converted.onnx --inputs-as-nchw input_2:0')
-    os.system(f'python3 -m tf2onnx.convert --saved-model {SAVED_PATH}/{LOG_TIME}/saved_model --opset 9 --output {SAVED_PATH}/{LOG_TIME}/converted.onnx')
+    os.system(f'python3 -m tf2onnx.convert --saved-model {SAVED_PATH}/{LOG_TIME}/saved_model --opset 9 --output {SAVED_PATH}/{LOG_TIME}/converted.onnx --inputs-as-nchw input_2:0')
+    # os.system(f'python3 -m tf2onnx.convert --saved-model {SAVED_PATH}/{LOG_TIME}/saved_model --opset 9 --output {SAVED_PATH}/{LOG_TIME}/converted.onnx')
