@@ -66,8 +66,12 @@ test_images = sorted([str(path) for path in test_images])
 for test_img in test_images:
 	file_name = test_img.split('/')[-1]
 	image = cv2.imread(test_img)
-	X_test = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-	X_test = cv2.resize(X_test, (IMG_SIZE, IMG_SIZE))
+	
+	# X_test = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+	# X_test = cv2.resize(X_test, (IMG_SIZE, IMG_SIZE))
+
+	X_test = cv2.resize(image, (IMG_SIZE, IMG_SIZE))
+
 	X_test = np.transpose(X_test, [2, 0, 1])
 	X_test = np.expand_dims(X_test, axis=0)
 	# print(X_test.shape)
