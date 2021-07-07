@@ -7,7 +7,8 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-MODEL_PATH = "/data/Models/ETRI_cropped_large/2021.07.07_12:13/converted.onnx"
+IMG_SIZE = 224
+MODEL_PATH = "/data/Models/ETRI_cropped_large/2021.07.07_15:58/converted.onnx"
 OUTPUT_PATH = MODEL_PATH.split('/')[:-1]
 OUTPUT_PATH = '/'.join(OUTPUT_PATH)
 
@@ -66,10 +67,9 @@ for test_img in test_images:
 	file_name = test_img.split('/')[-1]
 	image = cv2.imread(test_img)
 	X_test = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-	X_test = cv2.resize(X_test, (224, 224))
+	X_test = cv2.resize(X_test, (IMG_SIZE, IMG_SIZE))
 	X_test = np.transpose(X_test, [2, 0, 1])
 	X_test = np.expand_dims(X_test, axis=0)
-	# X_test = tf.keras.applications.efficientnet.preprocess_input(X_test)
 	# print(X_test.shape)
 
 	ort_inputs = {ort_session.get_inputs()[0].name: X_test.astype(np.float32)}
@@ -82,6 +82,6 @@ for test_img in test_images:
 	# print(file_name, CLASSES[idx], score)
 
 	image = cv2.resize(image, (640, 480))
-	cv2.putText(image, f"{CLASSES[idx]} : {score}%", (0, 40), cv2.FONT_HERSHEY_PLAIN, fontScale=1, color=(0, 0, 0), thickness=2)	
+	cv2.putText(image, f"{CLASSES[idx]} : {score}%", (0, 40), cv2.FONT_HERSHEY_PLAIN, fontScale=2, color=(0, 255, 0), thickness=2)	
 	cv2.imshow("result", image)
 	cv2.waitKey(0)

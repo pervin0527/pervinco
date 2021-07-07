@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
+import tensorflow_io as tfio
 from sklearn.model_selection import train_test_split
 from tensorflow.keras import backend as K
 
@@ -31,6 +32,7 @@ else:
 def preprocess_image(images, label=None):
     image = tf.io.read_file(images)
     image = tf.image.decode_jpeg(image, channels=3)
+    image = tfio.experimental.color.rgb_to_bgr(image)
     image = tf.image.resize(image, [IMG_SIZE, IMG_SIZE])
     # image = tf.transpose(image, perm=(2, 0, 1))
 
@@ -167,6 +169,7 @@ def str2bool(v):
 
 #     return model
 
+
 ## BEST performance
 def get_model():
     inputs = tf.keras.Input(shape=(IMG_SIZE, IMG_SIZE, 3), name="input_2")
@@ -219,8 +222,8 @@ if __name__ == "__main__":
 
     # Load data & Set hyper-parameters
     AUTO = tf.data.experimental.AUTOTUNE
-    EPOCHS = 1000
-    BATCH_SIZE = 128 * strategy.num_replicas_in_sync
+    EPOCHS = 10
+    BATCH_SIZE = 64 * strategy.num_replicas_in_sync
     IMG_SIZE = 224
 
     train_dataset, train_total, train_classes = make_tf_dataset(TRAIN_PATH, True)
@@ -259,9 +262,9 @@ if __name__ == "__main__":
         f.close()
 
     checkpointer = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
-                                                      monitor='val_categorical_accuracy',
+                                                      monitor='val_loss',
                                                       save_best_only=True,
-                                                      mode='max')
+                                                      mode='min')
     earlystopper = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
 
     model = get_model()    
