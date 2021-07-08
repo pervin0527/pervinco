@@ -8,7 +8,7 @@ import pandas as pd
 import tensorflow as tf
 
 IMG_SIZE = 224
-MODEL_PATH = "/data/Models/ETRI_cropped_large/2021.07.07_15:58/converted.onnx"
+MODEL_PATH = "/data/Models/ETRI_cropped_large/2021.07.07_18:26/converted.onnx"
 OUTPUT_PATH = MODEL_PATH.split('/')[:-1]
 OUTPUT_PATH = '/'.join(OUTPUT_PATH)
 

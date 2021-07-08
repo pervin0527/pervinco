@@ -12,24 +12,27 @@ from object_detection.utils import dataset_util
 from collections import namedtuple, OrderedDict
 
 flags = tf.app.flags
-flags.DEFINE_string('csv_input', './COCO2017/CSV/valid.csv', 'Path to the CSV input')
-flags.DEFINE_string('output_path', './COCO2017/TFrecords/valid.tfrecord', 'Path to output TFRecord')
-flags.DEFINE_string('image_dir', './COCO2017/Augmentations/images', 'Path to images')
+flags.DEFINE_string('csv_input', '/data/Datasets/Seeds/ETRI_detection/ETRI_detection_2021-07-08-17:22:05_feature.csv', 'Path to the CSV input')
+flags.DEFINE_string('output_path', '/data/Datasets/Seeds/ETRI_detection/train.tfrecord', 'Path to output TFRecord')
+flags.DEFINE_string('image_dir', '/data/Datasets/Seeds/ETRI_detection/images', 'Path to images')
 FLAGS = flags.FLAGS
 
 
 def class_text_to_int(row_label):
-    if row_label == 'trafficlight':
+    if row_label == 'Red_fire_extinguisher':
         return 1
 
-    elif row_label == 'stop':
+    elif row_label == 'Silver_fire_extinguisher':
         return 2
 
-    elif row_label == 'speedlimit':
+    elif row_label == 'fireplug':
         return 3
 
-    elif row_label == 'crosswalk':
+    elif row_label == 'exit_sign':
         return 4
+
+    elif row_label == 'fire_detector':
+        return 5
 
     else:
         None
@@ -41,6 +44,7 @@ def split(df, group):
 
 
 def create_tf_example(group, path):
+    # print(group, path)
     with tf.gfile.GFile(os.path.join(path, '{}'.format(group.filename)), 'rb') as fid:
         encoded_jpg = fid.read()
     encoded_jpg_io = io.BytesIO(encoded_jpg)

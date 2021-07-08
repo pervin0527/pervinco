@@ -11,14 +11,21 @@ def xml_to_csv(path):
     xml_list = []
 
     for xml_file in sorted(glob.glob(path + '/*.xml')):
-        print(xml_file)
+        # print(xml_file)
+
+        img_file_name = xml_file.split('/')[-1]
+        file_name = img_file_name.split('.')[0] + '.jpg'
+
+        if not os.path.isfile(f'/data/Datasets/Seeds/ETRI_detection/images/{file_name}'):
+            print(file_name)
+            break
 
         tree = ET.parse(xml_file)
         root = tree.getroot()
 
         obj_xml = root.findall('object')
         size_xml = root.findall('size')
-        file_name = root.find('filename').text
+        # file_name = root.find('filename').text
 
         for size in size_xml:
             height = int(size.find('height').text)
@@ -29,6 +36,10 @@ def xml_to_csv(path):
                 bbox_original = obj.find('bndbox')
                 
                 name = obj.find('name').text
+                
+                if name == "Etc":
+                    pass
+
                 xmin = int(float(bbox_original.find('xmin').text))
                 ymin = int(float(bbox_original.find('ymin').text))
                 xmax = int(float(bbox_original.find('xmax').text))
