@@ -30,8 +30,8 @@ def representative_dataset():
     data = np.random.rand(1, 512, 512, 3)
     yield [data.astype(np.float32)]
 
-label_file_paths='/data/datasets/traffic_sign/labels.txt'
-path = "/home/barcelona/tensorflow/models/research/object_detection/custom/models/traffic_sign/21_06_15"
+label_file_paths='/data/Datasets/Seeds/ETRI_detection/labels.txt'
+path = "/home/barcelona/tensorflow/models/research/object_detection/custom/models/fire/21_07_09"
 saved_model_dir = f"{path}/saved_model"
 
 tflite_models_dir = pathlib.Path(f'{path}')

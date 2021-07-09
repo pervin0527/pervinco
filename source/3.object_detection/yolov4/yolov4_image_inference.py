@@ -8,9 +8,9 @@ import argparse
 from threading import Thread, enumerate
 from queue import Queue
 
-weight_file = "/home/barcelona/darknet/models/in_office_3l/yolov4-in_office_tiny-3l_last.weights"
-config_file = "/home/barcelona/darknet/yolov4-in_office_tiny-3l.cfg"
-data_file = "/home/barcelona/darknet/build/darknet/x64/data/in_office.data"
+weight_file = "/home/barcelona/darknet/custom/fire/ckpt/21_07_09/yolov4_final.weights"
+config_file = "/home/barcelona/darknet/custom/fire/deploy/yolov4.cfg"
+data_file = "/home/barcelona/darknet/custom/fire/data/fire.data"
 thresh_hold = .4
 
 network, class_names, class_colors = darknet.load_network(config_file, data_file, weight_file, batch_size=1)
@@ -20,7 +20,7 @@ height = darknet.network_height(network)
 darknet_image = darknet.make_image(width, height, 3)
 
 
-test_image = cv2.imread("./test.jpg")
+test_image = cv2.imread("/data/Datasets/testset/ETRI_cropped_large/test_sample_01.jpg")
 frame_rgb = cv2.cvtColor(test_image, cv2.COLOR_BGR2RGB)
 frame_resized = cv2.resize(frame_rgb, (width, height), interpolation=cv2.INTER_LINEAR)
 darknet.copy_image_from_bytes(darknet_image, frame_resized.tobytes())

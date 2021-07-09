@@ -81,7 +81,7 @@ The output model has the following inputs & outputs:
   Currently, only float type quantization is possible.
 
 
-## Tensorboard
+## Tensorboard in ssh
   if you train on server and want to monitor tensorboard.
 
   oooo : tensorboard port number  
