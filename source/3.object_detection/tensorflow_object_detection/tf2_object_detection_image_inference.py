@@ -65,11 +65,11 @@ def get_model_detection_function(model):
 
 
 if __name__ == "__main__":
-    pipe_config_path = '/home/barcelona/tensorflow/models/research/object_detection/custom/deploy/centernet_resnet50_v2_512/pipeline.config'
-    model_dir = '/home/barcelona/tensorflow/models/research/object_detection/custom/models/traffic_sign/21_06_17/'
-    ckpt_value = 'ckpt-185'
-    image_path = "/data/datasets/traffic_sign/test/stop.jpg"
-    label_map_path = "/home/barcelona/tensorflow/models/research/object_detection/custom/labels/traffic_sign.txt"
+    pipe_config_path = '/home/barcelona/tensorflow/models/research/object_detection/custom/deploy/ssd_mobilenet_v2_320//pipeline.config'
+    model_dir = '/home/barcelona/tensorflow/models/research/object_detection/custom/models/fire/21_07_08/'
+    ckpt_value = 'ckpt-100'
+    image_path = "/data/Datasets/testset/ETRI_cropped_large/test_sample_01.jpg"
+    label_map_path = "/home/barcelona/tensorflow/models/research/object_detection/custom/labels/fire.txt"
     min_score = 0.6
 
     pipeline_config = os.path.join(pipe_config_path)
