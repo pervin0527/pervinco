@@ -78,7 +78,8 @@ The output model has the following inputs & outputs:
 
 ## Quantization
 
-  Currently, only float type quantization is possible.
+    # int8
+    python3 quantization.py
 
 
 ## Tensorboard in ssh
