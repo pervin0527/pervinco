@@ -95,3 +95,7 @@ The output model has the following inputs & outputs:
     # shutdown process
     lsof -i:6006
     kill -9 PID  
+
+## EfficientDet lite with Model maker
+
+    python3 model_maker.py
