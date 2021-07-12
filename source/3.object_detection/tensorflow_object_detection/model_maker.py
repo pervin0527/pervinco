@@ -30,11 +30,12 @@ else:
     except RuntimeError as e:
         print(e)
 
-label_map = ['trafficlight','stop','speedlimit','crosswalk']
+# label_map = ['trafficlight','stop','speedlimit','crosswalk']
+label_map = ['Red_fire_extinguisher', 'Silver_fire_extinguisher', 'fireplug', 'exit_sign', 'fire_detector']
 
 spec = object_detector.EfficientDetLite0Spec()
-train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/mm_data/train', '/data/Datasets/Seeds/mm_data/train', label_map)
-validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/mm_data/test', '/data/Datasets/Seeds/mm_data/test', label_map)
+train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/mm_etri/train', '/data/Datasets/Seeds/mm_etri/train', label_map)
+validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/mm_etri/test', '/data/Datasets/Seeds/mm_etri/test', label_map)
 
 model = object_detector.create(train_data,
                                model_spec=spec,
@@ -47,5 +48,5 @@ model.evaluate(validation_data)
 
 model.export(export_dir='/data/Models/efficientdet_lite',
              tflite_filename='efficientdet-lite-d0.tflite',
-             label_filename='/data/Datasets/Seeds/traffic_sign/labels.txt',
+             label_filename='/data/Datasets/Seeds/fire/labels.txt',
              export_format=[ExportFormat.TFLITE, ExportFormat.LABEL])
