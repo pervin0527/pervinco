@@ -26,8 +26,13 @@ This is my blog, and you can see everything I've studied here.  [https://www.not
    - Custom SSD_ResNetV2
 
 ### 4. Competitions
-   - [Dacon] [landmark image classification(26th / 387teams)](https://github.com/pervin0527/pervinco/tree/master/source/4.competitions#20201116-dacon---landmark-classification-competition)
-   - [Dacon] [Dirty Mnist multi label classification(10th / 780teams)](https://github.com/pervin0527/pervinco/tree/master/source/4.competitions#20210301-dacon---dirty-mnist-multi-label-classificatin)
+   - [Dacon] [landmark image classification (26th / 387teams)](https://github.com/pervin0527/pervinco/tree/master/source/4.competitions#20201116-dacon---landmark-classification-competition)
+   - [Dacon] [Dirty Mnist multi label classification (10th / 780teams)](https://github.com/pervin0527/pervinco/tree/master/source/4.competitions#20210301-dacon---dirty-mnist-multi-label-classificatin)
+   - [ai connect] [3D pose estimation (7th / 35teams)](https://github.com/pervin0527/pervinco/tree/master/source/4.competitions/pose_estimation)
+
+### 5. 3D
+   - [PointNet](https://github.com/pervin0527/pervinco/tree/master/source/5.3D/pointnet)
+   - [PointCutMix](https://github.com/pervin0527/pervinco/tree/master/source/5.3D/pointcutmix)
 
 ## DL_Note
 It summarizes the details of machine learning and deep learning that are easier to understand.   
