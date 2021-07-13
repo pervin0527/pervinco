@@ -99,3 +99,7 @@ The output model has the following inputs & outputs:
 ## EfficientDet lite with Model maker
 
     python3 model_maker.py
+
+## convert EfficientDet lite to ONNX
+
+    python3 -m tf2onnx.convert --opset 13 --tflite fire_efdet_d0.tflite --output fire_efdet_d0.onnx

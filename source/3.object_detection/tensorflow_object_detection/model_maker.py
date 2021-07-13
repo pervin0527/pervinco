@@ -39,14 +39,14 @@ validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/See
 
 model = object_detector.create(train_data,
                                model_spec=spec,
-                               epochs=500,
-                               batch_size=20,
+                               epochs=100,
+                               batch_size=64,
                                train_whole_model=True,
                                validation_data=validation_data)
 
-model.evaluate(validation_data)
+# model.evaluate(validation_data)
 
 model.export(export_dir='/data/Models/efficientdet_lite',
              tflite_filename='efficientdet-lite-d0.tflite',
-             label_filename='/data/Datasets/Seeds/fire/labels.txt',
+             label_filename='/data/Datasets/Seeds/ETRI_detection/labels.txt',
              export_format=[ExportFormat.TFLITE, ExportFormat.LABEL])

@@ -1,23 +1,30 @@
 from ctypes import *
-import random
 import os
 import cv2
 import time
 import darknet
 import argparse
 import pathlib
-from lxml.etree import Element, SubElement, tostring
-from xml.etree.ElementTree import ElementTree
 import pprint
-from xml.dom.minidom import parseString
-from threading import Thread, enumerate
-from queue import Queue
 
-def rewrite_xml(results):
+from queue import Queue
+from threading import Thread, enumerate
+from xml.dom.minidom import parseString
+from xml.etree.ElementTree import ElementTree
+from lxml.etree import Element, SubElement, tostring
+from sklearn.model_selection import train_test_split
+
+def rewrite_xml(results, is_train, idx):
+    if is_train:
+        path = "train"
+
+    else:
+        path = "test"
+
     node_root = Element('annotation')
     
     node_folder = SubElement(node_root, 'folder')
-    node_folder.text = 'train'
+    node_folder.text = path
     
     node_filename = SubElement(node_root, 'filename')
     node_filename.text = f'image_{idx}.jpg'
@@ -60,26 +67,15 @@ def rewrite_xml(results):
         node_ymax.text = str(results[i][4])
         
     tree = ElementTree(node_root)
-    tree.write(f'/data/Datasets/Seeds/mm_etri/train/image_{idx}.xml')
+    tree.write(f'/data/Datasets/Seeds/mm_etri/{path}/image_{idx}.xml')
 
 
-if __name__ == "__main__":
-    weight_file = "/home/barcelona/darknet/custom/fire/ckpt/21_07_09/yolov4_final.weights"
-    config_file = "/home/barcelona/darknet/custom/fire/deploy/yolov4.cfg"
-    data_file = "/home/barcelona/darknet/custom/fire/data/fire.data"
-    thresh_hold = .4
+def save_detection_result(images, is_train):
+    if is_train:
+        path = "train"
 
-    network, class_names, class_colors = darknet.load_network(config_file, data_file, weight_file, batch_size=1)
-
-    image_path = "/data/Datasets/Seeds/ETRI_detection/images"
-    images = pathlib.Path(image_path)
-    images = list(images.glob('*.jpg'))
-    images = sorted([str(path) for path in images])
-    print(len(images))
-
-    width = darknet.network_width(network)
-    height = darknet.network_height(network)
-    darknet_image = darknet.make_image(width, height, 3)
+    else:
+        path = "test"
 
     idx = 0
     for image in images:
@@ -102,8 +98,32 @@ if __name__ == "__main__":
             xmin, ymin, xmax, ymax = darknet.bbox2points((x, y, w, h))
             result.append([class_name, xmin, ymin, xmax, ymax])
 
-        cv2.imwrite(f"/data/Datasets/Seeds/mm_etri/train/image_{idx}.jpg", frame_resized)
+        frame_resized = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2RGB)
+        cv2.imwrite(f"/data/Datasets/Seeds/mm_etri/{path}/image_{idx}.jpg", frame_resized)
         print(result)
 
-        rewrite_xml(result)
+        rewrite_xml(result, is_train, idx)
         idx += 1
+
+
+if __name__ == "__main__":
+    weight_file = "/home/barcelona/darknet/custom/fire/ckpt/21_07_09/yolov4_final.weights"
+    config_file = "/home/barcelona/darknet/custom/fire/deploy/yolov4.cfg"
+    data_file = "/home/barcelona/darknet/custom/fire/data/fire.data"
+    thresh_hold = .4
+
+    network, class_names, class_colors = darknet.load_network(config_file, data_file, weight_file, batch_size=1)
+
+    image_path = "/data/Datasets/Seeds/ETRI_detection/images"
+    images = pathlib.Path(image_path)
+    images = list(images.glob('*.jpg'))
+    images = sorted([str(path) for path in images])
+
+    train_images, test_images = train_test_split(images, test_size=0.2, shuffle=True)
+
+    width = darknet.network_width(network)
+    height = darknet.network_height(network)
+    darknet_image = darknet.make_image(width, height, 3)
+
+    save_detection_result(train_images, True)
+    save_detection_result(test_images, False)
