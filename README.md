@@ -24,6 +24,8 @@ This is my blog, and you can see everything I've studied here.  [https://www.not
    - [Tensorflow 2 Object Detection API](https://github.com/pervin0527/pervinco/tree/master/source/3.object_detection#1-tensorflow-20-object-detection-api)
    - [Yolo v4](https://github.com/pervin0527/pervinco/tree/master/source/3.object_detection#2-yolo-v4)
    - Custom SSD_ResNetV2
+   - Quantization Int8
+   - [EfficientDet lite](https://github.com/pervin0527/pervinco/tree/master/source/3.object_detection/tensorflow_object_detection#efficientdet-lite-with-model-maker)
 
 ### 4. Competitions
    - [Dacon] [landmark image classification (26th / 387teams)](https://github.com/pervin0527/pervinco/tree/master/source/4.competitions#20201116-dacon---landmark-classification-competition)
