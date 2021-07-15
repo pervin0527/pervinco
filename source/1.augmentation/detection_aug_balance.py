@@ -118,7 +118,7 @@ def augmentation(image_list, xml_list, info):
 
         if len(classes) == 1:
             for idx in range(aug_num):
-                if check_list[labels.index(classes[0])] + aug_num < maximum:
+                if check_list[labels.index(classes[0])] + 1 <= maximum:
                     check_list[labels.index(classes[0])] += 1
                     try:
                         transformed = transform(image=image, bboxes=bboxes, category_ids=category_ids)
@@ -132,7 +132,7 @@ def augmentation(image_list, xml_list, info):
 if __name__ == "__main__":
     input_path = "/data/Datasets/Seeds/test/inputs"
     output_path = "/data/Datasets/Seeds/test/outputs"
-    maximum = 30
+    maximum = 50
 
     transform = A.Compose([A.RandomRotate90(p=1),
 
@@ -147,11 +147,10 @@ if __name__ == "__main__":
     input_images, input_xmls = get_lists(input_path)
     input_info = read_and_count(input_xmls)
     labels = sorted(list(input_info.keys()))
-    print(labels)
-
     check_list = [0] * len(labels)
-
+    
     # visualize(input_info)
+    print(labels)
     print(input_info)
 
     augmentation(input_images, input_xmls, input_info)
