@@ -114,18 +114,25 @@ def augmentation(image_list, xml_list, info):
         image = cv2.imread(image_file)
 
         bboxes, classes, category_ids = get_boxes(xml_file)
+        aug_num = random.randint(1, 30)
 
-        aug_num = random.randint(1, 10)
+        if len(classes) == 1:
+            for idx in range(aug_num):
+                if check_list[labels.index(classes[0])] + aug_num < maximum:
+                    check_list[labels.index(classes[0])] += 1
+                    try:
+                        transformed = transform(image=image, bboxes=bboxes, category_ids=category_ids)
+                        cv2.imwrite(f"{output_path}/{image_file_name}_{idx}.jpg", transformed["image"])
+                        modify_coordinate(transformed, xml_file, idx)
 
-        for label in classes:
-            if check_list[labels.index(label)] + aug_num < maximum:
-                check_list[labels.index(label)] += aug_num
+                    except:
+                        pass
 
         
 if __name__ == "__main__":
     input_path = "/data/Datasets/Seeds/test/inputs"
     output_path = "/data/Datasets/Seeds/test/outputs"
-    maximum = 200
+    maximum = 30
 
     transform = A.Compose([A.RandomRotate90(p=1),
 
@@ -145,4 +152,10 @@ if __name__ == "__main__":
     check_list = [0] * len(labels)
 
     # visualize(input_info)
-    # print(input_info)
+    print(input_info)
+
+    augmentation(input_images, input_xmls, input_info)
+
+    output_images, output_xmls = get_lists(output_path)
+    output_info = read_and_count(output_xmls)
+    print(output_info)
