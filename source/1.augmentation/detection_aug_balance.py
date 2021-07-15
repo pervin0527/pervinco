@@ -109,29 +109,40 @@ def modify_coordinate(augmented, xml, idx):
 
 
 def augmentation(image_list, xml_list, info):
-    transform = A.Compose([
-        A.RandomRotate90(p=1),
+    for image_file, xml_file in zip(image_list, xml_list):
+        image_file_name = (image_file.split('/')[-1]).split('.')[0]
+        image = cv2.imread(image_file)
+
+        bboxes, classes, category_ids = get_boxes(xml_file)
+
+        aug_num = random.randint(1, 10)
+
+        for label in classes:
+            if check_list[labels.index(label)] + aug_num < maximum:
+                check_list[labels.index(label)] += aug_num
+
         
-        A.OneOf([
-            A.RandomBrightness(p=0.6),
-            A.RandomContrast(p=0.6)
-        ], p=0.7),
-
-        A.OneOf([
-            A.HorizontalFlip(p=0.6),
-            A.VerticalFlip(p=0.6)
-        ], p=0.7),
-    ], bbox_params= A.BboxParams(format='pascal_voc', label_fields=['category_ids']))
-
-
 if __name__ == "__main__":
     input_path = "/data/Datasets/Seeds/test/inputs"
     output_path = "/data/Datasets/Seeds/test/outputs"
     maximum = 200
 
+    transform = A.Compose([A.RandomRotate90(p=1),
+
+                           A.OneOf([A.RandomBrightness(p=0.6),
+                                    A.RandomContrast(p=0.6)], p=0.7),
+
+                           A.OneOf([A.HorizontalFlip(p=0.6),
+                                    A.VerticalFlip(p=0.6)], p=0.7),
+
+                           ], bbox_params= A.BboxParams(format='pascal_voc', label_fields=['category_ids']))
+
     input_images, input_xmls = get_lists(input_path)
     input_info = read_and_count(input_xmls)
-    classes = list(input_info.keys())
-    # visualize(input_info)
+    labels = sorted(list(input_info.keys()))
+    print(labels)
 
+    check_list = [0] * len(labels)
+
+    # visualize(input_info)
     # print(input_info)
