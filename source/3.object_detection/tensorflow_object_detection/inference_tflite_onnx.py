@@ -1,4 +1,6 @@
 # python3 -m tf2onnx.convert --tflite fire_efdet_d0.tflite --opset 9 --output test.onnx --dequantize --inputs-as-nchw serving_default_images:0
+# https://github.com/microsoft/Windows-Machine-Learning/issues/386
+# https://www.google.com/search?q=failed+to+load+model+with+error%3A+unknown+model+file+format+version.&oq=&aqs=chrome.0.69i59i450l8.201823287j0j15&sourceid=chrome&ie=UTF-8
 
 import cv2
 import onnxruntime as ort
