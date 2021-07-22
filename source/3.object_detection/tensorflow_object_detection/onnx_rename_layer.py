@@ -1,6 +1,6 @@
 import onnx
 
-onnx_model = onnx.load("/home/barcelona/ho_test/change/fire_efdet_d0.onnx")
+onnx_model = onnx.load("/home/barcelona/test/test.onnx")
 
 layer_names = ['serving_default_images:0']
 
@@ -171,4 +171,4 @@ for i in range(len(onnx_model.graph.output)):
 		print(onnx_model.graph.output[i])
 		onnx_model.graph.output[i].name = "Identity_box_num"
 
-onnx.save(onnx_model, "/home/barcelona/ho_test/change/test.onnx")
+onnx.save(onnx_model, "/home/barcelona/test/test_rename.onnx")
