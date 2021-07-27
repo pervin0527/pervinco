@@ -25,6 +25,8 @@ test_x = np.expand_dims(test_x, axis=0)
 
 ort_inputs = {ort_session.get_inputs()[0].name: test_x.astype(np.float32)}
 ort_outs = ort_session.run(None, ort_inputs)
+
+"""EfficientDet"""
 # print(ort_outs[0].shape) # Bounding Box
 # print(ort_outs[1].shape) # categories of the detected boxes
 # print(ort_outs[2].shape) # scores of the detected boxes
@@ -46,12 +48,7 @@ ort_outs = ort_session.run(None, ort_inputs)
 
 #         cv2.rectangle(image, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (255, 0, 0))
 
-# image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-# cv2.imshow('result', image)
-# cv2.waitKey(0)
-
-# print(final_result)
-
+"""MobileNet"""
 print(ort_outs[0].shape) # detection anchor indices
 print(ort_outs[1].shape) # detection boxes
 print(ort_outs[2].shape) # detection classes
@@ -74,8 +71,8 @@ for idx in range(len(scores)):
 
         cv2.rectangle(image, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (255, 0, 0))
 
+""" RESULT """
+print(final_result)
 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 cv2.imshow('result', image)
 cv2.waitKey(0)
-
-print(final_result)
