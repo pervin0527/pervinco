@@ -35,6 +35,9 @@ The output model has the following inputs & outputs:
     --trained_checkpoint_dir=object_detection/custom/models/fire/21_07_08 \
     --output_directory=/home/barcelona/test/ssd_mb_v2/
 
+    # optional
+    python3 -m tf2onnx.convert --saved-model saved_model/ --opset 11 --output ./model.onnx --inputs-as-nchw input_tensor:0
+
 ## Convert pb, tflite
 
     python3 object_detection/export_tflite_graph_tf2.py

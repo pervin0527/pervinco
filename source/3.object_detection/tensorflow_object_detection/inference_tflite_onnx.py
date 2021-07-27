@@ -9,10 +9,10 @@ import pandas as pd
 # np.set_printoptions(formatter={'float_kind': lambda x: "{0:0.3f}".format(x)})
 
 IMG_PATH = "/data/Datasets/testset/ETRI_cropped_large/test_sample_24.jpg"
-MODEL_PATH = "/home/barcelona/test/fire_efdet_d0.onnx"
+MODEL_PATH = "/home/barcelona/test/ssd_mb_v2/model.onnx"
 LABEL_FILE = pd.read_csv('/data/Datasets/Seeds/ETRI_detection/labels.txt', sep=' ', index_col=False, header=None)
 CLASSES = sorted(LABEL_FILE[0].tolist())
-THRESH_HOLD = 0.6
+THRESH_HOLD = 0.4
 IMG_SIZE = 320
 
 ort_session = ort.InferenceSession(MODEL_PATH)
@@ -23,19 +23,44 @@ image = cv2.resize(image, (IMG_SIZE, IMG_SIZE))
 test_x = np.transpose(image, [2, 0, 1])
 test_x = np.expand_dims(test_x, axis=0)
 
-ort_inputs = {ort_session.get_inputs()[0].name: test_x.astype(np.uint8)}
+ort_inputs = {ort_session.get_inputs()[0].name: test_x.astype(np.float32)}
 ort_outs = ort_session.run(None, ort_inputs)
-print(ort_outs[0].shape) # Bounding Box
-print(ort_outs[1].shape) # categories of the detected boxes
-print(ort_outs[2].shape) # scores of the detected boxes
-print(ort_outs[3].shape) # number of the detected boxes
+# print(ort_outs[0].shape) # Bounding Box
+# print(ort_outs[1].shape) # categories of the detected boxes
+# print(ort_outs[2].shape) # scores of the detected boxes
+# print(ort_outs[3].shape) # number of the detected boxes
 
-bboxes = ort_outs[0][0]
-labels = ort_outs[1][0]
-scores = ort_outs[2][0]
-# print(bboxes)
-# print(labels)
-# print(scores)
+# bboxes = ort_outs[0][0]
+# labels = ort_outs[1][0]
+# scores = ort_outs[2][0]
+
+# final_result = []
+# for idx in range(len(scores)):
+#     if scores[idx] > THRESH_HOLD:
+#         final_result.append((int(labels[idx]), scores[idx], bboxes[idx]))
+#         ymin, xmin, ymax, xmax = bboxes[idx][0], bboxes[idx][1], bboxes[idx][2], bboxes[idx][3]
+#         xmin *= IMG_SIZE
+#         ymin *= IMG_SIZE
+#         xmax *= IMG_SIZE
+#         ymax *= IMG_SIZE
+
+#         cv2.rectangle(image, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (255, 0, 0))
+
+# image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+# cv2.imshow('result', image)
+# cv2.waitKey(0)
+
+# print(final_result)
+
+print(ort_outs[0].shape) # detection anchor indices
+print(ort_outs[1].shape) # detection boxes
+print(ort_outs[2].shape) # detection classes
+print(ort_outs[3].shape) # detection multiclass scores
+print(ort_outs[4].shape) # detection scores
+
+bboxes = ort_outs[1][0]
+labels = ort_outs[2][0]
+scores = ort_outs[4][0]
 
 final_result = []
 for idx in range(len(scores)):
