@@ -9,7 +9,7 @@ import pandas as pd
 # np.set_printoptions(formatter={'float_kind': lambda x: "{0:0.3f}".format(x)})
 
 IMG_PATH = "/data/Datasets/testset/ETRI_cropped_large/test_sample_24.jpg"
-MODEL_PATH = "/home/barcelona/test/ssd_mb_v2/model.onnx"
+MODEL_PATH = "/home/barcelona/test/ssd_mb_v2/test.onnx"
 LABEL_FILE = pd.read_csv('/data/Datasets/Seeds/ETRI_detection/labels.txt', sep=' ', index_col=False, header=None)
 CLASSES = sorted(LABEL_FILE[0].tolist())
 THRESH_HOLD = 0.4
@@ -20,8 +20,9 @@ ort_session = ort.InferenceSession(MODEL_PATH)
 image = cv2.imread(IMG_PATH)
 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 image = cv2.resize(image, (IMG_SIZE, IMG_SIZE))
-test_x = np.transpose(image, [2, 0, 1])
-test_x = np.expand_dims(test_x, axis=0)
+# test_x = np.transpose(image, [2, 0, 1])
+test_x = np.expand_dims(image, axis=0)
+print(test_x.shape)
 
 ort_inputs = {ort_session.get_inputs()[0].name: test_x.astype(np.float32)}
 ort_outs = ort_session.run(None, ort_inputs)
