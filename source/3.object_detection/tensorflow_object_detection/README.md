@@ -25,6 +25,16 @@ The output model has the following inputs & outputs:
 
     tensorboard --logdir=./object_detection/custom/models/21_06_09_efnet/train
 
+## Convert checkpoint to SavedModel
+
+    # cd tensorflow/models/research
+
+    python3 object_detection/exporter_main_v2.py \
+    --input_type=float_image_tensor \
+    --pipeline_config_path=object_detection/custom/deploy/ssd_mobilenet_v2_320/pipeline.config \
+    --trained_checkpoint_dir=object_detection/custom/models/fire/21_07_08 \
+    --output_directory=/home/barcelona/test/ssd_mb_v2/
+
 ## Convert pb, tflite
 
     python3 object_detection/export_tflite_graph_tf2.py
