@@ -33,7 +33,7 @@ else:
 # label_map = ['trafficlight','stop','speedlimit','crosswalk']
 label_map = ['Red_fire_extinguisher', 'Silver_fire_extinguisher', 'fireplug', 'exit_sign', 'fire_detector']
 
-spec = object_detector.EfficientDetLite0Spec()
+spec = object_detector.EfficientDetLite1Spec()
 train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/mm_etri/train', '/data/Datasets/Seeds/mm_etri/train', label_map)
 validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/mm_etri/test', '/data/Datasets/Seeds/mm_etri/test', label_map)
 
