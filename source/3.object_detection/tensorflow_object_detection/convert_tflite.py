@@ -24,8 +24,8 @@ else:
 
 
 label_file_paths='/data/Datasets/Seeds/ETRI_detection/labels.txt'
-path = "/home/barcelona/tensorflow/models/research/object_detection/custom/models/fire/21_07_10"
-saved_model_dir = f"{path}/saved_model"
+path = "/home/barcelona/tensorflow/models/research/object_detection/custom/models/fire/21_07_30"
+saved_model_dir = f"{path}/model/saved_model"
 
 converter = tf.lite.TFLiteConverter.from_saved_model(saved_model_dir, signature_keys=['serving_default'])
 converter.optimizations = [tf.lite.Optimize.DEFAULT]
