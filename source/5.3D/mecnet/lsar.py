@@ -195,7 +195,7 @@ class LSAR_POS_SOFT(data.Dataset):
 
       self.num_classes = (grid_x)*(grid_y) # 54
       self.num_floors = maxflr # 3
-      # self.num_angles = 72
+      self.num_angles = 72
 
       """
       grid 공간에 맞게 data processing => 절댓값.
