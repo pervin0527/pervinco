@@ -24,6 +24,7 @@ def modify_xml(images, xmls, is_train):
         else:
             folder_name = 'test'
 
+        root.find('path').text = folder_name
         root.find('folder').text = folder_name
 
         try:
