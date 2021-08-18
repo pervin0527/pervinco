@@ -18,6 +18,7 @@ def read_annot_file(path):
             for obj in objects:
                 bboxes = obj.find('bndbox')
                 names = obj.find('name')
+                CLASSES.add(names.text)
                 
                 xmin = int(float(bboxes.find('xmin').text))
                 ymin = int(float(bboxes.find('ymin').text))
@@ -27,7 +28,7 @@ def read_annot_file(path):
                 annot_data.append((names.text, xmin, ymin, xmax, ymax))
 
             # print(annot_data)
-            return annot_data
+        return annot_data
 
     else:
         return None
@@ -83,8 +84,8 @@ def write_new_xml(org_data, save_path, index, width, height):
 
     tree = ET.ElementTree(node_root)
     tree.write(f'{save_path}/annotations/{index}.xml')
-    
 
+    
 def process(image_list, is_train):
     if is_train:
         output_dir = f'{output_path}/train'
@@ -145,8 +146,16 @@ if __name__ == "__main__":
     trainset = 'train2017'
     validset = 'val2017'
 
-    # train_images = get_file_list(f'{dataset_path}/{trainset}')
+    CLASSES = set()
+
+    train_images = get_file_list(f'{dataset_path}/{trainset}')
     valid_images = get_file_list(f'{dataset_path}/{validset}')
 
-    # process(train_images, True)
+    process(train_images, True)
     process(valid_images, False)
+
+    f = open(f'{output_path}/labels.txt', 'w')
+    for label in sorted(list(CLASSES)):
+        f.write(f'{label}\n')
+
+    f.close()

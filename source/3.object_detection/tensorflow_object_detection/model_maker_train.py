@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import tensorflow as tf
+import pandas as pd
 
 from absl import logging
 from tflite_model_maker.config import ExportFormat
@@ -30,12 +31,16 @@ else:
     except RuntimeError as e:
         print(e)
 
+label_file_path = "/data/Datasets/Seeds/COCO2017/custom/labels.txt"
 # label_map = ['trafficlight','stop','speedlimit','crosswalk']
-label_map = ['Red_fire_extinguisher', 'Silver_fire_extinguisher', 'fireplug', 'exit_sign', 'fire_detector']
+# label_map = ['Red_fire_extinguisher', 'Silver_fire_extinguisher', 'fireplug', 'exit_sign', 'fire_detector']
+label_file = pd.read_csv(label_file_path, sep=',', index_col=False, header=None)
+label_map = sorted(label_file[0].tolist())
+print(label_map)
 
 spec = object_detector.EfficientDetLite1Spec()
-train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/mm_etri/train', '/data/Datasets/Seeds/mm_etri/train', label_map)
-validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/mm_etri/test', '/data/Datasets/Seeds/mm_etri/test', label_map)
+train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/COCO2017/custom/train/images', '/data/Datasets/Seeds/COCO2017/custom/train/annotations', label_map)
+validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/COCO2017/custom/valid/images', '/data/Datasets/Seeds/COCO2017/custom/valid/annotations', label_map)
 
 model = object_detector.create(train_data,
                                model_spec=spec,
@@ -47,6 +52,6 @@ model = object_detector.create(train_data,
 # model.evaluate(validation_data)
 
 model.export(export_dir='/data/Models/efficientdet_lite',
-             tflite_filename='efficientdet-lite-d0.tflite',
-             label_filename='/data/Datasets/Seeds/ETRI_detection/labels.txt',
+             tflite_filename='efdet_d1_coco.tflite',
+             label_filename=label_file_path,
              export_format=[ExportFormat.TFLITE, ExportFormat.LABEL])
