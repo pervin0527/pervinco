@@ -112,9 +112,12 @@ def process(image_list, is_train):
         cv2.imwrite(f'{output_dir}/images/{idx}.jpg', image)
 
         annot_file = image_file.split('/')[:-1]
-        annot_file.insert(-1, 'annotations')
+        # print(annot_file)
+        # annot_file.insert(-1, 'annotations')
+        annot_file[-2] = "annotations"
         annot_file = '/'.join(annot_file)
         annot_file = f'{annot_file}/{img_file_name}.xml'
+        # print(annot_file)
         
         annotation_data = read_annot_file(annot_file)
         write_new_xml(annotation_data, output_dir, idx, width, height)
@@ -141,15 +144,13 @@ def get_file_list(path):
 
 
 if __name__ == "__main__":
-    output_path = "/data/Datasets/Seeds/COCO2017/custom"
+    output_path = "/data/Datasets/Seeds/COCO2017/test"
     dataset_path = "/data/Datasets/Seeds/COCO2017"
-    trainset = 'train2017'
-    validset = 'val2017'
 
     CLASSES = set()
 
-    train_images = get_file_list(f'{dataset_path}/{trainset}')
-    valid_images = get_file_list(f'{dataset_path}/{validset}')
+    train_images = get_file_list(f'{dataset_path}/images/train')
+    valid_images = get_file_list(f'{dataset_path}/images/valid')
 
     process(train_images, True)
     process(valid_images, False)
