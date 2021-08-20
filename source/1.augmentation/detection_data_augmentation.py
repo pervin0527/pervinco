@@ -126,10 +126,10 @@ def modify_coordinate(output_path, augmented, xml, idx, output_shape):
     root.find('filename').text = filename + '_' + str(idx) + '.jpg'
 
     if output_shape == 'split':
-        tree.write(output_path + '/' + str(idx) + '/xmls/' + filename + '_' + str(idx) + '.xml')
+        tree.write(f"{output_path}/{str(idx)}/xmls/{filename}_{str(idx)}.xml")
 
     else:
-        tree.write(output_path + '/' + 'xmls/' + filename + '_' + str(idx) + '.xml')
+        tree.write(f"{output_path}/xmls/{filename}_{str(idx)}.xml")
 
 
 def augmentation(image_list, xml_list, output_shape, visual):
