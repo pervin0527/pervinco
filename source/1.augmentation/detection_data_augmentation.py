@@ -123,7 +123,7 @@ def modify_coordinate(output_path, augmented, xml, idx, output_shape):
 
         # del bbox_mod[0]
 
-    root.find('filename').text = filename + '_' + str(idx) + '.jpg'
+    root.find('filename').text = f"{filename}_{str(idx)}.jpg"
 
     if output_shape == 'split':
         tree.write(f"{output_path}/{str(idx)}/xmls/{filename}_{str(idx)}.xml")
@@ -208,10 +208,10 @@ if __name__ == "__main__":
     parser.add_argument('--visual', type=str2bool, default=False)
     args = parser.parse_args()
 
-    image_set_path = args.input_images_path + '/*.jpg'
+    image_set_path = f'{args.input_images_path}/*.jpg'
     image_list = sorted(glob.glob(image_set_path))
 
-    xml_set_path = args.input_xmls_path + '/*.xml'
+    xml_set_path = f'{args.input_xmls_path}/*.xml'
     xml_list = sorted(glob.glob(xml_set_path))
 
     output_shape = args.output_shape
@@ -220,15 +220,15 @@ if __name__ == "__main__":
     visual = args.visual
 
     if os.path.isdir(output_path):
-        if os.path.isdir(output_path + '/images') and os.path.isdir(output_path + '/xmls'):
+        if os.path.isdir(f'{output_path}/images') and os.path.isdir(f'{output_path}/xmls'):
             pass
         else:
-            os.makedirs(output_path + '/images')
-            os.makedirs(output_path + '/xmls')
+            os.makedirs(f'{output_path}/images')
+            os.makedirs(f'{output_path}/xmls')
     else:
         os.makedirs(output_path)
-        os.makedirs(output_path + '/images')
-        os.makedirs(output_path + '/xmls')
+        os.makedirs(f'{output_path}/images')
+        os.makedirs(f'{output_path}/xmls')
 
 
     augmentation(image_list, xml_list, output_shape, visual)
