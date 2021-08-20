@@ -167,14 +167,14 @@ def augmentation(image_list, xml_list, output_shape, visual):
 
             if output_shape == 'split':
                 for x in range(int(aug_num)):
-                    if os.path.isdir(output_path + '/' + str(x) + '/images') and os.path.isdir(output_path + '/' + str(x) + '/xmls'):
+                    if os.path.isdir(f"{output_path}/{str(x)}/images") and os.path.isdir(f"{output_path}/{str(x)}/xmls"):
                         pass
                     else:
-                        os.makedirs(output_path + '/' + str(x) + '/images')
-                        os.makedirs(output_path + '/' + str(x) + '/xmls')
+                        os.makedirs(f"{output_path}/{str(x)}/images")
+                        os.makedirs(f"{output_path}/{str(x)}/xmls")
 
                     transformed = transform(image=image, bboxes=bbox, category_ids=category_id)
-                    cv2.imwrite(output_path + '/' + str(x) + '/images/' + image_name + '_' + str(x) + '.jpg', transformed['image'])
+                    cv2.imwrite(f"{output_path} /{str(x)}/images/{image_name}_{str(x)}.jpg", transformed['image'])
                     modify_coordinate(output_path, transformed, xml, x, output_shape)
 
                     if visual:
@@ -183,7 +183,7 @@ def augmentation(image_list, xml_list, output_shape, visual):
             elif output_shape == 'merge':
                 for x in range(int(aug_num)):
                     transformed = transform(image=image, bboxes=bbox, category_ids=category_id)
-                    cv2.imwrite(output_path + '/' + 'images/' + image_name + '_' + str(x) + '.jpg', transformed['image'])
+                    cv2.imwrite(f"{output_path}/images/{image_name}_{str(x)}.jpg", transformed['image'])
                     modify_coordinate(output_path, transformed, xml, x, output_shape)
 
                     if visual:
