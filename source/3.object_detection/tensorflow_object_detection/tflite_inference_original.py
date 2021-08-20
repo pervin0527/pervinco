@@ -80,7 +80,7 @@ def detect(interpreter, input_tensor, include_keypoint=False):
   input_details = interpreter.get_input_details()
   output_details = interpreter.get_output_details()
 
-  interpreter.set_tensor(input_details[0]['index'], input_tensor.numpy().astype(np.uint8))
+  interpreter.set_tensor(input_details[0]['index'], input_tensor.numpy().astype(np.float32))
 
   interpreter.invoke()
 
@@ -98,7 +98,7 @@ def detect(interpreter, input_tensor, include_keypoint=False):
     return boxes, classes, scores, num_detections
 
 if __name__ == "__main__":
-    model_path = '/data/Models/efficientdet_lite/fire_efdet_d0.tflite'
+    model_path = '/data/Models/efficientdet_lite/custom.tflite'
     label_map_path = '/data/Datasets/Seeds/ETRI_detection/label_map.txt'
     image_path = '/data/Datasets/testset/ETRI_cropped_large/test_sample_24.jpg'
 
