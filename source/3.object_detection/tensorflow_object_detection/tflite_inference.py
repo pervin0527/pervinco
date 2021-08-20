@@ -80,7 +80,7 @@ def detect(interpreter, input_tensor, include_keypoint=False):
   input_details = interpreter.get_input_details()
   output_details = interpreter.get_output_details()
 
-  interpreter.set_tensor(input_details[0]['index'], input_tensor.numpy())
+  interpreter.set_tensor(input_details[0]['index'], input_tensor.numpy().astype(np.uint8))
 
   interpreter.invoke()
 
@@ -98,16 +98,14 @@ def detect(interpreter, input_tensor, include_keypoint=False):
     return boxes, classes, scores, num_detections
 
 if __name__ == "__main__":
-    model_path = '/home/barcelona/tensorflow/models/research/object_detection/custom/models/traffic_sign/21_06_17/custom.tflite'
-    label_map_path = '/home/barcelona/tensorflow/models/research/object_detection/custom/labels/traffic_sign.txt'
-    image_path = '/data/datasets/traffic_sign/test/trafficlight.jpg'
+    model_path = '/data/Models/efficientdet_lite/fire_efdet_d0.tflite'
+    label_map_path = '/data/Datasets/Seeds/ETRI_detection/label_map.txt'
+    image_path = '/data/Datasets/testset/ETRI_cropped_large/test_sample_24.jpg'
 
     interpreter = tf.lite.Interpreter(model_path=model_path)
     interpreter.allocate_tensors()
 
-    category_index = label_map_util.create_category_index_from_labelmap(
-        label_map_path)
-
+    category_index = label_map_util.create_category_index_from_labelmap(label_map_path)
     label_id_offset = 1
 
     image = tf.io.read_file(image_path)
@@ -116,7 +114,7 @@ if __name__ == "__main__":
     image_numpy = image.numpy()
 
     input_tensor = tf.convert_to_tensor(image_numpy, dtype=tf.float32)
-    input_tensor = tf.image.resize(input_tensor, (512, 512))
+    input_tensor = tf.image.resize(input_tensor, (320, 320))
     boxes, classes, scores, num_detections = detect(interpreter, input_tensor)
 
     vis_image = plot_detections(image_numpy[0],
