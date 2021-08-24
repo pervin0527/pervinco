@@ -31,7 +31,7 @@ else:
     except RuntimeError as e:
         print(e)
 
-label_file_path = "/data/Datasets/Seeds/COCO2017/custom/labels.txt"
+label_file_path = "/data/Datasets/Seeds/ETRI_detection/custom/labels.txt"
 # label_map = ['trafficlight','stop','speedlimit','crosswalk']
 # label_map = ['Red_fire_extinguisher', 'Silver_fire_extinguisher', 'fireplug', 'exit_sign', 'fire_detector']
 label_file = pd.read_csv(label_file_path, sep=',', index_col=False, header=None)
@@ -39,12 +39,12 @@ label_map = sorted(label_file[0].tolist())
 print(label_map)
 
 spec = object_detector.EfficientDetLite1Spec()
-train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/COCO2017/custom/train/images', '/data/Datasets/Seeds/COCO2017/custom/train/annotations', label_map)
-validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/COCO2017/custom/valid/images', '/data/Datasets/Seeds/COCO2017/custom/valid/annotations', label_map)
+train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/ETRI_detection/custom/train/images', '/data/Datasets/Seeds/ETRI_detection/custom/train/annotations', label_map)
+validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/ETRI_detection/custom/valid/images', '/data/Datasets/Seeds/ETRI_detection/custom/valid/annotations', label_map)
 
 model = object_detector.create(train_data,
                                model_spec=spec,
-                               epochs=50,
+                               epochs=100,
                                batch_size=16,
                                train_whole_model=True,
                                validation_data=validation_data)
@@ -52,6 +52,6 @@ model = object_detector.create(train_data,
 # model.evaluate(validation_data)
 
 model.export(export_dir='/data/Models/efficientdet_lite',
-             tflite_filename='efdet_d1_coco.tflite',
+             tflite_filename='efdet_d1_etri.tflite',
              label_filename=label_file_path,
              export_format=[ExportFormat.TFLITE, ExportFormat.LABEL])

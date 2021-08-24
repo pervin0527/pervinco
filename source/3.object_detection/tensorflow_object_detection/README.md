@@ -116,3 +116,13 @@ The output model has the following inputs & outputs:
 ## convert EfficientDet lite to ONNX
 
     python3 -m tf2onnx.convert --opset 13 --tflite fire_efdet_d0.tflite --output fire_efdet_d0.onnx
+
+
+## tensorflow js
+
+    # model converter
+    tensorflowjs_converter \ 
+    --input_format=tf_saved_model \
+    /data/Models/test/model/saved_model/ \
+    /data/Models/js
+
