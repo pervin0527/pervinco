@@ -45,7 +45,7 @@ validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/See
 model = object_detector.create(train_data,
                                model_spec=spec,
                                epochs=100,
-                               batch_size=16,
+                               batch_size=32,
                                train_whole_model=True,
                                validation_data=validation_data)
 

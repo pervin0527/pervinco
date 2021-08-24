@@ -25,7 +25,7 @@ else:
 
 label_file_paths='/data/Datasets/Seeds/ETRI_detection/labels.txt'
 path = "/data/Models/js/"
-saved_model_dir = f"{path}/efdet_saved_model"
+saved_model_dir = f"{path}/saved_model"
 
 converter = tf.lite.TFLiteConverter.from_saved_model(saved_model_dir, signature_keys=['serving_default'])
 converter.optimizations = [tf.lite.Optimize.DEFAULT]
