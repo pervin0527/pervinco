@@ -69,9 +69,9 @@ def postprocess(boxes, classes, scores, image_path):
 
 if __name__ == "__main__":
     model_file_path = "/data/Models/efficientdet_lite/custom.tflite"
-    image_file_path = "/data/Datasets/testset/ETRI_cropped_large/test_sample_07.jpg"
+    image_file_path = "/data/Datasets/testset/ETRI_cropped_large/test_sample_24.jpg"
     label_file_path = "/data/Datasets/Seeds/ETRI_detection/labels.txt"
-    threshold = 0.4
+    threshold = 0.6
 
     LABEL_FILE = pd.read_csv(label_file_path, sep=' ', index_col=False, header=None)
     CLASSES = LABEL_FILE[0].tolist()
