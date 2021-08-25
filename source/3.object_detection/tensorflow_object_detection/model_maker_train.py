@@ -43,12 +43,12 @@ save_path = "/data/Models/efficient_lite"
 model_file_name = 'efdet_d0_etri'
 # spec = object_detector.EfficientDetLite0Spec(model_dir=save_path)
 spec = object_detector.EfficientDetLite0Spec()
-train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/ETRI_detection/custom/train/images', '/data/Datasets/Seeds/ETRI_detection/custom/train/annotations', label_map)
+train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/ETRI_detection/custom/augmentations/images', '/data/Datasets/Seeds/ETRI_detection/custom/augmentations/annotations', label_map)
 validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/ETRI_detection/custom/valid/images', '/data/Datasets/Seeds/ETRI_detection/custom/valid/annotations', label_map)
 
 model = object_detector.create(train_data,
                                model_spec=spec,
-                               epochs=50,
+                               epochs=100,
                                batch_size=64,
                                train_whole_model=True,
                                validation_data=validation_data)

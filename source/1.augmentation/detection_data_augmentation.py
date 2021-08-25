@@ -11,6 +11,7 @@ import argparse
 
 BOX_COLOR = (0, 0, 255) # Red
 TEXT_COLOR = (255, 255, 255) # White
+# TEXT_COLOR = (0, 0, 0)
 
 def str2bool(v):
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
@@ -21,21 +22,21 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
-def visualize_bbox(img, bbox, class_name, color=BOX_COLOR, thickness=2):   
+def visualize_bbox(img, bbox, class_name, color=BOX_COLOR, thickness=3):   
     # x_min, y_min, w, h = bbox
     # x_min, x_max, y_min, y_max = int(x_min), int(x_min + w), int(y_min), int(y_min + h)
     x_min, y_min, x_max, y_max = map(lambda x : int(x), bbox)
     
     cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color=color, thickness=thickness)
 
-    ((text_width, text_height), _) = cv2.getTextSize(class_name, cv2.FONT_HERSHEY_SIMPLEX, 0.35, 1)    
-    cv2.rectangle(img, (x_min, y_min - int(1.3 * text_height)), (x_min + text_width, y_min), BOX_COLOR, -1)
+    ((text_width, text_height), _) = cv2.getTextSize(class_name, cv2.FONT_HERSHEY_SIMPLEX, 3, 10)    
+    cv2.rectangle(img, (x_min, y_min - int(1.3 * text_height)), (x_min + text_width, y_min), (0, 0, 0), -1)
     cv2.putText(
         img,
         text=class_name,
         org=(x_min, y_min - int(0.3 * text_height)),
         fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-        fontScale=0.35, 
+        fontScale=3, 
         color=TEXT_COLOR, 
         lineType=cv2.LINE_AA,
     )
@@ -51,6 +52,7 @@ def visualize(image, bboxes, category_ids, category_id_to_name, window_name):
     # plt.axis('off')
     # plt.imshow(img)
 
+    # img = cv2.resize(img, (640, 480))
     cv2.imshow(str(window_name), img)
     cv2.waitKey(0)
 
@@ -126,10 +128,10 @@ def modify_coordinate(output_path, augmented, xml, idx, output_shape):
     root.find('filename').text = f"{filename}_{str(idx)}.jpg"
 
     if output_shape == 'split':
-        tree.write(f"{output_path}/{str(idx)}/xmls/{filename}_{str(idx)}.xml")
+        tree.write(f"{output_path}/{str(idx)}/annotations/{filename}_{str(idx)}.xml")
 
     else:
-        tree.write(f"{output_path}/xmls/{filename}_{str(idx)}.xml")
+        tree.write(f"{output_path}/annotations/{filename}_{str(idx)}.xml")
 
 
 def augmentation(image_list, xml_list, output_shape, visual):
@@ -154,6 +156,7 @@ def augmentation(image_list, xml_list, output_shape, visual):
             transform = A.Compose([
                 A.RandomRotate90(p=1),
                 A.RandomBrightnessContrast(p=0.5),
+
                 A.OneOf([
                     A.HorizontalFlip(p=0.6),
                     A.VerticalFlip(p=0.6)], p=0.7),
@@ -167,11 +170,11 @@ def augmentation(image_list, xml_list, output_shape, visual):
 
             if output_shape == 'split':
                 for x in range(int(aug_num)):
-                    if os.path.isdir(f"{output_path}/{str(x)}/images") and os.path.isdir(f"{output_path}/{str(x)}/xmls"):
+                    if os.path.isdir(f"{output_path}/{str(x)}/images") and os.path.isdir(f"{output_path}/{str(x)}/annotations"):
                         pass
                     else:
                         os.makedirs(f"{output_path}/{str(x)}/images")
-                        os.makedirs(f"{output_path}/{str(x)}/xmls")
+                        os.makedirs(f"{output_path}/{str(x)}/annotations")
 
                     transformed = transform(image=image, bboxes=bbox, category_ids=category_id)
                     cv2.imwrite(f"{output_path} /{str(x)}/images/{image_name}_{str(x)}.jpg", transformed['image'])
@@ -220,15 +223,15 @@ if __name__ == "__main__":
     visual = args.visual
 
     if os.path.isdir(output_path):
-        if os.path.isdir(f'{output_path}/images') and os.path.isdir(f'{output_path}/xmls'):
+        if os.path.isdir(f'{output_path}/images') and os.path.isdir(f'{output_path}/annotations'):
             pass
         else:
             os.makedirs(f'{output_path}/images')
-            os.makedirs(f'{output_path}/xmls')
+            os.makedirs(f'{output_path}/annotations')
     else:
         os.makedirs(output_path)
         os.makedirs(f'{output_path}/images')
-        os.makedirs(f'{output_path}/xmls')
+        os.makedirs(f'{output_path}/annotations')
 
 
     augmentation(image_list, xml_list, output_shape, visual)
