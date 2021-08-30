@@ -68,9 +68,9 @@ def postprocess(boxes, classes, scores, image_path):
 
 
 if __name__ == "__main__":
-    model_file_path = "/data/Models/efficientdet_lite/custom.tflite"
-    image_file_path = "/data/Datasets/testset/ETRI_cropped_large/test_sample_24.jpg"
-    label_file_path = "/data/Datasets/Seeds/ETRI_detection/labels.txt"
+    model_file_path = "/data/Models/efficientdet_lite/efdet_d1_coco.tflite"
+    image_file_path = "/data/Datasets/testset/dog.jpg"
+    label_file_path = "/data/Datasets/Seeds/COCO2017/labels.txt"
     threshold = 0.6
 
     LABEL_FILE = pd.read_csv(label_file_path, sep=' ', index_col=False, header=None)
@@ -91,8 +91,8 @@ if __name__ == "__main__":
     input_dtype = input_details[0].get('dtype')
 
     input_tensor = image_preprocess(image_file_path)
-    # interpreter.set_tensor(input_details[0]['index'], input_tensor.numpy().astype(np.uint8))
-    interpreter.set_tensor(input_details[0]['index'], input_tensor.numpy().astype(np.float32))
+    interpreter.set_tensor(input_details[0]['index'], input_tensor.numpy().astype(np.uint8))
+    # interpreter.set_tensor(input_details[0]['index'], input_tensor.numpy().astype(np.float32))
     interpreter.invoke()
 
     boxes = interpreter.get_tensor(output_details[0]['index'])

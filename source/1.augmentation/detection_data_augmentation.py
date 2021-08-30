@@ -153,20 +153,17 @@ def augmentation(image_list, xml_list, output_shape, visual):
             if visual:
                 visualize(image, bbox, category_id, category_id_to_name, 'original data')
 
-            transform = A.Compose([
-                A.RandomRotate90(p=1),
-                A.RandomBrightnessContrast(p=0.5),
+            transform = A.Compose([A.RandomRotate90(p=1),
+                                   A.RandomBrightnessContrast(p=0.5),
 
-                A.OneOf([
-                    A.HorizontalFlip(p=0.6),
-                    A.VerticalFlip(p=0.6)], p=0.7),
+                                    A.OneOf([
+                                        A.HorizontalFlip(p=0.6),
+                                        A.VerticalFlip(p=0.6)], p=0.7),
 
-                # A.OneOf([
-                #     A.RandomBrightnessContrast(p=0.5),
-                #     A.RGBShift(r_shift_limit=30, g_shift_limit=30, b_shift_limit=30, p=0.3)], p=0.7)
-                ],
-                bbox_params = A.BboxParams(format='pascal_voc', label_fields=['category_ids'])
-            )
+                                    # A.OneOf([
+                                    #     A.RandomBrightnessContrast(p=0.5),
+                                    #     A.RGBShift(r_shift_limit=30, g_shift_limit=30, b_shift_limit=30, p=0.3)], p=0.7)
+                                    ], bbox_params = A.BboxParams(format='pascal_voc', label_fields=['category_ids']))
 
             if output_shape == 'split':
                 for x in range(int(aug_num)):
