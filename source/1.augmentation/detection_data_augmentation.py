@@ -1,13 +1,14 @@
-import random
 import cv2
 import os
 import sys
 import glob
-from matplotlib import pyplot as plt
+import random
+import argparse
+import albumentations as A
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
-import albumentations as A
-import argparse
+from matplotlib import pyplot as plt
+from tqdm import tqdm
 
 BOX_COLOR = (0, 0, 255) # Red
 TEXT_COLOR = (255, 255, 255) # White
@@ -29,14 +30,14 @@ def visualize_bbox(img, bbox, class_name, color=BOX_COLOR, thickness=3):
     
     cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color=color, thickness=thickness)
 
-    ((text_width, text_height), _) = cv2.getTextSize(class_name, cv2.FONT_HERSHEY_SIMPLEX, 3, 10)    
+    ((text_width, text_height), _) = cv2.getTextSize(class_name, cv2.FONT_HERSHEY_SIMPLEX, 0.35, 1)    
     cv2.rectangle(img, (x_min, y_min - int(1.3 * text_height)), (x_min + text_width, y_min), (0, 0, 0), -1)
     cv2.putText(
         img,
         text=class_name,
         org=(x_min, y_min - int(0.3 * text_height)),
         fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-        fontScale=3, 
+        fontScale=0.35, 
         color=TEXT_COLOR, 
         lineType=cv2.LINE_AA,
     )
@@ -136,7 +137,9 @@ def modify_coordinate(output_path, augmented, xml, idx, output_shape):
 
 def augmentation(image_list, xml_list, output_shape, visual):
     cnt = 0
-    for image, xml in zip(image_list, xml_list):        
+    for i in tqdm(range(len(image_list))):
+        image = image_list[i]
+        xml = xml_list[i]        
         image_name = image.split('/')[-1]
         image_name = image_name.split('.')[0]
 
@@ -154,15 +157,15 @@ def augmentation(image_list, xml_list, output_shape, visual):
                 visualize(image, bbox, category_id, category_id_to_name, 'original data')
 
             transform = A.Compose([A.RandomRotate90(p=1),
-                                   A.RandomBrightnessContrast(p=0.5),
+                                   A.RandomBrightnessContrast(p=0.7),
 
                                     A.OneOf([
                                         A.HorizontalFlip(p=0.6),
                                         A.VerticalFlip(p=0.6)], p=0.7),
 
-                                    # A.OneOf([
-                                    #     A.RandomBrightnessContrast(p=0.5),
-                                    #     A.RGBShift(r_shift_limit=30, g_shift_limit=30, b_shift_limit=30, p=0.3)], p=0.7)
+                                    A.OneOf([A.Cutout(num_holes=30, max_h_size=25, max_w_size=25, p=0.5),
+                                             A.Downscale(p=0.5)], p=0.7)
+
                                     ], bbox_params = A.BboxParams(format='pascal_voc', label_fields=['category_ids']))
 
             if output_shape == 'split':
