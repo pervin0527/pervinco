@@ -32,8 +32,6 @@ else:
         print(e)
 
 label_file_path = "/data/Datasets/Seeds/rsp/custom/labels.txt"
-# label_map = ['trafficlight','stop','speedlimit','crosswalk']
-# label_map = ['Red_fire_extinguisher', 'Silver_fire_extinguisher', 'fireplug', 'exit_sign', 'fire_detector']
 label_file = pd.read_csv(label_file_path, sep=',', index_col=False, header=None)
 label_map = sorted(label_file[0].tolist())
 print(label_map)
