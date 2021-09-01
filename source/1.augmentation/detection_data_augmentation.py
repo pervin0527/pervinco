@@ -216,6 +216,7 @@ if __name__ == "__main__":
 
     xml_set_path = f'{args.input_xmls_path}/*.xml'
     xml_list = sorted(glob.glob(xml_set_path))
+    print(len(image_list), len(xml_list))
 
     output_shape = args.output_shape
     output_path = args.output_path

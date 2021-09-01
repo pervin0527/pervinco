@@ -31,7 +31,7 @@ else:
     except RuntimeError as e:
         print(e)
 
-label_file_path = "/data/Datasets/Seeds/ETRI_detection/custom/labels.txt"
+label_file_path = "/data/Datasets/Seeds/rsp/custom/labels.txt"
 # label_map = ['trafficlight','stop','speedlimit','crosswalk']
 # label_map = ['Red_fire_extinguisher', 'Silver_fire_extinguisher', 'fireplug', 'exit_sign', 'fire_detector']
 label_file = pd.read_csv(label_file_path, sep=',', index_col=False, header=None)
@@ -40,11 +40,11 @@ print(label_map)
 
 
 save_path = "/data/Models/efficientdet_lite"
-model_file_name = 'efdet_d0_etri'
+model_file_name = 'efdet_d0_rsp'
 # spec = object_detector.EfficientDetLite0Spec(model_dir=save_path)
 spec = object_detector.EfficientDetLite0Spec()
-train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/ETRI_detection/custom/train/images', '/data/Datasets/Seeds/ETRI_detection/custom/train/annotations', label_map)
-validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/ETRI_detection/custom/valid/images', '/data/Datasets/Seeds/ETRI_detection/custom/valid/annotations', label_map)
+train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/rsp/custom/train/images', '/data/Datasets/Seeds/rsp/custom/train/annotations', label_map)
+validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/rsp/custom/valid/images', '/data/Datasets/Seeds/rsp/custom/valid/annotations', label_map)
 
 model = object_detector.create(train_data,
                                model_spec=spec,
