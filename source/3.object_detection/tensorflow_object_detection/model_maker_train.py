@@ -31,23 +31,23 @@ else:
     except RuntimeError as e:
         print(e)
 
-label_file_path = "/data/Datasets/Seeds/rsp/custom/labels.txt"
+label_file_path = "/data/Datasets/Seeds/ETRI_detection/custom/labels.txt"
 label_file = pd.read_csv(label_file_path, sep=',', index_col=False, header=None)
 label_map = sorted(label_file[0].tolist())
 print(label_map)
 
 
 save_path = "/data/Models/efficientdet_lite"
-model_file_name = 'efdet_d0_rsp'
+model_file_name = 'efdet_d2_etri'
 # spec = object_detector.EfficientDetLite0Spec(model_dir=save_path)
-spec = object_detector.EfficientDetLite0Spec()
-train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/rsp/custom/train/images', '/data/Datasets/Seeds/rsp/custom/train/annotations', label_map)
-validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/rsp/custom/valid/images', '/data/Datasets/Seeds/rsp/custom/valid/annotations', label_map)
+spec = object_detector.EfficientDetLite2Spec()
+train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/ETRI_detection2/augmentation/images', '/data/Datasets/Seeds/ETRI_detection2/augmentation/annotations', label_map)
+validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/ETRI_detection2/valid/images', '/data/Datasets/Seeds/ETRI_detection2/valid/annotations', label_map)
 
 model = object_detector.create(train_data,
                                model_spec=spec,
-                               epochs=100,
-                               batch_size=64,
+                               epochs=200,
+                               batch_size=32,
                                train_whole_model=True,
                                validation_data=validation_data)
 

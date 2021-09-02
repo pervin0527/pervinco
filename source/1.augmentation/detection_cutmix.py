@@ -35,7 +35,7 @@ def get_annotation_data(annotation_file):
         return data
 
 def get_crop_area(image_path, annotation_path):
-    print(image_path)
+    # print(image_path)
     image = cv2.imread(image_path)
     annotation = get_annotation_data(annotation_path)
 
@@ -64,7 +64,8 @@ def write_new_xml(org_data, name, index, width, height):
     node_folder.text = output_path.split('/')[-1]
 
     node_filename = SubElement(node_root, 'filename')
-    node_filename.text = f'{index}.jpg'
+    node_filename.text = f'{name}_{index}.jpg'
+    print(f'{name}_{index}')
 
     node_size = SubElement(node_root, 'size')
 
@@ -155,10 +156,10 @@ def show_result(images, annotations):
         cv2.waitKey(0)
             
 if __name__ == "__main__":
-    images_path = "/data/Datasets/Seeds/rsp/custom/valid/images"
-    annotations_path = "/data/Datasets/Seeds/rsp/custom/valid/annotations/"
-    backgrounds_path = "backgrounds/"
-    output_path = "output/"
+    images_path = "/data/Datasets/Seeds/ETRI_detection2/train/images"
+    annotations_path = "/data/Datasets/Seeds/ETRI_detection2/train/annotations/"
+    backgrounds_path = "/home/barcelona/test_code/backgrounds"
+    output_path = "/home/barcelona/test_code/output"
 
     if not os.path.isdir(output_path):
         os.makedirs(f'{output_path}/images')

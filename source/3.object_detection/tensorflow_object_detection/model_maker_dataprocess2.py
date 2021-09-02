@@ -144,8 +144,8 @@ def get_file_list(path):
 
 
 if __name__ == "__main__":
-    output_path = "/data/Datasets/Seeds/COCO2017/test"
-    dataset_path = "/data/Datasets/Seeds/COCO2017"
+    output_path = "/data/Datasets/Seeds/ETRI_detection2"
+    dataset_path = "/data/Datasets/Seeds/ETRI_detection"
 
     CLASSES = set()
 
