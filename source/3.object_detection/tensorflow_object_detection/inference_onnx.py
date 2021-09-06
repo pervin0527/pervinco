@@ -29,7 +29,7 @@ def image_process(path):
     return image
 
 def inference(session, test_x):
-    if args.model_name == "efficientdet_lite":
+    if args.model_name == "efficientdet":
         ort_inputs = {ort_session.get_inputs()[0].name: test_x.astype(np.uint8)}
 
     else:
@@ -44,7 +44,7 @@ def pred_post_process(predictions, image_path):
     image = cv2.resize(image, (int(args.image_size), int(args.image_size)))
     # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-    if args.model_name == "efficientdet_lite":
+    if args.model_name == "efficientdet":
         bboxes = predictions[0][0]
         labels = predictions[1][0]
         scores = predictions[2][0]
