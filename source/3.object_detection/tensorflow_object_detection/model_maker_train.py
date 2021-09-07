@@ -41,8 +41,8 @@ save_path = "/data/Models/efficientdet_lite"
 model_file_name = 'efdet_d1_etri_augmentation'
 # spec = object_detector.EfficientDetLite0Spec(model_dir=save_path)
 spec = object_detector.EfficientDetLite1Spec()
-train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/ETRI_detection2/augmentation/images', '/data/Datasets/Seeds/ETRI_detection2/augmentation/annotations', label_map)
-validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/ETRI_detection2/valid/images', '/data/Datasets/Seeds/ETRI_detection2/valid/annotations', label_map)
+train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/ETRI_detection/custom2/augmentation/train/images', '/data/Datasets/Seeds/ETRI_detection/custom2/augmentation/train/annotations', label_map)
+validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/ETRI_detection/custom2/augmentation/valid/images', '/data/Datasets/Seeds/ETRI_detection/custom2/augmentation/valid/annotations', label_map)
 
 model = object_detector.create(train_data,
                                model_spec=spec,
