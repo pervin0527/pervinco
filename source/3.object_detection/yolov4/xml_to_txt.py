@@ -70,6 +70,7 @@ def convert_xml2yolo(lut, input_path, output_path):
                     print(filename,image_width, image_hegiht, result)
 
                     f.write(label_str + " " + " ".join([("%.6f" % a) for a in result]) + '\n')
+                    # f.write(classes[int(label_str)]+ " " + " ".join([("%.6f" % a) for a in result]) + '\n')
 
 
 if __name__ == '__main__':

@@ -23,13 +23,10 @@ else:
     except RuntimeError as e:
         print(e)
 
-
-
 def print_info(info_list, type):
     print(f"############################################# Model {type} info #############################################")
     print(info_list)
     print("############################################################################################################## \n")
-
 
 def image_preprocess(image_path):
     image = tf.io.read_file(image_path)
@@ -41,7 +38,6 @@ def image_preprocess(image_path):
         input_tensor = tf.transpose(input_tensor, [2, 0, 1])
 
     return input_tensor
-
 
 def postprocess(boxes, classes, scores, image_path):
     boxes = boxes[0]
@@ -65,7 +61,6 @@ def postprocess(boxes, classes, scores, image_path):
     print(final_result)
     cv2.imshow('result', image)
     cv2.waitKey(0)    
-
 
 if __name__ == "__main__":
     model_file_path = "/data/Models/efficientdet_lite/efdet_d1_coco.tflite"
