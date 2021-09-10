@@ -22,8 +22,8 @@ if __name__ == "__main__":
     model_file_path = "/data/Models/efficientdet_lite/efdet_d1_fire_aug.tflite"
     label_file_path = "/data/Datasets/Seeds/ETRI_detection/custom/labels.txt"
     testset_path = "/data/Datasets/testset/etri_detect_gt"
-    output_path = "/data/Datasets/testset/etri_detection_result"
-    threshold = 0.6
+    output_path = "/home/barcelona/mAP/input/detection-results"
+    threshold = 0.4
 
     LABEL_FILE = pd.read_csv(label_file_path, sep=' ', index_col=False, header=None)
     CLASSES = LABEL_FILE[0].tolist()
