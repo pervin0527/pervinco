@@ -19,7 +19,8 @@ def convert_coordinates(size, box):
     return (x,y,w,h)
 
 if __name__ == "__main__":
-    model_file_path = "/data/Models/efficientdet_lite/efdet_d1_fire_aug.tflite"
+    model_file_path = "/data/Models/efficientdet_lite/efdet_d1_etri_augmentation.tflite"
+    # model_file_path = "/data/Models/ssd_mobilenet_v2_etri/lite/custom.tflite"
     label_file_path = "/data/Datasets/Seeds/ETRI_detection/custom/labels.txt"
     testset_path = "/data/Datasets/testset/etri_detect_gt"
     output_path = "/home/barcelona/mAP/input/detection-results"
@@ -46,6 +47,7 @@ if __name__ == "__main__":
         input_tensor = tf.expand_dims(image, axis=0)
 
         interpreter.set_tensor(input_details[0]['index'], input_tensor.numpy().astype(np.uint8))
+        # interpreter.set_tensor(input_details[0]['index'], input_tensor.numpy().astype(np.float32))
         interpreter.invoke()
 
         boxes = interpreter.get_tensor(output_details[0]['index'])

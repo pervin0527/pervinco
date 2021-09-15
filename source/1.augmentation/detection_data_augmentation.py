@@ -161,13 +161,12 @@ def augmentation(image_list, xml_list, output_shape, visual):
                                    A.RandomContrast(limit=(-0.1, 0.1), p=0.7),
                                    A.Transpose(p=0.5),
 
-                                    A.OneOf([
-                                        A.HorizontalFlip(p=0.6),
-                                        A.VerticalFlip(p=0.6)], p=0.7),
+                                    A.OneOf([A.HorizontalFlip(p=0.6),
+                                             A.VerticalFlip(p=0.6)], p=0.7),
 
-                                    A.OneOf([A.Cutout(num_holes=25, max_h_size=75, max_w_size=75, p=0.5),
+                                    A.OneOf([A.Cutout(num_holes=25, max_h_size=28, max_w_size=28, p=0.5),
                                             #  A.Downscale(p=0.5),
-                                             A.GaussNoise(p=0.5)], p=0.6,)
+                                             A.GaussNoise(p=0.5)], p=0.5,)
 
                                     ], bbox_params = A.BboxParams(format='pascal_voc', label_fields=['category_ids']))
 
