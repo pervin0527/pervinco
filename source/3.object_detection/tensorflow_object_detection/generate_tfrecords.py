@@ -12,9 +12,9 @@ from object_detection.utils import dataset_util
 from collections import namedtuple, OrderedDict
 
 flags = tf.app.flags
-flags.DEFINE_string('csv_input', '/data/Datasets/Seeds/mm_etri_train/train.csv', 'Path to the CSV input')
-flags.DEFINE_string('output_path', '/data/Datasets/Seeds/mm_etri_train/train.tfrecord', 'Path to output TFRecord')
-flags.DEFINE_string('image_dir', '/data/Datasets/Seeds/mm_etri_train/images', 'Path to images')
+flags.DEFINE_string('csv_input', '/data/Datasets/Seeds/ETRI_detection/custom2/valid.csv', 'Path to the CSV input')
+flags.DEFINE_string('output_path', '/data/Datasets/Seeds/ETRI_detection/custom2/valid.tfrecord', 'Path to output TFRecord')
+flags.DEFINE_string('image_dir', '/data/Datasets/Seeds/ETRI_detection/custom2/augmentation/valid/images', 'Path to images')
 FLAGS = flags.FLAGS
 
 
