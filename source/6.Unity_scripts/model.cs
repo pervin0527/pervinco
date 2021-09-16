@@ -35,6 +35,7 @@ public sealed class CustomNetworkModel
         return learningModel;
     }
 
+    // 결과값 받을 변수 정의. 예측값을 return
     public async Task<CustomNetworkOutput> EvaluateAsync(CustomNetworkInput input)
     {
         // Ensure the input and output fields are bound to the correct

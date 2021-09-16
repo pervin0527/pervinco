@@ -143,6 +143,7 @@ public class NetworkModel
 
         // }
 
+        // 입력된 이미지에 대한 detection model의 결과값을 가져와서 list로 만든다.
         var outboxes = _customNetworkOutput.bboxes.GetAsVectorView().ToList();
         var outclasses = _customNetworkOutput.classes.GetAsVectorView().ToList();
         var outscores = _customNetworkOutput.scores.GetAsVectorView().ToList();

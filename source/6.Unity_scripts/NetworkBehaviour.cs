@@ -7,7 +7,7 @@ public class NetworkBehaviour : MonoBehaviour
 {
     // Public fields
     public float ProbabilityThreshold = 0.5f;
-    public Vector2 InputFeatureSize = new Vector2(320, 320);
+    public Vector2 InputFeatureSize = new Vector2(320, 320); // model의 input_shape에 따라 변경
     public Text StatusBlock;
 
     // Private fields
@@ -22,7 +22,7 @@ public class NetworkBehaviour : MonoBehaviour
         {
             // Create a new instance of the network model class
             // and asynchronously load the onnx model
-            _networkModel = new NetworkModel();
+            _networkModel = new NetworkModel(); // model load
             await _networkModel.LoadModelAsync();
             StatusBlock.text = $"Loaded model. Starting camera...";
 
@@ -101,6 +101,7 @@ public class NetworkBehaviour : MonoBehaviour
                 //$"Inference time: {result.PredictionTime} ms";
                 
                 // StatusBlock.text = $"TESTING";
+                // 결과값 출력
                 StatusBlock.text = $"bboxes : {result.PredictionBoxes}" +
                                    $"classes : {result.PredictionClasses}" +
                                    $"scores : {result.PredictionScores}";
