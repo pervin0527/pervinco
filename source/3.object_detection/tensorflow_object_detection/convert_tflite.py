@@ -24,7 +24,7 @@ else:
 
 
 label_file_paths='/data/Datasets/Seeds/ETRI_detection/etri_labels.txt'
-path = "/data/Models/ssd_mobilenet_v2_etri/lite"
+path = "/data/Models/ssd_mobilenet_v2_etri/2021_09_15/lite"
 saved_model_dir = f"{path}/saved_model"
 
 converter = tf.lite.TFLiteConverter.from_saved_model(saved_model_dir, signature_keys=['serving_default'])

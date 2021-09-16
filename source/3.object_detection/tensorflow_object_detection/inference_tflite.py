@@ -34,8 +34,8 @@ def image_preprocess(image_path):
     image = tf.image.resize(image, (input_width, input_height))
     input_tensor = tf.expand_dims(image, axis=0)
     
-    if image.shape[1] == 3:
-        input_tensor = tf.transpose(input_tensor, [2, 0, 1])
+    # if image.shape[1] == 3:
+    #     input_tensor = tf.transpose(input_tensor, [2, 0, 1])
 
     return input_tensor
 
@@ -63,10 +63,12 @@ def postprocess(boxes, classes, scores, image_path):
     cv2.waitKey(0)    
 
 if __name__ == "__main__":
-    model_file_path = "/data/Models/efficientdet_lite/efdet_d1_coco.tflite"
-    image_file_path = "/data/Datasets/testset/dog.jpg"
-    label_file_path = "/data/Datasets/Seeds/COCO2017/labels.txt"
-    threshold = 0.6
+    # model_file_path = "/data/Models/efficientdet_lite/efdet_d1_etri_augmentation.tflite"
+    model_file_path = "/data/Models/ssd_mobilenet_v2_etri/2021_09_15/lite/custom.tflite"
+    image_file_path = "/data/Datasets/testset/ETRI_cropped_large/test_sample_31.jpg"
+    # label_file_path = "/data/Datasets/Seeds/ETRI_detection/etri_labels.txt"
+    label_file_path = "/data/Datasets/Seeds/ETRI_detection/custom/labels.txt"
+    threshold = 0.4
 
     LABEL_FILE = pd.read_csv(label_file_path, sep=' ', index_col=False, header=None)
     CLASSES = LABEL_FILE[0].tolist()
@@ -86,8 +88,8 @@ if __name__ == "__main__":
     input_dtype = input_details[0].get('dtype')
 
     input_tensor = image_preprocess(image_file_path)
-    interpreter.set_tensor(input_details[0]['index'], input_tensor.numpy().astype(np.uint8))
-    # interpreter.set_tensor(input_details[0]['index'], input_tensor.numpy().astype(np.float32))
+    # interpreter.set_tensor(input_details[0]['index'], input_tensor.numpy().astype(np.uint8))
+    interpreter.set_tensor(input_details[0]['index'], input_tensor.numpy().astype(np.float32))
     interpreter.invoke()
 
     boxes = interpreter.get_tensor(output_details[0]['index'])
@@ -95,5 +97,7 @@ if __name__ == "__main__":
     scores = interpreter.get_tensor(output_details[2]['index'])
     num_detections = interpreter.get_tensor(output_details[3]['index'])
 
-    print(scores)
+    print(boxes.shape)
+    print(classes.shape)
+    print(scores.shape)
     postprocess(boxes, classes, scores, image_file_path)
