@@ -15,27 +15,12 @@ flags = tf.app.flags
 flags.DEFINE_string('csv_input', '/data/Datasets/Seeds/ETRI_detection/custom3/augmentations/train.csv', 'Path to the CSV input')
 flags.DEFINE_string('output_path', '/data/Datasets/Seeds/ETRI_detection/custom3/augmentations/train.tfrecord', 'Path to output TFRecord')
 flags.DEFINE_string('image_dir', '/data/Datasets/Seeds/ETRI_detection/custom3/augmentations/images', 'Path to images')
+flags.DEFINE_string('label_map', '/data/Datasets/Seeds/ETRI_detection/labels/labels.txt', 'Path to the label_map file')
 FLAGS = flags.FLAGS
 
 
 def class_text_to_int(row_label):
-    if row_label == 'Red_fire_extinguisher':
-        return 1
-
-    elif row_label == 'Silver_fire_extinguisher':
-        return 2
-
-    elif row_label == 'fireplug':
-        return 3
-
-    elif row_label == 'exit_sign':
-        return 4
-
-    elif row_label == 'fire_detector':
-        return 5
-
-    else:
-        None
+    return CLASSES.get(row_label)
 
 def split(df, group):
     data = namedtuple('data', ['filename', 'object'])
@@ -86,6 +71,11 @@ def create_tf_example(group, path):
 
 
 def main(_):
+    labels = pd.read_csv(FLAGS.label_map, sep=' ', index_col=False, header=None)
+    CLASSES = labels[0].tolist()
+    CLASSES = dict((value, index) for index, value in enumerate(CLASSES))
+    print(CLASSES)
+
     writer = tf.python_io.TFRecordWriter(FLAGS.output_path)
     path = os.path.join(FLAGS.image_dir)
     examples = pd.read_csv(FLAGS.csv_input)

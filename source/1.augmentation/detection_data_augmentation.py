@@ -164,9 +164,9 @@ def augmentation(image_list, xml_list, output_shape, visual):
                                     A.OneOf([A.HorizontalFlip(p=0.6),
                                              A.VerticalFlip(p=0.6)], p=0.7),
 
-                                    A.OneOf([A.Cutout(num_holes=25, max_h_size=28, max_w_size=28, p=0.5),
+                                    A.OneOf([A.Cutout(num_holes=15, max_h_size=20, max_w_size=20, p=0.5),
                                             #  A.Downscale(p=0.5),
-                                             A.GaussNoise(p=0.5)], p=0.5,)
+                                             A.GaussNoise(p=0.5)], p=0.4,)
 
                                     ], bbox_params = A.BboxParams(format='pascal_voc', label_fields=['category_ids']))
 
