@@ -64,10 +64,10 @@ def postprocess(boxes, classes, scores, image_path):
 
 if __name__ == "__main__":
     # model_file_path = "/data/Models/efficientdet_lite/efdet_d1_etri_augmentation.tflite"
-    model_file_path = "/data/Models/ssd_mobilenet_v2_etri/2021_09_15/lite/custom.tflite"
+    model_file_path = "/data/Models/efficientdet_lite/efdet_d1_etri_augmentation.tflite"
     image_file_path = "/data/Datasets/testset/ETRI_cropped_large/test_sample_31.jpg"
     # label_file_path = "/data/Datasets/Seeds/ETRI_detection/etri_labels.txt"
-    label_file_path = "/data/Datasets/Seeds/ETRI_detection/custom/labels.txt"
+    label_file_path = "/data/Datasets/Seeds/ETRI_detection/labels/labels.txt"
     threshold = 0.4
 
     LABEL_FILE = pd.read_csv(label_file_path, sep=' ', index_col=False, header=None)
@@ -88,8 +88,8 @@ if __name__ == "__main__":
     input_dtype = input_details[0].get('dtype')
 
     input_tensor = image_preprocess(image_file_path)
-    # interpreter.set_tensor(input_details[0]['index'], input_tensor.numpy().astype(np.uint8))
-    interpreter.set_tensor(input_details[0]['index'], input_tensor.numpy().astype(np.float32))
+    interpreter.set_tensor(input_details[0]['index'], input_tensor.numpy().astype(np.uint8))
+    # interpreter.set_tensor(input_details[0]['index'], input_tensor.numpy().astype(np.float32))
     interpreter.invoke()
 
     boxes = interpreter.get_tensor(output_details[0]['index'])
@@ -97,7 +97,10 @@ if __name__ == "__main__":
     scores = interpreter.get_tensor(output_details[2]['index'])
     num_detections = interpreter.get_tensor(output_details[3]['index'])
 
-    print(boxes.shape)
-    print(classes.shape)
-    print(scores.shape)
+    print(boxes[0].shape)
+    print(boxes[0])
+    print(classes[0].shape)
+    print(classes[0])
+    print(scores[0].shape)
+    print(scores[0])
     postprocess(boxes, classes, scores, image_file_path)

@@ -9,7 +9,7 @@ import tensorflow as tf
 
 IMG_SIZE = 224
 # MODEL_PATH = "/data/Models/ETRI_cropped_large/2021.07.07_18:26/converted.onnx"
-MODEL_PATH = "/home/barcelona/test/ssd_mb_v2/ssd_mb_v2.onnx"
+MODEL_PATH = "/data/Models/ssd_mobilenet_v2_etri/convert.onnx"
 OUTPUT_PATH = MODEL_PATH.split('/')[:-1]
 OUTPUT_PATH = '/'.join(OUTPUT_PATH)
 
@@ -20,7 +20,7 @@ OUTPUT_PATH = '/'.join(OUTPUT_PATH)
 onnx_model = onnx.load(MODEL_PATH)
 
 # endpoint_names = ['input_2:0', 'Identity']
-endpoint_names = ['input_tensor:0']
+endpoint_names = ['input_tensor']
 
 for i in range(len(onnx_model.graph.node)):
 	for j in range(len(onnx_model.graph.node[i].input)):
@@ -54,7 +54,7 @@ for i in range(len(onnx_model.graph.output)):
 		onnx_model.graph.output[i].name = onnx_model.graph.output[i].name.split(':')[0]
 
 # onnx.save(onnx_model, f'{OUTPUT_PATH}/converted_mod.onnx')
-onnx.save(onnx_model, '/home/barcelona/test/ssd_mb_v2/ssd_mb_v2_renamed.onnx')
+onnx.save(onnx_model, '/data/Models/ssd_mobilenet_v2_etri/model.onnx')
 
 # print(CLASSES)
 # ort_session = ort.InferenceSession(f"{OUTPUT_PATH}/converted_mod.onnx")
