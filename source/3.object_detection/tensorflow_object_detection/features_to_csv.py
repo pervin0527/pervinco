@@ -1,6 +1,7 @@
 import os 
 import glob
 import sys 
+import argparse
 import pandas as pd 
 import xml.etree.ElementTree as ET
 from datetime import datetime
@@ -11,8 +12,6 @@ def xml_to_csv(path):
     xml_list = []
 
     for xml_file in sorted(glob.glob(path + '/*.xml')):
-        # print(xml_file)
-
         img_file_name = xml_file.split('/')[-1]
         file_name = img_file_name.split('.')[0] + '.jpg'
 
@@ -40,10 +39,10 @@ def xml_to_csv(path):
                 if name == "Etc":
                     pass
 
-                xmin = int(float(bbox_original.find('xmin').text))
-                ymin = int(float(bbox_original.find('ymin').text))
-                xmax = int(float(bbox_original.find('xmax').text))
-                ymax = int(float(bbox_original.find('ymax').text))
+                xmin = int(bbox_original.find('xmin').text)
+                ymin = int(bbox_original.find('ymin').text)
+                xmax = int(bbox_original.find('xmax').text)
+                ymax = int(bbox_original.find('ymax').text)
 
                 value = (str(file_name), height, width, str(name), xmin, ymin, xmax, ymax)
                 xml_list.append(value)
@@ -53,9 +52,13 @@ def xml_to_csv(path):
     return xml_df
 
 
-if __name__ == "__main__": 
-    xml_path = sys.argv[1]
-    
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Generate csv file from xml annotations')
+    parser.add_argument('--annot_dir', help='directory of input xml files', default='../data/xml_annot')
+    parser.add_argument('--out_csv_path', help='path to output csv file', default='../data/train.csv')
+    args = parser.parse_args()
+
+    xml_path = args.annot_dir
     dataset_name = xml_path.split('/')[-2]
     image_path = xml_path.split('/')[:-1]
     output_path = '/'.join(image_path)
@@ -68,5 +71,4 @@ if __name__ == "__main__":
         pass
 
     xml_df = xml_to_csv(xml_path)
-    today = datetime.today().strftime('%Y-%m-%d-%H:%M:%S')
-    xml_df.to_csv(output_path + '/' + dataset_name + '_' + today + '_feature.csv', index=None)
+    xml_df.to_csv(args.out_csv_path, index=None)
