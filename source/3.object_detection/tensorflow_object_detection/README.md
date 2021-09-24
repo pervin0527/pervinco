@@ -15,12 +15,33 @@ The output model has the following inputs & outputs:
 ## training
 
     # cd tensorflow/models/research
+    python3 model_main_tf2.py \
+    --alsologtostderr \
+    --model_dir=$out_dir \ 
+    --checkpoint_every_n=500  \
+    --pipeline_config_path=../models/ssd_mobilenet_v2_raccoon.config \
+    --eval_on_train_data 2>&1 | tee $out_dir/train.log
 
-    python3 object_detection/model_main_tf2.py \
-    --pipeline_config_path=object_detection/custom/deploy/efficientdet/pipeline.config \
-    --model_dir=object_detection/custom/models/21_06_09_efnet
+    python3 model_main_tf2.py 
+    --alsologtostderr --model_dir=$out_dir \
+    --pipeline_config_path=../models/ssd_mobilenet_v2_raccoon.config \
+    --checkpoint_dir=$out_dir  2>&1 | tee $out_dir/eval.log
+
 
 ## Tensorboard
+  if you train on server and want to monitor tensorboard.
+
+  oooo : tensorboard port number  
+  xxxx : ip address  
+  ^^^^ : ip port
+
+
+    ssh -L oooo:localhost:oooo -p ^^^^ name@xxxx.xxxx.xxxx.xxxx
+
+    # shutdown process
+    lsof -i:6006
+    kill -9 PID  
+
     # cd tensorflow/models/research
 
     tensorboard --logdir=./object_detection/custom/models/21_06_09_efnet/train
@@ -86,28 +107,6 @@ The output model has the following inputs & outputs:
         } \
       } \
     }"
-
-
-
-## Quantization
-
-    # int8
-    python3 quantization.py
-
-
-## Tensorboard in ssh
-  if you train on server and want to monitor tensorboard.
-
-  oooo : tensorboard port number  
-  xxxx : ip address  
-  ^^^^ : ip port
-
-
-    ssh -L oooo:localhost:oooo -p ^^^^ name@xxxx.xxxx.xxxx.xxxx
-
-    # shutdown process
-    lsof -i:6006
-    kill -9 PID  
 
 ## EfficientDet lite with Model maker
 
