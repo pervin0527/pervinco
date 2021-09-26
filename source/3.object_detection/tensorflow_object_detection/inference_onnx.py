@@ -82,7 +82,8 @@ def pred_post_process(predictions, image_path):
     print(final_result)
 
     for result in final_result:
-        print(f"CLASSES : {CLASSES[result[0]]}")
+        print(result[0])
+        print(f"CLASSES : {CLASSES[(result[0]-1)]}")
 
     cv2.imshow('result', image)
     cv2.waitKey(0)
