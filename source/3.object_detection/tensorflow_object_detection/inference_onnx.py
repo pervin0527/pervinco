@@ -63,31 +63,31 @@ def pred_post_process(predictions, image_path):
                 cv2.rectangle(image, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (255, 0, 0))
 
     else:
-        print(np.array(predictions).shape)
-    #     bboxes = predictions[1][0]
-    #     labels = predictions[2][0]
-    #     scores = predictions[4][0]
+        print(np.array(predictions[0]).shape)
+        bboxes = predictions[1][0]
+        labels = predictions[2][0]
+        scores = predictions[4][0]
 
-    #     for idx in range(len(scores)):
-    #         if scores[idx] > float(args.threshold):
-    #             final_result.append((int(labels[idx]), scores[idx], bboxes[idx]))
-    #             ymin, xmin, ymax, xmax = bboxes[idx][0], bboxes[idx][1], bboxes[idx][2], bboxes[idx][3]
-    #             xmin *= int(args.image_size)
-    #             ymin *= int(args.image_size)
-    #             xmax *= int(args.image_size)
-    #             ymax *= int(args.image_size)
+        for idx in range(len(scores)):
+            if scores[idx] > float(args.threshold):
+                final_result.append((int(labels[idx]), scores[idx], bboxes[idx]))
+                ymin, xmin, ymax, xmax = bboxes[idx][0], bboxes[idx][1], bboxes[idx][2], bboxes[idx][3]
+                xmin *= int(args.image_size)
+                ymin *= int(args.image_size)
+                xmax *= int(args.image_size)
+                ymax *= int(args.image_size)
 
-    #             cv2.rectangle(image, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (255, 0, 0))
+                cv2.rectangle(image, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (255, 0, 0))
 
-    # print(CLASSES)
-    # print(final_result)
+    print(CLASSES)
+    print(final_result)
 
-    # for result in final_result:
-    #     print(result[0])
-    #     print(f"CLASSES : {CLASSES[(result[0]-1)]}")
+    for result in final_result:
+        print(result[0])
+        print(f"CLASSES : {CLASSES[(result[0]-1)]}")
 
-    # cv2.imshow('result', image)
-    # cv2.waitKey(0)
+    cv2.imshow('result', image)
+    cv2.waitKey(0)
 
 
 if __name__ == "__main__":
