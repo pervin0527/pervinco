@@ -7,7 +7,7 @@ def load_model(path):
     print(f"Model Path : {path}")
     ort_session = ort.InferenceSession(path)
 
-    input_shape = ort_session.get_inputs()[0].shape
+    input_shape = list(map(int, ort_session.get_inputs()[0].shape))
     print(f"Input Shape : {input_shape}")
 
     return ort_session, input_shape
@@ -35,13 +35,17 @@ def pre_processing(path, input_shape):
 
 
 def post_processing(detection_result, image, threshold, width, height):
-    image = cv2.resize(image, (width, height))
     result = []
 
-    bboxes = detection_result[0][0]
-    classes = detection_result[1][0]
-    scores = detection_result[2][0]
+    image = cv2.resize(image, (width, height))
+    bboxes = detection_result[1][0]
+    classes = detection_result[2][0]
+    scores = detection_result[4][0]
 
+    # bboxes = detection_result[0][0]
+    # classes = detection_result[1][0]
+    # scores = detection_result[2][0]
+    
     for idx in range(len(scores)):
         if scores[idx] > threshold:
             result.append((int(classes[idx]), scores[idx], bboxes[idx]))
@@ -60,16 +64,22 @@ def post_processing(detection_result, image, threshold, width, height):
 
 
 def inference(ort_session, test_x):
-    ort_inputs = {ort_session.get_inputs()[0].name: test_x.astype(np.uint8)}
-    ort_outs = ort_session.run(None, ort_inputs)
-    # print(ort_outs)
+    try:
+        ort_inputs = {ort_session.get_inputs()[0].name: test_x.astype(np.uint8)}
+        ort_outs = ort_session.run(None, ort_inputs)
+        # print(ort_outs)
+
+    except:
+        ort_inputs = {ort_session.get_inputs()[0].name: test_x.astype(np.float32)}
+        ort_outs = ort_session.run(None, ort_inputs)
 
     return ort_outs
 
 
 if __name__ == "__main__":
-    model_path = "/data/Models/efficientdet_lite/model.onnx"
-    image_path = "/data/Datasets/testset/ETRI_cropped_large/test_sample_08.jpg"
+    # model_path = "/data/Models/efficientdet_lite/model.onnx"
+    model_path = "/data/Models/efficientdet/2021_09_27/export/test.onnx"
+    image_path = "/data/Datasets/testset/ETRI_cropped_large/test_sample_07.jpg"
     label_path = "/data/Datasets/Seeds/ETRI_detection/labels/labels.txt"
     detection_threshold = 0.7
 

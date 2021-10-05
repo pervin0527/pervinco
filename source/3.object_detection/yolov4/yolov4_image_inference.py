@@ -8,9 +8,9 @@ import argparse
 from threading import Thread, enumerate
 from queue import Queue
 
-weight_file = "/data/Models/etri_yolov2_tiny/yolov2-tiny-voc_final.weights"
-config_file = "/home/barcelona/darknet/custom/etri_v2_tiny/deploy/yolov2-tiny-voc.cfg"
-data_file = "/home/barcelona/darknet/custom/etri_v2_tiny/data/etri.data"
+weight_file = "/data/Models/etri_yolov4/yolov4_final.weights"
+config_file = "/home/barcelona/darknet/custom/etri/deploy/yolov4.cfg"
+data_file = "/home/barcelona/darknet/custom/etri/data/etri.data"
 thresh_hold = .4
 
 network, class_names, class_colors = darknet.load_network(config_file, data_file, weight_file, batch_size=1)
@@ -20,7 +20,7 @@ height = darknet.network_height(network)
 darknet_image = darknet.make_image(width, height, 3)
 
 
-test_image = cv2.imread("/data/Datasets/testset/ETRI_cropped_large/test_sample_13.jpg")
+test_image = cv2.imread("/data/Datasets/testset/ETRI_cropped_large/test_sample_07.jpg")
 frame_rgb = cv2.cvtColor(test_image, cv2.COLOR_BGR2RGB)
 frame_resized = cv2.resize(frame_rgb, (width, height), interpolation=cv2.INTER_LINEAR)
 darknet.copy_image_from_bytes(darknet_image, frame_resized.tobytes())

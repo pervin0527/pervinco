@@ -65,7 +65,7 @@ def postprocess(boxes, classes, scores, image_path):
 
 if __name__ == "__main__":
     model_file_path = "/data/Models/efficientdet_lite/efdet_d1_etri_augmentation.tflite"
-    image_file_path = "/data/Datasets/testset/ETRI_cropped_large/test_sample_08.jpg"
+    image_file_path = "/data/Datasets/testset/ETRI_cropped_large/test_sample_04.jpg"
     label_file_path = "/data/Datasets/Seeds/ETRI_detection/labels/labels.txt"
     threshold = 0.4
 
