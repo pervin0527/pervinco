@@ -31,25 +31,21 @@ def pre_processing(path, input_shape):
 
 
 def post_processing(detection_result, threshold, width, height):
-    result = []
-
     bboxes = detection_result[0][0]
     classes = detection_result[1][0]
     scores = detection_result[2][0]
 
     for idx in range(len(scores)):
         if scores[idx] > threshold:
-            result.append((int(classes[idx]), scores[idx], bboxes[idx]))
             ymin, xmin, ymax, xmax = bboxes[idx][0], bboxes[idx][1], bboxes[idx][2], bboxes[idx][3]
+
             xmin *= int(width)
             ymin *= int(height)
             xmax *= int(width)
             ymax *= int(height)
 
-            cv2.rectangle(image, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (255, 0, 0))
-
-    for r in result:
-        print(f"Inference Result : {label[(r[0]-1)]}")
+            cv2.rectangle(image, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (255, 255, 0))
+            cv2.putText(image, f"{label[int(classes[idx]-1)]} {scores[idx]:.2f}%", (int(xmin), int(ymin)), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 0))
 
     cv2.imshow('result', image)
     cv2.waitKey(0)
@@ -58,14 +54,14 @@ def post_processing(detection_result, threshold, width, height):
 def inference(ort_session, test_x):
     ort_inputs = {ort_session.get_inputs()[0].name: test_x.astype(np.uint8)}
     ort_outs = ort_session.run(None, ort_inputs)
-    print(ort_outs)
+    # print(ort_outs)
 
     return ort_outs
 
 
 if __name__ == "__main__":
     model_path = "/data/Models/efficientdet_lite/model.onnx"
-    image_path = "/data/Datasets/testset/ETRI_cropped_large/test_sample_32.jpg"
+    image_path = "/data/Datasets/testset/ETRI_cropped_large/test_sample_24.jpg"
     label_path = "/data/Datasets/Seeds/ETRI_detection/labels/labels.txt"
     detection_threshold = 0.7
 
