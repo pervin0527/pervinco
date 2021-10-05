@@ -57,16 +57,15 @@ def postprocess(boxes, classes, scores, image_path):
             final_result.append((label, score, (xmin, ymin, xmax, ymax))) 
 
             cv2.rectangle(image, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (255, 0, 0))
+            cv2.putText(image, f"{label} {score:.2f}%", (int(xmin), int(ymin)), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 0))
 
     print(final_result)
     cv2.imshow('result', image)
     cv2.waitKey(0)    
 
 if __name__ == "__main__":
-    # model_file_path = "/data/Models/efficientdet_lite/efdet_d1_etri_augmentation.tflite"
     model_file_path = "/data/Models/efficientdet_lite/efdet_d1_etri_augmentation.tflite"
-    image_file_path = "/data/Datasets/testset/ETRI_cropped_large/test_sample_31.jpg"
-    # label_file_path = "/data/Datasets/Seeds/ETRI_detection/etri_labels.txt"
+    image_file_path = "/data/Datasets/testset/ETRI_cropped_large/test_sample_08.jpg"
     label_file_path = "/data/Datasets/Seeds/ETRI_detection/labels/labels.txt"
     threshold = 0.4
 
