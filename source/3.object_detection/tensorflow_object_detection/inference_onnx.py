@@ -1,113 +1,80 @@
-# python3 -m tf2onnx.convert --tflite fire_efdet_d0.tflite --opset 9 --output test.onnx --dequantize --inputs-as-nchw serving_default_images:0
-# https://github.com/microsoft/Windows-Machine-Learning/issues/386
-# https://www.google.com/search?q=failed+to+load+model+with+error%3A+unknown+model+file+format+version.&oq=&aqs=chrome.0.69i59i450l8.201823287j0j15&sourceid=chrome&ie=UTF-8
-
-import argparse
 import cv2
-import onnxruntime as ort
 import numpy as np
 import pandas as pd
+import onnxruntime as ort
 
 def load_model(path):
-    print(path)
+    print(f"Model Path : {path}")
     ort_session = ort.InferenceSession(path)
 
-    return ort_session
+    input_shape = ort_session.get_inputs()[0].shape
+    print(f"Input Shape : {input_shape}")
 
-def image_process(path):
-    image = cv2.imread(path)
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    image = cv2.resize(image, (int(args.image_size), int(args.image_size)))
+    return ort_session, input_shape
 
-    if args.image_format == "channel_last":
-        image = np.expand_dims(image, axis=0)
 
-    elif args.image_format == "channel_first":
-        image = np.transpose(image, [2, 0, 1])
-        image = np.expand_dims(image, axis=0)
+def pre_processing(path, input_shape):
+    original_image = cv2.imread(path)
+    # original_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB)
+    image = cv2.resize(original_image, (input_shape[2], input_shape[3]))
+    
+    if input_shape[1] == 3:
+        test_image = np.transpose(image, [2,0,1])
+        test_image = np.expand_dims(test_image, axis=0)
 
-    return image
-
-def inference(session, test_x):
-    if args.model_name == "efficientdet":
-        ort_inputs = {ort_session.get_inputs()[0].name: test_x.astype(np.uint8)}
+        return test_image, image, input_shape[2], input_shape[3]
 
     else:
-        ort_inputs = {ort_session.get_inputs()[0].name: test_x.astype(np.float32)}
+        test_image = np.expand_dims(image, axis=0)
+        
+        return test_image, image, input_shape[1], input_shape[2]
 
-    ort_outs = ort_session.run(None, ort_inputs)
-    return ort_outs
 
-def pred_post_process(predictions, image_path):
-    final_result = []
-    image = cv2.imread(image_path)
-    image = cv2.resize(image, (int(args.image_size), int(args.image_size)))
-    # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+def post_processing(detection_result, threshold, width, height):
+    result = []
 
-    if args.model_name == "efficientdet":
-        bboxes = predictions[0][0]
-        labels = predictions[1][0]
-        scores = predictions[2][0]
+    bboxes = detection_result[0][0]
+    classes = detection_result[1][0]
+    scores = detection_result[2][0]
 
-        # print(bboxes.shape, labels.shape, scores.shape)
+    for idx in range(len(scores)):
+        if scores[idx] > threshold:
+            result.append((int(classes[idx]), scores[idx], bboxes[idx]))
+            ymin, xmin, ymax, xmax = bboxes[idx][0], bboxes[idx][1], bboxes[idx][2], bboxes[idx][3]
+            xmin *= int(width)
+            ymin *= int(height)
+            xmax *= int(width)
+            ymax *= int(height)
 
-        for idx in range(len(scores)):
-            if scores[idx] > float(args.threshold):
-                final_result.append((int(labels[idx]), scores[idx], bboxes[idx]))
-                ymin, xmin, ymax, xmax = bboxes[idx][0], bboxes[idx][1], bboxes[idx][2], bboxes[idx][3]
-                xmin *= int(args.image_size)
-                ymin *= int(args.image_size)
-                xmax *= int(args.image_size)
-                ymax *= int(args.image_size)
+            cv2.rectangle(image, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (255, 0, 0))
 
-                cv2.rectangle(image, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (255, 0, 0))
-
-    else:
-        print(np.array(predictions[0]).shape)
-        bboxes = predictions[1][0]
-        labels = predictions[2][0]
-        scores = predictions[4][0]
-
-        for idx in range(len(scores)):
-            if scores[idx] > float(args.threshold):
-                final_result.append((int(labels[idx]), scores[idx], bboxes[idx]))
-                ymin, xmin, ymax, xmax = bboxes[idx][0], bboxes[idx][1], bboxes[idx][2], bboxes[idx][3]
-                xmin *= int(args.image_size)
-                ymin *= int(args.image_size)
-                xmax *= int(args.image_size)
-                ymax *= int(args.image_size)
-
-                cv2.rectangle(image, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (255, 0, 0))
-
-    print(CLASSES)
-    print(final_result)
-
-    for result in final_result:
-        print(result[0])
-        print(f"CLASSES : {CLASSES[(result[0]-1)]}")
+    for r in result:
+        print(f"Inference Result : {label[(r[0]-1)]}")
 
     cv2.imshow('result', image)
     cv2.waitKey(0)
 
 
+def inference(ort_session, test_x):
+    ort_inputs = {ort_session.get_inputs()[0].name: test_x.astype(np.uint8)}
+    ort_outs = ort_session.run(None, ort_inputs)
+    print(ort_outs)
+
+    return ort_outs
+
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Inferencing onnx format model")
-    parser.add_argument("--model_path", type=str)
-    parser.add_argument("--model_name", type=str)
-    parser.add_argument("--image_path", type=str)
-    parser.add_argument("--image_size", type=str)
-    parser.add_argument("--image_format", type=str)
-    parser.add_argument("--label_file_path", type=str)
-    parser.add_argument("--threshold", type=str)
-    args = parser.parse_args()
+    model_path = "/data/Models/efficientdet_lite/model.onnx"
+    image_path = "/data/Datasets/testset/ETRI_cropped_large/test_sample_32.jpg"
+    label_path = "/data/Datasets/Seeds/ETRI_detection/labels/labels.txt"
+    detection_threshold = 0.7
 
-    LABEL_FILE = pd.read_csv(args.label_file_path, sep=' ', index_col=False, header=None)
-    CLASSES = LABEL_FILE[0].tolist()
+    label = pd.read_csv(label_path, sep=' ', index_col=False, header=None)    
+    label = label[0].tolist()
 
-    ort_session = load_model(args.model_path)
-    test_image = image_process(args.image_path)
+    ort_session, input_tensor_shape = load_model(model_path)
+    test_x, image, width, height = pre_processing(image_path, input_tensor_shape)
 
-    result = inference(ort_session, test_image)
-    # print(result)
-
-    pred_post_process(result, args.image_path)
+    detection_result = inference(ort_session, test_x)
+    post_processing(detection_result, detection_threshold, width, height)
+    
