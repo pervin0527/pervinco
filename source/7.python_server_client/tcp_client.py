@@ -20,7 +20,7 @@ cap.set(cv2.CAP_PROP_FRAME_HEIGHT, frame_height)
 # cv2.namedWindow('inference', cv2.WINDOW_FREERATIO)
 # cv2.resizeWindow('inference', frame_width, frame_height)
 
-cap.set(cv2.CAP_PROP_BRIGHTNESS, 100)
+cap.set(cv2.CAP_PROP_BRIGHTNESS, 80)
 # cap.set(cv2.CAP_PROP_FOURCC, MJPG_CODEC)
 cap.set(cv2.CAP_PROP_AUTOFOCUS, cap_AUTOFOCUS)
 cap.set(cv2.CAP_PROP_FOCUS, cap_FOCUS)

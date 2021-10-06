@@ -37,10 +37,10 @@ def detect_fn(image, detection_model):
 
 
 if __name__ == "__main__":
-    PATH_TO_CFG = '/home/barcelona/tensorflow/models/research/object_detection/custom/deploy/ssd_mobilenet_v2_320/pipeline.config'
-    PATH_TO_CKPT = '/home/barcelona/tensorflow/models/research/object_detection/custom/models/traffic_sign/21_06_14'
-    PATH_TO_LABELS = '/home/barcelona/tensorflow/models/research/object_detection/custom/labels/traffic_sign.txt'
-    CKPT_VALUE = 'ckpt-101'
+    PATH_TO_CFG = '/data/Models/efficientdet/efficientdet_d0_coco17_tpu-32/ssd_efficientdet_d0_512x512_coco17_tpu-8.config'
+    PATH_TO_CKPT = '/data/Models/efficientdet/2021_09_27'
+    PATH_TO_LABELS = '/data/Datasets/Seeds/ETRI_detection/labels/label_map.txt'
+    CKPT_VALUE = 'ckpt-301'
     THRESH_HOLD = .7
 
     ###############################################################################################
@@ -50,15 +50,15 @@ if __name__ == "__main__":
     cap_FOCUS = 0
     #cap_ZOOM = 400
 
-    frame_width = int(1920)
-    frame_height = int(1080)
+    frame_width = int(640)
+    frame_height = int(480)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, frame_width)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, frame_height)
     # cv2.namedWindow('inference', cv2.WINDOW_FREERATIO)
     # cv2.resizeWindow('inference', frame_width, frame_height)
 
-    cap.set(cv2.CAP_PROP_BRIGHTNESS, 0)
-    cap.set(cv2.CAP_PROP_FOURCC, MJPG_CODEC)
+    cap.set(cv2.CAP_PROP_BRIGHTNESS, 100)
+    # cap.set(cv2.CAP_PROP_FOURCC, MJPG_CODEC)
     cap.set(cv2.CAP_PROP_AUTOFOCUS, cap_AUTOFOCUS)
     cap.set(cv2.CAP_PROP_FOCUS, cap_FOCUS)
     ##############################################################################################
@@ -74,7 +74,8 @@ if __name__ == "__main__":
 
     while True:
         ret, image_np = cap.read()
-        print(image_np.shape)
+        # print(image_np.shape)
+        # image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
 
         input_tensor = tf.convert_to_tensor(np.expand_dims(image_np, 0), dtype=tf.float32)
         detections, predictions_dict, shapes = detect_fn(input_tensor, detection_model)
@@ -93,7 +94,7 @@ if __name__ == "__main__":
                                                             agnostic_mode=False)
 
         # Display output
-        cv2.imshow('object detection', cv2.resize(image_np_with_detections, (640, 480)))
+        cv2.imshow('object detection', image_np_with_detections)
 
         if cv2.waitKey(25) & 0xFF == ord('q'):
             break

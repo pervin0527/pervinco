@@ -8,7 +8,7 @@ from ctypes import *
 weight_file = "/data/Models/etri_yolov4/yolov4_final.weights"
 config_file = "/home/barcelona/darknet/custom/etri/deploy/yolov4.cfg"
 data_file = "/home/barcelona/darknet/custom/etri/data/etri.data"
-thresh_hold = .6
+thresh_hold = .8
 
 network, class_names, class_colors = darknet.load_network(config_file, data_file, weight_file, batch_size=1)
 width = darknet.network_width(network)
