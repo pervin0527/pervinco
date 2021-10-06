@@ -1,7 +1,11 @@
 import cv2
-import socket
 import numpy as np
+import socket
+import sys
+import pickle
+import struct
 
+# 비디오 경로 읽어오기
 ###############################################################################################
 cap = cv2.VideoCapture(-1)
 MJPG_CODEC = 1196444237.0 # MJPG
@@ -21,24 +25,11 @@ cap.set(cv2.CAP_PROP_BRIGHTNESS, 100)
 cap.set(cv2.CAP_PROP_AUTOFOCUS, cap_AUTOFOCUS)
 cap.set(cv2.CAP_PROP_FOCUS, cap_FOCUS)
 ##############################################################################################
+clientsocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+clientsocket.connect(('localhost',8089))
 
-HOST = 'localhost'
-PORT = 7777
-  
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect((HOST, PORT))
-
-while cap.isOpened():
-    ret, frame = cap.read()
-    if not ret:
-        print("nbbbbbbb")
-        break
-
-    encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
-    result, imgencode = cv2.imencode('.jpg', frame, encode_param)
-    data = np.array(imgencode)
-    stringData = data.tobytes()
-
-    client_socket.send(str(len(stringData)).ljust(16).encode())
-    client_socket.send(stringData)
-    # client_socket.close()
+while True:
+    ret,frame = cap.read()
+    data = pickle.dumps(frame)
+    message_size = struct.pack("L", len(data))
+    clientsocket.sendall(message_size + data)
