@@ -2,8 +2,9 @@ import pathlib
 import cv2
 import os
 import xml.etree.ElementTree as ET
-from lxml.etree import Element, SubElement, tostring
 from xml.dom import minidom
+from lxml.etree import Element, SubElement, tostring
+from sklearn.model_selection import train_test_split
 
 
 def read_annot_file(path):
@@ -84,6 +85,7 @@ def write_new_xml(org_data, save_path, index, width, height):
 
     tree = ET.ElementTree(node_root)
     tree.write(f'{save_path}/annotations/{index}.xml')
+    print(f'{save_path}/annotations/{index}.xml')
 
     
 def process(image_list, is_train):
@@ -114,13 +116,15 @@ def process(image_list, is_train):
         annot_file = image_file.split('/')[:-1]
         # print(annot_file)
         # annot_file.insert(-1, 'annotations')
-        annot_file[-2] = "annotations"
+        annot_file[-1] = "annotations"
         annot_file = '/'.join(annot_file)
         annot_file = f'{annot_file}/{img_file_name}.xml'
-        # print(annot_file)
-        
+        print(annot_file)
+        # break
+
         annotation_data = read_annot_file(annot_file)
         write_new_xml(annotation_data, output_dir, idx, width, height)
+        # break
 
 
 def get_file_list(path):
@@ -144,18 +148,23 @@ def get_file_list(path):
 
 
 if __name__ == "__main__":
-    output_path = "/data/Datasets/Seeds/ETRI_detection2"
-    dataset_path = "/data/Datasets/Seeds/ETRI_detection"
-
     CLASSES = set()
+    output_path = "/data/Datasets/Seeds/DMC/set1"
+    dataset_path = "/data/Datasets/Seeds/DMC/images"
 
-    train_images = get_file_list(f'{dataset_path}/images/train')
-    valid_images = get_file_list(f'{dataset_path}/images/valid')
+    total_images = get_file_list(dataset_path)
+    train_images, test_images = train_test_split(total_images, test_size=0.2, shuffle=True)
 
+    # train_images = get_file_list(f'{dataset_path}/images/train')
+    # valid_images = get_file_list(f'{dataset_path}/images/valid')
     process(train_images, True)
-    process(valid_images, False)
+    process(test_images, False)
 
-    f = open(f'{output_path}/labels.txt', 'w')
+    label_path = '/'.join(output_path.split('/')[:-1])
+    if not os.path.isdir(f"{label_path}/labels"):
+        os.makedirs(f"{label_path}/labels")
+
+    f = open(f'{label_path}/labels/labels.txt', 'w')
     for label in sorted(list(CLASSES)):
         f.write(f'{label}\n')
 
