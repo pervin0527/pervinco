@@ -38,9 +38,9 @@ def detect_fn(image, detection_model):
 
 if __name__ == "__main__":
     PATH_TO_CFG = '/data/Models/efficientdet/efficientdet_d0_coco17_tpu-32/ssd_efficientdet_d0_512x512_coco17_tpu-8.config'
-    PATH_TO_CKPT = '/data/Models/efficientdet/2021_09_27'
+    PATH_TO_CKPT = '/data/Models/efficientdet/2021_10_06'
     PATH_TO_LABELS = '/data/Datasets/Seeds/ETRI_detection/labels/label_map.txt'
-    CKPT_VALUE = 'ckpt-301'
+    CKPT_VALUE = 'ckpt-101'
     THRESH_HOLD = .7
 
     ###############################################################################################
