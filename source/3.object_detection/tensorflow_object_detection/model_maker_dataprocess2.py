@@ -149,8 +149,8 @@ def get_file_list(path):
 
 if __name__ == "__main__":
     CLASSES = set()
-    output_path = "/data/Datasets/Seeds/DMC/set1"
-    dataset_path = "/data/Datasets/Seeds/DMC/images"
+    output_path = "/data/Datasets/Seeds/DMC/set2"
+    dataset_path = "/data/Datasets/Seeds/DMC/yolov4_label/images"
 
     total_images = get_file_list(dataset_path)
     train_images, test_images = train_test_split(total_images, test_size=0.2, shuffle=True)

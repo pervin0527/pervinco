@@ -156,7 +156,7 @@ def augmentation(image_list, xml_list, output_shape, visual):
             if visual:
                 visualize(image, bbox, category_id, category_id_to_name, 'original data')
 
-            transform = A.Compose([A.Resize(height=512, width=512, p=1),
+            transform = A.Compose([A.Resize(height=416, width=416, p=1),
                                    A.RandomRotate90(p=1),
                                    A.RandomBrightness(limit=(-0.1, 0.1), p=0.7),
                                    A.RandomContrast(limit=(-0.1, 0.1), p=0.7),
@@ -206,24 +206,24 @@ def augmentation(image_list, xml_list, output_shape, visual):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Detection dataset augmentation')
-    parser.add_argument('--input_images_path', type=str)
-    parser.add_argument('--input_xmls_path', type=str)
-    parser.add_argument('--output_path', type=str)
-    parser.add_argument('--output_shape', type=str) # split or merge
-    parser.add_argument('--num_of_aug', type=str, default=5)
+    parser.add_argument('--image_path', type=str)
+    parser.add_argument('--xml_path', type=str)
+    parser.add_argument('--outpath', type=str)
+    parser.add_argument('--outshape', type=str) # split or merge
+    parser.add_argument('--num_aug', type=str, default=5)
     parser.add_argument('--visual', type=str2bool, default=False)
     args = parser.parse_args()
 
-    image_set_path = f'{args.input_images_path}/*.jpg'
+    image_set_path = f'{args.image_path}/*.jpg'
     image_list = sorted(glob.glob(image_set_path))
 
-    xml_set_path = f'{args.input_xmls_path}/*.xml'
+    xml_set_path = f'{args.xml_path}/*.xml'
     xml_list = sorted(glob.glob(xml_set_path))
     print(len(image_list), len(xml_list))
 
-    output_shape = args.output_shape
-    output_path = args.output_path
-    aug_num = args.num_of_aug
+    output_shape = args.outshape
+    output_path = args.outpath
+    aug_num = args.num_aug
     visual = args.visual
 
     if os.path.isdir(output_path):
