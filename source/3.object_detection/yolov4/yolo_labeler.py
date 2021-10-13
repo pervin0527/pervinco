@@ -14,17 +14,11 @@ from xml.etree.ElementTree import ElementTree
 from lxml.etree import Element, SubElement, tostring
 from sklearn.model_selection import train_test_split
 
-def rewrite_xml(results, is_train, idx):
-    if is_train:
-        path = "train"
-
-    else:
-        path = "test"
-
+def rewrite_xml(results, idx):
     node_root = Element('annotation')
     
     node_folder = SubElement(node_root, 'folder')
-    node_folder.text = path
+    node_folder.text = 'folder'
     
     node_filename = SubElement(node_root, 'filename')
     node_filename.text = f'image_{idx}.jpg'
@@ -67,19 +61,14 @@ def rewrite_xml(results, is_train, idx):
         node_ymax.text = str(results[i][4])
         
     tree = ElementTree(node_root)
-    tree.write(f'{output_path}/{path}/annotations/image_{idx}.xml')
+    tree.write(f'{output_path}/annotations/image_{idx}.xml')
 
 
-def save_detection_result(images, is_train):
-    if is_train:
-        path = "train"
-
-    else:
-        path = "test"
-
-    if not os.path.isdir(f"{output_path}/{path}/image") and not os.path.isdir(f"{output_path}/{path}/annotations"):
-        os.makedirs(f"{output_path}/{path}/images")
-        os.makedirs(f"{output_path}/{path}/annotations")
+def save_detection_result(images):
+    if not os.path.isdir(f"{output_path}/image") and not os.path.isdir(f"{output_path}/annotations") and not os.path.isdir(f"{output_path}/results"):
+        os.makedirs(f"{output_path}/images")
+        os.makedirs(f"{output_path}/annotations")
+        os.makedirs(f"{output_path}/results")
 
     idx = 0
     for image in images:
@@ -107,20 +96,17 @@ def save_detection_result(images, is_train):
 
             frame_resized = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2RGB)
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            cv2.imwrite(f"{output_path}/{path}/images/image_{idx}.jpg", frame_resized)
-            # cv2.imwrite(f"{output_path}/{path}/images/result_{idx}.jpg", image)
+            cv2.imwrite(f"{output_path}/images/image_{idx}.jpg", frame_resized)
+            cv2.imwrite(f"{output_path}/results/result_{idx}.jpg", image)
             # print(result)
 
-            rewrite_xml(result, is_train, idx)
+            rewrite_xml(result, idx)
             idx += 1
 
-            just_show = cv2.cvtColor(just_show, cv2.COLOR_BGR2RGB)
-            cv2.imshow("result", just_show)
-            if cv2.waitKey() & 0xFF == ord('q'):
-                break
-
-        else:
-            pass
+            # just_show = cv2.cvtColor(just_show, cv2.COLOR_BGR2RGB)
+            # cv2.imshow("result", just_show)
+            # if cv2.waitKey() & 0xFF == ord('q'):
+            #     break
 
 
 if __name__ == "__main__":
@@ -128,8 +114,8 @@ if __name__ == "__main__":
     config_file = "/home/barcelona/darknet/custom/DMC/deploy/yolov4.cfg"
     data_file = "/home/barcelona/darknet/custom/DMC/data/dmc.data"
 
-    image_path = "/data/Datasets/Seeds/DMC/samples/frames"
-    output_path = "/data/Models/DMC_yolov4/result"
+    image_path = "/data/Datasets/Seeds/DMC/set4/images"
+    output_path = "/data/Models/DMC_yolov4"
     thresh_hold = .9
 
     network, class_names, class_colors = darknet.load_network(config_file, data_file, weight_file, batch_size=1)
@@ -138,11 +124,8 @@ if __name__ == "__main__":
     images = list(images.glob('*.jpg'))
     images = sorted([str(path) for path in images])
 
-    train_images, test_images = train_test_split(images, test_size=0.2, shuffle=True)
-
     width = darknet.network_width(network)
     height = darknet.network_height(network)
     darknet_image = darknet.make_image(width, height, 3)
 
-    save_detection_result(train_images, True)
-    save_detection_result(test_images, False)
+    save_detection_result(images)
