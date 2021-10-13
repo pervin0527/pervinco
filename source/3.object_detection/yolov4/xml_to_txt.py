@@ -48,7 +48,7 @@ def convert_xml2yolo(lut, input_path, output_path):
         image_width = int(size_xml.find("width").text)
         image_hegiht = int(size_xml.find("height").text)
 
-        if obj_xml[0].find('bndbox') != None:
+        try:
             with open(output_path + '/' + filename + ".txt", 'w') as f:
                 for obj in obj_xml:
                     class_id = obj.find("name").text
@@ -67,10 +67,11 @@ def convert_xml2yolo(lut, input_path, output_path):
                     box = (float(xmin), float(xmax), float(ymin), float(ymax))
                     # print(filename, image_width, image_hegiht, class_id, xmin, ymin, xmax, ymax)
                     result = convert_coordinates((image_width, image_hegiht), box)
-                    print(filename,image_width, image_hegiht, result)
+                    # print(filename)
 
                     f.write(label_str + " " + " ".join([("%.6f" % a) for a in result]) + '\n')
-                    # f.write(classes[int(label_str)]+ " " + " ".join([("%.6f" % a) for a in result]) + '\n')
+        except:
+            print(filename)
 
 
 if __name__ == '__main__':
@@ -78,14 +79,23 @@ if __name__ == '__main__':
     parser.add_argument('--input_xmls_path', type=str)
     parser.add_argument('--label_map_path', type=str)
     parser.add_argument('--output_path', type=str)
+    parser.add_argument('--txt_filename', type=str)
     args = parser.parse_args()
 
     input_path = args.input_xmls_path
     label_map = args.label_map_path
     output_path = args.output_path
+    txt_filename = args.txt_filename
 
     df = pd.read_csv(label_map, sep = '\n', index_col=False, header=None)
     classes = df[0].tolist()
     print(classes)
 
     convert_xml2yolo(classes, input_path, output_path)
+
+    txt_path = f"{'/'.join(input_path.split('/')[:-1])}/{txt_filename}.txt"
+    file = open(txt_path, 'w')
+
+    for name in glob.iglob(os.path.join(f"{'/'.join(input_path.split('/')[:-1])}/images", "*.jpg")):  
+        title, ext = os.path.splitext(os.path.basename(name))
+        file.write(f"{'/'.join(input_path.split('/')[:-1])}/images" + "/" + title + '.jpg' + "\n")
