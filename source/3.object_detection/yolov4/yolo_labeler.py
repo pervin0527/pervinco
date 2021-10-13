@@ -67,7 +67,7 @@ def rewrite_xml(results, is_train, idx):
         node_ymax.text = str(results[i][4])
         
     tree = ElementTree(node_root)
-    tree.write(f'/data/Datasets/Seeds/mm_etri/{path}/image_{idx}.xml')
+    tree.write(f'{output_path}/{path}/annotations/image_{idx}.xml')
 
 
 def save_detection_result(images, is_train):
@@ -77,6 +77,10 @@ def save_detection_result(images, is_train):
     else:
         path = "test"
 
+    if not os.path.isdir(f"{output_path}/{path}/image") and not os.path.isdir(f"{output_path}/{path}/annotations"):
+        os.makedirs(f"{output_path}/{path}/images")
+        os.makedirs(f"{output_path}/{path}/annotations")
+
     idx = 0
     for image in images:
         test_image = cv2.imread(image)
@@ -85,36 +89,51 @@ def save_detection_result(images, is_train):
         darknet.copy_image_from_bytes(darknet_image, frame_resized.tobytes())
 
         detections = darknet.detect_image(network, class_names, darknet_image, thresh=thresh_hold)
-        # print(detections)
+        just_show = frame_resized.copy()
+        image = darknet.draw_boxes(detections, just_show, class_colors)
+        print(detections)
 
-        result = []
-        for i in range(len(detections)):
-            class_name = detections[i][0]
-            x = detections[i][2][0]
-            y = detections[i][2][1]
-            w = detections[i][2][2]
-            h = detections[i][2][3]
+        if detections and float(detections[0][1]) > thresh_hold:
+            result = []
+            for i in range(len(detections)):
+                class_name = detections[i][0]
+                x = detections[i][2][0]
+                y = detections[i][2][1]
+                w = detections[i][2][2]
+                h = detections[i][2][3]
 
-            xmin, ymin, xmax, ymax = darknet.bbox2points((x, y, w, h))
-            result.append([class_name, xmin, ymin, xmax, ymax])
+                xmin, ymin, xmax, ymax = darknet.bbox2points((x, y, w, h))
+                result.append([class_name, xmin, ymin, xmax, ymax])
 
-        frame_resized = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2RGB)
-        cv2.imwrite(f"/data/Datasets/Seeds/mm_etri/{path}/image_{idx}.jpg", frame_resized)
-        print(result)
+            frame_resized = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2RGB)
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            cv2.imwrite(f"{output_path}/{path}/images/image_{idx}.jpg", frame_resized)
+            # cv2.imwrite(f"{output_path}/{path}/images/result_{idx}.jpg", image)
+            # print(result)
 
-        rewrite_xml(result, is_train, idx)
-        idx += 1
+            rewrite_xml(result, is_train, idx)
+            idx += 1
+
+            just_show = cv2.cvtColor(just_show, cv2.COLOR_BGR2RGB)
+            cv2.imshow("result", just_show)
+            if cv2.waitKey() & 0xFF == ord('q'):
+                break
+
+        else:
+            pass
 
 
 if __name__ == "__main__":
-    weight_file = "/home/barcelona/darknet/custom/fire/ckpt/21_07_09/yolov4_final.weights"
-    config_file = "/home/barcelona/darknet/custom/fire/deploy/yolov4.cfg"
-    data_file = "/home/barcelona/darknet/custom/fire/data/fire.data"
-    thresh_hold = .4
+    weight_file = "/data/Models/DMC_yolov4/yolov4_last.weights"
+    config_file = "/home/barcelona/darknet/custom/DMC/deploy/yolov4.cfg"
+    data_file = "/home/barcelona/darknet/custom/DMC/data/dmc.data"
+
+    image_path = "/data/Datasets/Seeds/DMC/samples/frames"
+    output_path = "/data/Models/DMC_yolov4/result"
+    thresh_hold = .9
 
     network, class_names, class_colors = darknet.load_network(config_file, data_file, weight_file, batch_size=1)
 
-    image_path = "/data/Datasets/Seeds/ETRI_detection/images"
     images = pathlib.Path(image_path)
     images = list(images.glob('*.jpg'))
     images = sorted([str(path) for path in images])

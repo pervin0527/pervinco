@@ -42,8 +42,8 @@ model_file_name = 'efdet_dmc_d0_set2'
 
 # spec = object_detector.EfficientDetLite0Spec(model_dir=save_path)
 spec = object_detector.EfficientDetLite0Spec()
-train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/DMC/set2/augmentation/train/images', '/data/Datasets/Seeds/DMC/set2/augmentation/train/annotations', label_map)
-validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/DMC/set2/augmentation/valid/images', '/data/Datasets/Seeds/DMC/set2/augmentation/valid/annotations', label_map)
+train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/DMC/set4/train/images', '/data/Datasets/Seeds/DMC/set4/train/annotations', label_map)
+validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/DMC/set4/valid/images', '/data/Datasets/Seeds/DMC/set4/valid/annotations', label_map)
 
 model = object_detector.create(train_data,
                                model_spec=spec,
