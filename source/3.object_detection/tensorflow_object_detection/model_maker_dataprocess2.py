@@ -149,7 +149,7 @@ def get_file_list(path):
 
 if __name__ == "__main__":
     CLASSES = set()
-    output_path = "/data/Datasets/Seeds/DMC/set4"
+    output_path = "/data/Datasets/Seeds/DMC/set5"
     dataset_path = "/data/Datasets/Seeds/DMC/set4/images"
 
     total_images = get_file_list(dataset_path)
@@ -164,7 +164,7 @@ if __name__ == "__main__":
     if not os.path.isdir(f"{label_path}/labels"):
         os.makedirs(f"{label_path}/labels")
 
-    f = open(f'{label_path}/labels/labels.txt', 'w')
+    f = open(f'{label_path}/labels/labels2.txt', 'w')
     for label in sorted(list(CLASSES)):
         f.write(f'{label}\n')
 

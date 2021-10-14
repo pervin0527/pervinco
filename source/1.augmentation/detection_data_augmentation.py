@@ -53,7 +53,7 @@ def visualize(image, bboxes, category_ids, category_id_to_name, window_name):
     # plt.axis('off')
     # plt.imshow(img)
 
-    img = cv2.resize(img, (640, 480))
+    # img = cv2.resize(img, (640, 480))
     cv2.imshow(str(window_name), img)
     cv2.waitKey(0)
 
@@ -156,20 +156,26 @@ def augmentation(image_list, xml_list, output_shape, visual):
             if visual:
                 visualize(image, bbox, category_id, category_id_to_name, 'original data')
 
-            transform = A.Compose([A.Resize(height=416, width=416, p=1),
-                                   A.RandomRotate90(p=1),
-                                   A.RandomBrightness(limit=(-0.1, 0.1), p=0.7),
-                                   A.RandomContrast(limit=(-0.1, 0.1), p=0.7),
-                                   A.Transpose(p=0.5),
+            random_size = random.randint(150, 640)
+            transform = A.Compose([
+                A.Resize(height=random_size, width=random_size, p=1),
+                # A.RandomRotate90(p=1),
+                A.RandomBrightness(limit=(-0.1, 0.1), p=0.7),
+                A.RandomContrast(limit=(-0.1, 0.1), p=0.7),
+                # A.Transpose(p=0.5),
 
-                                    A.OneOf([A.HorizontalFlip(p=0.6),
-                                             A.VerticalFlip(p=0.6)], p=0.7),
+                A.OneOf([
+                    A.HorizontalFlip(p=0.6),
+                    # A.VerticalFlip(p=0.6)
+                    ], p=0.7),
 
-                                    # A.OneOf([A.Cutout(num_holes=15, max_h_size=20, max_w_size=20, p=0.5),
-                                    #         #  A.Downscale(p=0.5),
-                                    #          A.GaussNoise(p=0.5)], p=0.4,)
+                # A.OneOf([
+                #     A.Cutout(num_holes=15, max_h_size=20, max_w_size=20, p=0.5),
+                #     A.Downscale(p=0.5),
+                #     A.GaussNoise(p=0.5)
+                #     ], p=0.4,)
 
-                                    ], bbox_params = A.BboxParams(format='pascal_voc', label_fields=['category_ids']))
+                ], bbox_params = A.BboxParams(format='pascal_voc', label_fields=['category_ids']))
 
             if output_shape == 'split':
                 for x in range(int(aug_num)):
