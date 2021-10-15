@@ -31,23 +31,23 @@ else:
     except RuntimeError as e:
         print(e)
 
-label_file_path = "/data/Datasets/Seeds/DMC/labels/labels.txt"
+label_file_path = "/data/Datasets/Seeds/DMC/labels/train_labels.txt"
 label_file = pd.read_csv(label_file_path, sep=',', index_col=False, header=None)
 label_map = sorted(label_file[0].tolist())
 print(label_map)
 
 
 save_path = "/data/Models/efficientdet_lite"
-model_file_name = 'efdet_dmc_d0_set4'
+model_file_name = 'efdet_dmc_d1_set4-2000'
 
 # spec = object_detector.EfficientDetLite0Spec(model_dir=save_path)
-spec = object_detector.EfficientDetLite0Spec()
+spec = object_detector.EfficientDetLite1Spec()
 train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/DMC/set4/train/images', '/data/Datasets/Seeds/DMC/set4/train/annotations', label_map)
 validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/DMC/set4/valid/images', '/data/Datasets/Seeds/DMC/set4/valid/annotations', label_map)
 
 model = object_detector.create(train_data,
                                model_spec=spec,
-                               epochs=500,
+                               epochs=2000,
                                batch_size=64,
                                train_whole_model=True,
                                validation_data=validation_data)
