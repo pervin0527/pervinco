@@ -31,7 +31,7 @@ else:
     except RuntimeError as e:
         print(e)
 
-label_file_path = "/data/Datasets/Seeds/DMC/labels/train_labels.txt"
+label_file_path = "/data/Datasets/Seeds/DMC/labels/labels.txt"
 label_file = pd.read_csv(label_file_path, sep=',', index_col=False, header=None)
 label_map = sorted(label_file[0].tolist())
 print(label_map)
@@ -52,7 +52,7 @@ model = object_detector.create(train_data,
                                train_whole_model=True,
                                validation_data=validation_data)
 
-print(model.evaluate(validation_data))
+# print(model.evaluate(validation_data))
 
 model.export(export_dir=save_path,
              tflite_filename=f'{model_file_name}.tflite',
