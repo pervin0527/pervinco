@@ -19,15 +19,14 @@ train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/DM
 validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/DMC/set5/valid/images', '/data/Datasets/Seeds/DMC/set5/valid/annotations', label_map)
 
 save_path = "/data/Models/efficientdet_lite"
-# model_file_name = 'efdet_dmc_d1_set4-int8'
-model_file_name = 'test'
+# model_file_name = 'efdet_dmc_d1_set4'
 
 spec = object_detector.EfficientDetLite1Spec(tflite_max_detections=1,
                                              strategy=None,
                                              model_dir=f'{save_path}/{model_file_name}')
 model = object_detector.create(train_data,
                                model_spec=spec,
-                               epochs=50,
+                               epochs=100,
                                batch_size=64,
                                train_whole_model=True,
                                validation_data=validation_data)
@@ -47,4 +46,4 @@ model.export(export_dir=save_path,
             #  export_format=[ExportFormat.TFLITE, # ExportFormat.SAVED_MODEL, # ExportFormat.LABEL])
              export_format=[ExportFormat.TFLITE])
 
-model.evaluate_tflite(f'{save_path}/{model_file_name}.tflite', validation_data)
+# model.evaluate_tflite(f'{save_path}/{model_file_name}.tflite', validation_data)
