@@ -25,24 +25,26 @@ model_file_name = 'test'
 spec = object_detector.EfficientDetLite1Spec(tflite_max_detections=1,
                                              strategy=None,
                                              model_dir=f'{save_path}/{model_file_name}')
-
 model = object_detector.create(train_data,
                                model_spec=spec,
-                               epochs=10,
+                               epochs=50,
                                batch_size=64,
                                train_whole_model=True,
                                validation_data=validation_data)
 
-# print(model.evaluate(validation_data))
-
 # config = QuantizationConfig.for_float16()
-config = QuantizationConfig.for_int8(representative_data=validation_data, quantization_steps=10)
+# config = QuantizationConfig.for_int8(representative_data=validation_data,
+#                                      quantization_steps=10, 
+#                                      inference_input_type=tf.int8, 
+#                                      inference_output_type=tf.int8, 
+#                                      supported_ops=tf.lite.OpsSet.TFLITE_BUILTINS_INT8)
+
 model.export(export_dir=save_path,
              tflite_filename=f'{model_file_name}.tflite',
-            #  saved_model_filename = "saved_model",
-             label_filename=label_file_path,
-             export_format=[ExportFormat.TFLITE,
-                            # ExportFormat.SAVED_MODEL,
-                            ExportFormat.LABEL],
-            quantization_config=config
-            )
+            #  label_filename=label_file_path,
+            #  saved_model_filename="saved_model",
+            #  quantization_config=config,
+            #  export_format=[ExportFormat.TFLITE, # ExportFormat.SAVED_MODEL, # ExportFormat.LABEL])
+             export_format=[ExportFormat.TFLITE])
+
+model.evaluate_tflite(f'{save_path}/{model_file_name}.tflite', validation_data)
