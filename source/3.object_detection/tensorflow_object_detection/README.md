@@ -109,6 +109,8 @@ The output model has the following inputs & outputs:
     }"
 
 ## EfficientDet lite with Model maker
+[https://www.tensorflow.org/lite/tutorials/model_maker_object_detection](https://www.tensorflow.org/lite/tutorials/model_maker_object_detection)
+[https://www.tensorflow.org/lite/api_docs/python/tflite_model_maker/config/QuantizationConfig#for_int8](https://www.tensorflow.org/lite/api_docs/python/tflite_model_maker/config/QuantizationConfig#for_int8)
 
     python3 model_maker.py
 

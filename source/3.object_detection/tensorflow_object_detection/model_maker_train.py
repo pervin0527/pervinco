@@ -1,3 +1,5 @@
+# https://www.tensorflow.org/lite/tutorials/model_maker_object_detection
+# https://www.tensorflow.org/lite/api_docs/python/tflite_model_maker/config/QuantizationConfig#for_int8
 import os
 import numpy as np
 import tensorflow as tf
@@ -19,7 +21,7 @@ train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/DM
 validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/DMC/set5/valid/images', '/data/Datasets/Seeds/DMC/set5/valid/annotations', label_map)
 
 save_path = "/data/Models/efficientdet_lite"
-# model_file_name = 'efdet_dmc_d1_set4'
+model_file_name = 'efdet_dmc_d1_set5'
 
 spec = object_detector.EfficientDetLite1Spec(tflite_max_detections=1,
                                              strategy=None,
