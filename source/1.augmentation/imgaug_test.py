@@ -45,8 +45,8 @@ seq = iaa.Sequential([
     iaa.Multiply((1.2, 1.5)), # change brightness, doesn't affect BBs
     iaa.Affine(
         translate_px={"x": 40, "y": 60},
-        # scale=(0.5, 0.7),
-        rotate=45
+        scale=(0.9, 0.9),
+        rotate=45,
     ) # translate by 40/60px on x/y axis, and scale to 50-70%, affects BBs
 ])
 
