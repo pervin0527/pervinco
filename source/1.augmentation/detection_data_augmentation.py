@@ -159,15 +159,15 @@ def augmentation(image_list, xml_list, output_shape, visual):
             transform = A.Compose([
                 A.Resize(height=512, width=512, p=1),
                 # A.RandomRotate90(p=1),
+                # A.CenterCrop(416, 416),
                 A.RandomBrightnessContrast(brightness_limit=(-0.2, 0.2), contrast_limit=(-0.2, 0.2)),
-                # A.RandomCrop(),
 
                 A.OneOf([
                     A.HorizontalFlip(p=0.6),
                     # A.VerticalFlip(p=0.6)
                     ], p=0.7),
 
-                ], bbox_params = A.BboxParams(format='pascal_voc', label_fields=['category_ids']))
+                ], bbox_params = A.BboxParams(format='pascal_voc', label_fields=['category_ids']), min_visibility=0.1)
 
             if output_shape == 'split':
                 for x in range(int(aug_num)):
