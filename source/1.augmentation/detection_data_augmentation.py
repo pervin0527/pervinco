@@ -157,9 +157,10 @@ def augmentation(image_list, xml_list, output_shape, visual):
                 visualize(image, bbox, category_id, category_id_to_name, 'original data')
 
             transform = A.Compose([
-                A.Resize(height=320, width=320, p=1),
-                A.RandomRotate90(p=1),
+                A.Resize(height=512, width=512, p=1),
+                # A.RandomRotate90(p=1),
                 A.RandomBrightnessContrast(brightness_limit=(-0.2, 0.2), contrast_limit=(-0.2, 0.2)),
+                # A.RandomCrop(),
 
                 A.OneOf([
                     A.HorizontalFlip(p=0.6),

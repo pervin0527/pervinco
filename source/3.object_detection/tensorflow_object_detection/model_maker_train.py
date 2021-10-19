@@ -17,21 +17,21 @@ label_map = sorted(label_file[0].tolist())
 label_map = {1:"giant", 2:"notgiant"}
 print(label_map)
 
-train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/DMC/set5/train/images', '/data/Datasets/Seeds/DMC/set5/train/annotations', label_map)
-validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/DMC/set5/valid/images', '/data/Datasets/Seeds/DMC/set5/valid/annotations', label_map)
+train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/DMC/set6/train/images', '/data/Datasets/Seeds/DMC/set6/train/annotations', label_map)
+# validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/DMC/set4/valid/images', '/data/Datasets/Seeds/DMC/set4/valid/annotations', label_map)
 
 save_path = "/data/Models/efficientdet_lite"
-model_file_name = 'efdet_dmc_d1_set5'
+model_file_name = 'efdet_dmc_d0_set4-augmentation'
 
-spec = object_detector.EfficientDetLite1Spec(tflite_max_detections=1,
+spec = object_detector.EfficientDetLite0Spec(tflite_max_detections=1,
                                              strategy=None,
                                              model_dir=f'{save_path}/{model_file_name}')
 model = object_detector.create(train_data,
                                model_spec=spec,
                                epochs=100,
                                batch_size=64,
-                               train_whole_model=True,
-                               validation_data=validation_data)
+                            #    validation_data=validation_data,
+                               train_whole_model=True,)
 
 # config = QuantizationConfig.for_float16()
 # config = QuantizationConfig.for_int8(representative_data=validation_data,
