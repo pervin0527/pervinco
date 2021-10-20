@@ -21,14 +21,14 @@ train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/DM
 validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/DMC/set5/valid/images', '/data/Datasets/Seeds/DMC/set5/valid/annotations', label_map)
 
 save_path = "/data/Models/efficientdet_lite"
-model_file_name = 'efdet_dmc_d0_set4-augmentation'
+model_file_name = 'efdet_dmc_d0_set4-augmentation-500'
 
 spec = object_detector.EfficientDetLite0Spec(tflite_max_detections=1,
                                              strategy=None,
                                              model_dir=f'{save_path}/{model_file_name}')
 model = object_detector.create(train_data,
                                model_spec=spec,
-                               epochs=1000,
+                               epochs=500,
                                batch_size=64,
                                validation_data=validation_data,
                                train_whole_model=True,)
