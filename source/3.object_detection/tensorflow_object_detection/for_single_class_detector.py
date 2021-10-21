@@ -28,7 +28,6 @@ def read_annot_file(path):
             for obj in objects:
                 bboxes = obj.find('bndbox')
                 names = obj.find('name')
-                CLASSES.add(names.text)
                 
                 xmin = int(float(bboxes.find('xmin').text))
                 ymin = int(float(bboxes.find('ymin').text))
@@ -68,6 +67,7 @@ def write_new_xml(org_data, index, width, height):
             node_object = SubElement(node_root, 'object')
             node_name = SubElement(node_object,'name')
             node_name.text = str(org_data[i][0])
+            CLASSES.add(org_data[i][0])
 
             node_pose = SubElement(node_object, 'pose')
             node_pose.text = 'Unspecified'
@@ -98,29 +98,39 @@ def write_new_xml(org_data, index, width, height):
 
 if __name__ == "__main__":
     CLASSES = set()
-    ds_path = "/data/Datasets/Seeds/VOCtrainval_11-May-2012/VOCdevkit/VOC2012"
-    save_path = "/data/Datasets/Seeds/DMC/set8/"
+    ds_path = "/data/Datasets/Seeds/DMC/Final"
+    save_path = "/data/Datasets/Seeds/DMC/Final/test2"
 
     if not os.path.isdir(save_path):
         os.makedirs(f'{save_path}/images')
         os.makedirs(f'{save_path}/annotations')
 
-    images_path = f"{ds_path}/JPEGImages"
+    images_path = f"{ds_path}/images"
     images_list = get_file_list(images_path)
 
+    count = 0
     for idx, image_file in enumerate(images_list):
         image = cv2.imread(image_file)
         height, width = image.shape[:-1]
 
         filename = image_file.split('/')[-1].split('.')[0]
-        xml_file = f"{ds_path}/Annotations/{filename}.xml"        
+        xml_file = f"{ds_path}/annotations/{filename}.xml"        
         xml_data = read_annot_file(xml_file)
 
-        if "giant" not in xml_data:
+        xml_labels = []
+        for data in xml_data:
+            xml_labels.append(data[0])
+
+        if "giant" not in xml_labels:
             xml_data = []
             write_new_xml(xml_data, f"{idx}_voc", width, height)
             cv2.imwrite(f"{save_path}/images/{idx}_voc.jpg", image)
 
         else:
+            count += 1
+            print(xml_file)
             write_new_xml(xml_data, f"{idx}_dmc", width, height)
             cv2.imwrite(f"{save_path}/images/{idx}_dmc.jpg", image)
+
+    print(count)
+    print(CLASSES)
