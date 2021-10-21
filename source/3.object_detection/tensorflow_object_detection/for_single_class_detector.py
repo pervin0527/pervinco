@@ -1,10 +1,20 @@
-import pathlib
-import cv2
 import os
+import cv2
+import pathlib
 import xml.etree.ElementTree as ET
+
 from xml.dom import minidom
 from lxml.etree import Element, SubElement, tostring
 from sklearn.model_selection import train_test_split
+
+
+def get_file_list(path):
+    ds = pathlib.Path(path)
+
+    images = list(ds.glob('*.jpg'))
+    images = [str(path) for path in images]
+
+    return images
 
 
 def read_annot_file(path):
@@ -33,7 +43,7 @@ def read_annot_file(path):
         return None
 
 
-def write_new_xml(org_data, save_path, index, width, height):
+def write_new_xml(org_data, index, width, height):
     node_root = Element("annotation")
     
     node_folder = SubElement(node_root, 'folder')
@@ -83,70 +93,34 @@ def write_new_xml(org_data, save_path, index, width, height):
 
     tree = ET.ElementTree(node_root)
     tree.write(f'{save_path}/annotations/{index}.xml')
-    print(f'{save_path}/annotations/{index}.xml')
-
-    
-def process(image_list, is_train):
-    if is_train:
-        output_dir = f'{output_path}/train'
-
-        if not os.path.isdir(output_dir):
-            os.makedirs(f'{output_dir}/images')
-            os.makedirs(f'{output_dir}/annotations')
-
-    else:
-        output_dir = f'{output_path}/valid'
-
-        if not os.path.isdir(output_dir):
-            os.makedirs(f'{output_dir}/images')
-            os.makedirs(f'{output_dir}/annotations')
-
-    for idx, image_file in enumerate(image_list):
-        img_file_name = image_file.split('/')[-1].split('.')[0]
-        image = cv2.imread(image_file)
-        height, width, _ = image.shape
-        cv2.imwrite(f'{output_dir}/images/{idx}.jpg', image)
-
-        annot_file = image_file.split('/')[:-1]
-        annot_file[-1] = "annotations"
-        annot_file = '/'.join(annot_file)
-        annot_file = f'{annot_file}/{img_file_name}.xml'
-        # print(annot_file)
-        # break
-
-        annotation_data = read_annot_file(annot_file)
-        write_new_xml(annotation_data, output_dir, idx, width, height)
-        # break
-
-
-def get_file_list(path):
-    ds = pathlib.Path(path)
-
-    images = list(ds.glob('*.jpg'))
-    images = [str(path) for path in images]
-
-    return images
+    # print(f'{save_path}/annotations/{index}.xml')
 
 
 if __name__ == "__main__":
     CLASSES = set()
-    output_path = "/data/Datasets/Seeds/DMC/set8"
-    dataset_path = "/data/Datasets/Seeds/DMC/set8/images"
+    ds_path = "/data/Datasets/Seeds/VOCtrainval_11-May-2012/VOCdevkit/VOC2012"
+    save_path = "/data/Datasets/Seeds/DMC/set8/"
 
-    total_images = get_file_list(dataset_path)
-    train_images, test_images = train_test_split(total_images, test_size=0.2, shuffle=True)
+    if not os.path.isdir(save_path):
+        os.makedirs(f'{save_path}/images')
+        os.makedirs(f'{save_path}/annotations')
 
-    # train_images = get_file_list(f'{dataset_path}/images/train')
-    # valid_images = get_file_list(f'{dataset_path}/images/valid')
-    process(train_images, True)
-    process(test_images, False)
+    images_path = f"{ds_path}/JPEGImages"
+    images_list = get_file_list(images_path)
 
-    label_path = '/'.join(output_path.split('/')[:-1])
-    if not os.path.isdir(f"{label_path}/labels"):
-        os.makedirs(f"{label_path}/labels")
+    for idx, image_file in enumerate(images_list):
+        image = cv2.imread(image_file)
+        height, width = image.shape[:-1]
 
-    f = open(f'{label_path}/labels/labels.txt', 'w')
-    for label in sorted(list(CLASSES)):
-        f.write(f'{label}\n')
+        filename = image_file.split('/')[-1].split('.')[0]
+        xml_file = f"{ds_path}/Annotations/{filename}.xml"        
+        xml_data = read_annot_file(xml_file)
 
-    f.close()
+        if "giant" not in xml_data:
+            xml_data = []
+            write_new_xml(xml_data, f"{idx}_voc", width, height)
+            cv2.imwrite(f"{save_path}/images/{idx}_voc.jpg", image)
+
+        else:
+            write_new_xml(xml_data, f"{idx}_dmc", width, height)
+            cv2.imwrite(f"{save_path}/images/{idx}_dmc.jpg", image)
