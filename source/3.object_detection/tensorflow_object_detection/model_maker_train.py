@@ -22,8 +22,8 @@ validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/See
 save_path = "/data/Models/efficientdet_lite"
 model_file_name = 'efdet_dmc_d0-final-test'
 
-spec = object_detector.EfficientDetLite0Spec(tflite_max_detections=1,
-                                             strategy=None,
+spec = object_detector.EfficientDetLite0Spec(strategy=None,
+                                            #  tflite_max_detections=1,
                                              model_dir=f'{save_path}/{model_file_name}')
 
 model = object_detector.create(train_data,
