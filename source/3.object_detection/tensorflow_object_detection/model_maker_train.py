@@ -20,7 +20,7 @@ train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/DM
 validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/DMC/set4/train/images', '/data/Datasets/Seeds/DMC/set4/train/annotations', label_map)
 
 save_path = "/data/Models/efficientdet_lite"
-model_file_name = 'efdet_dmc_d0-final-test'
+model_file_name = 'efdet_dmc_d0-final-test-aug'
 
 spec = object_detector.EfficientDetLite0Spec(strategy=None,
                                             #  tflite_max_detections=1,

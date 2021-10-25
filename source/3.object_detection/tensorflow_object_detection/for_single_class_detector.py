@@ -98,8 +98,8 @@ def write_new_xml(org_data, index, width, height):
 
 if __name__ == "__main__":
     CLASSES = set()
-    ds_path = "/data/Datasets/Seeds/DMC/Final"
-    save_path = "/data/Datasets/Seeds/DMC/Final/test2"
+    ds_path = "/data/Datasets/Seeds/DMC/Final/train2"
+    save_path = "/data/Datasets/Seeds/DMC/Final/test"
 
     if not os.path.isdir(save_path):
         os.makedirs(f'{save_path}/images')

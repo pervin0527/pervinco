@@ -167,7 +167,7 @@ def augmentation(image_list, xml_list, output_shape, visual):
                     # A.VerticalFlip(p=0.6)
                     ], p=0.7),
 
-                ], bbox_params = A.BboxParams(format='pascal_voc', label_fields=['category_ids']), min_visibility=0.1)
+                ], bbox_params = A.BboxParams(format='pascal_voc', label_fields=['category_ids']))
 
             if output_shape == 'split':
                 for x in range(int(aug_num)):
