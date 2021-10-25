@@ -25,7 +25,7 @@ else:
 
 
 if __name__ == "__main__":
-    model_file_path = "/data/Models/efficientdet_lite/efdet_dmc_d0_set1.tflite"
+    model_file_path = "/data/Models/efficientdet_lite/efdet_dmc_d0-final-test.tflite"
     video_file_path = "/data/Datasets/Seeds/DMC/samples/sample_video_1.mp4"
     label_file_path = "/data/Datasets/Seeds/DMC/labels/labels.txt"
     threshold = 0.7
@@ -44,14 +44,16 @@ if __name__ == "__main__":
     input_dtype = input_details[0].get('dtype')
 
     cap = cv2.VideoCapture(video_file_path)
+    filename = 0
+
     while True:
         ret, frame = cap.read()
 
         if ret == False:
             break
 
-        frame = cv2.resize(frame, (input_width, input_height))
-        input_tensor = np.expand_dims(frame, 0)
+        frame_resized = cv2.resize(frame, (input_width, input_height))
+        input_tensor = np.expand_dims(frame_resized, 0)
         
         interpreter.set_tensor(input_details[0]['index'], input_tensor.astype(np.uint8))
         interpreter.invoke()
@@ -80,6 +82,9 @@ if __name__ == "__main__":
         if k == ord('q'):
             os.system('clear')
             break
+
+        cv2.imwrite(f"/data/Datasets/Seeds/DMC/results/d0-final-test/{filename}.jpg", frame)
+        filename += 1
 
 cap.release()
 cv2.destroyAllWindows()
