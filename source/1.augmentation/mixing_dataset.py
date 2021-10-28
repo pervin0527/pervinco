@@ -135,7 +135,7 @@ if __name__ == "__main__":
     dataset_path = "/data/Datasets/Seeds/DMC/Samples2"
     label_path = "/data/Datasets/Seeds/DMC/Labels/labels.txt"
     bgset_path = "/data/Datasets/Seeds/COCO2017"
-    output_path = "/data/Datasets/Seeds/DMC/test"
+    output_path = "/data/Datasets/Seeds/DMC/final-set/test"
     bg_ratio = 0.2
 
     CLASSES = pd.read_csv(label_path, sep=' ', index_col=False, header=None)

@@ -16,11 +16,11 @@ label_file = pd.read_csv(label_file_path, sep=',', index_col=False, header=None)
 label_map = sorted(label_file[0].tolist())
 print(label_map)
 
-train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/DMC/final_set/test/images', '/data/Datasets/Seeds/DMC/final_set/test/annotations', label_map)
-validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/DMC/set4/train/images', '/data/Datasets/Seeds/DMC/set4/train/annotations', label_map)
+train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/DMC/final-set/test/images', '/data/Datasets/Seeds/DMC/final-set/test/annotations', label_map)
+validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/DMC/final-set/train/images', '/data/Datasets/Seeds/DMC/final-set/train/annotations', label_map)
 
 save_path = "/data/Models/efficientdet_lite"
-model_file_name = 'efdet_dmc_d0-final-test-aug'
+model_file_name = 'test'
 
 spec = object_detector.EfficientDetLite0Spec(strategy=None,
                                             #  tflite_max_detections=1,
@@ -28,7 +28,7 @@ spec = object_detector.EfficientDetLite0Spec(strategy=None,
 
 model = object_detector.create(train_data,
                                model_spec=spec,
-                               epochs=100,
+                               epochs=20,
                                batch_size=64,
                                validation_data=validation_data,
                                train_whole_model=True,)
