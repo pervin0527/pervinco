@@ -11,12 +11,12 @@ from tflite_model_maker import model_spec
 from tflite_model_maker import object_detector
 from tflite_model_maker.config import QuantizationConfig
 
-label_file_path = "/data/Datasets/Seeds/DMC/labels/labels.txt"
+label_file_path = "/data/Datasets/Seeds/DMC/Labels/labels.txt"
 label_file = pd.read_csv(label_file_path, sep=',', index_col=False, header=None)
 label_map = sorted(label_file[0].tolist())
 print(label_map)
 
-train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/DMC/Final/test/images', '/data/Datasets/Seeds/DMC/Final/test/annotations', label_map)
+train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/DMC/final_set/test/images', '/data/Datasets/Seeds/DMC/final_set/test/annotations', label_map)
 validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/DMC/set4/train/images', '/data/Datasets/Seeds/DMC/set4/train/annotations', label_map)
 
 save_path = "/data/Models/efficientdet_lite"
