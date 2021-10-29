@@ -11,16 +11,16 @@ from tflite_model_maker import model_spec
 from tflite_model_maker import object_detector
 from tflite_model_maker.config import QuantizationConfig
 
-label_file_path = "/data/Datasets/Seeds/ETRI_detection/Labels/labels.txt"
+label_file_path = "/data/Datasets/Seeds/DMC/Labels/labels.txt"
 label_file = pd.read_csv(label_file_path, sep=',', index_col=False, header=None)
 label_map = label_file[0].tolist()
 print(label_map)
 
-train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/ETRI_detection/yolo_label/Total/images', '/data/Datasets/Seeds/ETRI_detection/yolo_label/Total/annotations', label_map)
-validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/ETRI_detection/yolo_label/train/images', '/data/Datasets/Seeds/ETRI_detection/yolo_label/train/annotations', label_map)
+train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/DMC/final-set/test/images', '/data/Datasets/Seeds/DMC/final-set/test/annotations', label_map)
+validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/DMC/final-set/train/images', '/data/Datasets/Seeds/DMC/final-set/train/annotations', label_map)
 
 save_path = "/data/Models/efficientdet_lite"
-model_file_name = 'efdet-d0-etri-Total'
+model_file_name = 'efdet-d0-dmc-mixed-coco'
 
 spec = object_detector.EfficientDetLite0Spec(strategy=None,
                                             #  tflite_max_detections=1,
@@ -28,7 +28,7 @@ spec = object_detector.EfficientDetLite0Spec(strategy=None,
 
 model = object_detector.create(train_data,
                                model_spec=spec,
-                               epochs=100,
+                               epochs=300,
                                batch_size=64,
                                validation_data=validation_data,
                                train_whole_model=True,)
