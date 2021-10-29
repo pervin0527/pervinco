@@ -35,5 +35,5 @@ model = object_detector.create(train_data,
 
 model.export(export_dir=save_path,
              tflite_filename=f'{model_file_name}.tflite',
-             label_filename=label_file_path,
+             label_filename=f'{save_path}/{model_file_name}/label_map.txt',
              export_format=[ExportFormat.TFLITE, ExportFormat.LABEL])
