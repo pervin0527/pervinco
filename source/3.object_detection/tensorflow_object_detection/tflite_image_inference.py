@@ -45,6 +45,7 @@ def postprocess(boxes, classes, scores, image_path):
     scores = scores[0]
 
     image = cv2.imread(image_path)
+    # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     image = cv2.resize(image, (input_width, input_height))
 
     final_result = []
@@ -64,9 +65,9 @@ def postprocess(boxes, classes, scores, image_path):
     cv2.waitKey(0)    
 
 if __name__ == "__main__":
-    model_file_path = "/data/Models/efficientdet_lite/efdet_dmc_d0-final-test.tflite"
-    image_file_path = "/data/Datasets/Seeds/DMC/samples/거이니지 오른쪽.jpeg"
-    label_file_path = "/data/Datasets/Seeds/DMC/labels/labels.txt"
+    model_file_path = "/data/Models/efficientdet_lite/test.tflite"
+    image_file_path = "/data/Datasets/Seeds/DMC/Samples/images/image_348.jpg"
+    label_file_path = "/data/Datasets/Seeds/DMC/Labels/labels.txt"
     threshold = 0.4
 
     LABEL_FILE = pd.read_csv(label_file_path, sep=' ', index_col=False, header=None)
