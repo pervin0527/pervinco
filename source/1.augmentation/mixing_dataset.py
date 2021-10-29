@@ -4,8 +4,6 @@ import random
 import pathlib
 import pandas as pd
 import xml.etree.ElementTree as ET
-
-from shutil import copyfile
 from xml.dom import minidom
 from lxml.etree import Element, SubElement, tostring
 
@@ -132,10 +130,10 @@ def main_process(images, annotations):
 
 
 if __name__ == "__main__":
-    dataset_path = "/data/Datasets/Seeds/DMC/Samples2"
-    label_path = "/data/Datasets/Seeds/DMC/Labels/labels.txt"
+    dataset_path = "/data/Datasets/Seeds/ETRI_detection/yolo_label/merge"
+    label_path = "/data/Datasets/Seeds/ETRI_detection/Labels/labels.txt"
     bgset_path = "/data/Datasets/Seeds/COCO2017"
-    output_path = "/data/Datasets/Seeds/DMC/final-set/test"
+    output_path = "/data/Datasets/Seeds/ETRI_detection/yolo_label/Total"
     bg_ratio = 0.2
 
     CLASSES = pd.read_csv(label_path, sep=' ', index_col=False, header=None)
