@@ -9,9 +9,9 @@ from threading import Thread, enumerate
 from queue import Queue
 import datetime
 
-weight_file = "/data/Models/DMC_yolov4/yolov4_last.weights"
-config_file = "/home/barcelona/darknet/custom/DMC/deploy/yolov4.cfg"
-data_file = "/home/barcelona/darknet/custom/DMC/data/dmc.data"
+weight_file = "/data/Models/ETRI_yolov4/yolov4_last.weights"
+config_file = "/home/barcelona/darknet/custom/etri/deploy/yolov4.cfg"
+data_file = "/home/barcelona/darknet/custom/etri/data/etri.data"
 thresh_hold = .8
 
 network, class_names, class_colors = darknet.load_network(config_file, data_file, weight_file, batch_size=1)
@@ -22,7 +22,7 @@ cap = cv2.VideoCapture(0)
 # print(cap.get(3), cap.get(4))
 fps = cap.get(cv2.CAP_PROP_FPS)
 
-MJPG_CODEC = 1196444237.0 # MJPG
+# MJPG_CODEC = 1196444237.0 # MJPG
 cap_AUTOFOCUS = 0
 cap_FOCUS = 0
 #cap_ZOOM = 400
@@ -33,7 +33,7 @@ cap.set(cv2.CAP_PROP_FRAME_WIDTH, frame_width)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, frame_height)
 
 cap.set(cv2.CAP_PROP_BRIGHTNESS, 100)
-cap.set(cv2.CAP_PROP_FOURCC, MJPG_CODEC)
+# cap.set(cv2.CAP_PROP_FOURCC, MJPG_CODEC)
 cap.set(cv2.CAP_PROP_AUTOFOCUS, cap_AUTOFOCUS)
 cap.set(cv2.CAP_PROP_FOCUS, cap_FOCUS)
 ##############################################################################################
