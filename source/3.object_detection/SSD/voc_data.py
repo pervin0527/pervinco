@@ -8,6 +8,7 @@ from functools import partial
 
 class VOCDataset():
     def __init__(self, root_dir, year, default_boxes, new_size, num_examples=-1, augmentation=None):
+        super(VOCDataset, self).__init__()
         self.idx_to_name = ['aeroplane', 'bicycle', 'bird', 'boat', 'bottle',
                             'bus', 'car', 'cat', 'chair', 'cow',
                             'diningtable', 'dog', 'horse', 'motorbike', 'person',
