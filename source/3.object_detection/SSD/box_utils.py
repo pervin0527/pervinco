@@ -57,6 +57,8 @@ def compute_target(default_boxes, gt_boxes, gt_labels, iou_threshold=0.5):
     # Convert default boxes to format (xmin, ymin, xmax, ymax)
     # in order to compute overlap with gt boxes
     transformed_default_boxes = transform_center_to_corner(default_boxes)
+    print(transformed_default_boxes)
+
     iou = compute_iou(transformed_default_boxes, gt_boxes)
 
     best_gt_iou = tf.math.reduce_max(iou, 1)
