@@ -65,7 +65,7 @@ if __name__ == '__main__':
         raise ValueError('Unknown architecture: {}'.format(args.arch))
 
     default_boxes = generate_default_boxes(config)
-    print(default_boxes)
+    # print(default_boxes)
 
     batch_generator, val_generator, info = create_batch_generator(
         args.data_dir, args.data_year, default_boxes,
