@@ -137,13 +137,11 @@ class VOCDataset():
             elif augmentation_method == 'flip':
                 img, boxes, labels = horizontal_flip(img, boxes, labels)
 
-            img = np.array(img.resize(
-                (self.new_size, self.new_size)), dtype=np.float32)
+            img = np.array(img.resize((self.new_size, self.new_size)), dtype=np.float32)
             img = (img / 127.0) - 1.0
             img = tf.constant(img, dtype=tf.float32)
 
-            gt_confs, gt_locs = compute_target(
-                self.default_boxes, boxes, labels)
+            gt_confs, gt_locs = compute_target(self.default_boxes, boxes, labels)
 
             yield filename, img, gt_confs, gt_locs
 
@@ -166,18 +164,16 @@ def create_batch_generator(root_dir, year, default_boxes,
 
     if mode == 'train':
         train_gen = partial(voc.generate, subset='train')
-        train_dataset = tf.data.Dataset.from_generator(
-            train_gen, (tf.string, tf.float32, tf.int64, tf.float32))
+        train_dataset = tf.data.Dataset.from_generator(train_gen, (tf.string, tf.float32, tf.int64, tf.float32))
+        
         val_gen = partial(voc.generate, subset='val')
-        val_dataset = tf.data.Dataset.from_generator(
-            val_gen, (tf.string, tf.float32, tf.int64, tf.float32))
+        val_dataset = tf.data.Dataset.from_generator(val_gen, (tf.string, tf.float32, tf.int64, tf.float32))
 
         train_dataset = train_dataset.shuffle(40).batch(batch_size)
         val_dataset = val_dataset.batch(batch_size)
 
         return train_dataset.take(num_batches), val_dataset.take(-1), info
     else:
-        dataset = tf.data.Dataset.from_generator(
-            voc.generate, (tf.string, tf.float32, tf.int64, tf.float32))
+        dataset = tf.data.Dataset.from_generator(voc.generate, (tf.string, tf.float32, tf.int64, tf.float32))
         dataset = dataset.batch(batch_size)
         return dataset.take(num_batches), info
