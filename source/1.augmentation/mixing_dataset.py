@@ -130,10 +130,10 @@ def main_process(images, annotations):
 
 
 if __name__ == "__main__":
-    dataset_path = "/data/Datasets/Seeds/ETRI_detection/yolo_label/merge"
-    label_path = "/data/Datasets/Seeds/ETRI_detection/Labels/labels.txt"
+    dataset_path = "/data/Datasets/Seeds/SPC/set1"
+    label_path = "/data/Datasets/Seeds/SPC/Labels/labels.txt"
     bgset_path = "/data/Datasets/Seeds/COCO2017"
-    output_path = "/data/Datasets/Seeds/ETRI_detection/yolo_label/Total"
+    output_path = "/data/Datasets/Seeds/SPC/set1/mixed"
     bg_ratio = 0.2
 
     CLASSES = pd.read_csv(label_path, sep=' ', index_col=False, header=None)
