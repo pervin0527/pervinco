@@ -130,11 +130,11 @@ def main_process(images, annotations):
 
 
 if __name__ == "__main__":
-    dataset_path = "/data/Datasets/Seeds/SPC/new"
+    dataset_path = "/data/Datasets/Seeds/SPC/set2"
     label_path = "/data/Datasets/Seeds/SPC/Labels/labels.txt"
     bgset_path = "/data/Datasets/Seeds/COCO2017"
-    output_path = "/data/Datasets/Seeds/SPC/set1/train3"
-    bg_ratio = 0.1
+    output_path = "/data/Datasets/Seeds/SPC/set2/train"
+    bg_ratio = 0.2
 
     CLASSES = pd.read_csv(label_path, sep=' ', index_col=False, header=None)
     CLASSES = CLASSES[0].tolist()

@@ -1,18 +1,24 @@
+import os
 import cv2
+from glob import glob
 
-video_dir = "/data/Datasets/Seeds/DMC/samples2/video/20211027_174324.mp4"
-save_dir = "/data/Datasets/Seeds/DMC/samples2/video/frames"
-cap = cv2.VideoCapture(video_dir)
+root = "/data/Datasets/Seeds/SPC/2021-11-11/videos"
+videos = glob(f"{root}/*.mp4")
 
-filename = video_dir.split('/')[-1].split('.')[0]
-print(filename)
+for video in videos:
+    folder_name = video.split('/')[-1].split('.')[0]
 
-idx = 0
-while True:
-    ret, frame = cap.read()
+    save_dir = f"{root}/frames/{folder_name}"
+    if not os.path.isdir(save_dir):
+        os.makedirs(f"{root}/frames/{folder_name}")
+    
+    idx = 0
+    cap = cv2.VideoCapture(video)
+    while True:
+        ret, frame = cap.read()
 
-    if ret == False:
-        break
+        if ret == False:
+            break
 
-    cv2.imwrite(f"{save_dir}/{filename}_{idx}.jpg", frame)
-    idx += 1
+        idx += 1
+        cv2.imwrite(f"{save_dir}/{folder_name}_{idx}.jpg", frame)
