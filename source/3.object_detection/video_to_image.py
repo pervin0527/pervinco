@@ -2,6 +2,7 @@ import os
 import cv2
 from glob import glob
 
+state = "test"
 root = "/data/Datasets/Seeds/SPC/2021-11-11/videos"
 videos = glob(f"{root}/*.mp4")
 
@@ -21,4 +22,9 @@ for video in videos:
             break
 
         idx += 1
-        cv2.imwrite(f"{save_dir}/{folder_name}_{idx}.jpg", frame)
+        if state == "train":
+            cv2.imwrite(f"{save_dir}/{folder_name}_{idx}.jpg", frame)
+
+        else:
+            image = cv2.resize(frame, (640, 480))
+            cv2.imwrite(f"/data/Datasets/testset/SPC/{folder_name}_{idx}.jpg", image)

@@ -9,16 +9,16 @@ from threading import Thread, enumerate
 from queue import Queue
 import datetime
 
-weight_file = "/data/Models/ETRI_yolov4/yolov4_last.weights"
-config_file = "/home/barcelona/darknet/custom/etri/deploy/yolov4.cfg"
-data_file = "/home/barcelona/darknet/custom/etri/data/etri.data"
+weight_file = "/data/Models/SPC_yolov4/yolov4_last.weights"
+config_file = "/home/barcelona/darknet/custom/SPC/deploy/yolov4.cfg"
+data_file = "/home/barcelona/darknet/custom/SPC/data/spc.data"
 thresh_hold = .8
 
 network, class_names, class_colors = darknet.load_network(config_file, data_file, weight_file, batch_size=1)
 
 ###############################################################################################
-# cap = cv2.VideoCapture("/data/Datasets/Seeds/DMC/samples/sample_video_1.mp4")
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture("/data/Datasets/Seeds/SPC/2021-11-11/videos/paris-baguette2.mp4")
+# cap = cv2.VideoCapture(0)
 # print(cap.get(3), cap.get(4))
 fps = cap.get(cv2.CAP_PROP_FPS)
 
@@ -27,8 +27,8 @@ cap_AUTOFOCUS = 0
 cap_FOCUS = 0
 #cap_ZOOM = 400
 
-frame_width = 540
-frame_height = 960
+frame_width = 1920
+frame_height = 1080
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, frame_width)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, frame_height)
 
@@ -58,7 +58,7 @@ while cap.isOpened():
 
     image = darknet.draw_boxes(detections, frame_resized, class_colors)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    image = cv2.resize(image, (frame_width, frame_height))
+    # image = cv2.resize(image, (frame_width, frame_height))
     cv2.imshow("inference", image)
 
     out.write(image)
