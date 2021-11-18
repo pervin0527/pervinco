@@ -2,8 +2,8 @@ import os
 import glob
 from shutil import copyfile
 
-ds_path = "/data/Datasets/Seeds/SPC/2021-11-11/videos/frames"
-outpath = "/data/Datasets/Seeds/SPC/set2"
+ds_path = "/data/Datasets/Seeds/SPC/set3"
+outpath = "/data/Datasets/Seeds/SPC/set3/output"
 ds_list = glob.glob(f"{ds_path}/*")
 print(len(ds_list))
 
