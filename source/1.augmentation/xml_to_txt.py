@@ -76,13 +76,13 @@ def convert_xml2yolo(lut, input_path, output_path):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='PASCAL VOC to YOLO')
-    parser.add_argument('--input_xmls_path', type=str)
+    parser.add_argument('--input_xml_path', type=str)
     parser.add_argument('--label_map_path', type=str)
     parser.add_argument('--output_path', type=str)
     parser.add_argument('--txt_filename', type=str)
     args = parser.parse_args()
 
-    input_path = args.input_xmls_path
+    input_path = args.input_xml_path
     label_map = args.label_map_path
     output_path = args.output_path
     txt_filename = args.txt_filename
