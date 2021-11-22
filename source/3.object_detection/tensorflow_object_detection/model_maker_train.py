@@ -11,16 +11,16 @@ from tflite_model_maker import model_spec
 from tflite_model_maker import object_detector
 from tflite_model_maker.config import QuantizationConfig
 
-label_file_path = "/data/Datasets/Seeds/DMC/Labels/labels.txt"
+label_file_path = "/data/Datasets/Seeds/SPC/Labels/labels.txt"
 label_file = pd.read_csv(label_file_path, sep=',', index_col=False, header=None)
 label_map = label_file[0].tolist()
 print(label_map)
 
-train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/DMC/final-set/test/images', '/data/Datasets/Seeds/DMC/final-set/test/annotations', label_map)
-validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/DMC/final-set/train/images', '/data/Datasets/Seeds/DMC/final-set/train/annotations', label_map)
+train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/SPC/set5/train/images', '/data/Datasets/Seeds/SPC/set5/train/annotations', label_map)
+validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/SPC/set5/train/images', '/data/Datasets/Seeds/SPC/set5/train/annotations', label_map)
 
 save_path = "/data/Models/efficientdet_lite"
-model_file_name = 'efdet-d0-dmc-mixed-coco'
+model_file_name = 'efdet-d0-SPC-mixed-coco'
 
 spec = object_detector.EfficientDetLite0Spec(strategy=None,
                                             #  tflite_max_detections=1,
@@ -28,8 +28,8 @@ spec = object_detector.EfficientDetLite0Spec(strategy=None,
 
 model = object_detector.create(train_data,
                                model_spec=spec,
-                               epochs=300,
-                               batch_size=64,
+                               epochs=150,
+                               batch_size=32,
                                validation_data=validation_data,
                                train_whole_model=True,)
 
