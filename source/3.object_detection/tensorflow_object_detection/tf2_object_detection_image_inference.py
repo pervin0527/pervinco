@@ -1,14 +1,14 @@
-import pathlib
-import matplotlib
-import matplotlib.pyplot as plt
 import io
-import scipy.misc
 import os
 import cv2
+import pathlib
+import scipy.misc
 import numpy as np
+import tensorflow as tf
+import matplotlib
+import matplotlib.pyplot as plt
 from six import BytesIO
 from PIL import Image, ImageDraw, ImageFont
-import tensorflow as tf
 from object_detection.utils import label_map_util
 from object_detection.utils import config_util
 from object_detection.utils import visualization_utils as viz_utils
@@ -65,11 +65,11 @@ def get_model_detection_function(model):
 
 
 if __name__ == "__main__":
-    pipe_config_path = '/home/barcelona/tensorflow/models/research/object_detection/custom/deploy/ssd_mobilenet_v2_320//pipeline.config'
-    model_dir = '/home/barcelona/tensorflow/models/research/object_detection/custom/models/fire/21_07_08/'
-    ckpt_value = 'ckpt-100'
-    image_path = "/data/Datasets/testset/ETRI_cropped_large/test_sample_01.jpg"
-    label_map_path = "/home/barcelona/tensorflow/models/research/object_detection/custom/labels/fire.txt"
+    pipe_config_path = '/data/Models/efficientdet/SPC-21-11-22/efficientdet_d0_coco17_tpu-32/ssd_efficientdet_d0_512x512_coco17_tpu-8.config'
+    model_dir = '/data/Models/efficientdet/SPC-21-11-22/'
+    ckpt_value = 'ckpt-369'
+    image_path = "/data/Datasets/testset/SPC/set2/br002.jpg"
+    label_map_path = "/data/Datasets/Seeds/SPC/Labels/label_map.txt"
     min_score = 0.6
 
     pipeline_config = os.path.join(pipe_config_path)
