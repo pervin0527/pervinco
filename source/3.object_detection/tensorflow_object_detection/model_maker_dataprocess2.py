@@ -130,8 +130,8 @@ def get_file_list(path):
 
 if __name__ == "__main__":
     CLASSES = set()
-    output_path = "/data/Datasets/Seeds/DMC/set8"
-    dataset_path = "/data/Datasets/Seeds/DMC/set8/images"
+    output_path = "/data/Datasets/Seeds/SPC/set6/train"
+    dataset_path = "/data/Datasets/Seeds/SPC/set6/images"
 
     total_images = get_file_list(dataset_path)
     train_images, test_images = train_test_split(total_images, test_size=0.2, shuffle=True)
@@ -145,7 +145,7 @@ if __name__ == "__main__":
     if not os.path.isdir(f"{label_path}/labels"):
         os.makedirs(f"{label_path}/labels")
 
-    f = open(f'{label_path}/labels/labels.txt', 'w')
+    f = open(f'{label_path}/Labels/labels.txt', 'w')
     for label in sorted(list(CLASSES)):
         f.write(f'{label}\n')
 

@@ -30,9 +30,9 @@ def get_boxes(label_path):
         return result
 
 
-image_path = "./45.jpg"
+image_path = "./51.jpg"
 image = cv2.imread(image_path)
-annotation_path = "./45.xml"
+annotation_path = "./51.xml"
 annotation_data = get_boxes(annotation_path)
 print(annotation_data)
 

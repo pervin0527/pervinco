@@ -49,11 +49,8 @@ def visualize(image, bboxes, category_ids, category_id_to_name, window_name):
     for bbox, category_id in zip(bboxes, category_ids):
         class_name = category_id_to_name[category_id]
         img = visualize_bbox(img, bbox, class_name)
-    # plt.figure(figsize=(12, 12))
-    # plt.axis('off')
-    # plt.imshow(img)
 
-    # img = cv2.resize(img, (1920, 1080))
+    img = cv2.resize(img, (720, 540))
     cv2.imshow(str(window_name), img)
     cv2.waitKey(0)
 
@@ -83,10 +80,6 @@ def get_boxes(label_path):
             name_list.append(names.text)
             category_id.append(idx)
             idx+=1
-
-            # print(result)
-            # print(name_list)
-            # print(category_id)
         
         return result, name_list, category_id
 
@@ -156,18 +149,10 @@ def augmentation(image_list, xml_list, output_shape, visual):
             if visual:
                 visualize(image, bbox, category_id, category_id_to_name, 'original data')
 
-            rescale = random.randint(416, 640)
             transform = A.Compose([
-                A.Resize(height=rescale, width=rescale, p=1),
-                # A.RandomRotate90(p=1),
-                # A.Rotate(p=1),
-                # A.RandomScale(scale_limit=0.1, interpolation=1, always_apply=True, p=1),
-                A.RandomBrightnessContrast(brightness_limit=(-0.2, 0.2), contrast_limit=(-0.2, 0.2)),
-
-                # A.OneOf([
-                #     A.HorizontalFlip(p=0.6),
-                #     A.VerticalFlip(p=0.6)
-                #     ], p=0.7),
+                A.Rotate(p=1, border_mode=1),
+                A.RandomBrightnessContrast(brightness_limit=(-0.2, 0.2), contrast_limit=(-0.2, 0.2), p=1),
+                A.MotionBlur(p=1)
 
                 ], bbox_params = A.BboxParams(format='pascal_voc', label_fields=['category_ids']))
 
@@ -200,7 +185,6 @@ def augmentation(image_list, xml_list, output_shape, visual):
 
         except:
             print(cnt, xml_name, ' This file does not contain objects.')
-            pass
             cnt += 1
 
 

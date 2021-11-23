@@ -9,8 +9,12 @@ from lxml.etree import Element, SubElement, tostring
 
 
 def choice_bg(image_list, annot_list):
-        rand_idx = random.sample(range(len(image_list)), int(len(main_images) * bg_ratio))
-        # print(len(rand_idx))
+        try:
+            rand_idx = random.sample(range(len(image_list)), int(len(main_images) * bg_ratio))
+            # print(len(rand_idx))
+
+        except:
+            rand_idx = [x for x in range(len(image_list))]
         
         images = []
         annots = []
@@ -130,11 +134,11 @@ def main_process(images, annotations):
 
 
 if __name__ == "__main__":
-    dataset_path = "/data/Datasets/Seeds/SPC/set5"
+    dataset_path = "/data/Datasets/Seeds/SPC/set6"
     label_path = "/data/Datasets/Seeds/SPC/Labels/labels.txt"
-    bgset_path = "/data/Datasets/Seeds/COCO2017"
-    output_path = "/data/Datasets/Seeds/SPC/set5/train"
-    bg_ratio = 0.2
+    bgset_path = "/data/Datasets/Seeds/SPC/Background"
+    output_path = "/data/Datasets/Seeds/SPC/set6/train"
+    bg_ratio = 1
 
     CLASSES = pd.read_csv(label_path, sep=' ', index_col=False, header=None)
     CLASSES = CLASSES[0].tolist()
