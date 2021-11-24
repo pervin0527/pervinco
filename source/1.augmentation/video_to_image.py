@@ -3,7 +3,7 @@ import cv2
 from glob import glob
 
 state = "train"
-root = "/data/Datasets/Seeds/SPC/2021-11-11/videos2"
+root = "/data/Datasets/Seeds/SPC/2021-11-24/videos"
 videos = glob(f"{root}/*.mp4")
 
 for video in videos:
@@ -15,6 +15,7 @@ for video in videos:
     
     idx = 0
     cap = cv2.VideoCapture(video)
+    print(folder_name)
     while True:
         ret, frame = cap.read()
 
@@ -22,9 +23,4 @@ for video in videos:
             break
 
         idx += 1
-        if state == "train":
-            cv2.imwrite(f"{save_dir}/{folder_name}_{idx}.jpg", frame)
-
-        else:
-            image = cv2.resize(frame, (640, 480))
-            cv2.imwrite(f"/data/Datasets/testset/SPC/{folder_name}_{idx}.jpg", image)
+        cv2.imwrite(f"{save_dir}/{folder_name}_{idx}.jpg", frame)
