@@ -31,7 +31,7 @@ def write_dummy(output_path, img_filename, width, height):
 
 if __name__ == "__main__":
     dummy_roots = "/data/Datasets/Seeds/SPC/Background"
-    dummy_images = sorted(glob(f"{dummy_roots}/*/*"))
+    dummy_images = sorted(glob(f"{dummy_roots}/images/*.jpg"))
     print(len(dummy_images))
 
     for file in dummy_images:
