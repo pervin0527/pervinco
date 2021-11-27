@@ -20,7 +20,7 @@ train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/SP
 validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/SPC/set7/train/images', '/data/Datasets/Seeds/SPC/set7/train/annotations', label_map)
 
 save_path = "/data/Models/efficientdet_lite"
-model_file_name = 'efdet-d1-SPC-set6'
+model_file_name = 'efdet-d1-SPC-set7'
 
 spec = object_detector.EfficientDetLite1Spec(strategy=None,
                                             #  tflite_max_detections=1,
