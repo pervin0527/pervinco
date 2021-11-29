@@ -158,8 +158,8 @@ def data_processing(image_files):
             
 if __name__ == "__main__":
     label_file = "/data/Datasets/Seeds/SPC/Labels/labels.txt"
-    data_path = "./data"
-    output_path = "./data/output"
+    data_path = "/data/Datasets/Seeds/SPC/set8"
+    output_path = "//data/Datasets/Seeds/SPC/set8/augmentations"
     repeat = 5
     
     if not os.path.isdir(f"{output_path}/annotations") or not os.path.isdir(f"{output_path}/images"):

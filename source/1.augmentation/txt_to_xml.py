@@ -65,7 +65,7 @@ def write_xml(annot_data, filename, height, width):
     tree.write(f'{root}/annotations/{filename}.xml')
 
 if __name__ == "__main__":
-    root = "/data/Datasets/Seeds/SPC/2021-11-24/videos"
+    root = "/data/Datasets/Seeds/SPC/set9"
     label_file = "/data/Datasets/Seeds/SPC/Labels/labels.txt"
 
     try:
@@ -79,15 +79,18 @@ if __name__ == "__main__":
     label_file = pd.read_csv(label_file, sep=',', index_col=False, header=None)
     label_map = label_file[0].tolist()
 
-    files = sorted(glob(f"{root}/frames/*/*.jpg"))
+    # files = sorted(glob(f"{root}/frames/*/*.jpg"))
+    files = sorted(glob(f"{root}/images/*.jpg"))
 
     for count, file in enumerate(files):
         filename = file.split('/')[-1].split('.')[0]
-        foldername = file.split('/')[-2]
+        # foldername = file.split('/')[-2]
 
-        txt_file = f"{root}/detect/{foldername}/labels/{filename}.txt"
+        # txt_file = f"{root}/detect/{foldername}/labels/{filename}.txt"
+        txt_file = f"{root}/labels/{filename}.txt"
 
-        if os.path.isfile(f"{root}/detect/{foldername}/labels/{filename}.txt"):
+        # if os.path.isfile(f"{root}/detect/{foldername}/labels/{filename}.txt"):
+        if os.path.isfile(f"{root}/labels/{filename}.txt"):
             df = pd.read_csv(txt_file, sep=',', header=None, index_col=False)
             df_list = df[0].tolist()
 

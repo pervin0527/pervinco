@@ -65,10 +65,10 @@ def postprocess(boxes, classes, scores, image_path):
     cv2.waitKey(0)    
 
 if __name__ == "__main__":
-    model_file_path = "/data/Models/efficientdet_lite/test.tflite"
-    image_file_path = "/data/Datasets/Seeds/DMC/Samples/images/image_348.jpg"
-    label_file_path = "/data/Datasets/Seeds/DMC/Labels/labels.txt"
-    threshold = 0.4
+    model_file_path = "/data/Models/efficientdet_lite/efdet-d1-SPC-set7.tflite"
+    image_file_path = "/data/Datasets/Seeds/SPC/2021-11-11/videos/frames/20211111_084054/20211111_084054_236.jpg"
+    label_file_path = "/data/Datasets/Seeds/SPC/Labels/labels.txt"
+    threshold = 0.1
 
     LABEL_FILE = pd.read_csv(label_file_path, sep=' ', index_col=False, header=None)
     CLASSES = LABEL_FILE[0].tolist()

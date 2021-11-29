@@ -40,7 +40,7 @@ def single_set():
 
 if __name__ == "__main__":
     # ds_path = "/data/Datasets/Seeds/SPC/2021-11-11/videos/frames"
-    ds_path = "/data/Datasets/Seeds/SPC/set1/images"
-    outpath = "/data/Datasets/Seeds/SPC/set5"
+    ds_path = "/data/Datasets/Seeds/SPC/set9/images"
+    outpath = "/data/Datasets/Seeds/SPC/set9/train"
     
     single_set()
