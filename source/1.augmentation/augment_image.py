@@ -1,6 +1,7 @@
 import cv2
 import albumentations as A
 from glob import glob
+from tqdm import tqdm
 
 
 dataset_path = "/data/Datasets/Seeds/SPC/set8/images"
@@ -9,9 +10,11 @@ print(len(images))
 
 
 transform = A.Compose([
+    # A.RandomResizedCrop(512, 512),
+
     A.OneOf([
         A.Rotate(p=1),
-        A.ShiftScaleRotate(p=1)
+        A.ShiftScaleRotate(p=1),
     ]),
 
     A.MotionBlur(p=0.7),
@@ -32,10 +35,13 @@ transform = A.Compose([
 
 
 aug_per_img = 3
-for image in images:
+for i in tqdm(range(len(images))):
+    image = images[i]
     filename = image.split('/')[-1].split('.')[0]
     image = cv2.imread(image)
 
     for idx in range(aug_per_img):
         augmented_image = transform(image=image)['image']
         cv2.imwrite(f"/data/Datasets/Seeds/SPC/set9/img_aug/{filename}_{idx}.jpg", augmented_image)
+        # cv2.imshow('result', augmented_image)
+        # cv2.waitKey(0)

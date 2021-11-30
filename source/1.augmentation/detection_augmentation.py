@@ -6,6 +6,7 @@ import pandas as pd
 import albumentations as A
 import xml.etree.ElementTree as ET
 from lxml.etree import Element, SubElement, tostring
+from tqdm import tqdm
 
 def visualize(image, boxes, labels):
     for bb, c in zip(boxes, labels):
@@ -27,7 +28,7 @@ def read_label(label_path):
 def get_file_list(data_path):
     ds = pathlib.Path(data_path)
 
-    image_list = list(ds.glob('images/*.jpg'))
+    image_list = list(ds.glob('images/*'))
     images = [str(path) for path in image_list]
 
     return images
@@ -119,18 +120,22 @@ def data_augment(image, annot):
         bboxes.append([data[1], data[2], data[3], data[4]])
 
     transform = A.Compose([
-        A.Rotate(p=1, border_mode=1),
+        A.Resize(384, 384, p=1),
+        A.RandomRotate90(p=1),
+        A.RandomBrightnessContrast(brightness_limit=(-0.2, 0.2), contrast_limit=(-0.2, 0.2), p=1),
+        # A.MotionBlur(p=1)
     
     ], bbox_params=A.BboxParams(format='pascal_voc', label_fields=['labels']))
 
     transformed = transform(image=image, bboxes=bboxes, labels=labels)
-    visualize(transformed['image'], transformed['bboxes'], transformed['labels'])
+    # visualize(transformed['image'], transformed['bboxes'], transformed['labels'])
 
     return transformed['image'], transformed['bboxes'], transformed['labels']
 
 
 def data_processing(image_files):
-    for image in image_files:
+    for i in tqdm(range(len(image_files))):
+        image = image_files[i]
         filename = image.split('/')[-1].split('.')[0]
 
         image = cv2.imread(image)
@@ -159,8 +164,8 @@ def data_processing(image_files):
 if __name__ == "__main__":
     label_file = "/data/Datasets/Seeds/SPC/Labels/labels.txt"
     data_path = "/data/Datasets/Seeds/SPC/set8"
-    output_path = "//data/Datasets/Seeds/SPC/set8/augmentations"
-    repeat = 5
+    output_path = "/data/Datasets/Seeds/SPC/set8/augmentations"
+    repeat = 3
     
     if not os.path.isdir(f"{output_path}/annotations") or not os.path.isdir(f"{output_path}/images"):
         os.makedirs(f"{output_path}/images")
