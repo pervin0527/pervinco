@@ -150,9 +150,9 @@ def augmentation(image_list, xml_list, output_shape, visual):
                 visualize(image, bbox, category_id, category_id_to_name, 'original data')
 
             transform = A.Compose([
-                A.Resize(384, 384, p=1),
-                # A.RandomRotate90(p=1),
-                # A.RandomBrightnessContrast(brightness_limit=(-0.2, 0.2), contrast_limit=(-0.2, 0.2), p=1),
+                A.Resize(448, 448, p=1),
+                A.Rotate(p=1),
+                A.RandomBrightnessContrast(brightness_limit=(-0.2, 0.2), contrast_limit=(-0.2, 0.2), p=1),
 
                 ], bbox_params = A.BboxParams(format='pascal_voc', label_fields=['category_ids']))
 

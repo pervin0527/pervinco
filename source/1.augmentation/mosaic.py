@@ -74,7 +74,7 @@ def write_xml(annot_data):
             # print(annot_data, annot_data[1])
             node_object = SubElement(node_root, "object")
             node_name = SubElement(node_object, "name")
-            node_name.text = str(annot_data[idx][0])
+            node_name.text = category_name[annot_data[idx][0]]
             
             node_pose = SubElement(node_object, 'pose')
             node_pose.text = 'Unspecified'
@@ -198,15 +198,15 @@ def mosaic(all_img_list, all_annos, idxs, output_size, scale_range, filter_scale
 
 
 if __name__ == '__main__':
-    OUTPUT_SIZE = (384, 384)  
+    OUTPUT_SIZE = (448, 448)  
     SCALE_RANGE = (0.3, 0.7)
     FILTER_TINY_SCALE = 1 / 50
 
-    ANNO_DIR = './data/labels'
-    IMG_DIR = './data/images'
+    ANNO_DIR = '/data/Datasets/Seeds/SPC/set10/labels'
+    IMG_DIR = '/data/Datasets/Seeds/SPC/set10/images'
     LABEL_DIR = '/data/Datasets/Seeds/SPC/Labels/labels.txt'
-    OUTPUT_DIR = './data/mosaic'
-    VOLUME = 3000
+    OUTPUT_DIR = '/data/Datasets/Seeds/SPC/set10/train'
+    VOLUME = 1906
 
     if not os.path.isdir(OUTPUT_DIR):
         os.makedirs(f'{OUTPUT_DIR}/images')
@@ -227,13 +227,13 @@ if __name__ == '__main__':
             cv2.imwrite(f'{OUTPUT_DIR}/images/output_{VOLUME}.jpg', new_image) #The mosaic image
             write_xml(new_annos)
 
-            for anno in new_annos:
-                xmin, ymin = int(anno[1] * OUTPUT_SIZE[1]), int(anno[2] * OUTPUT_SIZE[0])
-                xmax, ymax = int(anno[3] * OUTPUT_SIZE[1]), int(anno[4] * OUTPUT_SIZE[0])
-                # print(xmin, ymin, xmax, ymax)
-                cv2.rectangle(new_image, (xmin, ymin), (xmax, ymax), (0, 255, 0), 1, cv2.LINE_AA)
+            # for anno in new_annos:
+            #     xmin, ymin = int(anno[1] * OUTPUT_SIZE[1]), int(anno[2] * OUTPUT_SIZE[0])
+            #     xmax, ymax = int(anno[3] * OUTPUT_SIZE[1]), int(anno[4] * OUTPUT_SIZE[0])
+            #     # print(xmin, ymin, xmax, ymax)
+            #     cv2.rectangle(new_image, (xmin, ymin), (xmax, ymax), (0, 255, 0), 1, cv2.LINE_AA)
                 
-            cv2.imshow("result", new_image)
-            cv2.waitKey(0)
+            # cv2.imshow("result", new_image)
+            # cv2.waitKey(0)
             
             VOLUME -= 1

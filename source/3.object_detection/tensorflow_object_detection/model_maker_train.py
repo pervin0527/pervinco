@@ -16,20 +16,20 @@ label_file = pd.read_csv(label_file_path, sep=',', index_col=False, header=None)
 label_map = label_file[0].tolist()
 print(label_map)
 
-train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/SPC/set9/train/images', '/data/Datasets/Seeds/SPC/set9/train/annotations', label_map)
-validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/SPC/set9/valid/images', '/data/Datasets/Seeds/SPC/set9/valid/annotations', label_map)
+train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/SPC/set10/train/images', '/data/Datasets/Seeds/SPC/set10/train/annotations', label_map)
+validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/SPC/set10/valid/images', '/data/Datasets/Seeds/SPC/set10/valid/annotations', label_map)
 
 save_path = "/data/Models/efficientdet_lite"
-model_file_name = 'efdet-d1-SPC-set9'
+model_file_name = 'efdet-d2-SPC-set10'
 
-spec = object_detector.EfficientDetLite1Spec(strategy=None,
+spec = object_detector.EfficientDetLite2Spec(strategy=None,
                                              tflite_max_detections=1,
                                              model_dir=f'{save_path}/{model_file_name}')
 
 model = object_detector.create(train_data,
                                model_spec=spec,
                                epochs=50,
-                               batch_size=64,
+                               batch_size=32,
                                validation_data=validation_data,
                                train_whole_model=True,)
 
