@@ -65,7 +65,7 @@ def write_xml(annot_data, filename, height, width):
     tree.write(f'{root}/annotations/{filename}.xml')
 
 if __name__ == "__main__":
-    root = "/data/Datasets/Seeds/SPC/set10"
+    root = "/data/Datasets/Seeds/SPC/set11"
     label_file = "/data/Datasets/Seeds/SPC/Labels/labels.txt"
 
     try:

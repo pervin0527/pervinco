@@ -48,6 +48,7 @@ def visualize(image, bboxes, category_ids, category_id_to_name, window_name):
     img = image.copy()
     for bbox, category_id in zip(bboxes, category_ids):
         class_name = category_id_to_name[category_id]
+        print(bbox, class_name)
         img = visualize_bbox(img, bbox, class_name)
 
     img = cv2.resize(img, (720, 540))
@@ -150,9 +151,20 @@ def augmentation(image_list, xml_list, output_shape, visual):
                 visualize(image, bbox, category_id, category_id_to_name, 'original data')
 
             transform = A.Compose([
-                A.Resize(448, 448, p=1),
-                A.Rotate(p=1),
-                A.RandomBrightnessContrast(brightness_limit=(-0.2, 0.2), contrast_limit=(-0.2, 0.2), p=1),
+                # A.OneOf([
+                #     A.Resize(640, 480, p=1),
+                #     # A.RandomSizedBBoxSafeCrop(640, 480, p=1),
+                # ], p=1),
+
+
+                # A.OneOf([
+                #     A.Rotate(p=1, border_mode=0, limit=(-15, 15)),
+                #     A.ShiftScaleRotate(rotate_limit=(-15, 15), border_mode=0),
+                # ], p=1),
+
+                # # A.RandomBrightnessContrast(brightness_limit=(-0.15, 0.15), contrast_limit=(-0.15, 0.15), p=1),
+                # A.RandomBrightness(limit=(-0.15, 0.15),p=1)
+                A.Resize(640, 480, p=1),
 
                 ], bbox_params = A.BboxParams(format='pascal_voc', label_fields=['category_ids']))
 
@@ -185,6 +197,7 @@ def augmentation(image_list, xml_list, output_shape, visual):
 
         except:
             print(cnt, xml_name, ' This file does not contain objects.')
+            visualize(image, bbox, category_id, category_id_to_name, 'failed data')
             cnt += 1
 
 

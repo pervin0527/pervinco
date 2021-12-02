@@ -198,15 +198,15 @@ def mosaic(all_img_list, all_annos, idxs, output_size, scale_range, filter_scale
 
 
 if __name__ == '__main__':
-    OUTPUT_SIZE = (448, 448)  
+    OUTPUT_SIZE = (640, 480)  
     SCALE_RANGE = (0.3, 0.7)
     FILTER_TINY_SCALE = 1 / 50
 
-    ANNO_DIR = '/data/Datasets/Seeds/SPC/set10/labels'
-    IMG_DIR = '/data/Datasets/Seeds/SPC/set10/images'
+    ANNO_DIR = '/data/Datasets/Seeds/SPC/set11/train3/labels'
+    IMG_DIR = '/data/Datasets/Seeds/SPC/set11/train3/images'
     LABEL_DIR = '/data/Datasets/Seeds/SPC/Labels/labels.txt'
-    OUTPUT_DIR = '/data/Datasets/Seeds/SPC/set10/train'
-    VOLUME = 1906
+    OUTPUT_DIR = '/data/Datasets/Seeds/SPC/set11/train3/mosaic'
+    VOLUME = 2201
 
     if not os.path.isdir(OUTPUT_DIR):
         os.makedirs(f'{OUTPUT_DIR}/images')
