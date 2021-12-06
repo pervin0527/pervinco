@@ -11,25 +11,25 @@ from tflite_model_maker import model_spec
 from tflite_model_maker import object_detector
 from tflite_model_maker.config import QuantizationConfig
 
-label_file_path = "/data/Datasets/Seeds/SPC/Labels/labels.txt"
+label_file_path = "/data/Datasets/Seeds/ETRI_detection/Labels/labels.txt"
 label_file = pd.read_csv(label_file_path, sep=',', index_col=False, header=None)
 label_map = label_file[0].tolist()
 print(label_map)
 
-train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/SPC/set11/train3/images', '/data/Datasets/Seeds/SPC/set11/train3/annotations', label_map)
-validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/SPC/set11/valid3/images', '/data/Datasets/Seeds/SPC/set11/valid3/annotations', label_map)
+train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/ETRI_detection/newset2/train/images', '/data/Datasets/Seeds/ETRI_detection/newset2/train/annotations', label_map)
+validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/ETRI_detection/newset2/valid/images', '/data/Datasets/Seeds/ETRI_detection/newset2/valid/annotations', label_map)
 
 save_path = "/data/Models/efficientdet_lite"
-model_file_name = 'efdet-d3-SPC-set11'
+model_file_name = 'test'
 
-spec = object_detector.EfficientDetLite3Spec(strategy=None,
+spec = object_detector.EfficientDetLite0Spec(strategy=None,
                                              tflite_max_detections=10,
                                              model_dir=f'{save_path}/{model_file_name}')
 
 model = object_detector.create(train_data,
                                model_spec=spec,
-                               epochs=5,
-                               batch_size=16,
+                               epochs=10,
+                               batch_size=64,
                                validation_data=validation_data,
                                train_whole_model=True,)
 
