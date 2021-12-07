@@ -37,16 +37,16 @@ def detect_fn(image, detection_model):
 
 
 if __name__ == "__main__":
-    PATH_TO_CFG = '/data/Models/efficientdet/SPC-21-11-22/efficientdet_d0_coco17_tpu-32/ssd_efficientdet_d0_512x512_coco17_tpu-8.config'
-    PATH_TO_CKPT = '/data/Models/efficientdet/SPC-21-11-22/'
+    PATH_TO_CFG = '/data/Models/SPC-21-12-06/efficientdet_d0_coco17_tpu-32/ssd_efficientdet_d0_512x512_coco17_tpu-8.config'
+    PATH_TO_CKPT = '/data/Models/SPC-21-12-06/'
     PATH_TO_LABELS = "/data/Datasets/Seeds/SPC/Labels/label_map.txt"
-    CKPT_VALUE = 'ckpt-369'
+    CKPT_VALUE = 'ckpt-26'
     THRESH_HOLD = .7
 
     ###############################################################################################
     cap = cv2.VideoCapture(-1)
     MJPG_CODEC = 1196444237.0 # MJPG
-    cap_AUTOFOCUS = 0
+    cap_AUTOFOCUS = 1
     cap_FOCUS = 0
     #cap_ZOOM = 400
 

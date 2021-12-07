@@ -3,7 +3,7 @@ import cv2
 from glob import glob
 
 state = "train"
-root = "/data/Datasets/Seeds/SPC/Background/videos/"
+root = "/data/Datasets/Seeds/SPC/2021-12-06/videos/"
 videos = glob(f"{root}/*.mp4")
 
 for video in videos:
