@@ -11,16 +11,17 @@ from tflite_model_maker import model_spec
 from tflite_model_maker import object_detector
 from tflite_model_maker.config import QuantizationConfig
 
-label_file_path = "/data/Datasets/Seeds/SPC/Labels/labels.txt"
+label_file_path = "/data/Datasets/SPC/Labels/labels.txt"
 label_file = pd.read_csv(label_file_path, sep=',', index_col=False, header=None)
 label_map = label_file[0].tolist()
 print(label_map)
 
-train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/SPC/set9/images', '/data/Datasets/Seeds/SPC/set9/annotations', label_map)
-validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/Seeds/SPC/set13/images', '/data/Datasets/Seeds/SPC/set13/annotations', label_map)
+train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/SPC/set13/images', '/data/Datasets/SPC/set13/annotations', label_map)
+validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/SPC/set13/valid/images', '/data/Datasets/SPC/set13/valid/annotations', label_map)
 
 save_path = "/data/Models/efficientdet_lite"
-model_file_name = 'efdet-d1-SPC-set9-A1-G25'
+# model_file_name = 'efdet-d1-SPC-set9-A1-G25'
+model_file_name = "test6"
 
 spec = object_detector.EfficientDetLite1Spec(strategy=None,
                                              tflite_max_detections=10,
@@ -28,7 +29,7 @@ spec = object_detector.EfficientDetLite1Spec(strategy=None,
 
 model = object_detector.create(train_data,
                                model_spec=spec,
-                               epochs=100,
+                               epochs=300,
                                batch_size=64,
                                validation_data=validation_data,
                                train_whole_model=True,)

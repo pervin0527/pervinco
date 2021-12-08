@@ -156,4 +156,4 @@ if __name__ == "__main__":
     img_files = get_files(IMAGES_DIR)
     xml_files = get_files(ANNOT_DIR)
 
-    process(img_files, xml_files)        
+    process(img_files, xml_files)
