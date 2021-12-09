@@ -1,7 +1,7 @@
 import os
 from glob import glob
 
-root_path = "/home/barcelona/labelImg/data/data"
+root_path = "/home/barcelona/labelImg/data/"
 annotation_path = f"{root_path}/images"
 annotation_list = sorted(glob(f"{annotation_path}/*.jpg"))
 print(len(annotation_list))
