@@ -110,12 +110,12 @@ def augmentation(image_path, bboxes, labels, areas):
         cv2.imwrite(f"{SAVE_DIR}/images/{filename}_{idx}.jpg", t_image)
         write_xml(t_bboxes, labels, filename, img_height, img_width, idx)
 
-        for bbox, label in zip(t_bboxes, labels):
-                cv2.rectangle(t_image, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), (0, 0, 255))
-                cv2.putText(t_image, label, (int(bbox[0]), int(bbox[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255))
+        # for bbox, label in zip(t_bboxes, labels):
+        #         cv2.rectangle(t_image, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), (0, 0, 255))
+        #         cv2.putText(t_image, label, (int(bbox[0]), int(bbox[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255))
 
-        cv2.imshow('result', t_image)
-        cv2.waitKey(0)
+        # cv2.imshow('result', t_image)
+        # cv2.waitKey(0)
         
 
 def process(img_files: list, xml_files: list):
@@ -132,15 +132,33 @@ def process(img_files: list, xml_files: list):
 
 
 if __name__ == "__main__":
-    ROOT_DIR = "/data/Datasets/Seeds/COCO2017/samples"
-    LABEL_DIR = "/data/Datasets/Seeds/COCO2017/coco_labels.txt"
-    SAVE_DIR = "/data/Datasets/test"
-    AUG_N = 3
+    ROOT_DIR = "/data/Datasets/SPC/Seeds/Foreground"
+    LABEL_DIR = "/data/Datasets/SPC/Labels/labels.txt"
+    SAVE_DIR = "/data/Datasets/SPC/set3/augmentations"
+    AUG_N = 25
 
     transform = A.Compose([
-        # A.CenterCrop(384, 384),
-        A.RandomSizedBBoxSafeCrop(384, 384),
-        A.Rotate(border_mode=0, limit=(-45, 45))
+        A.OneOf([
+            A.Resize(448, 448),
+            A.RandomSizedBBoxSafeCrop(448, 448),
+        ], p=1),
+
+        A.OneOf([
+            A.Rotate(border_mode=0, limit=(-45, 45), p=1),
+            A.ShiftScaleRotate(border_mode=0, rotate_limit=(-45, 45), p=1)
+        ], p=1),
+
+        A.OneOf([
+            A.Cutout(num_holes=1, max_h_size=224, max_w_size=224, p=1),
+            A.RGBShift(p=1),
+            A.RandomBrightnessContrast(p=1)
+        ], p=1),
+
+        A.OneOf([
+            A.ToGray(p=1),
+            A.ToSepia(p=1)
+        ], p=0.4)
+
     ], bbox_params=A.BboxParams(format='pascal_voc', label_fields=['labels'], min_visibility=0.2))
 
     if not os.path.isdir(f"{SAVE_DIR}/images") and not os.path.isdir(f"{SAVE_DIR}/annotations"):
