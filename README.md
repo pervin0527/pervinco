@@ -1,52 +1,30 @@
-# Welcome!
-I am a computer vision deep learning developer working in Korea.  
-This is my blog, and you can see everything I've studied here.  [https://www.notion.so/pervin0527](https://www.notion.so/pervin0527/932d8e6e02b243f5991078c7f890c479)
+# Pervinco's Repo
+Vision Deep Learning을 해보면서 만든 내용들을 담아둔 저장소입니다.
 
-# Repository configuration
-## Source
- The codes here are generally required to use Image Classification or Object Detection API.  
- If there are any improvements to the code, please feel free to write them down in the Issues.
-### 1. Image Data Augmentations  
-   - **Albumentations, pandas, matplotlib, opencv-python, etc.**
-   - [Dataset augmentation for Image Classification](https://github.com/pervin0527/pervinco/tree/master/source/1.augmentation#1-dataset-augmentation-for-image-classification)
-   - [Dataset augmentation for Object Detection](https://github.com/pervin0527/pervinco/tree/master/source/1.augmentation#2-dataset-augmentation-for-object-detection)
-   - [Cutmix & Mixup augmentation](https://github.com/pervin0527/pervinco/tree/master/source/2.image_classification#5-cutmix--mixup-augmentation--k-fold-cross-validation-training)
+## Requirements
+- Tensorflow >= 2.5 
+- Albuemntations
+- OpenCV
+- Python3
+- Pandas
+- Numpy
 
-### 2. Image Classification
-   - **Tensorflow, Keras, scikit-learn, pandas**
-   - [Multi Class Image Classification](https://github.com/pervin0527/pervinco/tree/master/source/2.image_classification#2-image-classification--efficientnet)
-   - [Train with Multi GPUs](https://github.com/pervin0527/pervinco/blob/master/source/2.image_classification/Multi_gpu_training.py)
-   - [tf.data API + augmentations](https://github.com/pervin0527/pervinco/blob/master/source/2.image_classification/EfficientNet_ver2.py)
-   - [Multi Label Image Classification](https://github.com/pervin0527/pervinco/tree/master/source/2.image_classification#3-multi-label-image-classification)
-   - [K-Fold Cross Validation & Ensemble](https://github.com/pervin0527/pervinco/tree/master/source/2.image_classification#4-k-fold-cross-validation--ensemble)
+## Image Data Augmentation
+1. Cvat을 이용해서 annotation한 데이터를 PASCAL VOC로 변환하기 - [cvat processing](source/augmentation/cvat_data.py)
+2. image와 annotation file Augmentation하기(CutMix & MixUp & Mosaic) - [detection data augmentation](source/augmentation/detection_data_augmentation.py)
+3. PASCAL VOC 데이터를 yolo 형식(또는 반대로)으로 변환하기  
+   - [voc2yolo](source/augmentation/xml2txt.py)
+   - [yolo2voc](source/augmentation/txt2xml.py)
 
-### 3. Object Detection
-   - [Tensorflow 2 Object Detection API](https://github.com/pervin0527/pervinco/tree/master/source/3.object_detection#1-tensorflow-20-object-detection-api)
-   - [Yolo v4](https://github.com/pervin0527/pervinco/tree/master/source/3.object_detection#2-yolo-v4)
-   - Custom SSD_ResNetV2
-   - Quantization Int8
-   - [EfficientDet lite](https://github.com/pervin0527/pervinco/tree/master/source/3.object_detection/tensorflow_object_detection#efficientdet-lite-with-model-maker)
+## Image Classification
+1. tf.keras API에서 사용가능한 모델을 이용. - [image_classification with EfficientNet](source/image_classification/EfficientNet_ver1.py)  
+2. CutMix & MixUp을 적용하여 학습 - [apply CutMix & MixUp](source/image_classification/cut_mix_training.py)  
+3. Model SubClassing API 사용
+      - [subclassing 기초](source/image_classification/model_subclassing_basic.py)
+      - [subclassing + model.fit()](source/image_classification/model_subclass_fit.py)
+      - [subclassing + gradient.tape()](source/image_classification/model_subclass_tape.py)
 
-### 4. Competitions
-   - [Dacon] [landmark image classification (26th / 387teams)](https://github.com/pervin0527/pervinco/tree/master/source/4.competitions#20201116-dacon---landmark-classification-competition)
-   - [Dacon] [Dirty Mnist multi label classification (10th / 780teams)](https://github.com/pervin0527/pervinco/tree/master/source/4.competitions#20210301-dacon---dirty-mnist-multi-label-classificatin)
-   - [ai connect] [3D pose estimation (7th / 35teams)](https://github.com/pervin0527/pervinco/tree/master/source/4.competitions/pose_estimation)
-
-### 5. 3D
-   - [PointNet](https://github.com/pervin0527/pervinco/tree/master/source/5.3D/pointnet)
-   - [PointCutMix](https://github.com/pervin0527/pervinco/tree/master/source/5.3D/pointcutmix)
-
-## DL_Note
-It summarizes the details of machine learning and deep learning that are easier to understand.   
-1. Simple Linear Regression
-2. How to minimize cost?
-3. Multi variable linear regression
-4. Logistic Regression
-5. Softmax
-6. learning rate decay, overfitting
-7. Dataset, Learning method
-8. Neural Network, XOR gate
-9. ReLU activation func
-10. weight initialization, dropout, batch normalization
-11. Convolutional Neural Network
-12. Recurrent Neural Network
+## Object Detection
+1. Tensorflow Object Detection API - [README](source/object_detection/README.md)  
+  
+2. Tensorflow lite Model Maker - [Model Maker](source/object_detection/tensorflow_object_detection/model_maker_train.py)
