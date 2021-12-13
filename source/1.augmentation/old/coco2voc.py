@@ -5,11 +5,16 @@ import cv2
 import json
 
 def write_to_xml(image_name, image_dict, data_folder, save_folder, xml_template='pascal_voc_template.xml'):
+    
+    
+    # get bboxes
     bboxes = image_dict[image_name]
     
+    # read xml file
     tree = ET.parse(xml_template)
     root = tree.getroot()    
     
+    # modify
     folder = root.find('folder')
     folder.text = 'Annotations'
     
@@ -21,6 +26,7 @@ def write_to_xml(image_name, image_dict, data_folder, save_folder, xml_template=
     database.text = 'COCO2017'
     
     
+    # size
     img = cv2.imread(os.path.join(data_folder, image_name))
     h,w,d = img.shape
     
@@ -33,7 +39,7 @@ def write_to_xml(image_name, image_dict, data_folder, save_folder, xml_template=
     depth.text = str(d)
     
     for box in bboxes:
-
+        # append object
         obj = ET.SubElement(root, 'object')
         
         name = ET.SubElement(obj, 'name')
@@ -62,42 +68,62 @@ def write_to_xml(image_name, image_dict, data_folder, save_folder, xml_template=
         ymax = ET.SubElement(bndbox, 'ymax')
         ymax.text = str(int(box[4]))
     
+    # save .xml to anno_path
     anno_path = os.path.join(save_folder, image_name.split('.')[0] + '.xml')
     print(anno_path)
     tree.write(anno_path)
     
+
+# main routine
 if __name__=='__main__':
+    
+    # read annotations file
     annotations_path = 'annotations/instances_train2017.json'
     
+    # read coco category list
     df = pd.read_csv('coco_categories.csv')
     df.set_index('id', inplace=True)
     
+    # specify image locations
     image_folder = 'train2017'
+    
+    # specify savepath - where to save .xml files
     savepath = 'saved'
     if not os.path.exists(savepath):
         os.makedirs(savepath)
     
+    # read in .json format
     with open(annotations_path,'rb') as file:
         doc = json.load(file)
         
+    # get annotations
     annotations = doc['annotations']
+    
+    # iscrowd allowed? 1 for ok, else set to 0
     iscrowd_allowed = 1
+    
+    # initialize dict to store bboxes for each image
     image_dict = {}
     
+    # loop through the annotations in the subset
     for anno in annotations:
-
+        # get annotation for image name
         image_id = anno['image_id']
         image_name = '{0:012d}.jpg'.format(image_id)    
         
+        # get category
         category = df.loc[anno['category_id']]['name']
         
+        # add as a key to image_dict
         if not image_name in image_dict.keys():
             image_dict[image_name]=[]
         
+        # append bounding boxes to it
         box = anno['bbox']
-
+        # since bboxes = [xmin, ymin, width, height]:
         image_dict[image_name].append([category, box[0], box[1], box[0]+box[2], box[1]+box[3]])
         
+    # generate .xml files
     for image_name in image_dict.keys():
         write_to_xml(image_name, image_dict, image_folder, savepath)
         print('generated for: ', image_name)

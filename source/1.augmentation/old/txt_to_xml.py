@@ -65,8 +65,8 @@ def write_xml(annot_data, filename, height, width):
     tree.write(f'{root}/annotations/{filename}.xml')
 
 if __name__ == "__main__":
-    root = "/data/Datasets/SPC/set1/train/augmentations"
-    label_file = "/data/Datasets/SPC/Labels/labels.txt"
+    root = "/data/Datasets/Seeds/SPC/set11"
+    label_file = "/data/Datasets/Seeds/SPC/Labels/labels.txt"
 
     try:
         if not os.path.isdir(f'{root}/annotations') or os.path.isdir(f'{root}/images'):
@@ -100,12 +100,12 @@ if __name__ == "__main__":
             image = cv2.imread(file)
             img_height, img_width = image.shape[:-1]
 
-            for data in annot_data:
-                cv2.rectangle(image, (data[1], data[2]), (data[3], data[4]), (0, 0, 255), thickness=2)
-                cv2.putText(image, data[0], (data[1], data[2]), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255))
-            cv2.imshow('result', image)
-            cv2.waitKey(0)
-            break
+            # for data in annot_data:
+            #     cv2.rectangle(image, (data[1], data[2]), (data[3], data[4]), (0, 0, 255), thickness=2)
+            #     cv2.putText(image, data[0], (data[1], data[2]), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255))
+            # cv2.imshow('result', image)
+            # cv2.waitKey(0)
+            # break
 
             os.system("clear")
             print(count)

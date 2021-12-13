@@ -1,10 +1,11 @@
-import os
-import sys
-import glob
+# -*- coding: utf-8 -*-
 import pandas as pd
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
-from src.utils import read_label_file
+import os
+import sys
+import glob
+import argparse
 
 # def convert_coordinates(width, height, xmin, ymin, xmax, ymax):
 #     x_center = (xmin + xmax) / (2 * width)
@@ -74,12 +75,22 @@ def convert_xml2yolo(lut, input_path, output_path):
 
 
 if __name__ == '__main__':
-    input_path = "/data/Datasets/SPC/set1/train/augmetations/annotations"
-    label_path = "/data/Datasets/SPC/set1/Labels/labels.txt"
-    output_path = "/data/Datasets/SPC/set1/train/augmentations/labels"
-    txt_filename = "train.txt"
+    parser = argparse.ArgumentParser(description='PASCAL VOC to YOLO')
+    parser.add_argument('--input_xml_path', type=str)
+    parser.add_argument('--label_map_path', type=str)
+    parser.add_argument('--output_path', type=str)
+    parser.add_argument('--txt_filename', type=str)
+    args = parser.parse_args()
 
-    classes = read_label_file(label_path)
+    input_path = args.input_xml_path
+    label_map = args.label_map_path
+    output_path = args.output_path
+    txt_filename = args.txt_filename
+
+    df = pd.read_csv(label_map, sep = '\n', index_col=False, header=None)
+    classes = df[0].tolist()
+    print(classes)
+
     convert_xml2yolo(classes, input_path, output_path)
 
     txt_path = f"{'/'.join(input_path.split('/')[:-1])}/{txt_filename}.txt"

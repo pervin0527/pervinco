@@ -1,7 +1,7 @@
 import os
 import cv2
 from tqdm import tqdm
-from src.utils import read_label_file, read_xml, get_files, get_content_filename, write_xml, visualize, make_save_dir
+from src.utils import read_label_file, read_xml, get_files, get_content_filename, write_xml, visualize
 
 
 def search(root_dir):
@@ -9,7 +9,7 @@ def search(root_dir):
 
     contents = os.listdir(root_dir)
     for content in contents:
-        if os.path.isdir(f"{ROOT}/{content}") and content != f"{SAVE_FOLDER}":
+        if os.path.isdir(f"{ROOT}/{content}") and content != "{SAVE_FOLDER}":
             folders.append(content)
 
     return sorted(folders)
@@ -37,14 +37,16 @@ def process(img_dir, annot_dir, number):
         
     
 if __name__ == "__main__":
-    ROOT = "/data/Datasets/SPC/Cvat/test_ver"
+    ROOT = "/data/Datasets/SPC/Cvat/ver1"
     LABEL_DIR = "/data/Datasets/SPC/Labels/labels.txt"
     LABELS = read_label_file(LABEL_DIR)
     SAVE_FOLDER = "test"
     target_folders = search(ROOT)
     print(target_folders)
 
-    make_save_dir(f"{ROOT}/{SAVE_FOLDER}")
+    if not os.path.isdir(f"{ROOT}/{SAVE_FOLDER}"):
+        os.makedirs(f"{ROOT}/{SAVE_FOLDER}/images")
+        os.makedirs(f"{ROOT}/{SAVE_FOLDER}/annotations")
 
     for idx, folder in enumerate(target_folders):
         image_dir = f"{ROOT}/{folder}/JPEGImages"
@@ -53,6 +55,9 @@ if __name__ == "__main__":
         process(image_dir, annot_dir, idx)
 
     images, annotations = get_files(f"{ROOT}/{SAVE_FOLDER}/images"), get_files(f"{ROOT}/{SAVE_FOLDER}/annotations")
+    # print(images[0], annotations[0])
     image = cv2.imread(images[0])
     bboxes, labels = read_xml(annotations[0], LABELS)
-    visualize(image, bboxes, labels, "pascal_voc")
+    # print(bboxes, labels)
+
+    visualize(image, bboxes, labels)
