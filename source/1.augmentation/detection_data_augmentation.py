@@ -55,7 +55,7 @@ def write_xml(bboxes, labels, filename, height, width, number):
     node_folder.text = "images"
 
     node_filename = SubElement(node_root, "filename")
-    node_filename.text = f'{filename}.jpg'
+    node_filename.text = f'{filename}_{number}.jpg'
     
     node_size = SubElement(node_root, "size")
     node_width = SubElement(node_size, "width")
@@ -135,7 +135,7 @@ if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC/Seeds/Foreground"
     LABEL_DIR = "/data/Datasets/SPC/Labels/labels.txt"
     SAVE_DIR = "/data/Datasets/SPC/set3/augmentations"
-    AUG_N = 25
+    AUG_N = 30
 
     transform = A.Compose([
         A.OneOf([
@@ -149,7 +149,7 @@ if __name__ == "__main__":
         ], p=1),
 
         A.OneOf([
-            A.Cutout(num_holes=1, max_h_size=224, max_w_size=224, p=1),
+            # A.Cutout(num_holes=1, max_h_size=224, max_w_size=224, p=1),
             A.RGBShift(p=1),
             A.RandomBrightnessContrast(p=1)
         ], p=1),
