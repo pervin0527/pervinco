@@ -1,5 +1,7 @@
 # https://www.tensorflow.org/lite/tutorials/model_maker_object_detection
 # https://www.tensorflow.org/lite/api_docs/python/tflite_model_maker/config/QuantizationConfig#for_int8
+# https://github.com/tensorflow/examples/blob/master/tensorflow_examples/lite/model_maker/third_party/efficientdet/hparams_config.py
+
 import os
 import numpy as np
 import tensorflow as tf
@@ -16,7 +18,7 @@ label_file = pd.read_csv(label_file_path, sep=',', index_col=False, header=None)
 label_map = label_file[0].tolist()
 print(label_map)
 
-train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/SPC/set4/augmentations2/images', '/data/Datasets/SPC/set4/augmentations2/xmls', label_map)
+train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/SPC/set4/train/images', '/data/Datasets/SPC/set4/train/annotations', label_map)
 validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/SPC/set3/images', '/data/Datasets/SPC/set3/annotations', label_map)
 
 save_path = "/data/Models/efficientdet_lite"

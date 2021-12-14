@@ -8,10 +8,10 @@
 <table border="0">
    <tr>
       <td>
-      <img src="../doc_imgs/img_0004.jpg" width="100%" />
+      <img src="../../doc_imgs/img_0004.jpg" width="100%" />
       </td>
       <td>
-      <img src="../doc_imgs/img_0002.jpg", width="100%" />
+      <img src="../../doc_imgs/img_0002.jpg", width="100%" />
       </td>
    </tr>
    </table>
@@ -32,10 +32,10 @@
 <table border="0">
 <tr>
    <td>
-   <img src="../doc_imgs/mlc.jpeg" width="100%" />
+   <img src="../../doc_imgs/mlc.jpeg" width="100%" />
    </td>
    <td>
-   <img src="../doc_imgs/mlc2.png", width="100%" />
+   <img src="../../doc_imgs/mlc2.png", width="100%" />
    </td>
 </tr>
 </table>
@@ -46,14 +46,14 @@
 
 
 ### 4. K-Fold Cross Validation & Ensemble
-<p align="left"><img src="../doc_imgs/k-fold.png" width=80%></p>
-<p align="left"><img src="../doc_imgs/ensemble_train.png" width=100%></p>
+<p align="left"><img src="../../doc_imgs/k-fold.png" width=80%></p>
+<p align="left"><img src="../../doc_imgs/ensemble_train.png" width=100%></p>
 
 - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/4.competitions/landmark_classification/k_fold_train.py)
 
 ## 5. CutMix & MixUp Augmentation & K-Fold Cross Validation Training
-<p align="left"><img src="../doc_imgs/cutmix.png" width=70%></p>
-<p align="left"><img src="../doc_imgs/mixup.png" width=70%></p>
+<p align="left"><img src="../../doc_imgs/cutmix.png" width=70%></p>
+<p align="left"><img src="../../doc_imgs/mixup.png" width=70%></p>
 
 - [Source Code](https://github.com/pervin0527/pervinco/blob/master/source/2.image_classification/EfficientNet_ver2.py)
 
