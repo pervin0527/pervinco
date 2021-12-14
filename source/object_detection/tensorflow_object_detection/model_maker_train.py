@@ -23,7 +23,7 @@ validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/SPC
 
 save_path = "/data/Models/efficientdet_lite"
 # model_file_name = 'efdet-d1-SPC-set9-A1-G25'
-model_file_name = "test6"
+model_file_name = "test"
 
 spec = object_detector.EfficientDetLite1Spec(strategy=None,
                                              tflite_max_detections=10,
@@ -31,7 +31,7 @@ spec = object_detector.EfficientDetLite1Spec(strategy=None,
 
 model = object_detector.create(train_data,
                                model_spec=spec,
-                               epochs=300,
+                               epochs=100,
                                batch_size=64,
                                validation_data=validation_data,
                                train_whole_model=True,)

@@ -42,3 +42,4 @@ if __name__ == "__main__":
         #     result = unconvert(1440, 1440, bbox[0], bbox[1], bbox[2], bbox[3])
         #     print(result)
         write_xml(SAVE_DIR, bboxes, labels, filename, 1440, 1440, format="yolo")
+        break
