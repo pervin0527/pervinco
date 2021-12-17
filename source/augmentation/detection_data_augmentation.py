@@ -94,12 +94,3 @@ if __name__ == "__main__":
 
             except:
                 pass
-
-    if mix_bg:
-        bg_images = random.sample(get_files(bg_dir), int(length*bg_ratio))
-        for bg_img in bg_images:
-            file_name = bg_img.split('/')[-1].split('.'[0])
-            image = cv2.imread(bg_img)
-            height, width = image.shape[:-1]
-            cv2.imwrite(f"{SAVE_DIR}/images/bg_{file_name}.jpg", image)
-            write_xml(f"{SAVE_DIR}/annotations", None, None, f'bg_{file_name}', height, width, None)
