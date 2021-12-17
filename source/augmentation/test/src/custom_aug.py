@@ -224,7 +224,7 @@ class Mosaic(A.BasicTransform):
         self.height_split_range = height_split_range
         self.width_split_range = width_split_range
         if bbox_params is None:
-            bbox_params = A.BboxParams(format=dataset.bbox_format, min_area=0.3, min_visibility=0.3, label_fields=['labels'])
+            bbox_params = A.BboxParams(format='albumentations', min_area=0.3, min_visibility=0.3, label_fields=['labels'])
         self.transforms = transforms
         self.bbox_params = bbox_params
 

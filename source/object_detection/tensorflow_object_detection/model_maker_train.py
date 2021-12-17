@@ -18,12 +18,11 @@ label_file = pd.read_csv(label_file_path, sep=',', index_col=False, header=None)
 label_map = label_file[0].tolist()
 print(label_map)
 
-train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/SPC/set4/train/images', '/data/Datasets/SPC/set4/train/annotations', label_map)
-validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/SPC/set3/images', '/data/Datasets/SPC/set3/annotations', label_map)
+train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/SPC/full-name1/augmentations/images', '/data/Datasets/SPC/full-name1/augmentations/annotations', label_map)
+validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/SPC/full-name1/images', '/data/Datasets/SPC/full-name1/annotations', label_map)
 
 save_path = "/data/Models/efficientdet_lite"
-# model_file_name = 'efdet-d1-SPC-set9-A1-G25'
-model_file_name = "test"
+model_file_name = "full-name1"
 
 spec = object_detector.EfficientDetLite1Spec(strategy=None,
                                              tflite_max_detections=10,

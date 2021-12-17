@@ -1,43 +1,34 @@
+import os
 import cv2
 import random
+import pathlib
+import pandas as pd
 import albumentations as A
 from tqdm import tqdm
-from src.data import Dataset, Augmentations
 from src.custom_aug import MixUp, CutMix, Mosaic
-from src.utils import read_label_file, read_xml, get_files, make_save_dir, write_xml, visualize
+from src.data import BaseDataset, LoadImages, LoadPascalVOCLabels, Augmentations
+from src.utils import read_label_file, read_xml, get_files, write_xml, make_save_dir, visualize
 
 if __name__ == "__main__":
-    AUG_N = 4
     ROOT_DIR = "/data/Datasets/SPC/full-name1"
     LABEL_DIR = "/data/Datasets/SPC/Labels/labels.txt"
     SAVE_DIR = "/data/Datasets/SPC/full-name1/augmentations"
+    EPOCH = 4
+    
+    mix_bg = True
+    bg_ratio = 0.1
+    bg_dir = "/data/Datasets/COCO2017/images"
 
     IMG_DIR = f"{ROOT_DIR}/images"
     ANNOT_DIR = f"{ROOT_DIR}/annotations"
-
-    INCLUDE_BG = True
-    BG_RATIO = 0.05
-    BG_DIR = ["/data/Datasets/COCO2017", "/data/Datasets/SPC/Seeds/Background"]
-
-    make_save_dir(SAVE_DIR)
     images, annotations = get_files(IMG_DIR), get_files(ANNOT_DIR)
     classes = read_label_file(LABEL_DIR)
 
-    if INCLUDE_BG:
-        for bg in BG_DIR:
-            bg_images = get_files(f"{bg}/images")
-            bg_images = random.sample(bg_images, int(len(images) * BG_RATIO))
-            print(len(bg_images))
-
-            for bg_img in bg_images:
-                filename = bg_img.split('/')[-1].split('.')[0]
-                image = cv2.imread(bg_img)
-                height, width = image.shape[:-1]
-                cv2.imwrite(f"{SAVE_DIR}/images/bg_{filename}.jpg", image)
-                write_xml(f"{SAVE_DIR}/annotations", None, None, f"bg_{filename}", height, width, 'pascal_voc')
-
-    dataset = Dataset(images, annotations, classes)
-    # print(dataset[0])
+    print(classes)
+    print(len(images), len(annotations))
+    dataset = BaseDataset(images, annotations, classes)
+    dataset = LoadImages(dataset)
+    dataset = LoadPascalVOCLabels(dataset)
 
     transform = A.Compose([
     A.OneOf([
@@ -63,32 +54,35 @@ if __name__ == "__main__":
         ])
     ], p=1),
     
-], bbox_params=A.BboxParams(format='albumentations', min_area=0.5, min_visibility=0.2, label_fields=['labels']))
+], bbox_params=A.BboxParams(format=dataset.bbox_format, min_area=0.5, min_visibility=0.2, label_fields=['labels']))
 
-    transformed = Augmentations(dataset, transform)    
-    # sample = transformed[0]
-    # print(sample['bboxes'], sample['labels'])
-    # visualize(sample['image'], sample['bboxes'], sample['labels'], format='albumentations')
+    transformed = Augmentations(dataset, transform)
+    length = transformed.__len__()
 
-    transformed_ds_len = transformed.__len__()
-    # print(transformed_ds_len)
+    make_save_dir(SAVE_DIR)
+    for ep in range(EPOCH):
+        indexes = list(range(length))
+        random.shuffle(indexes)
 
-    for n in range(AUG_N):
-        idxs = list(range(transformed_ds_len))
-        random.shuffle(idxs)
-
-        for i in tqdm(range(transformed_ds_len)):
-            i = idxs[i]
-            number = n * transformed_ds_len + i
+        for i in tqdm(range(length), desc=f"epoch {ep}"):
+            i = indexes[i]
+            file_no = ep*length+i
 
             try:
-                transformed_data = transformed[i]
-                # print(transformed_data['bboxes'], transformed_data['labels'])
-                cv2.imwrite(f'{SAVE_DIR}/images/{number}.jpg', transformed_data['image'])
-                height, width = transformed_data['image'].shape[:-1]
-                write_xml(f"{SAVE_DIR}/annotations", transformed_data['bboxes'], transformed_data['labels'], number, height, width, 'albumentations')
-
-                # visualize(transformed_data['image'], transformed_data['bboxes'], transformed_data['labels'], format='albumentations')
+                output = transformed[i]
+                visualize(output['image'], output['bboxes'], output['labels'], format="albumentations")
+                cv2.imwrite(f'{SAVE_DIR}/images/{file_no}.jpg', output['image'])
+                height, width = output['image'].shape[:-1]
+                write_xml(f"{SAVE_DIR}/annotations", output['bboxes'], output['labels'], file_no, height, width, 'albumentations')
 
             except:
                 pass
+
+    if mix_bg:
+        bg_images = random.sample(get_files(bg_dir), int(length*bg_ratio))
+        for bg_img in bg_images:
+            file_name = bg_img.split('/')[-1].split('.'[0])
+            image = cv2.imread(bg_img)
+            height, width = image.shape[:-1]
+            cv2.imwrite(f"{SAVE_DIR}/images/bg_{file_name}.jpg", image)
+            write_xml(f"{SAVE_DIR}/annotations", None, None, f'bg_{file_name}', height, width, None)
