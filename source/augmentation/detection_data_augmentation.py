@@ -10,9 +10,9 @@ from src.data import BaseDataset, LoadImages, LoadPascalVOCLabels, Augmentations
 from src.utils import read_label_file, read_xml, get_files, write_xml, make_save_dir, visualize
 
 if __name__ == "__main__":
-    ROOT_DIR = "/data/Datasets/SPC/full-name1"
+    ROOT_DIR = "/data/Datasets/SPC/full-name-test"
     LABEL_DIR = "/data/Datasets/SPC/Labels/labels.txt"
-    SAVE_DIR = "/data/Datasets/SPC/full-name1/augmentations"
+    SAVE_DIR = "/data/Datasets/SPC/full-name-test/augmentations"
     EPOCH = 4
     
     IMG_DIR = f"{ROOT_DIR}/images"
@@ -90,7 +90,7 @@ if __name__ == "__main__":
                 cv2.imwrite(f'{SAVE_DIR}/images/{file_no}.jpg', output['image'])
                 height, width = output['image'].shape[:-1]
                 write_xml(f"{SAVE_DIR}/annotations", output['bboxes'], output['labels'], file_no, height, width, 'albumentations')
-                # visualize(output['image'], output['bboxes'], output['labels'], bbox_format='albumentations')
+                visualize(output['image'], output['bboxes'], output['labels'], format='albumentations', show_info=True)
 
             except:
                 pass

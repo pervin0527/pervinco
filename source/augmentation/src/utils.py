@@ -65,13 +65,18 @@ def read_xml(xml_file: str, classes: list, format):
 
                 if format == "yolo":
                     # bboxes.append(convert_coordinates((width, height), (xmin, ymin, xmax, ymax)))
-                    bboxes.append(convert_coordinates(width, height, xmin, ymin, xmax, ymax))
-                    labels.append(classes.index(name))
+                    xmin, ymin, xmax, ymax = convert_coordinates(width, height, xmin, ymin, xmax, ymax)
+                    name = classes.index(name)
 
-                else:
-                    bboxes.append([xmin, ymin, xmax, ymax])
-                    labels.append(name)
-                    # areas.append((xmax - xmin) * (ymax - ymin))
+                elif format == "albumentations":
+                    xmin = int(float(bbox.find('xmin').text)) / width
+                    ymin = int(float(bbox.find('ymin').text)) / height
+                    xmax = int(float(bbox.find('xmax').text)) / width
+                    ymax = int(float(bbox.find('ymax').text)) / height           
+                    
+                bboxes.append([xmin, ymin, xmax, ymax])
+                labels.append(name)
+                # areas.append((xmax - xmin) * (ymax - ymin))
 
     # return bboxes, labels, areas    
     return bboxes, labels
@@ -97,22 +102,26 @@ def get_augmentation(transform):
     return A.Compose(transform, bbox_params=A.BboxParams(format='pascal_voc', label_fields=['labels'], min_area=0.5, min_visibility=0.2))
 
 
-def visualize(image, boxes, labels, bbox_format="pascal_voc"):
-    for bb, c in zip(boxes, labels):
+def visualize(image, boxes, labels, format="pascal_voc", show_info=True):
+    if show_info:
+        print(labels, boxes)
+    
+    for bb, c in zip(boxes, labels):       
         # print(c, bb)
         height, width = image.shape[:-1]
 
-        if bbox_format == "pascal_voc":
+        if format == "pascal_voc":
             cv2.rectangle(image, (int(bb[0]), int(bb[1])), (int(bb[2]), int(bb[3])), (0, 255, 255), thickness=6)
             cv2.putText(image, str(c), (int(bb[0]), int(bb[1])), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 0), thickness=6)            
 
-        elif bbox_format == "albumentations":
+        elif format == "albumentations":
             cv2.rectangle(image, (int(bb[0] * width + 0.5), int(bb[1] * height + 0.5)), (int(bb[2] * width + 0.5), int(bb[3] * height + 0.5)), (0, 255, 255), thickness=6)
             cv2.putText(image, str(c), (int(bb[0]), int(bb[1])), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 0), thickness=6)
 
     image = cv2.resize(image, (1920, 1080))
     cv2.imshow('result', image)
     cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 
 def write_xml(save_path, bboxes, labels, filename, height, width, format):

@@ -25,19 +25,19 @@ def process(img_dir, annot_dir, number):
 
         image = cv2.imread(image)
 
-        try:
-            img_height, img_width = image.shape[:-1]
-            if img_filename == get_content_filename(annot):
-                bboxes, labels = read_xml(annot, LABELS)
-                
-                cv2.imwrite(f"{ROOT}/{SAVE_FOLDER}/images/{img_filename}_{number}.jpg", image)
-                write_xml(f"{ROOT}/{SAVE_FOLDER}/annotations", bboxes, labels, img_filename, img_height, img_width, 'pascal_voc')
-        except:
-            print(image, annot)
+        img_height, img_width = image.shape[:-1]
+        if img_filename == get_content_filename(annot):
+            bboxes, labels = read_xml(annot, LABELS, format='pascal_voc')
+
+            if index == 0:
+                visualize(image, bboxes, labels, format='pascal_voc', show_info=False)
+            
+            cv2.imwrite(f"{ROOT}/{SAVE_FOLDER}/images/{img_filename}_{number}.jpg", image)
+            write_xml(f"{ROOT}/{SAVE_FOLDER}/annotations", bboxes, labels, img_filename, img_height, img_width, 'pascal_voc')
         
     
 if __name__ == "__main__":
-    ROOT = "/data/Datasets/SPC/Cvat/test_ver"
+    ROOT = "/data/Datasets/SPC/Cvat/full-name-seed1"
     LABEL_DIR = "/data/Datasets/SPC/Labels/labels.txt"
     LABELS = read_label_file(LABEL_DIR)
     SAVE_FOLDER = "test"
