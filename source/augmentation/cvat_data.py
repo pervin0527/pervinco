@@ -29,22 +29,25 @@ def process(img_dir, annot_dir, number):
         if img_filename == get_content_filename(annot):
             bboxes, labels = read_xml(annot, LABELS, format='pascal_voc')
 
-            if index == 0:
-                visualize(image, bboxes, labels, format='pascal_voc', show_info=False)
+            # if index == 0:
+            #     visualize(image, bboxes, labels, format='pascal_voc', show_info=False)
             
-            cv2.imwrite(f"{ROOT}/{SAVE_FOLDER}/images/{img_filename}_{number}.jpg", image)
-            write_xml(f"{ROOT}/{SAVE_FOLDER}/annotations", bboxes, labels, img_filename, img_height, img_width, 'pascal_voc')
+            cv2.imwrite(f"{SAVE_FOLDER}/images/{img_filename}_{number}.jpg", image)
+            write_xml(f"{SAVE_FOLDER}/annotations", bboxes, labels, f"{img_filename}_{number}", img_height, img_width, 'pascal_voc')
         
     
 if __name__ == "__main__":
     ROOT = "/data/Datasets/SPC/Cvat/full-name-seed1"
     LABEL_DIR = "/data/Datasets/SPC/Labels/labels.txt"
     LABELS = read_label_file(LABEL_DIR)
-    SAVE_FOLDER = "test"
+
+    SAVE_DIR = ('/').join(ROOT.split('/')[:-2])
+    SAVE_FOLDER = f"{SAVE_DIR}/full-name2"
+    print(SAVE_FOLDER)
     target_folders = search(ROOT)
     print(target_folders)
 
-    make_save_dir(f"{ROOT}/{SAVE_FOLDER}")
+    make_save_dir(f"{SAVE_FOLDER}")
 
     for idx, folder in enumerate(target_folders):
         image_dir = f"{ROOT}/{folder}/JPEGImages"
@@ -52,7 +55,7 @@ if __name__ == "__main__":
 
         process(image_dir, annot_dir, idx)
 
-    images, annotations = get_files(f"{ROOT}/{SAVE_FOLDER}/images"), get_files(f"{ROOT}/{SAVE_FOLDER}/annotations")
+    images, annotations = get_files(f"{SAVE_FOLDER}/images"), get_files(f"{SAVE_FOLDER}/annotations")
     image = cv2.imread(images[0])
     bboxes, labels = read_xml(annotations[0], LABELS)
     visualize(image, bboxes, labels, "pascal_voc")

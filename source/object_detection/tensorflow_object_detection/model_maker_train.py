@@ -13,11 +13,11 @@ from tflite_model_maker import model_spec
 from tflite_model_maker import object_detector
 from tflite_model_maker.config import QuantizationConfig
 
-train_data = "/data/Datasets/SPC/full-name1/augmentations"
+train_data = "/data/Datasets/SPC/full-name2"
 valid_data = "/data/Datasets/SPC/full-name1"
 label_file_path = "/data/Datasets/SPC/Labels/labels.txt"
 save_path = "/data/Models/efficientdet_lite"
-model_file_name = "test"
+model_file_name = "full-name2-aug-v1"
 
 label_file = pd.read_csv(label_file_path, sep=',', index_col=False, header=None)
 label_map = label_file[0].tolist()
