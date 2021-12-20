@@ -13,18 +13,31 @@ from tflite_model_maker import model_spec
 from tflite_model_maker import object_detector
 from tflite_model_maker.config import QuantizationConfig
 
+train_data = "/data/Datasets/SPC/full-name1/augmentations"
+valid_data = "/data/Datasets/SPC/full-name1"
 label_file_path = "/data/Datasets/SPC/Labels/labels.txt"
+save_path = "/data/Models/efficientdet_lite"
+model_file_name = "test"
+
 label_file = pd.read_csv(label_file_path, sep=',', index_col=False, header=None)
 label_map = label_file[0].tolist()
 print(label_map)
 
-train_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/SPC/full-name1/augmentations/images', '/data/Datasets/SPC/full-name1/augmentations/annotations', label_map)
-validation_data = object_detector.DataLoader.from_pascal_voc('/data/Datasets/SPC/full-name1/images', '/data/Datasets/SPC/full-name1/annotations', label_map)
+train_data = object_detector.DataLoader.from_pascal_voc(images_dir=f"{train_data}/images",
+                                                        annotations_dir=f"{train_data}/annotations", 
+                                                        label_map=label_map, 
+                                                        # num_shards=1,
+                                                        # cache_dir=f"{save_path}/{model_file_name}/data"
+)
 
-save_path = "/data/Models/efficientdet_lite"
-model_file_name = "full-name1"
+validation_data = object_detector.DataLoader.from_pascal_voc(images_dir=f'{valid_data}/images',
+                                                             annotations_dir=f'{valid_data}/annotations',
+                                                             label_map=label_map,
+                                                            #  num_shards=1,
+                                                            #  cache_dir=f"{save_path}/{model_file_name}/data"
+)
 
-spec = object_detector.EfficientDetLite1Spec(strategy=None,
+spec = object_detector.EfficientDetLite1Spec(strategy=None, # 'gpus'
                                              tflite_max_detections=10,
                                              model_dir=f'{save_path}/{model_file_name}')
 

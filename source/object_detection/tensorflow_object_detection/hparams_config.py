@@ -180,10 +180,10 @@ def default_detection_configs():
   # input preprocessing parameters
   h.image_size = 640  # An integer or a string WxH such as 640x320.
   h.target_size = None
-  h.input_rand_hflip = True
+  h.input_rand_hflip = False
   h.jitter_min = 0.1
   h.jitter_max = 2.0
-  h.autoaugment_policy = 'v1'  # 'randaug'
+  h.autoaugment_policy = None  # 'randaug'
   h.grid_mask = False
   h.sample_image = None
   h.map_freq = 5  # AP eval frequency in epochs.
@@ -204,15 +204,15 @@ def default_detection_configs():
   h.max_level = 7
   h.num_scales = 3
   # ratio w/h: 2.0 means w=1.4, h=0.7. Can be computed with k-mean per dataset.
-  h.aspect_ratios = [8.0, 4.0, 2.0, 1.0, 0.5]  # [[0.7, 1.4], [1.0, 1.0], [1.4, 0.7]]
+  h.aspect_ratios = [8.0, 4.0, 2.0, 1.0, 0.5, 0.25, 0.125]  # [[0.7, 1.4], [1.0, 1.0], [1.4, 0.7]]
   h.anchor_scale = 4.0
   # is batchnorm training mode
   h.is_training_bn = True
   # optimization
   h.momentum = 0.9
   h.optimizer = 'adam'  # can be 'adam' or 'sgd'.
-  h.learning_rate = 0.008  # 0.008 for adam.
-  h.lr_warmup_init = 0.0008  # 0.0008 for adam.
+  h.learning_rate = 0.0008  # 0.008 for adam.
+  h.lr_warmup_init = 0.00008  # 0.0008 for adam.
   h.lr_warmup_epoch = 1.0
   h.first_lr_drop_epoch = 200.0
   h.second_lr_drop_epoch = 250.0
