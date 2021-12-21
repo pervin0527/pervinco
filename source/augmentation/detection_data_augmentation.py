@@ -10,17 +10,18 @@ from src.data import BaseDataset, LoadImages, LoadPascalVOCLabels, Augmentations
 from src.utils import read_label_file, read_xml, get_files, write_xml, make_save_dir, visualize
 
 if __name__ == "__main__":
-    ROOT_DIR = "/data/Datasets/SPC/full-name2"
+    ROOT_DIR = "/data/Datasets/SPC/full-name-front"
     LABEL_DIR = "/data/Datasets/SPC/Labels/labels.txt"
     SAVE_DIR = f"{ROOT_DIR}/augmentations"
-    EPOCH = 3
+    dataset_name = "front"
+    EPOCH = 10
     
     IMG_DIR = f"{ROOT_DIR}/images"
     ANNOT_DIR = f"{ROOT_DIR}/annotations"
     images, annotations = get_files(IMG_DIR), get_files(ANNOT_DIR)
     classes = read_label_file(LABEL_DIR)
 
-    INCLUDE_BG = True
+    INCLUDE_BG = False
     BG_RATIO = 0.1
     BG_DIR = ["/data/Datasets/COCO2017", "/data/Datasets/SPC/Seeds/Background"]
 
@@ -49,15 +50,13 @@ if __name__ == "__main__":
 
     transform = A.Compose([
     A.OneOf([
-        A.Sequential([
-            A.RandomSizedBBoxSafeCrop(height=640, width=640),
-            A.ShiftScaleRotate(border_mode=0, rotate_limit=(-2.5, 2.5), scale_limit=(0, 0), shift_limit=(-0.1, 0.1)),
-            # A.Rotate(limit=5, p=1, border_mode=0),
-            MixUp(dataset, rate_range=(0, 0.1), mix_label=False, p=0.5),
-            A.RandomBrightnessContrast(p=1),
-            A.RGBShift(p=1, r_shift_limit=(-10, 10), g_shift_limit=(-10, 10), b_shift_limit=(-10, 10)),
-            A.ISONoise(p=0.5)
-        ]),
+        # A.Sequential([
+        #     A.Rotate(limit=5, p=1, border_mode=0),
+        #     MixUp(dataset, rate_range=(0, 0.05), mix_label=False, p=0.5),
+        #     A.RandomBrightnessContrast(p=1),
+        #     A.RGBShift(p=1, r_shift_limit=(-10, 10), g_shift_limit=(-10, 10), b_shift_limit=(-10, 10)),
+        #     A.ISONoise(p=0.5)
+        # ]),
 
         # A.Sequential([
         #     Mosaic(
@@ -73,10 +72,19 @@ if __name__ == "__main__":
         #         ],
         #         always_apply=True
         #     ),
-        # ])
-    ], p=1),
+        # ]),
+        
+        A.Sequential([
+            A.ShiftScaleRotate(border_mode=1, rotate_limit=(0), scale_limit=(0, 0), shift_limit=(-0.35, 0.35)),
+            A.RandomSizedCrop([640, 1440], 1440, 1440),
+            MixUp(dataset, rate_range=(0, 0.05), mix_label=False, p=0.5),
+            A.RandomBrightnessContrast(p=1),
+            A.RGBShift(p=1, r_shift_limit=(-10, 10), g_shift_limit=(-10, 10), b_shift_limit=(-10, 10)),
+            A.ISONoise(p=0.5)
+        ])
+        ], p=1),
     
-], bbox_params=A.BboxParams(format=dataset.bbox_format, min_area=0.2, min_visibility=0.2, label_fields=['labels']))
+], bbox_params=A.BboxParams(format=dataset.bbox_format, min_area=0.5, min_visibility=0.2, label_fields=['labels']))
 
     transformed = Augmentations(dataset, transform)
     length = transformed.__len__()
@@ -92,10 +100,12 @@ if __name__ == "__main__":
 
             try:
                 output = transformed[i]
-                cv2.imwrite(f'{SAVE_DIR}/images/{ep}_{file_no}.jpg', output['image'])
-                height, width = output['image'].shape[:-1]
-                write_xml(f"{SAVE_DIR}/annotations", output['bboxes'], output['labels'], f'{ep}_{file_no}', height, width, 'albumentations')
-                # visualize(output['image'], output['bboxes'], output['labels'], format='albumentations', show_info=True)
+
+                if len(output['bboxes']) > 0:
+                    cv2.imwrite(f'{SAVE_DIR}/images/{dataset_name}_{ep}_{file_no}.jpg', output['image'])
+                    height, width = output['image'].shape[:-1]
+                    write_xml(f"{SAVE_DIR}/annotations", output['bboxes'], output['labels'], f'{dataset_name}_{ep}_{file_no}', height, width, 'albumentations')
+                    # visualize(output['image'], output['bboxes'], output['labels'], format='albumentations', show_info=True)
 
             except:
                 pass

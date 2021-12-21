@@ -36,12 +36,12 @@ def process(img_dir, annot_dir, number):
         
     
 if __name__ == "__main__":
-    ROOT = "/data/Datasets/SPC/Cvat/full-name-seed1"
+    ROOT = "/data/Datasets/SPC/Cvat/full-name-front"
     LABEL_DIR = "/data/Datasets/SPC/Labels/labels.txt"
     LABELS = read_label_file(LABEL_DIR)
 
     SAVE_DIR = ('/').join(ROOT.split('/')[:-2])
-    SAVE_FOLDER = f"{SAVE_DIR}/full-name2"
+    SAVE_FOLDER = f"{SAVE_DIR}/full-name-front"
     print(SAVE_FOLDER)
     target_folders = search(ROOT)
     print(target_folders)
@@ -57,4 +57,4 @@ if __name__ == "__main__":
     images, annotations = get_files(f"{SAVE_FOLDER}/images"), get_files(f"{SAVE_FOLDER}/annotations")
     image = cv2.imread(images[0])
     bboxes, labels = read_xml(annotations[0], LABELS, format="albumentations")
-    visualize(image, bboxes, labels, "pascal_voc")
+    visualize(image, bboxes, labels, "albumentations")
