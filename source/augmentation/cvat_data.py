@@ -3,7 +3,6 @@ import cv2
 from tqdm import tqdm
 from src.utils import read_label_file, read_xml, get_files, get_content_filename, write_xml, visualize, make_save_dir
 
-
 def search(root_dir):
     folders = []
 
@@ -57,5 +56,5 @@ if __name__ == "__main__":
 
     images, annotations = get_files(f"{SAVE_FOLDER}/images"), get_files(f"{SAVE_FOLDER}/annotations")
     image = cv2.imread(images[0])
-    bboxes, labels = read_xml(annotations[0], LABELS)
+    bboxes, labels = read_xml(annotations[0], LABELS, format="albumentations")
     visualize(image, bboxes, labels, "pascal_voc")
