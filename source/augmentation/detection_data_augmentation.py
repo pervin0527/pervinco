@@ -51,42 +51,42 @@ if __name__ == "__main__":
     dataset = LoadPascalVOCLabels(dataset)
 
     transform = A.Compose([
-    A.OneOf([
-        A.Sequential([
-            A.Resize(height=IMG_SIZE, width=IMG_SIZE, p=1),
-            A.Rotate(limit=5, p=1, border_mode=0),
-            MixUp(dataset, rate_range=(0, 0.1), mix_label=False, p=0.5),
-            A.RandomBrightnessContrast(p=1),
-            A.RGBShift(p=1, r_shift_limit=(-10, 10), g_shift_limit=(-10, 10), b_shift_limit=(-10, 10)),
-            A.ISONoise(p=0.5),
-        ]),
+        A.OneOf([
+            A.Sequential([
+                A.Resize(height=IMG_SIZE, width=IMG_SIZE, p=1),
+                A.Rotate(limit=5, p=1, border_mode=0),
+                MixUp(dataset, rate_range=(0, 0.1), mix_label=False, p=0.5),
+                A.RandomBrightnessContrast(p=1),
+                A.RGBShift(p=1, r_shift_limit=(-10, 10), g_shift_limit=(-10, 10), b_shift_limit=(-10, 10)),
+                A.ISONoise(p=0.5),
+            ]),
 
-        A.Sequential([
-            Mosaic(
-                dataset,
-                transforms=[
-                    A.Rotate(limit=5, p=1, border_mode=0),
-                    MixUp(dataset, rate_range=(0, 0.1), mix_label=False, p=0.5),
-                    A.RandomBrightnessContrast(p=1),
-                    A.RGBShift(p=1, r_shift_limit=(-10, 10), g_shift_limit=(-10, 10), b_shift_limit=(-10, 10)),
-                    A.ISONoise(p=0.5),
-                ],
-                always_apply=True
-            ),
-            A.Resize(height=IMG_SIZE, width=IMG_SIZE, p=1),
-        ]),
+            A.Sequential([
+                Mosaic(
+                    dataset,
+                    transforms=[
+                        A.Rotate(limit=5, p=1, border_mode=0),
+                        MixUp(dataset, rate_range=(0, 0.1), mix_label=False, p=0.5),
+                        A.RandomBrightnessContrast(p=1),
+                        A.RGBShift(p=1, r_shift_limit=(-10, 10), g_shift_limit=(-10, 10), b_shift_limit=(-10, 10)),
+                        A.ISONoise(p=0.5),
+                    ],
+                    always_apply=True
+                ),
+                A.Resize(height=IMG_SIZE, width=IMG_SIZE, p=1),
+            ]),
 
-        # A.Sequential([
-        #     A.ShiftScaleRotate(border_mode=1, rotate_limit=(0), scale_limit=(0, 0), shift_limit=(-0.35, 0.35)),
-        #     A.RandomSizedCrop([IMG_SIZE, 1440], IMG_SIZE, IMG_SIZE, p=1),
-        #     MixUp(dataset, rate_range=(0, 0.05), mix_label=False, p=0.5),
-        #     A.RandomBrightnessContrast(p=1),
-        #     A.RGBShift(p=1, r_shift_limit=(-10, 10), g_shift_limit=(-10, 10), b_shift_limit=(-10, 10)),
-        #     A.ISONoise(p=0.5)
-        # ])
-        ], p=1),
-    
-], bbox_params=A.BboxParams(format=dataset.bbox_format, min_area=0.5, min_visibility=0.2, label_fields=['labels']))
+            # A.Sequential([
+            #     A.ShiftScaleRotate(border_mode=1, rotate_limit=(0), scale_limit=(0, 0), shift_limit=(-0.35, 0.35)),
+            #     A.RandomSizedCrop([IMG_SIZE, 1440], IMG_SIZE, IMG_SIZE, p=1),
+            #     MixUp(dataset, rate_range=(0, 0.05), mix_label=False, p=0.5),
+            #     A.RandomBrightnessContrast(p=1),
+            #     A.RGBShift(p=1, r_shift_limit=(-10, 10), g_shift_limit=(-10, 10), b_shift_limit=(-10, 10)),
+            #     A.ISONoise(p=0.5)
+            # ])
+            ], p=1),
+        
+    ], bbox_params=A.BboxParams(format=dataset.bbox_format, min_area=0.5, min_visibility=0.2, label_fields=['labels']))
 
     transformed = Augmentations(dataset, transform)
     length = transformed.__len__()
