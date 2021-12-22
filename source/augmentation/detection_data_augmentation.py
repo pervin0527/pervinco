@@ -10,18 +10,20 @@ from src.data import BaseDataset, LoadImages, LoadPascalVOCLabels, Augmentations
 from src.utils import read_label_file, read_xml, get_files, write_xml, make_save_dir, visualize
 
 if __name__ == "__main__":
-    ROOT_DIR = "/data/Datasets/SPC/full-name2"
+    ROOT_DIR = "/data/Datasets/SPC/full-name-test"
     LABEL_DIR = "/data/Datasets/SPC/Labels/labels.txt"
-    SAVE_DIR = f"{ROOT_DIR}/augmentations2"
+    SAVE_DIR = f"{ROOT_DIR}/train"
     dataset_name = "main"
     EPOCH = 10
+    IMG_SIZE = 384
+    VISUAL = True
     
     IMG_DIR = f"{ROOT_DIR}/images"
     ANNOT_DIR = f"{ROOT_DIR}/annotations"
     images, annotations = get_files(IMG_DIR), get_files(ANNOT_DIR)
     classes = read_label_file(LABEL_DIR)
 
-    INCLUDE_BG = True
+    INCLUDE_BG = False
     BG_RATIO = 0.1
     BG_DIR = ["/data/Datasets/COCO2017", "/data/Datasets/SPC/Seeds/Background"]
 
@@ -51,9 +53,9 @@ if __name__ == "__main__":
     transform = A.Compose([
     A.OneOf([
         A.Sequential([
-            A.Resize(height=640, width=640),
+            A.Resize(height=IMG_SIZE, width=IMG_SIZE, p=1),
             A.Rotate(limit=5, p=1, border_mode=0),
-            MixUp(dataset, rate_range=(0, 0.05), mix_label=False, p=0.5),
+            MixUp(dataset, rate_range=(0, 0.1), mix_label=False, p=0.5),
             A.RandomBrightnessContrast(p=1),
             A.RGBShift(p=1, r_shift_limit=(-10, 10), g_shift_limit=(-10, 10), b_shift_limit=(-10, 10)),
             A.ISONoise(p=0.5),
@@ -68,15 +70,15 @@ if __name__ == "__main__":
                     A.RandomBrightnessContrast(p=1),
                     A.RGBShift(p=1, r_shift_limit=(-10, 10), g_shift_limit=(-10, 10), b_shift_limit=(-10, 10)),
                     A.ISONoise(p=0.5),
-                    A.Resize(height=640, width=640),
                 ],
                 always_apply=True
             ),
+            A.Resize(height=IMG_SIZE, width=IMG_SIZE, p=1),
         ]),
 
         # A.Sequential([
         #     A.ShiftScaleRotate(border_mode=1, rotate_limit=(0), scale_limit=(0, 0), shift_limit=(-0.35, 0.35)),
-        #     A.RandomSizedCrop([640, 1440], 640, 640),
+        #     A.RandomSizedCrop([IMG_SIZE, 1440], IMG_SIZE, IMG_SIZE, p=1),
         #     MixUp(dataset, rate_range=(0, 0.05), mix_label=False, p=0.5),
         #     A.RandomBrightnessContrast(p=1),
         #     A.RGBShift(p=1, r_shift_limit=(-10, 10), g_shift_limit=(-10, 10), b_shift_limit=(-10, 10)),
@@ -105,7 +107,9 @@ if __name__ == "__main__":
                     cv2.imwrite(f'{SAVE_DIR}/images/{dataset_name}_{ep}_{file_no}.jpg', output['image'])
                     height, width = output['image'].shape[:-1]
                     write_xml(f"{SAVE_DIR}/annotations", output['bboxes'], output['labels'], f'{dataset_name}_{ep}_{file_no}', height, width, 'albumentations')
-                    # visualize(output['image'], output['bboxes'], output['labels'], format='albumentations', show_info=True)
+
+                    if VISUAL:
+                        visualize(output['image'], output['bboxes'], output['labels'], format='albumentations', show_info=True)
 
             except:
                 pass
