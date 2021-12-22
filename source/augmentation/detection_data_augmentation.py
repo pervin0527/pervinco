@@ -12,11 +12,11 @@ from src.utils import read_label_file, read_xml, get_files, write_xml, make_save
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC/full-name2"
     LABEL_DIR = "/data/Datasets/SPC/Labels/labels.txt"
-    SAVE_DIR = f"{ROOT_DIR}/train"
-    dataset_name = "main"
-    EPOCH = 10
+    SAVE_DIR = f"{ROOT_DIR}/train2"
+    dataset_name = "main2"
+    EPOCH = 3
     IMG_SIZE = 384
-    VISUAL = True
+    VISUAL = False
     
     IMG_DIR = f"{ROOT_DIR}/images"
     ANNOT_DIR = f"{ROOT_DIR}/annotations"
