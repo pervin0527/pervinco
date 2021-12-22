@@ -10,7 +10,7 @@ from src.data import BaseDataset, LoadImages, LoadPascalVOCLabels, Augmentations
 from src.utils import read_label_file, read_xml, get_files, write_xml, make_save_dir, visualize
 
 if __name__ == "__main__":
-    ROOT_DIR = "/data/Datasets/SPC/full-name-test"
+    ROOT_DIR = "/data/Datasets/SPC/full-name2"
     LABEL_DIR = "/data/Datasets/SPC/Labels/labels.txt"
     SAVE_DIR = f"{ROOT_DIR}/train"
     dataset_name = "main"
