@@ -1,6 +1,7 @@
 # https://www.tensorflow.org/lite/tutorials/model_maker_object_detection
 # https://www.tensorflow.org/lite/api_docs/python/tflite_model_maker/config/QuantizationConfig#for_int8
 # https://github.com/tensorflow/examples/blob/master/tensorflow_examples/lite/model_maker/third_party/efficientdet/hparams_config.py
+# tensorflow_examples/lite/model_maker/third_party/efficientdet/keras/train_lib.py
 
 import os
 import numpy as np
