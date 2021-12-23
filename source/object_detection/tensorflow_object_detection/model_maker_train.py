@@ -15,7 +15,7 @@ from tflite_model_maker import object_detector
 from tflite_model_maker.config import QuantizationConfig
 
 train_data = "/data/Datasets/SPC/full-name2/train"
-valid_data = "/data/Datasets/SPC/full-name2"
+valid_data = "/data/Datasets/SPC/full-name2/valid"
 label_file_path = "/data/Datasets/SPC/Labels/labels.txt"
 save_path = "/data/Models/efficientdet_lite"
 model_file_name = "full-name2-train"
@@ -45,7 +45,7 @@ spec = object_detector.EfficientDetLite1Spec(strategy=None, # 'gpus'
 
 model = object_detector.create(train_data,
                                model_spec=spec,
-                               epochs=150,
+                               epochs=300,
                                batch_size=64,
                                validation_data=validation_data,
                                train_whole_model=True,)
