@@ -1,4 +1,4 @@
-# Copyright 2020 Google Research. All Rights Reserved.
+#copyright 2020 Google Research. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -171,6 +171,13 @@ def default_detection_configs():
   """Returns a default detection configs."""
   h = Config()
 
+  """ CUSTOM """
+  h.es = True
+  h.es_monitor = 'val_det_loss'
+  h.es_patience = 15
+  """ END """
+
+
   # model name.
   h.name = 'efficientdet-d1'
 
@@ -183,7 +190,7 @@ def default_detection_configs():
   h.input_rand_hflip = False
   h.jitter_min = 0.1
   h.jitter_max = 2.0
-  h.autoaugment_policy = None  # 'randaug'
+  h.autoaugment_policy = None  # 'randaug', 'v0'
   h.grid_mask = False
   h.sample_image = None
   h.map_freq = 5  # AP eval frequency in epochs.
@@ -210,9 +217,9 @@ def default_detection_configs():
   h.is_training_bn = True
   # optimization
   h.momentum = 0.9
-  h.optimizer = 'adam'  # can be 'adam' or 'sgd'.
-  h.learning_rate = 0.0008  # 0.008 for adam.
-  h.lr_warmup_init = 0.00008  # 0.0008 for adam.
+  h.optimizer = 'sgd'  # can be 'adam' or 'sgd'.
+  h.learning_rate = 0.008  # 0.008 for adam, 0.08 for sgd
+  h.lr_warmup_init = 0.0008  # 0.0008 for adam, 0.008 for sgd
   h.lr_warmup_epoch = 1.0
   h.first_lr_drop_epoch = 200.0
   h.second_lr_drop_epoch = 250.0
@@ -229,7 +236,7 @@ def default_detection_configs():
   h.label_smoothing = 0.0  # 0.1 is a good default
   # Behold the focal loss parameters
   h.alpha = 0.25
-  h.gamma = 1.5
+  h.gamma = 2
 
   # localization loss
   h.delta = 0.1  # regularization parameter of huber loss.
@@ -268,7 +275,7 @@ def default_detection_configs():
   h.tflite_max_detections = 100
 
   # version.
-  h.fpn_name = None
+  h.fpn_name = None # qufpn, bifpn : default
   h.fpn_weight_method = None
   h.fpn_config = None
 
@@ -420,7 +427,7 @@ efficientdet_lite_param_dict = {
             fpn_num_filters=88,
             fpn_cell_repeats=4,
             box_class_repeats=3,
-            anchor_scale=3.0,
+            anchor_scale=4.0, # default 3.0
             **lite_common_param,
         ),
     'efficientdet-lite2':
@@ -486,3 +493,4 @@ def get_detection_config(model_name):
     return get_efficientdet_config(model_name)
   else:
     raise ValueError('model name must start with efficientdet.')
+

@@ -46,11 +46,11 @@ spec = object_detector.EfficientDetLite2Spec(strategy=None, # 'gpus'
 model = object_detector.create(train_data,
                                model_spec=spec,
                                epochs=300,
-                               batch_size=64,
+                               batch_size=32,
                                validation_data=validation_data,
                                train_whole_model=True,)
 
 model.export(export_dir=save_path,
              tflite_filename=f'{model_file_name}.tflite',
              label_filename=f'{save_path}/label_map.txt',
-             export_format=[ExportFormat.TFLITE, ExportFormat.LABEL])
+             export_format=[ExportFormat.TFLITE])
