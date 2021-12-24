@@ -30,13 +30,19 @@ def get_content_filename(xml_file: str):
     return filename
 
 
-def convert_coordinates(width, height, xmin, ymin, xmax, ymax):
-    x_center = (xmin + xmax) / (2 * width)
-    y_center = (ymin + ymax) / (2 * height)
-    width = (xmax - xmin) / width
-    height = (ymax - ymin) / height
+def convert_coordinates(size, box):
+    dw = 1./(size[0])
+    dh = 1./(size[1])
+    x = (box[0] + box[1])/2.0 - 1
+    y = (box[2] + box[3])/2.0 - 1
+    w = box[1] - box[0]
+    h = box[3] - box[2]
+    x = x*dw
+    w = w*dw
+    y = y*dh
+    h = h*dh
 
-    return (x_center, y_center, width, height)
+    return x, y, w, h
 
 
 def read_xml(xml_file: str, classes: list, format):
@@ -44,7 +50,7 @@ def read_xml(xml_file: str, classes: list, format):
     root = tree.getroot()
     
     width = int(root.find('size').find('width').text)
-    height = int(root.find('size').find('width').text)
+    height = int(root.find('size').find('height').text)
     objects = root.findall("object")
     
     # bboxes, labels, areas = [], [], []
@@ -56,23 +62,28 @@ def read_xml(xml_file: str, classes: list, format):
             if name in classes:
                 bbox = objects[idx].find("bndbox")
 
-                xmin = int(float(bbox.find('xmin').text))
-                ymin = int(float(bbox.find('ymin').text))
-                xmax = int(float(bbox.find('xmax').text))
-                ymax = int(float(bbox.find('ymax').text))
-
-                # print("BEFORE : ", xmin, ymin, xmax, ymax)
+                xmin = float(bbox.find('xmin').text)
+                ymin = float(bbox.find('ymin').text)
+                xmax = float(bbox.find('xmax').text)
+                ymax = float(bbox.find('ymax').text)               
 
                 if format == "yolo":
-                    # bboxes.append(convert_coordinates((width, height), (xmin, ymin, xmax, ymax)))
-                    xmin, ymin, xmax, ymax = convert_coordinates(width, height, xmin, ymin, xmax, ymax)
+                    print(width, height)
+                    box = (float(xmin), float(xmax), float(ymin), float(ymax))
+                    xmin, ymin, xmax, ymax = convert_coordinates((width, height), box)
                     name = classes.index(name)
 
                 elif format == "albumentations":
-                    xmin = int(float(bbox.find('xmin').text)) / width
-                    ymin = int(float(bbox.find('ymin').text)) / height
-                    xmax = int(float(bbox.find('xmax').text)) / width
-                    ymax = int(float(bbox.find('ymax').text)) / height           
+                    xmin = int(xmin) / width
+                    ymin = int(ymin) / height
+                    xmax = int(xmax) / width
+                    ymax = int(ymax) / height
+
+                else:
+                    xmin = int(xmin)
+                    ymin = int(ymin)
+                    xmax = int(xmax)
+                    ymax = int(ymax)
                     
                 bboxes.append([xmin, ymin, xmax, ymax])
                 labels.append(name)

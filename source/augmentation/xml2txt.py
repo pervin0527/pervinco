@@ -11,7 +11,7 @@ def yolo2voc(class_id, width, height, x, y, w, h):
     return (class_id, xmin, ymin, xmax, ymax)
 
 if __name__ == "__main__":
-    ANNOT_DIR = "/data/Datasets/SPC/set1/train/augmentations/annotations"
+    ANNOT_DIR = "/data/Datasets/SPC/full-name2/annotations"
     LABEL_DIR = "/data/Datasets/SPC/Labels/labels.txt"
     SAVE_DIR = f"{('/').join(ANNOT_DIR.split('/')[:-1])}/labels"
     print(SAVE_DIR)
@@ -29,6 +29,7 @@ if __name__ == "__main__":
         
         with open(f"{SAVE_DIR}/{filename}.txt", 'w') as f:
             bboxes, labels = read_xml(annot, classes, format="yolo")
-            # print(bboxes, labels)
+            print(bboxes, labels)
+            break
             for bbox, label in zip(bboxes, labels):
                 f.write(str(label) + " " + " ".join([("%.6f" % a) for a in bbox]) + '\n')
