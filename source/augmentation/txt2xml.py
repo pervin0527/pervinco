@@ -1,4 +1,5 @@
 import os
+import cv2
 import pandas as pd
 from src.utils import read_label_file, write_xml, get_files
 
@@ -21,25 +22,31 @@ def unconvert(width, height, x, y, w, h):
     return (xmin, xmax, ymin, ymax)
 
 if __name__ == "__main__":
-    TXT_DIR = "/data/Datasets/SPC/set1/train/augmentations/labels"
+    TXT_DIR = "/data/Datasets/SPC/full-name2/labels"
     LABEL_DIR = "/data/Datasets/SPC/Labels/labels.txt"
-    SAVE_DIR = f"{('/').join(TXT_DIR.split('/')[:-1])}/labels"
+    IMG_DIR = f"{('/').join(TXT_DIR.split('/')[:-1])}/images"
+    SAVE_DIR = f"{('/').join(TXT_DIR.split('/')[:-1])}/txt2xml"
 
     classes = read_label_file(LABEL_DIR)
     txts = get_files(TXT_DIR)
     print(len(txts))
 
+    if not os.path.isdir(SAVE_DIR):
+        os.makedirs(SAVE_DIR)
+
     for txt in txts:
         filename = txt.split('/')[-1].split('.')[0]
+        image = cv2.imread(f"{IMG_DIR}/{filename}.jpg")
+        height, width = image.shape[:-1]
 
         df = pd.read_csv(txt, sep=',', header=None, index_col=False)
         df_list = df[0].tolist()
 
         labels, bboxes = get_annot_data(df_list)
-        print(labels, bboxes)
+        # print(labels, bboxes)
 
         # for label, bbox in zip(labels, bboxes):
         #     result = unconvert(1440, 1440, bbox[0], bbox[1], bbox[2], bbox[3])
         #     print(result)
-        write_xml(SAVE_DIR, bboxes, labels, filename, 1440, 1440, format="yolo")
-        break
+        write_xml(SAVE_DIR, bboxes, labels, filename, height, width, format="yolo")
+        # break
