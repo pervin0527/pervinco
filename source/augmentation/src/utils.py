@@ -68,7 +68,6 @@ def read_xml(xml_file: str, classes: list, format):
                 ymax = float(bbox.find('ymax').text)               
 
                 if format == "yolo":
-                    print(width, height)
                     box = (float(xmin), float(xmax), float(ymin), float(ymax))
                     xmin, ymin, xmax, ymax = convert_coordinates((width, height), box)
                     name = classes.index(name)

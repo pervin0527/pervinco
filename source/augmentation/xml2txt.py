@@ -29,7 +29,5 @@ if __name__ == "__main__":
         
         with open(f"{SAVE_DIR}/{filename}.txt", 'w') as f:
             bboxes, labels = read_xml(annot, classes, format="yolo")
-            print(bboxes, labels)
-            break
             for bbox, label in zip(bboxes, labels):
                 f.write(str(label) + " " + " ".join([("%.6f" % a) for a in bbox]) + '\n')
