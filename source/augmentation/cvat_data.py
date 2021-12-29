@@ -40,12 +40,12 @@ def process(img_dir, annot_dir, number):
         
     
 if __name__ == "__main__":
-    ROOT = "/data/Datasets/SPC/Cvat/part-name-seed2"
+    ROOT = "/data/Datasets/SPC/Cvat/crw"
     LABEL_DIR = "/data/Datasets/SPC/Labels/labels.txt"
     LABELS = read_label_file(LABEL_DIR)
 
     SAVE_DIR = ('/').join(ROOT.split('/')[:-2])
-    SAVE_FOLDER = f"{SAVE_DIR}/part-name3"
+    SAVE_FOLDER = f"{SAVE_DIR}/full-name4"
     print(SAVE_FOLDER)
     target_folders = search(ROOT)
     print(target_folders)

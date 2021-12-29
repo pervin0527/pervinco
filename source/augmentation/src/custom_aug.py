@@ -4,6 +4,69 @@ import random
 import numpy as np
 import albumentations as A
 from copy import deepcopy
+from collections import namedtuple
+from albumentations.core.transforms_interface import DualTransform
+from albumentations.augmentations.bbox_utils import denormalize_bbox, normalize_bbox
+
+class CustomCutout(DualTransform):
+    def __init__(
+        self,
+        fill_value=0,
+        bbox_removal_threshold=0.50,
+        min_cutout_size=300,
+        max_cutout_size=350,
+        always_apply=False,
+        p=0.5
+    ):
+        super(CustomCutout, self).__init__(always_apply, p)
+        self.fill_value = fill_value
+        self.bbox_removal_threshold = bbox_removal_threshold
+        self.min_cutout_size = min_cutout_size
+        self.max_cutout_size = max_cutout_size
+        
+    def _get_cutout_position(self, img_height, img_width, cutout_size):
+        position = namedtuple('Point', 'x y')
+        return position(
+            np.random.randint(0, img_width - cutout_size + 1),
+            np.random.randint(0, img_height - cutout_size + 1)
+        )
+        
+    def _get_cutout(self, img_height, img_width):
+        cutout_size = np.random.randint(self.min_cutout_size, self.max_cutout_size + 1)
+        cutout_position = self._get_cutout_position(img_height, img_width, cutout_size)
+        return np.full((cutout_size, cutout_size, 3), self.fill_value), cutout_size, cutout_position
+        
+    def apply(self, image, **params):
+        image = image.copy()
+        self.img_height, self.img_width, _ = image.shape
+        cutout_arr, cutout_size, cutout_pos = self._get_cutout(self.img_height, self.img_width)
+        
+        self.image = image
+        self.cutout_pos = cutout_pos
+        self.cutout_size = cutout_size
+        
+        image[cutout_pos.y:cutout_pos.y+cutout_size, cutout_pos.x:cutout_size+cutout_pos.x, :] = cutout_arr
+        return image
+    
+    def apply_to_bbox(self, bbox, **params):
+        bbox = denormalize_bbox(bbox, self.img_height, self.img_width)
+        x_min, y_min, x_max, y_max = tuple(map(int, bbox))
+
+        bbox_size = (x_max - x_min) * (y_max - y_min)
+        overlapping_size = np.sum(
+            (self.image[y_min:y_max, x_min:x_max, 0] == self.fill_value) &
+            (self.image[y_min:y_max, x_min:x_max, 1] == self.fill_value) &
+            (self.image[y_min:y_max, x_min:x_max, 2] == self.fill_value)
+        )
+
+
+        if overlapping_size / bbox_size > self.bbox_removal_threshold:
+            return normalize_bbox((0, 0, 0, 0), self.img_height, self.img_width)
+
+        return normalize_bbox(bbox, self.img_height, self.img_width)
+
+    def get_transform_init_args_names(self):
+        return ('fill_value', 'bbox_removal_threshold', 'min_cutout_size', 'max_cutout_size', 'always_apply', 'p')
 
 
 class CutMix(A.BasicTransform):
