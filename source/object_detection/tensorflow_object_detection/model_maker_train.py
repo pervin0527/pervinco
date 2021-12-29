@@ -14,7 +14,7 @@ from tflite_model_maker import model_spec
 from tflite_model_maker import object_detector
 from tflite_model_maker.config import QuantizationConfig
 
-train_data = "/data/Datasets/SPC/full-name3/augmentations"
+train_data = "/data/Datasets/SPC/full-name3/train/augmentations"
 valid_data = "/data/Datasets/SPC/full-name2/valid"
 label_file_path = "/data/Datasets/SPC/Labels/labels.txt"
 save_path = "/data/Models/efficientdet_lite"
