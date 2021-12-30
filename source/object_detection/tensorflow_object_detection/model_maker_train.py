@@ -14,11 +14,11 @@ from tflite_model_maker import model_spec
 from tflite_model_maker import object_detector
 from tflite_model_maker.config import QuantizationConfig
 
-train_data = "/data/Datasets/SPC/full-name3/train/augmentations"
+train_data = "/data/Datasets/SPC/full-name4/train"
 valid_data = "/data/Datasets/SPC/full-name2/valid"
 label_file_path = "/data/Datasets/SPC/Labels/labels.txt"
 save_path = "/data/Models/efficientdet_lite"
-model_file_name = "full-name3"
+model_file_name = "full-name4"
 
 label_file = pd.read_csv(label_file_path, sep=',', index_col=False, header=None)
 label_map = label_file[0].tolist()
@@ -39,13 +39,13 @@ validation_data = object_detector.DataLoader.from_pascal_voc(images_dir=f'{valid
 )
 
 spec = object_detector.EfficientDetLite1Spec(strategy=None, # 'gpus'
-                                             tflite_max_detections=1,
+                                             tflite_max_detections=10,
                                              model_dir=f'{save_path}/{model_file_name}',
                                              verbose=1)
 
 model = object_detector.create(train_data,
                                model_spec=spec,
-                               epochs=100,
+                               epochs=300,
                                batch_size=64,
                                validation_data=validation_data,
                                train_whole_model=True,)

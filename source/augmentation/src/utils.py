@@ -180,13 +180,13 @@ def write_xml(save_path, bboxes, labels, filename, height, width, format):
 
             # print(xmin, ymin, xmax, ymax)
             node_xmin = SubElement(bndbox, 'xmin')
-            node_xmin.text = str(xmin)
+            node_xmin.text = str(int(xmin))
             node_ymin = SubElement(bndbox, 'ymin')
-            node_ymin.text = str(ymin)
+            node_ymin.text = str(int(ymin))
             node_xmax = SubElement(bndbox, 'xmax')
-            node_xmax.text = str(xmax)
+            node_xmax.text = str(int(xmax))
             node_ymax = SubElement(bndbox, 'ymax')
-            node_ymax.text = str(ymax)
+            node_ymax.text = str(int(ymax))
     
     tree = ET.ElementTree(root)    
     tree.write(f"{save_path}/{filename}.xml")
