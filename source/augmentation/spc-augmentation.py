@@ -32,7 +32,7 @@ def refine_boxes(boxes):
 
 
 def crop_image(image, boxes, labels, xmin, ymin, xmax, ymax):
-    transform = A.Compose([
+    mosaic_transform = A.Compose([
         A.Resize(width=xmax-xmin, height=ymax-ymin, p=1),
         A.RandomBrightnessContrast(p=1, brightness_limit=(-0.2, 0.2)),
 
@@ -43,7 +43,7 @@ def crop_image(image, boxes, labels, xmin, ymin, xmax, ymax):
         ], p=0.5),
     
     ], bbox_params=A.BboxParams(format='pascal_voc', min_area=0.2, min_visibility=0.2, label_fields=['labels']))
-    transformed = transform(image=image, bboxes=boxes, labels=labels)
+    transformed = mosaic_transform(image=image, bboxes=boxes, labels=labels)
 
     image, boxes, labels = transformed['image'], transformed['bboxes'], transformed['labels']
     result_boxes = np.array(boxes)
@@ -124,7 +124,7 @@ def mixup(idx, ds, noise_files, alpha=1.0):
     image = cv2.imread(image)
     bboxes, labels = read_xml(annot, classes, 'pascal_voc')
 
-    transform = A.Compose([
+    mixup_transform = A.Compose([
         A.Resize(width=IMG_SIZE, height=IMG_SIZE, p=1),
         A.RandomBrightnessContrast(p=1, brightness_limit=(-0.2, 0.2)),
 
@@ -135,7 +135,7 @@ def mixup(idx, ds, noise_files, alpha=1.0):
         ], p=0.5),
     
     ], bbox_params=A.BboxParams(format='pascal_voc', min_area=0.2, min_visibility=0.2, label_fields=['labels']))
-    transformed = transform(image=image, bboxes=bboxes, labels=labels)
+    transformed = mixup_transform(image=image, bboxes=bboxes, labels=labels)
 
     image, bboxes, labels = transformed['image'], transformed['bboxes'], transformed['labels']
 
@@ -178,7 +178,7 @@ def data_process():
                 image, bboxes, labels = mixup(idx, dataset, bg_files)
 
             else:
-                transform = A.Compose([
+                normal_transform = A.Compose([
                     A.Sequential([
                         A.Resize(IMG_SIZE, IMG_SIZE, p=1),
                         A.RandomBrightnessContrast(p=1, brightness_limit=(-0.2, 0.2)),
@@ -191,28 +191,32 @@ def data_process():
                     ])
                 ], bbox_params=A.BboxParams(format='pascal_voc', min_area=0.5, min_visibility=0.2, label_fields=['labels']))
 
-                transformed = transform(image=image, bboxes=bboxes, labels=labels)
+                image, annot = dataset[idx]
+                image = cv2.imread(image)
+                bboxes, labels = read_xml(annot, classes, 'pascal_voc')
+                transformed = normal_transform(image=image, bboxes=bboxes, labels=labels)
                 image, bboxes, labels = transformed['image'], transformed['bboxes'], transformed['labels']
 
             cv2.imwrite(f"{SAVE_DIR}/images/{FILE_NAME}_{step}_{idx}.jpg", image)
             write_xml(f"{SAVE_DIR}/annotations", bboxes, labels, f"{FILE_NAME}_{step}_{idx}", image.shape[0], image.shape[1], 'pascal_voc')
             
             if VISUAL:
-                visualize(image, bboxes, labels, 'pascal_voc', True)
+                print(opt)
+                visualize(image, bboxes, labels, 'pascal_voc', False)
 
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    STEPS = 5
+    STEPS = 10
     IMG_SIZE = 512
     BBOX_REMOVAL_THRESHOLD = 0.15
     VISUAL = False
     
-    IMG_DIR = f"{ROOT_DIR}/full-name4/images"
-    ANNOT_DIR = f"{ROOT_DIR}/full-name4/annotations"
+    IMG_DIR = f"{ROOT_DIR}/full-name5/images"
+    ANNOT_DIR = f"{ROOT_DIR}/full-name5/annotations"
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
-    SAVE_DIR = f"{ROOT_DIR}/full-name4/train2"
-    FILE_NAME = "train2"
+    SAVE_DIR = f"{ROOT_DIR}/full-name5/train"
+    FILE_NAME = "train"
 
     INCLUDE_BG = True
     BG_RATIO = 0.1
