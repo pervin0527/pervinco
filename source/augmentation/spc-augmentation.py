@@ -207,7 +207,7 @@ def data_process():
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    STEPS = 10
+    STEPS = 3
     IMG_SIZE = 512
     BBOX_REMOVAL_THRESHOLD = 0.15
     VISUAL = False
@@ -215,8 +215,8 @@ if __name__ == "__main__":
     IMG_DIR = f"{ROOT_DIR}/full-name5/images"
     ANNOT_DIR = f"{ROOT_DIR}/full-name5/annotations"
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
-    SAVE_DIR = f"{ROOT_DIR}/full-name5/train"
-    FILE_NAME = "train"
+    SAVE_DIR = f"{ROOT_DIR}/full-name5/train2"
+    FILE_NAME = "train2"
 
     INCLUDE_BG = True
     BG_RATIO = 0.1

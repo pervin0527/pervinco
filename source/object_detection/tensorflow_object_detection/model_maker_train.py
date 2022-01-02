@@ -45,7 +45,7 @@ spec = object_detector.EfficientDetLite1Spec(strategy=None, # 'gpus'
 
 model = object_detector.create(train_data,
                                model_spec=spec,
-                               epochs=100,
+                               epochs=10,
                                batch_size=64,
                                validation_data=validation_data,
                                train_whole_model=True,)
