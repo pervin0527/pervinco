@@ -167,7 +167,7 @@ def data_process():
         dataset = list(zip(images, annotations))
         random.shuffle(dataset)
 
-        for idx in tqdm(range(len(annotations)), desc=f"STEP : {step}"):
+        for idx in tqdm(range(len(annotations)), desc=f"STEP {step}"):
             image_path, annot_path = dataset[idx]
             opt = random.randint(0, 2)
 
@@ -204,6 +204,12 @@ def data_process():
                 print(opt)
                 visualize(image, bboxes, labels, 'pascal_voc', False)
 
+    if INCLUDE_BG:
+        for file in bg_files:
+            bg_image = cv2.imread(bg_image)
+            cv2.imwrite(f"{SAVE_DIR}/images/bg_{step}_{idx}.jpg", bg_image)
+            write_xml(f"{SAVE_DIR}/annotations", bboxes, labels, f"bg_{step}_{idx}", bg_image.shape[0], bg_image.shape[1], 'pascal_voc')
+
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
@@ -215,8 +221,8 @@ if __name__ == "__main__":
     IMG_DIR = f"{ROOT_DIR}/full-name5/images"
     ANNOT_DIR = f"{ROOT_DIR}/full-name5/annotations"
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
-    SAVE_DIR = f"{ROOT_DIR}/full-name5/train2"
-    FILE_NAME = "train2"
+    SAVE_DIR = f"{ROOT_DIR}/full-name5/train"
+    FILE_NAME = "train"
 
     INCLUDE_BG = True
     BG_RATIO = 0.1
