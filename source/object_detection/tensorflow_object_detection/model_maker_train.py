@@ -18,7 +18,7 @@ train_data = "/data/Datasets/SPC/full-name5/train"
 valid_data = "/data/Datasets/SPC/full-name2/valid"
 label_file_path = "/data/Datasets/SPC/Labels/labels.txt"
 save_path = "/data/Models/efficientdet_lite"
-model_file_name = "full-name5"
+model_file_name = "test2"
 
 label_file = pd.read_csv(label_file_path, sep=',', index_col=False, header=None)
 label_map = label_file[0].tolist()

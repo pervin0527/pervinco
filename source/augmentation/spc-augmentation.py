@@ -205,24 +205,25 @@ def data_process():
                 visualize(image, bboxes, labels, 'pascal_voc', False)
 
     if INCLUDE_BG:
-        for file in bg_files:
-            bg_image = cv2.imread(bg_image)
-            cv2.imwrite(f"{SAVE_DIR}/images/bg_{step}_{idx}.jpg", bg_image)
-            write_xml(f"{SAVE_DIR}/annotations", bboxes, labels, f"bg_{step}_{idx}", bg_image.shape[0], bg_image.shape[1], 'pascal_voc')
+        for idx, file in enumerate(bg_files):
+            bg_image = cv2.imread(file)
+            cv2.imwrite(f"{SAVE_DIR}/images/bg_{idx}.jpg", bg_image)
+            write_xml(f"{SAVE_DIR}/annotations", None, None, f"bg_{idx}", bg_image.shape[0], bg_image.shape[1], 'pascal_voc')
+
 
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    STEPS = 3
+    STEPS = 1
     IMG_SIZE = 512
     BBOX_REMOVAL_THRESHOLD = 0.15
     VISUAL = False
     
-    IMG_DIR = f"{ROOT_DIR}/full-name5/images"
-    ANNOT_DIR = f"{ROOT_DIR}/full-name5/annotations"
+    IMG_DIR = f"{ROOT_DIR}/full-name2/images"
+    ANNOT_DIR = f"{ROOT_DIR}/full-name2/annotations"
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
-    SAVE_DIR = f"{ROOT_DIR}/full-name5/train"
-    FILE_NAME = "train"
+    SAVE_DIR = f"{ROOT_DIR}/full-name2/test"
+    FILE_NAME = "test"
 
     INCLUDE_BG = True
     BG_RATIO = 0.1
@@ -232,11 +233,3 @@ if __name__ == "__main__":
     images, annotations = get_files(IMG_DIR), get_files(ANNOT_DIR)
     
     data_process()
-
-    # For check
-    # xml = "/data/Datasets/SPC/full-name4/test/annotations/test_0_0.xml"
-    # img = "/data/Datasets/SPC/full-name4/test/images/test_0_0.jpg"
-
-    # image = cv2.imread(img)
-    # bboxes, labels = read_xml(xml, classes, 'pascal_voc')
-    # visualize(image, bboxes, labels, 'pascal_voc', True)
