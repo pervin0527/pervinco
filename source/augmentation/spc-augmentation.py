@@ -207,6 +207,7 @@ def data_process():
     if INCLUDE_BG:
         for idx, file in enumerate(bg_files):
             bg_image = cv2.imread(file)
+            bg_image = cv2.resize(bg_image, (IMG_SIZE, IMG_SIZE))
             cv2.imwrite(f"{SAVE_DIR}/images/bg_{idx}.jpg", bg_image)
             write_xml(f"{SAVE_DIR}/annotations", None, None, f"bg_{idx}", bg_image.shape[0], bg_image.shape[1], 'pascal_voc')
 
@@ -214,16 +215,17 @@ def data_process():
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
+    FOLDER = "full-name-front"
     STEPS = 1
     IMG_SIZE = 512
     BBOX_REMOVAL_THRESHOLD = 0.15
     VISUAL = False
     
-    IMG_DIR = f"{ROOT_DIR}/full-name2/images"
-    ANNOT_DIR = f"{ROOT_DIR}/full-name2/annotations"
+    IMG_DIR = f"{ROOT_DIR}/{FOLDER}/images"
+    ANNOT_DIR = f"{ROOT_DIR}/{FOLDER}/annotations"
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
-    SAVE_DIR = f"{ROOT_DIR}/full-name2/test"
-    FILE_NAME = "test"
+    FILE_NAME = "test_aug"
+    SAVE_DIR = f"{ROOT_DIR}/{FOLDER}/{FILE_NAME}"
 
     INCLUDE_BG = True
     BG_RATIO = 0.1
