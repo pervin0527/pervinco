@@ -17,20 +17,28 @@ from tflite_model_maker.config import QuantizationConfig
 train_data = "/data/Datasets/SPC/full-name2/test"
 valid_data = "/data/Datasets/SPC/full-name2/valid"
 label_file_path = "/data/Datasets/SPC/Labels/labels.txt"
-save_path = "/data/Models/efficientdet_lite"
-model_file_name = "test9"
+save_path = "/data/Models/efficientdet_lite/spc-test"
+model_file_name = "test13"
 
 hparams = {"optimizer" : "sgd",
            "learning_rate" : 0.008,
            "lr_warmup_init" : 0.0008,
-           "anchor_scale" : [12.0, 10.0, 8.0, 6.0, 4.0],
-           "aspect_ratios" : [8.0, 6.0, 4.0, 2.0, 1.0, 0.5],
+           "anchor_scale" : [15.0, 18.0, 21.0, 24.0, 27.0],
+           "aspect_ratios" : [10.0, 8.0, 6.0, 4.0],
+           "num_scales" : 3,
            "alpha" : 0.25,
            "gamma" : 2,
            "es" : False,
            "es_monitor" : "val_det_loss",
-           "es_patience" : 15
-}
+           "es_patience" : 15,
+           "nms_configs" : {'method': 'gaussian',
+                            'iou_thresh': None,
+                            'score_thresh': 0.,
+                            'sigma': None,
+                            'pyfunc': False,
+                            'max_nms_inputs': 0,
+                            'max_output_size': 100}
+            }
 
 label_file = pd.read_csv(label_file_path, sep=',', index_col=False, header=None)
 label_map = label_file[0].tolist()
@@ -38,20 +46,17 @@ print(label_map)
 
 train_data = object_detector.DataLoader.from_pascal_voc(images_dir=f"{train_data}/images",
                                                         annotations_dir=f"{train_data}/annotations", 
-                                                        label_map=label_map, 
-)
+                                                        label_map=label_map)
 
 validation_data = object_detector.DataLoader.from_pascal_voc(images_dir=f'{valid_data}/images',
                                                              annotations_dir=f'{valid_data}/annotations',
-                                                             label_map=label_map,
-)
+                                                             label_map=label_map)
 
-spec = object_detector.EfficientDetLite1Spec(hparams=hparams,
-                                             verbose=1,
+spec = object_detector.EfficientDetLite1Spec(verbose=1,
                                              strategy=None, # 'gpus'
+                                             hparams=hparams,
                                              tflite_max_detections=1,
-                                             model_dir=f'{save_path}/{model_file_name}',
-)
+                                             model_dir=f'{save_path}/{model_file_name}')
 
 model = object_detector.create(train_data,
                                model_spec=spec,

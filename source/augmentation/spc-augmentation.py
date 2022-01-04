@@ -215,7 +215,7 @@ def data_process():
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    FOLDER = "full-name-front"
+    FOLDER = "pb"
     STEPS = 1
     IMG_SIZE = 512
     BBOX_REMOVAL_THRESHOLD = 0.15
@@ -224,7 +224,7 @@ if __name__ == "__main__":
     IMG_DIR = f"{ROOT_DIR}/{FOLDER}/images"
     ANNOT_DIR = f"{ROOT_DIR}/{FOLDER}/annotations"
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
-    FILE_NAME = "test_aug"
+    FILE_NAME = "train"
     SAVE_DIR = f"{ROOT_DIR}/{FOLDER}/{FILE_NAME}"
 
     INCLUDE_BG = True
