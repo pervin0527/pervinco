@@ -174,8 +174,8 @@ def data_process():
             if opt == 0:
                 image, bboxes, labels = mosaic(idx, dataset)
 
-            elif opt == 1:
-                image, bboxes, labels = mixup(idx, dataset, bg_files)
+            # elif opt == 1:
+                # image, bboxes, labels = mixup(idx, dataset, bg_files)
 
             else:
                 normal_transform = A.Compose([
@@ -214,8 +214,8 @@ def data_process():
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    FOLDER = "full-name5"
-    STEPS = 2
+    FOLDER = "full-name2"
+    STEPS = 1
     IMG_SIZE = 512
     BBOX_REMOVAL_THRESHOLD = 0.15
     VISUAL = False
@@ -223,7 +223,7 @@ if __name__ == "__main__":
     IMG_DIR = f"{ROOT_DIR}/{FOLDER}/images"
     ANNOT_DIR = f"{ROOT_DIR}/{FOLDER}/annotations"
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
-    FILE_NAME = "train"
+    FILE_NAME = "valid"
     SAVE_DIR = f"{ROOT_DIR}/{FOLDER}/{FILE_NAME}"
 
     INCLUDE_BG = True

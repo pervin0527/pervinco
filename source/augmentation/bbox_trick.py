@@ -4,7 +4,7 @@ from src.utils import read_xml, make_save_dir, write_xml, read_label_file, get_f
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    FOLDER = "full-name5/valid"
+    FOLDER = "full-name2/valid"
     IMG_DIR = f"{ROOT_DIR}/{FOLDER}/images"
     ANNOT_DIR = f"{ROOT_DIR}/{FOLDER}/annotations"
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
