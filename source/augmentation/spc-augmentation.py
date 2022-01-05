@@ -37,7 +37,7 @@ def crop_image(image, boxes, labels, xmin, ymin, xmax, ymax):
         A.RandomBrightnessContrast(p=1, brightness_limit=(-0.2, 0.2)),
 
         A.OneOf([
-            A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
+            # A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
             A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
             A.RandomSnow(p=0.2),
         ], p=0.5),
@@ -129,7 +129,7 @@ def mixup(idx, ds, noise_files, alpha=1.0):
         A.RandomBrightnessContrast(p=1, brightness_limit=(-0.2, 0.2)),
 
         A.OneOf([
-            A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
+            # A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
             A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
             A.RandomSnow(p=0.2),
         ], p=0.5),
@@ -184,7 +184,7 @@ def data_process():
                         A.RandomBrightnessContrast(p=1, brightness_limit=(-0.2, 0.2)),
 
                         A.OneOf([
-                            A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
+                            # A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
                             A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
                             A.RandomSnow(p=0.2),
                         ], p=0.5),
@@ -212,11 +212,10 @@ def data_process():
             write_xml(f"{SAVE_DIR}/annotations", None, None, f"bg_{idx}", bg_image.shape[0], bg_image.shape[1], 'pascal_voc')
 
 
-
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    FOLDER = "pb"
-    STEPS = 1
+    FOLDER = "full-name5"
+    STEPS = 2
     IMG_SIZE = 512
     BBOX_REMOVAL_THRESHOLD = 0.15
     VISUAL = False

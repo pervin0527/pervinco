@@ -1,8 +1,3 @@
-# https://www.tensorflow.org/lite/tutorials/model_maker_object_detection
-# https://www.tensorflow.org/lite/api_docs/python/tflite_model_maker/config/QuantizationConfig#for_int8
-# https://github.com/tensorflow/examples/blob/master/tensorflow_examples/lite/model_maker/third_party/efficientdet/hparams_config.py
-# tensorflow_examples/lite/model_maker/third_party/efficientdet/keras/train_lib.py
-
 import os
 import numpy as np
 import tensorflow as tf
@@ -14,17 +9,17 @@ from tflite_model_maker import model_spec
 from tflite_model_maker import object_detector
 from tflite_model_maker.config import QuantizationConfig
 
-train_data = "/data/Datasets/SPC/full-name2/test"
+train_data = "/data/Datasets/SPC/full-name2/train"
 valid_data = "/data/Datasets/SPC/full-name2/valid"
 label_file_path = "/data/Datasets/SPC/Labels/labels.txt"
 save_path = "/data/Models/efficientdet_lite/spc-test"
-model_file_name = "test13"
+model_file_name = "test5"
 
 hparams = {"optimizer" : "sgd",
            "learning_rate" : 0.008,
            "lr_warmup_init" : 0.0008,
-           "anchor_scale" : [15.0, 18.0, 21.0, 24.0, 27.0],
-           "aspect_ratios" : [10.0, 8.0, 6.0, 4.0],
+           "anchor_scale" : 7.0,
+           "aspect_ratios" : [8.0, 4.0, 2.0, 1.0],
            "num_scales" : 3,
            "alpha" : 0.25,
            "gamma" : 2,
@@ -61,7 +56,7 @@ spec = object_detector.EfficientDetLite1Spec(verbose=1,
 model = object_detector.create(train_data,
                                model_spec=spec,
                                epochs=20,
-                               batch_size=64,
+                               batch_size=56,
                                validation_data=validation_data,
                                train_whole_model=True,)
 
