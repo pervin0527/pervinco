@@ -36,11 +36,11 @@ def crop_image(image, boxes, labels, xmin, ymin, xmax, ymax):
         A.Resize(width=xmax-xmin, height=ymax-ymin, p=1),
         A.RandomBrightnessContrast(p=1, brightness_limit=(-0.2, 0.2)),
 
-        A.OneOf([
-            # A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
-            A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
-            A.RandomSnow(p=0.2),
-        ], p=0.5),
+        # A.OneOf([
+        #     # A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
+        #     A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
+        #     A.RandomSnow(p=0.2),
+        # ], p=0.5),
     
     ], bbox_params=A.BboxParams(format='pascal_voc', min_area=0.2, min_visibility=0.2, label_fields=['labels']))
     transformed = mosaic_transform(image=image, bboxes=boxes, labels=labels)
@@ -128,11 +128,11 @@ def mixup(idx, ds, noise_files, alpha=1.0):
         A.Resize(width=IMG_SIZE, height=IMG_SIZE, p=1),
         A.RandomBrightnessContrast(p=1, brightness_limit=(-0.2, 0.2)),
 
-        A.OneOf([
-            # A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
-            A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
-            A.RandomSnow(p=0.2),
-        ], p=0.5),
+        # A.OneOf([
+        #     A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
+        #     A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
+        #     A.RandomSnow(p=0.2),
+        # ], p=0.5),
     
     ], bbox_params=A.BboxParams(format='pascal_voc', min_area=0.2, min_visibility=0.2, label_fields=['labels']))
     transformed = mixup_transform(image=image, bboxes=bboxes, labels=labels)
@@ -183,11 +183,11 @@ def data_process():
                         A.Resize(IMG_SIZE, IMG_SIZE, p=1),
                         A.RandomBrightnessContrast(p=1, brightness_limit=(-0.2, 0.2)),
 
-                        A.OneOf([
-                            # A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
-                            A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
-                            A.RandomSnow(p=0.2),
-                        ], p=0.5),
+                        # A.OneOf([
+                        #     # A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
+                        #     A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
+                        #     A.RandomSnow(p=0.2),
+                        # ], p=0.5),
                     ])
                 ], bbox_params=A.BboxParams(format='pascal_voc', min_area=0.5, min_visibility=0.2, label_fields=['labels']))
 
