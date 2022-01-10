@@ -170,8 +170,8 @@ def data_process():
 
         for idx in tqdm(range(len(annotations)), desc=f"STEP {step}"):
             image_path, annot_path = dataset[idx]
-            opt = random.randint(0, 2)
-            opt = 2
+            opt = random.randint(0, 1)
+            opt = 1
 
             if opt == 0:
                 image, bboxes, labels = mosaic(idx, dataset)
@@ -199,12 +199,6 @@ def data_process():
                 transformed = normal_transform(image=image, bboxes=bboxes, labels=labels)
                 image, bboxes, labels = transformed['image'], transformed['bboxes'], transformed['labels']
 
-            image, annot = dataset[idx]
-            image = cv2.imread(image)
-            bboxes, labels = read_xml(annot, classes, 'pascal_voc')
-            transformed = normal_transform(image=image, bboxes=bboxes, labels=labels)
-            image, bboxes, labels = transformed['image'], transformed['bboxes'], transformed['labels']
-
             cv2.imwrite(f"{SAVE_DIR}/images/{FILE_NAME}_{step}_{idx}.jpg", image)
             write_xml(f"{SAVE_DIR}/annotations", bboxes, labels, f"{FILE_NAME}_{step}_{idx}", image.shape[0], image.shape[1], 'pascal_voc')
             
@@ -222,7 +216,7 @@ def data_process():
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    FOLDER = "full-name3"
+    FOLDER = "full-name4"
     STEPS = 1
     IMG_SIZE = 512
     BBOX_REMOVAL_THRESHOLD = 0.15
@@ -235,7 +229,7 @@ if __name__ == "__main__":
     SAVE_DIR = f"{ROOT_DIR}/{FOLDER}/{FILE_NAME}"
 
     INCLUDE_BG = False
-    BG_RATIO = 0.2
+    BG_RATIO = 0.1
     BG_DIR = ["/data/Datasets/COCO2017", "/data/Datasets/SPC/Seeds/Background"]
 
     classes = read_label_file(LABEL_DIR)
