@@ -14,7 +14,7 @@ train_data = "/data/Datasets/SPC/full-name4/train"
 valid_data = "/data/Datasets/SPC/full-name4/valid"
 label_file_path = "/data/Datasets/SPC/Labels/labels.txt"
 save_path = "/data/Models/efficientdet_lite"
-model_file_name = "full-name4-50"
+model_file_name = "full-name4-100"
 
 hparams = {"optimizer" : "sgd",
            "learning_rate" : 0.008,
@@ -60,7 +60,7 @@ spec = object_detector.EfficientDetLite1Spec(verbose=1,
 
 model = object_detector.create(train_data,
                                model_spec=spec,
-                               epochs=50,
+                               epochs=100,
                                batch_size=32,
                                validation_data=validation_data,
                                train_whole_model=True,)

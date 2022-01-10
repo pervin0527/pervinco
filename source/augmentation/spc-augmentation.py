@@ -171,7 +171,6 @@ def data_process():
         for idx in tqdm(range(len(annotations)), desc=f"STEP {step}"):
             image_path, annot_path = dataset[idx]
             opt = random.randint(0, 1)
-            opt = 1
 
             if opt == 0:
                 image, bboxes, labels = mosaic(idx, dataset)
@@ -225,12 +224,12 @@ if __name__ == "__main__":
     IMG_DIR = f"{ROOT_DIR}/{FOLDER}/images"
     ANNOT_DIR = f"{ROOT_DIR}/{FOLDER}/annotations"
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
-    FILE_NAME = "valid"
+    FILE_NAME = "train"
     SAVE_DIR = f"{ROOT_DIR}/{FOLDER}/{FILE_NAME}"
 
-    INCLUDE_BG = False
+    INCLUDE_BG = True
     BG_RATIO = 0.1
-    BG_DIR = ["/data/Datasets/COCO2017", "/data/Datasets/SPC/Seeds/Background"]
+    BG_DIR = ["/data/Datasets/SPC/Seeds/Background2/total", "/data/Datasets/SPC/Seeds/Background"]
 
     classes = read_label_file(LABEL_DIR)
     images, annotations = get_files(IMG_DIR), get_files(ANNOT_DIR)
