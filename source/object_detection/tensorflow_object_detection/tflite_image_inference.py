@@ -65,9 +65,9 @@ def postprocess(boxes, classes, scores, image_path):
     cv2.waitKey(0)    
 
 if __name__ == "__main__":
-    model_file_path = "/data/Models/efficientdet_lite/efdet-d1-SPC-set7.tflite"
-    image_file_path = "/data/Datasets/Seeds/SPC/2021-11-11/videos/frames/20211111_084054/20211111_084054_236.jpg"
-    label_file_path = "/data/Datasets/Seeds/SPC/Labels/labels.txt"
+    model_file_path = "/data/Models/efficientdet_lite/full-name-best.tflite"
+    image_file_path = "/data/Datasets/SPC/Seeds/frame_000000_1.jpg"
+    label_file_path = "/data/Datasets/SPC/Labels/labels.txt"
     threshold = 0.1
 
     LABEL_FILE = pd.read_csv(label_file_path, sep=' ', index_col=False, header=None)
@@ -98,9 +98,6 @@ if __name__ == "__main__":
     num_detections = interpreter.get_tensor(output_details[3]['index'])
 
     print(boxes[0].shape)
-    print(boxes[0])
     print(classes[0].shape)
-    print(classes[0])
     print(scores[0].shape)
-    print(scores[0])
     postprocess(boxes, classes, scores, image_file_path)
