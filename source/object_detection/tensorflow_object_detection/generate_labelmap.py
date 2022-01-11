@@ -1,6 +1,6 @@
 
-classnames_file = "/data/Datasets/Seeds/SPC/Labels/labels.txt"
-protobuf_file = "/data/Datasets/Seeds/SPC/Labels/label_map.txt"
+classnames_file = "/data/Datasets/COCO2017/Labels/labels.txt"
+protobuf_file = "/data/Datasets/COCO2017/Labels/label_map.txt"
 
 file  = open(classnames_file,'r')
 output_dict ={}

@@ -61,7 +61,7 @@ spec = object_detector.EfficientDetLite1Spec(verbose=1,
 model = object_detector.create(train_data,
                                model_spec=spec,
                                epochs=100,
-                               batch_size=32,
+                               batch_size=16,
                                validation_data=validation_data,
                                train_whole_model=True,)
 
