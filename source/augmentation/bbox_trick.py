@@ -4,11 +4,11 @@ from src.utils import read_xml, make_save_dir, write_xml, read_label_file, get_f
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    FOLDER = "full-name2/EDA"
+    FOLDER = "full-name2/EDA/train"
     IMG_DIR = f"{ROOT_DIR}/{FOLDER}/images"
     ANNOT_DIR = f"{ROOT_DIR}/{FOLDER}/annotations"
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
-    SAVE_DIR = f"{ROOT_DIR}/{FOLDER}/annotations-test"
+    SAVE_DIR = f"{ROOT_DIR}/{FOLDER}/annotations-trick"
     limit_ratio = 8
 
     if not os.path.isdir(SAVE_DIR):
@@ -33,9 +33,10 @@ if __name__ == "__main__":
                 ymax = min(height - 1, ymed + yhlf)
 
                 print(f'({xmin}, {ymin}, {xmax}, {ymax})')
-                t_bboxes.append((xmin, ymin, xmax, ymax))
+            t_bboxes.append((xmin, ymin, xmax, ymax))
 
         write_xml(SAVE_DIR, t_bboxes, labels, filename, height, width, format='pascal_voc')
         
-        # if t_bboxes:
-        #     visualize(image, t_bboxes, labels)    
+        if t_bboxes:
+            print(filename)
+            visualize(image, t_bboxes, labels)    

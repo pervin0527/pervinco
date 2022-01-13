@@ -150,9 +150,7 @@ def mixup(idx, ds, noise_files, alpha=1.0):
     return mixedup_images, bboxes, labels
 
 
-def data_process():
-    make_save_dir(SAVE_DIR)
-
+def data_process(mode):
     bg_files = []
     if INCLUDE_BG:
         ratio = int(BG_RATIO * len(annotations))
@@ -162,76 +160,105 @@ def data_process():
             files = random.sample(files, int(ratio / len(BG_DIR)))
             bg_files.extend(files)
 
-    # print(len(bg_files))
+    dataset = list(zip(images, annotations))
 
-    for step in range(STEPS):
-        dataset = list(zip(images, annotations))
-        random.shuffle(dataset)
+    if mode == "train":
+        save_dir = f"{SAVE_DIR}/{mode}"
+        make_save_dir(save_dir)
 
-        for idx in tqdm(range(len(annotations)), desc=f"STEP {step}"):
+        for step in range(STEPS):
+            random.shuffle(dataset)
+
+            for idx in tqdm(range(len(annotations)), desc=f"STEP {step}"):
+                image_path, annot_path = dataset[idx]
+                opt = random.randint(0, 1)
+
+                if opt == 0:
+                    image, bboxes, labels = mosaic(idx, dataset)
+
+                # elif opt == 1:
+                    # image, bboxes, labels = mixup(idx, dataset, bg_files)
+
+                else:
+                    normal_transform = A.Compose([
+                        A.Sequential([
+                            A.Resize(IMG_SIZE, IMG_SIZE, p=1),
+                            A.RandomBrightnessContrast(p=1, brightness_limit=(-0.2, 0.2)),
+
+                            # A.OneOf([
+                            #     # A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
+                            #     A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
+                            #     A.RandomSnow(p=0.2),
+                            # ], p=0.5),
+                        ])
+                    ], bbox_params=A.BboxParams(format='pascal_voc', min_area=0.5, min_visibility=0.2, label_fields=['labels']))
+
+                    image, annot = dataset[idx]
+                    image = cv2.imread(image)
+                    bboxes, labels = read_xml(annot, classes, 'pascal_voc')
+                    transformed = normal_transform(image=image, bboxes=bboxes, labels=labels)
+                    image, bboxes, labels = transformed['image'], transformed['bboxes'], transformed['labels']
+
+                cv2.imwrite(f"{save_dir}/images/{mode}_{step}_{idx}.jpg", image)
+                write_xml(f"{save_dir}/annotations", bboxes, labels, f"{mode}_{step}_{idx}", image.shape[0], image.shape[1], 'pascal_voc')
+                
+                if VISUAL:
+                    print(opt)
+                    visualize(image, bboxes, labels, 'pascal_voc', False)
+
+        if INCLUDE_BG:
+            for idx, file in enumerate(bg_files):
+                bg_image = cv2.imread(file)
+                bg_image = cv2.resize(bg_image, (IMG_SIZE, IMG_SIZE))
+                cv2.imwrite(f"{save_dir}/images/bg_{idx}.jpg", bg_image)
+                write_xml(f"{save_dir}/annotations", None, None, f"bg_{idx}", bg_image.shape[0], bg_image.shape[1], 'pascal_voc')
+
+    else:
+        save_dir = f"{SAVE_DIR}/{mode}"
+        make_save_dir(save_dir)
+
+        for idx in tqdm(range(len(annotations)), desc=f"valid"):
             image_path, annot_path = dataset[idx]
-            opt = random.randint(0, 1)
 
-            if opt == 0:
-                image, bboxes, labels = mosaic(idx, dataset)
+            valid_transform = A.Compose([
+                A.Sequential([
+                    A.Resize(IMG_SIZE, IMG_SIZE, p=1),
+                    A.RandomBrightnessContrast(p=1, brightness_limit=(-0.2, 0.2)),
+                ])
+            ], bbox_params=A.BboxParams(format='pascal_voc', min_area=0.5, min_visibility=0.2, label_fields=['labels']))
 
-            # elif opt == 1:
-                # image, bboxes, labels = mixup(idx, dataset, bg_files)
+            image, annot = dataset[idx]
+            image = cv2.imread(image)
+            bboxes, labels = read_xml(annot, classes, 'pascal_voc')
+            transformed = valid_transform(image=image, bboxes=bboxes, labels=labels)
+            image, bboxes, labels = transformed['image'], transformed['bboxes'], transformed['labels']
 
-            else:
-                normal_transform = A.Compose([
-                    A.Sequential([
-                        A.Resize(IMG_SIZE, IMG_SIZE, p=1),
-                        A.RandomBrightnessContrast(p=1, brightness_limit=(-0.2, 0.2)),
-
-                        # A.OneOf([
-                        #     # A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
-                        #     A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
-                        #     A.RandomSnow(p=0.2),
-                        # ], p=0.5),
-                    ])
-                ], bbox_params=A.BboxParams(format='pascal_voc', min_area=0.5, min_visibility=0.2, label_fields=['labels']))
-
-                image, annot = dataset[idx]
-                image = cv2.imread(image)
-                bboxes, labels = read_xml(annot, classes, 'pascal_voc')
-                transformed = normal_transform(image=image, bboxes=bboxes, labels=labels)
-                image, bboxes, labels = transformed['image'], transformed['bboxes'], transformed['labels']
-
-            cv2.imwrite(f"{SAVE_DIR}/images/{FILE_NAME}_{step}_{idx}.jpg", image)
-            write_xml(f"{SAVE_DIR}/annotations", bboxes, labels, f"{FILE_NAME}_{step}_{idx}", image.shape[0], image.shape[1], 'pascal_voc')
+            cv2.imwrite(f"{save_dir}/images/{mode}_{idx}.jpg", image)
+            write_xml(f"{save_dir}/annotations", bboxes, labels, f"{mode}_{idx}", image.shape[0], image.shape[1], 'pascal_voc')
             
             if VISUAL:
                 print(opt)
                 visualize(image, bboxes, labels, 'pascal_voc', False)
 
-    if INCLUDE_BG:
-        for idx, file in enumerate(bg_files):
-            bg_image = cv2.imread(file)
-            bg_image = cv2.resize(bg_image, (IMG_SIZE, IMG_SIZE))
-            cv2.imwrite(f"{SAVE_DIR}/images/bg_{idx}.jpg", bg_image)
-            write_xml(f"{SAVE_DIR}/annotations", None, None, f"bg_{idx}", bg_image.shape[0], bg_image.shape[1], 'pascal_voc')
-
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    FOLDER = "full-name4"
+    FOLDER = "EDA"
     STEPS = 1
-    IMG_SIZE = 512
+    IMG_SIZE = 384
     BBOX_REMOVAL_THRESHOLD = 0.15
     VISUAL = False
+    INCLUDE_BG = True
+    BG_RATIO = 0.3
+    BG_DIR = ["/data/Datasets/SPC/Seeds/Background2/total", "/data/Datasets/SPC/Seeds/Background"]
     
     IMG_DIR = f"{ROOT_DIR}/{FOLDER}/images"
     ANNOT_DIR = f"{ROOT_DIR}/{FOLDER}/annotations"
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
-    FILE_NAME = "train"
-    SAVE_DIR = f"{ROOT_DIR}/{FOLDER}/{FILE_NAME}"
-
-    INCLUDE_BG = True
-    BG_RATIO = 0.1
-    BG_DIR = ["/data/Datasets/SPC/Seeds/Background2/total", "/data/Datasets/SPC/Seeds/Background"]
+    SAVE_DIR = f"{ROOT_DIR}/{FOLDER}"
 
     classes = read_label_file(LABEL_DIR)
     images, annotations = get_files(IMG_DIR), get_files(ANNOT_DIR)
     
-    data_process()
+    data_process("train")
+    data_process("valid")
