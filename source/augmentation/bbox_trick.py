@@ -9,11 +9,11 @@ if __name__ == "__main__":
     IMG_DIR = f"{ROOT_DIR}/{FOLDER}/images"
     ANNOT_DIR = f"{ROOT_DIR}/{FOLDER}/annotations"
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
-    SAVE_DIR = f"{ROOT_DIR}/{FOLDER}/trick"
+    GAP = 6
+    SAVE_DIR = f"{ROOT_DIR}/{FOLDER}/trick{GAP}"
     limit_ratio = 10
     visual = False
 
-    GAP = 3
     IMG_SIZE = 384
     transform = A.Compose([A.Resize(IMG_SIZE, IMG_SIZE, p=1),
     ], bbox_params=A.BboxParams(format='pascal_voc', label_fields=['labels']))
