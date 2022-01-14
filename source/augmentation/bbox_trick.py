@@ -9,7 +9,7 @@ if __name__ == "__main__":
     IMG_DIR = f"{ROOT_DIR}/{FOLDER}/images"
     ANNOT_DIR = f"{ROOT_DIR}/{FOLDER}/annotations"
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
-    SAVE_DIR = f"{ROOT_DIR}/{FOLDER}/annotations-trick"
+    SAVE_DIR = f"{ROOT_DIR}/{FOLDER}/trick"
     limit_ratio = 10
     visual = False
 
@@ -19,11 +19,13 @@ if __name__ == "__main__":
     ], bbox_params=A.BboxParams(format='pascal_voc', label_fields=['labels']))
 
     if not os.path.isdir(SAVE_DIR):
-        os.makedirs(SAVE_DIR)
+        os.makedirs(f"{SAVE_DIR}/images")
+        os.makedirs(f"{SAVE_DIR}/annotations")
 
     classes = read_label_file(LABEL_DIR)
     images, annotations = get_files(IMG_DIR), get_files(ANNOT_DIR)
     for idx, (image, annot) in enumerate(zip(images, annotations)):
+        print(annot)
         filename = image.split('/')[-1].split('.')[0]
         image = cv2.imread(image)
         height, width = image.shape[:-1]
@@ -49,7 +51,8 @@ if __name__ == "__main__":
                 
             confirm.append((xmin, ymin, xmax, ymax))
 
-        write_xml(SAVE_DIR, confirm, labels, filename, height, width, format='pascal_voc')
+        cv2.imwrite(f"{SAVE_DIR}/images/{filename}.jpg", t_image)
+        write_xml(f"{SAVE_DIR}/annotations", confirm, labels, filename, height, width, format='pascal_voc')
         
         if confirm and visual:
             print(filename)

@@ -254,8 +254,8 @@ if __name__ == "__main__":
     BG_RATIO = 0.5
     BG_DIR = ["/data/Datasets/SPC/total-background"]
     
-    IMG_DIR = f"{ROOT_DIR}/{FOLDER}/images2"
-    ANNOT_DIR = f"{ROOT_DIR}/{FOLDER}/annotations2"
+    IMG_DIR = f"{ROOT_DIR}/{FOLDER}/images"
+    ANNOT_DIR = f"{ROOT_DIR}/{FOLDER}/annotations"
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
     SAVE_DIR = f"{ROOT_DIR}/{FOLDER}"
 
