@@ -10,11 +10,11 @@ from tflite_model_maker import model_spec
 from tflite_model_maker import object_detector
 from tflite_model_maker.config import QuantizationConfig
 
-train_data = "/data/Datasets/SPC/full-name2/EDA"
-valid_data = "/data/Datasets/SPC/full-name2/EDA"
+train_data = "/data/Datasets/SPC/full-name6/train"
+valid_data = "/data/Datasets/SPC/full-name6/valid"
 label_file_path = "/data/Datasets/SPC/Labels/labels.txt"
 save_path = "/data/Models/efficientdet_lite"
-model_file_name = "full-name2-bbox-trick-test"
+model_file_name = "full-name6"
 
 hparams = {"optimizer" : "sgd",
            "learning_rate" : 0.008,
@@ -33,11 +33,11 @@ label_map = label_file[0].tolist()
 print(label_map)
 
 train_data = object_detector.DataLoader.from_pascal_voc(images_dir=f"{train_data}/images",
-                                                        annotations_dir=f"{train_data}/annotations-trick", 
+                                                        annotations_dir=f"{train_data}/annotations", 
                                                         label_map=label_map)
 
 validation_data = object_detector.DataLoader.from_pascal_voc(images_dir=f'{valid_data}/images',
-                                                             annotations_dir=f'{valid_data}/annotations-trick',
+                                                             annotations_dir=f'{valid_data}/annotations',
                                                              label_map=label_map)
 
 spec = object_detector.EfficientDetLite1Spec(verbose=1,
@@ -48,7 +48,7 @@ spec = object_detector.EfficientDetLite1Spec(verbose=1,
 
 model = object_detector.create(train_data,
                                model_spec=spec,
-                               epochs=20,
+                               epochs=10,
                                batch_size=64,
                                validation_data=validation_data,
                                train_whole_model=True,)

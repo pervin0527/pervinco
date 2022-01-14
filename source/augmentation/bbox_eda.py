@@ -7,8 +7,8 @@ ROOT_PATH = "/data/Datasets/SPC"
 LABEL_PATH = f"{ROOT_PATH}/Labels/labels.txt"
 
 # frame_000004_0
-IMAGE_PATH = f"{ROOT_PATH}/full-name2/EDA/images"
-ANNOT_PATH = f"{ROOT_PATH}/full-name2/EDA/annotations"
+IMAGE_PATH = f"{ROOT_PATH}/pb/images"
+ANNOT_PATH = f"{ROOT_PATH}/pb/annotations"
 
 classes = read_label_file(LABEL_PATH)
 
@@ -30,10 +30,10 @@ for (image, annot) in zip(images, annotations):
         bbox_width = xmax - xmin
         bbox_height = ymax - ymin
 
-        bbox_ratio = bbox_width / bbox_height
+        bbox_ratio = int(bbox_width / bbox_height)
         if bbox_ratio > max_ratio:
             max_ratio = bbox_ratio
-            area = bbox_width * bbox_height
+            area = int(bbox_width * bbox_height)
 
             print(max_ratio, area)
             visualize(image, bboxes, labels)

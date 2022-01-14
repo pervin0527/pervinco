@@ -37,11 +37,11 @@ def crop_image(image, boxes, labels, xmin, ymin, xmax, ymax):
         A.RandomBrightnessContrast(p=0.5, brightness_limit=(-0.2, 0.2)),
         A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
 
-        # A.OneOf([
-        #     # A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
-        #     A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
-        #     A.RandomSnow(p=0.2),
-        # ], p=0.5),
+        A.OneOf([
+            # A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
+            A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
+            A.RandomSnow(p=0.2),
+        ], p=0.5),
     
     ], bbox_params=A.BboxParams(format='pascal_voc', min_area=0.2, min_visibility=0.2, label_fields=['labels']))
     transformed = mosaic_transform(image=image, bboxes=boxes, labels=labels)
@@ -129,11 +129,11 @@ def mixup(idx, ds, noise_files, alpha=1.0):
         A.Resize(width=IMG_SIZE, height=IMG_SIZE, p=1),
         A.RandomBrightnessContrast(p=1, brightness_limit=(-0.2, 0.2)),
 
-        # A.OneOf([
-        #     A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
-        #     A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
-        #     A.RandomSnow(p=0.2),
-        # ], p=0.5),
+        A.OneOf([
+            # A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
+            A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
+            A.RandomSnow(p=0.2),
+        ], p=0.5),
     
     ], bbox_params=A.BboxParams(format='pascal_voc', min_area=0.2, min_visibility=0.2, label_fields=['labels']))
     transformed = mixup_transform(image=image, bboxes=bboxes, labels=labels)
@@ -150,7 +150,7 @@ def mixup(idx, ds, noise_files, alpha=1.0):
     return mixedup_images, bboxes, labels
 
 
-def data_process(mode):
+def data_process(is_train, folder_name):
     bg_files = []
     if INCLUDE_BG:
         ratio = int(BG_RATIO * len(annotations))
@@ -162,8 +162,8 @@ def data_process(mode):
 
     dataset = list(zip(images, annotations))
 
-    if mode == "train":
-        save_dir = f"{SAVE_DIR}/{mode}"
+    if is_train:
+        save_dir = f"{SAVE_DIR}/{folder_name}"
         make_save_dir(save_dir)
 
         for step in range(STEPS):
@@ -185,11 +185,11 @@ def data_process(mode):
                             A.Resize(IMG_SIZE, IMG_SIZE, p=1),
                             A.RandomBrightnessContrast(p=1, brightness_limit=(-0.2, 0.2)),
 
-                            # A.OneOf([
-                            #     # A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
-                            #     A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
-                            #     A.RandomSnow(p=0.2),
-                            # ], p=0.5),
+                            A.OneOf([
+                                # A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
+                                A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
+                                A.RandomSnow(p=0.2),
+                            ], p=0.5),
                         ])
                     ], bbox_params=A.BboxParams(format='pascal_voc', min_area=0.5, min_visibility=0.2, label_fields=['labels']))
 
@@ -199,8 +199,8 @@ def data_process(mode):
                     transformed = normal_transform(image=image, bboxes=bboxes, labels=labels)
                     image, bboxes, labels = transformed['image'], transformed['bboxes'], transformed['labels']
 
-                cv2.imwrite(f"{save_dir}/images/{mode}_{step}_{idx}.jpg", image)
-                write_xml(f"{save_dir}/annotations", bboxes, labels, f"{mode}_{step}_{idx}", image.shape[0], image.shape[1], 'pascal_voc')
+                cv2.imwrite(f"{save_dir}/images/{folder_name}_{step}_{idx}.jpg", image)
+                write_xml(f"{save_dir}/annotations", bboxes, labels, f"{folder_name}_{step}_{idx}", image.shape[0], image.shape[1], 'pascal_voc')
                 
                 if VISUAL:
                     print(opt)
@@ -213,8 +213,10 @@ def data_process(mode):
                 cv2.imwrite(f"{save_dir}/images/bg_{idx}.jpg", bg_image)
                 write_xml(f"{save_dir}/annotations", None, None, f"bg_{idx}", bg_image.shape[0], bg_image.shape[1], 'pascal_voc')
 
+            print(f"Background Images {len(bg_files)} Added")
+
     else:
-        save_dir = f"{SAVE_DIR}/{mode}"
+        save_dir = f"{SAVE_DIR}/{folder_name}"
         make_save_dir(save_dir)
 
         for idx in tqdm(range(len(annotations)), desc=f"valid"):
@@ -233,8 +235,8 @@ def data_process(mode):
             transformed = valid_transform(image=image, bboxes=bboxes, labels=labels)
             image, bboxes, labels = transformed['image'], transformed['bboxes'], transformed['labels']
 
-            cv2.imwrite(f"{save_dir}/images/{mode}_{idx}.jpg", image)
-            write_xml(f"{save_dir}/annotations", bboxes, labels, f"{mode}_{idx}", image.shape[0], image.shape[1], 'pascal_voc')
+            cv2.imwrite(f"{save_dir}/images/{folder_name}_{idx}.jpg", image)
+            write_xml(f"{save_dir}/annotations", bboxes, labels, f"{folder_name}_{idx}", image.shape[0], image.shape[1], 'pascal_voc')
             
             if VISUAL:
                 print(opt)
@@ -243,22 +245,22 @@ def data_process(mode):
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    FOLDER = "EDA"
+    FOLDER = "full-name6"
     STEPS = 1
     IMG_SIZE = 384
     BBOX_REMOVAL_THRESHOLD = 0.15
     VISUAL = False
     INCLUDE_BG = True
-    BG_RATIO = 0.3
-    BG_DIR = ["/data/Datasets/SPC/Seeds/Background2/total", "/data/Datasets/SPC/Seeds/Background"]
+    BG_RATIO = 0.5
+    BG_DIR = ["/data/Datasets/SPC/total-background"]
     
-    IMG_DIR = f"{ROOT_DIR}/{FOLDER}/images"
-    ANNOT_DIR = f"{ROOT_DIR}/{FOLDER}/annotations"
+    IMG_DIR = f"{ROOT_DIR}/{FOLDER}/images2"
+    ANNOT_DIR = f"{ROOT_DIR}/{FOLDER}/annotations2"
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
     SAVE_DIR = f"{ROOT_DIR}/{FOLDER}"
 
     classes = read_label_file(LABEL_DIR)
     images, annotations = get_files(IMG_DIR), get_files(ANNOT_DIR)
     
-    data_process("train")
-    data_process("valid")
+    data_process(True, "train")
+    data_process(False, "valid")

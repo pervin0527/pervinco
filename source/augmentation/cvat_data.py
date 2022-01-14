@@ -36,16 +36,17 @@ def process(img_dir, annot_dir, number):
                 write_xml(f"{SAVE_FOLDER}/annotations", bboxes, labels, f"{img_filename}_{number}", img_height, img_width, 'pascal_voc')
 
         except:
+            print(f"{image} is broken file")
             pass
         
     
 if __name__ == "__main__":
-    ROOT = "/data/Datasets/SPC/Cvat/pb"
+    ROOT = "/data/Datasets/SPC/Cvat/full-name-seed"
     LABEL_DIR = "/data/Datasets/SPC/Labels/labels.txt"
     LABELS = read_label_file(LABEL_DIR)
 
     SAVE_DIR = ('/').join(ROOT.split('/')[:-2])
-    SAVE_FOLDER = f"{SAVE_DIR}/pb"
+    SAVE_FOLDER = f"{SAVE_DIR}/full-name6"
     print(SAVE_FOLDER)
     target_folders = search(ROOT)
     print(target_folders)
