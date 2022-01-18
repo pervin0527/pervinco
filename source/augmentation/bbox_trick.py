@@ -6,19 +6,21 @@ from src.utils import read_xml, make_save_dir, write_xml, read_label_file, get_f
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
     FOLDER = "pb"
+    SAVE_DIR = f"{ROOT_DIR}/full-name6"
+
+    GAP = 6
+    limit_ratio = 10
+    visual = False
+
     IMG_DIR = f"{ROOT_DIR}/{FOLDER}/images"
     ANNOT_DIR = f"{ROOT_DIR}/{FOLDER}/annotations"
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
-    GAP = 6
-    SAVE_DIR = f"{ROOT_DIR}/{FOLDER}/trick{GAP}"
-    limit_ratio = 10
-    visual = False
 
     IMG_SIZE = 384
     transform = A.Compose([A.Resize(IMG_SIZE, IMG_SIZE, p=1),
     ], bbox_params=A.BboxParams(format='pascal_voc', label_fields=['labels']))
 
-    if not os.path.isdir(SAVE_DIR):
+    if not os.path.isdir(f"{SAVE_DIR}/images") and not os.path.isdir(f"{SAVE_DIR}/annotations"):
         os.makedirs(f"{SAVE_DIR}/images")
         os.makedirs(f"{SAVE_DIR}/annotations")
 
