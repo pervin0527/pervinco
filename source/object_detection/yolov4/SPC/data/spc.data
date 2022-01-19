@@ -1,0 +1,5 @@
+classes = 3
+train  = /home/ubuntu/Datasets/SPC/full-name6/train3/files.txt
+valid  = /home/ubuntu/Datasets/SPC/full-name6/valid3/files.txt
+names = /home/ubuntu/darknet/custom/spc/data/spc.names
+backup = /home/ubuntu//Models/yolov4-spc

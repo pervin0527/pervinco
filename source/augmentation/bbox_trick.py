@@ -5,8 +5,8 @@ from src.utils import read_xml, make_save_dir, write_xml, read_label_file, get_f
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    FOLDER = "pb"
-    SAVE_DIR = f"{ROOT_DIR}/full-name6"
+    FOLDER = "pb-crawler"
+    SAVE_DIR = f"{ROOT_DIR}/full-name7"
 
     GAP = 6
     limit_ratio = 10
@@ -53,8 +53,8 @@ if __name__ == "__main__":
                 
             confirm.append((xmin, ymin, xmax, ymax))
 
-        cv2.imwrite(f"{SAVE_DIR}/images/{filename}.jpg", t_image)
-        write_xml(f"{SAVE_DIR}/annotations", confirm, labels, filename, height, width, format='pascal_voc')
+        cv2.imwrite(f"{SAVE_DIR}/images/trick_{filename}.jpg", t_image)
+        write_xml(f"{SAVE_DIR}/annotations", confirm, labels, f"trick_{filename}", height, width, format='pascal_voc')
         
         if confirm and visual:
             print(filename)
