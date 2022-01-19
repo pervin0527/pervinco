@@ -27,7 +27,7 @@ hparams = {"optimizer" : "sgd",
            "es" : False,
            "es_monitor" : "val_det_loss",
            "es_patience" : 15,
-           "ckpt" : None}
+           "ckpt" : "/data/Models/efficientdet_lite/full-name7"}
 # "/data/Models/efficientdet_lite/full-name6-GAP6-test2"
 
 label_file = pd.read_csv(label_file_path, sep=',', index_col=False, header=None)
@@ -50,7 +50,7 @@ spec = object_detector.EfficientDetLite1Spec(verbose=1,
 
 model = object_detector.create(train_data,
                                model_spec=spec,
-                               epochs=10,
+                               epochs=50,
                                batch_size=64,
                                validation_data=validation_data,
                                train_whole_model=True,)
