@@ -9,65 +9,47 @@ from threading import Thread, enumerate
 from queue import Queue
 import datetime
 
-weight_file = "/data/Models/SPC_yolov4/yolov4_last.weights"
-config_file = "/home/barcelona/darknet/custom/SPC/deploy/yolov4.cfg"
-data_file = "/home/barcelona/darknet/custom/SPC/data/spc.data"
-thresh_hold = .8
+if __name__ == "__main__":
+    root_dir = "/data/Models/yolov4"
+    weight_file = f"{root_dir}/SPC/ckpt/full-name7/yolov4_last.weights"
+    config_file = f"{root_dir}/SPC/deploy/yolov4.cfg"
+    data_file = f"{root_dir}/SPC/data/spc.data"
+    thresh_hold = .6
 
-network, class_names, class_colors = darknet.load_network(config_file, data_file, weight_file, batch_size=1)
+    cap = cv2.VideoCapture(0)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 960)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 960)
+    cap.set(cv2.CAP_PROP_BRIGHTNESS, 100)
+    cap.set(cv2.CAP_PROP_FOURCC, 1196444237.0)
+    cap.set(cv2.CAP_PROP_AUTOFOCUS, 0)
 
-###############################################################################################
-cap = cv2.VideoCapture("/data/Datasets/Seeds/SPC/2021-11-11/videos/paris-baguette2.mp4")
-# cap = cv2.VideoCapture(0)
-# print(cap.get(3), cap.get(4))
-fps = cap.get(cv2.CAP_PROP_FPS)
+    network, class_names, class_colors = darknet.load_network(config_file, data_file, weight_file, batch_size=1)
+    width = darknet.network_width(network)
+    height = darknet.network_height(network)
+    darknet_image = darknet.make_image(width, height, 3)
 
-# MJPG_CODEC = 1196444237.0 # MJPG
-cap_AUTOFOCUS = 0
-cap_FOCUS = 0
-#cap_ZOOM = 400
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
 
-frame_width = 1920
-frame_height = 1080
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, frame_width)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, frame_height)
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        frame_resized = cv2.resize(frame_rgb, (width, height), interpolation=cv2.INTER_LINEAR)
+        darknet.copy_image_from_bytes(darknet_image, frame_resized.tobytes())
+        
+        detections = darknet.detect_image(network, class_names, darknet_image, thresh=thresh_hold, hier_thresh=.5, nms=.45)
+        # darknet.print_detections(detections)
 
-cap.set(cv2.CAP_PROP_BRIGHTNESS, 100)
-# cap.set(cv2.CAP_PROP_FOURCC, MJPG_CODEC)
-cap.set(cv2.CAP_PROP_AUTOFOCUS, cap_AUTOFOCUS)
-cap.set(cv2.CAP_PROP_FOCUS, cap_FOCUS)
-##############################################################################################
-width = darknet.network_width(network)
-height = darknet.network_height(network)
-darknet_image = darknet.make_image(width, height, 3)
+        image = darknet.draw_boxes(detections, frame_resized, class_colors)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image = cv2.resize(image, (960, 960))
+        cv2.imshow("inference", image)
 
-fourcc = cv2.VideoWriter_fourcc(*'XVID')
-out = cv2.VideoWriter('/home/barcelona/test.avi', fourcc, fps, (frame_width, frame_height))
+        key = cv2.waitKey(33)
+        if key == 27 or key == 'esc':
+            break
 
-while cap.isOpened():
-    ret, frame = cap.read()
-    if not ret:
-        break
+    if cap.isOpened():
+        cap.release()
 
-    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    frame_resized = cv2.resize(frame_rgb, (width, height), interpolation=cv2.INTER_LINEAR)
-    darknet.copy_image_from_bytes(darknet_image, frame_resized.tobytes())
-    
-    detections = darknet.detect_image(network, class_names, darknet_image, thresh=thresh_hold, hier_thresh=.5, nms=.45)
-    # darknet.print_detections(detections)
-
-    image = darknet.draw_boxes(detections, frame_resized, class_colors)
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    # image = cv2.resize(image, (frame_width, frame_height))
-    cv2.imshow("inference", image)
-
-    out.write(image)
-
-    k = cv2.waitKey(1)
-    if k == ord('q'):
-        os.system('clear')
-        break
-
-out.release()
-cap.release()
-cv2.destroyAllWindows()
+    cv2.destroyAllWindows()

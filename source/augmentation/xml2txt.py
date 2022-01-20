@@ -1,5 +1,8 @@
 import os
-from src.utils import read_label_file, read_xml, make_save_dir, get_files
+import cv2
+from glob import glob
+from shutil import copytree
+from src.utils import read_label_file, read_xml, get_files
 
 def yolo2voc(class_id, width, height, x, y, w, h):
     xmin = int((x*width) - (w * width)/2.0)
@@ -11,23 +14,35 @@ def yolo2voc(class_id, width, height, x, y, w, h):
     return (class_id, xmin, ymin, xmax, ymax)
 
 if __name__ == "__main__":
-    ANNOT_DIR = "/data/Datasets/SPC/full-name2/annotations"
+    FOLDERS = ['train', 'valid']
+    ROOT_DIR = "/data/Datasets/SPC/full-name7"
     LABEL_DIR = "/data/Datasets/SPC/Labels/labels.txt"
-    SAVE_DIR = f"{('/').join(ANNOT_DIR.split('/')[:-1])}/labels"
-    print(SAVE_DIR)
 
-    if not os.path.isdir(SAVE_DIR):
-        os.mkdir(SAVE_DIR)
     classes = read_label_file(LABEL_DIR)
     print(classes)
 
-    annotations = get_files(ANNOT_DIR)
-    print(len(annotations))
+    for folder in FOLDERS:
+        images = get_files(f"{ROOT_DIR}/{folder}/images")
+        annotations = get_files(f"{ROOT_DIR}/{folder}/annotations")
 
-    for annot in annotations:
-        filename = annot.split('/')[-1].split('.')[0]
-        
-        with open(f"{SAVE_DIR}/{filename}.txt", 'w') as f:
-            bboxes, labels = read_xml(annot, classes, format="yolo")
-            for bbox, label in zip(bboxes, labels):
-                f.write(str(label) + " " + " ".join([("%.6f" % a) for a in bbox]) + '\n')
+        if not os.path.isdir(f"{ROOT_DIR}/{folder}/v4set"):
+            os.makedirs(f"{ROOT_DIR}/{folder}/v4set")
+
+        print(f"{ROOT_DIR}/{folder}")
+        for annot in annotations:
+            file_name = annot.split('/')[-1].split('.')[0]
+            image = cv2.imread(f"{ROOT_DIR}/{folder}/images/{file_name}.jpg")
+            cv2.imwrite(f"{ROOT_DIR}/{folder}/v4set/{file_name}.jpg", image)
+
+            with open(f"{ROOT_DIR}/{folder}/v4set/{file_name}.txt", "w") as f:
+                bboxes, labels = read_xml(annot, classes, format="yolo")
+                for bbox, label in zip(bboxes, labels):
+                    f.write(str(label) + " " + " ".join([("%.6f" % a) for a in bbox]) + '\n')
+                f.close()
+
+        v4_images = glob(f"{ROOT_DIR}/{folder}/v4set/*.jpg")
+        with open(f"{ROOT_DIR}/{folder}/files.txt", "w") as f:
+            for image in v4_images:
+                data = image + '\n'
+                f.write(data)
+        f.close()
