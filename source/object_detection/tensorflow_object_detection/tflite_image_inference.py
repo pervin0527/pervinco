@@ -1,10 +1,12 @@
 import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import cv2
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from glob import glob
+from tqdm import tqdm
 
-# GPU setup
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if len(gpus) > 1:
     try:
@@ -25,7 +27,8 @@ else:
 
 def print_info(info_list, type):
     print(f"############################################# Model {type} info #############################################")
-    print(info_list)
+    for info in info_list:
+        print(info, "\n")
     print("############################################################################################################## \n")
 
 def image_preprocess(image_path):
@@ -60,44 +63,47 @@ def postprocess(boxes, classes, scores, image_path):
             cv2.rectangle(image, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (255, 0, 0))
             cv2.putText(image, f"{label} {score:.2f}%", (int(xmin), int(ymin)), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 0))
 
-    print(final_result)
-    cv2.imshow('result', image)
-    cv2.waitKey(0)    
+    if final_result:
+        # cv2.imshow('result', image)
+        # cv2.waitKey(0)    
+        print(image_path, final_result)
 
 if __name__ == "__main__":
-    model_file_path = "/data/Models/efficientdet_lite/full-name-best.tflite"
-    image_file_path = "/data/Datasets/SPC/Seeds/frame_000000_1.jpg"
-    label_file_path = "/data/Datasets/SPC/Labels/labels.txt"
-    threshold = 0.1
+    model_path = "/data/Models/efficientdet_lite/best/full-name6-GAP6/full-name6-GAP6-ver1.tflite"
+    images_path = "/data/Datasets/SPC/total-background/images"
+    label_path = "/data/Datasets/SPC/Labels/labels.txt"
+    threshold = 0.7
 
-    LABEL_FILE = pd.read_csv(label_file_path, sep=' ', index_col=False, header=None)
+    LABEL_FILE = pd.read_csv(label_path, sep=' ', index_col=False, header=None)
     CLASSES = LABEL_FILE[0].tolist()
 
-    interpreter = tf.lite.Interpreter(model_path=model_file_path)
+    images = sorted(glob(f"{images_path}/*"))
+
+    interpreter = tf.lite.Interpreter(model_path=model_path)
     interpreter.allocate_tensors()
 
     input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
 
-    os.system("clear")
-    print_info(input_details, "Input")
-    print_info(output_details, "Output")
+    # os.system("clear")
+    # print_info(input_details, "Input")
+    # print_info(output_details, "Output")
 
     input_shape = input_details[0].get('shape')
     input_width, input_height = input_shape[1], input_shape[2]
     input_dtype = input_details[0].get('dtype')
 
-    input_tensor = image_preprocess(image_file_path)
-    interpreter.set_tensor(input_details[0]['index'], input_tensor.numpy().astype(np.uint8))
-    # interpreter.set_tensor(input_details[0]['index'], input_tensor.numpy().astype(np.float32))
-    interpreter.invoke()
+    for idx in tqdm(range(len(images))):
+        image = images[idx]
+        input_tensor = image_preprocess(image)
+        interpreter.set_tensor(input_details[0]['index'], input_tensor.numpy().astype(np.uint8))
+        # interpreter.set_tensor(input_details[0]['index'], input_tensor.numpy().astype(np.float32))
+        interpreter.invoke()
 
-    boxes = interpreter.get_tensor(output_details[0]['index'])
-    classes = interpreter.get_tensor(output_details[1]['index'])
-    scores = interpreter.get_tensor(output_details[2]['index'])
-    num_detections = interpreter.get_tensor(output_details[3]['index'])
+        boxes = interpreter.get_tensor(output_details[0]['index'])
+        classes = interpreter.get_tensor(output_details[1]['index'])
+        scores = interpreter.get_tensor(output_details[2]['index'])
+        num_detections = interpreter.get_tensor(output_details[3]['index'])
 
-    print(boxes[0].shape)
-    print(classes[0].shape)
-    print(scores[0].shape)
-    postprocess(boxes, classes, scores, image_file_path)
+        if any(score > threshold for score in scores):
+            postprocess(boxes, classes, scores, image)
