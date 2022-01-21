@@ -13,7 +13,8 @@
 - steps = 80 ~ 90% of max_batches
 - width, height = multiple of 32
 - classes = each of 3 [yolo]-layers
-- filters = (classes + 5) * 3 before each [yolo] layer
+- filters = (classes + 5) * 3 before each [yolo] layer  
+  yolov4-p5 = (classes + 5) * 4 before each [yolo] layer
 
 ## train
 

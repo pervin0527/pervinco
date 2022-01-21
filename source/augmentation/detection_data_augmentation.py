@@ -105,7 +105,7 @@ def data_process(is_train, folder_name):
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
     FOLDER = "full-name7"
-    STEPS = 1
+    STEPS = 5
     IMG_SIZE = 384
     BBOX_REMOVAL_THRESHOLD = 0.15
     VISUAL = False
@@ -121,5 +121,5 @@ if __name__ == "__main__":
     classes = read_label_file(LABEL_DIR)
     images, annotations = get_files(IMG_DIR), get_files(ANNOT_DIR)
     
-    data_process(True, "train")
-    data_process(False, "valid")
+    data_process(True, "train2")
+    data_process(False, "valid2")

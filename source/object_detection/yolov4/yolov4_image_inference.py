@@ -19,7 +19,7 @@ if __name__ == "__main__":
     THRESH_HOLD = .6
     VISUAL = False
 
-    save_path = f"{('/').join(WEIGHT_PATH.split('/')[:-3])}/pred-result"
+    save_path = f"{('/').join(WEIGHT_PATH.split('/')[:-1])}/pred-result"
     if not os.path.isdir(save_path):
         os.makedirs(save_path)
 
@@ -35,8 +35,8 @@ if __name__ == "__main__":
 
     for idx in tqdm(range(len(test_images))):
         test_image = test_images[idx]
-        test_image = cv2.imread(test_image)
-        frame_rgb = cv2.cvtColor(test_image, cv2.COLOR_BGR2RGB)
+        image = cv2.imread(test_image)
+        frame_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         frame_resized = cv2.resize(frame_rgb, (width, height), interpolation=cv2.INTER_LINEAR)
         darknet.copy_image_from_bytes(darknet_image, frame_resized.tobytes())
 
