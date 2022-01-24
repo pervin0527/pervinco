@@ -78,7 +78,7 @@ def data_process(is_train, folder_name):
         save_dir = f"{SAVE_DIR}/{folder_name}"
         make_save_dir(save_dir)
 
-        for idx in tqdm(range(len(annotations)), desc=f"valid"):
+        for idx in tqdm(range(int(len(annotations) * 0.2)), desc=f"valid"):
             image_path, annot_path = dataset[idx]
 
             valid_transform = A.Compose([
@@ -104,14 +104,14 @@ def data_process(is_train, folder_name):
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    FOLDER = "full-name7"
-    STEPS = 5
+    FOLDER = "full-name-test"
+    STEPS = 1
     IMG_SIZE = 384
     BBOX_REMOVAL_THRESHOLD = 0.15
     VISUAL = False
     INCLUDE_BG = True
     BG_RATIO = 0.5
-    BG_DIR = ["/data/Datasets/SPC/total-background"]
+    BG_DIR = ["/data/Datasets/SPC/Background"]
     
     IMG_DIR = f"{ROOT_DIR}/{FOLDER}/images"
     ANNOT_DIR = f"{ROOT_DIR}/{FOLDER}/annotations"
@@ -121,5 +121,5 @@ if __name__ == "__main__":
     classes = read_label_file(LABEL_DIR)
     images, annotations = get_files(IMG_DIR), get_files(ANNOT_DIR)
     
-    data_process(True, "train2")
-    data_process(False, "valid2")
+    data_process(True, "train")
+    data_process(False, "valid")
