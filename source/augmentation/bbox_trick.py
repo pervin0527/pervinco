@@ -1,6 +1,7 @@
 import cv2
 import os
 import albumentations as A
+from tqdm import tqdm
 from glob import glob
 from src.utils import read_xml, make_save_dir, write_xml, read_label_file, get_files, visualize
 
@@ -25,15 +26,16 @@ if __name__ == "__main__":
 
     classes = read_label_file(LABEL_DIR)
     folders = sorted(glob(f"{ROOT_DIR}/{FOLDER}/*"))
-    print(folders)
     for dir in folders:
         IMG_DIR = f"{dir}/JPEGImages"
         ANNOT_DIR = f"{dir}/Annotations"
 
+        print(dir)
         images, annotations = get_files(IMG_DIR), get_files(ANNOT_DIR)
-        for idx, (image, annot) in enumerate(zip(images, annotations)):
+        for idx in tqdm(range(len(images))):
             try:
-                print(annot)
+                image = images[idx]
+                annot = annotations[idx]
                 filename = image.split('/')[-1].split('.')[0]
                 image = cv2.imread(image)
                 height, width = image.shape[:-1]
