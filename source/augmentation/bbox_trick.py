@@ -8,10 +8,10 @@ from src.utils import read_xml, make_save_dir, write_xml, read_label_file, get_f
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
     FOLDER = "Cvat/Paris_baguette"
-    SAVE_DIR = f"{ROOT_DIR}/full-name-test"
+    SAVE_DIR = f"{ROOT_DIR}/test"
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
 
-    GAP = 3
+    GAP = 6
     limit_ratio = 10
     visual = False
 

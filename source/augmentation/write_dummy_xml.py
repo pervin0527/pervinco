@@ -18,5 +18,4 @@ if __name__ == "__main__":
         file_name = file.split('/')[-1].split('.')[0]
 
         image = cv2.imread(file)
-        image = cv2.resize(image, (IMG_SIZE, IMG_SIZE))
         write_xml(f"{background_dir}/annotations", None, None, file_name, IMG_SIZE, IMG_SIZE, format='pascal_voc')

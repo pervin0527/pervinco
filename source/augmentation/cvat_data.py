@@ -10,7 +10,7 @@ if __name__ == "__main__":
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
     FOLDER = "Cvat"
     IMG_SIZE = 384
-    SAVE_DIR = f"{ROOT_DIR}/full-name-test"
+    SAVE_DIR = f"{ROOT_DIR}/test"
 
     classes = read_label_file(LABEL_DIR)
     print(classes)
@@ -23,7 +23,7 @@ if __name__ == "__main__":
         A.Resize(IMG_SIZE, IMG_SIZE, p=1),
         ], bbox_params=A.BboxParams(format='pascal_voc', label_fields=['labels']))    
 
-    if not os.path.exists(f"{SAVE_DIR}"):
+    if not os.path.isdir(f"{SAVE_DIR}"):
         os.makedirs(f"{SAVE_DIR}/images")
         os.makedirs(f"{SAVE_DIR}/annotations")
 

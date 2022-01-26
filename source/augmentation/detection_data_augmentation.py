@@ -5,26 +5,47 @@ import numpy as np
 import pandas as pd
 import albumentations as A
 
+from glob import glob
 from tqdm import tqdm
 from src.custom_aug import mosaic, mixup
 from src.utils import read_label_file, read_xml, get_files, visualize, make_save_dir, write_xml
 
 def data_process(is_train, folder_name):
-    bg_files = []
-    if INCLUDE_BG:
-        ratio = int(BG_RATIO * len(annotations))
-
-        for dir in BG_DIR:
-            files = get_files(f"{dir}/images")
-            files = random.sample(files, int(ratio / len(BG_DIR)))
-            bg_files.extend(files)
-
-    dataset = list(zip(images, annotations))
-
     if is_train:
         save_dir = f"{SAVE_DIR}/{folder_name}"
         make_save_dir(save_dir)
 
+        if INCLUDE_BG:
+            bg_files = []
+            ratio = int(BG_RATIO * len(annotations))
+
+            folders = sorted(glob(f"{BG_DIR}/*"))
+            for folder in folders:
+                files = glob(f"{folder}/*")
+                random.shuffle(files)
+                if len(files) > int(ratio / len(folders)):
+                    files = random.sample(files, int(ratio / len(folders)))
+
+                else:
+                    files = files
+
+                print(folder, len(files))    
+                bg_files.extend(files)        
+
+            print(len(bg_files))
+            for idx, file in enumerate(bg_files):
+                try:
+                    bg_image = cv2.imread(file)
+                    bg_image = cv2.resize(bg_image, (IMG_SIZE, IMG_SIZE))
+                    cv2.imwrite(f"{save_dir}/images/bg_{idx}.jpg", bg_image)
+                    write_xml(f"{save_dir}/annotations", None, None, f"bg_{idx}", bg_image.shape[0], bg_image.shape[1], 'pascal_voc')
+
+                except:
+                    pass
+
+            print(f"Background Images {len(bg_files)} Added")
+            
+        dataset = list(zip(images, annotations))
         for step in range(STEPS):
             random.shuffle(dataset)
 
@@ -65,19 +86,11 @@ def data_process(is_train, folder_name):
                     print(opt)
                     visualize(image, bboxes, labels, 'pascal_voc', False)
 
-        if INCLUDE_BG:
-            for idx, file in enumerate(bg_files):
-                bg_image = cv2.imread(file)
-                bg_image = cv2.resize(bg_image, (IMG_SIZE, IMG_SIZE))
-                cv2.imwrite(f"{save_dir}/images/bg_{idx}.jpg", bg_image)
-                write_xml(f"{save_dir}/annotations", None, None, f"bg_{idx}", bg_image.shape[0], bg_image.shape[1], 'pascal_voc')
-
-            print(f"Background Images {len(bg_files)} Added")
-
     else:
         save_dir = f"{SAVE_DIR}/{folder_name}"
         make_save_dir(save_dir)
 
+        dataset = list(zip(images, annotations))
         for idx in tqdm(range(int(len(annotations) * 0.2)), desc=f"valid"):
             image_path, annot_path = dataset[idx]
 
@@ -104,14 +117,14 @@ def data_process(is_train, folder_name):
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    FOLDER = "full-name-test"
+    FOLDER = "test"
     STEPS = 1
     IMG_SIZE = 384
     BBOX_REMOVAL_THRESHOLD = 0.15
     VISUAL = False
     INCLUDE_BG = True
     BG_RATIO = 0.5
-    BG_DIR = ["/data/Datasets/SPC/Background"]
+    BG_DIR = "/data/Datasets/SPC/download"
     
     IMG_DIR = f"{ROOT_DIR}/{FOLDER}/images"
     ANNOT_DIR = f"{ROOT_DIR}/{FOLDER}/annotations"
