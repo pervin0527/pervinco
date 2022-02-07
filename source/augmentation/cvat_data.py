@@ -10,13 +10,13 @@ if __name__ == "__main__":
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
     FOLDER = "Cvat"
     IMG_SIZE = 384
-    SAVE_DIR = f"{ROOT_DIR}/test"
+    SAVE_DIR = f"{ROOT_DIR}/full-name9"
 
     classes = read_label_file(LABEL_DIR)
     print(classes)
 
     dataset = sorted(glob(f"{ROOT_DIR}/{FOLDER}/*"))
-    dataset = dataset[:-1]
+    dataset = dataset[:-1] # except "Paris_baguette"
     print(dataset)
 
     transform = A.Compose([
