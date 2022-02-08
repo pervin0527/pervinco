@@ -5,6 +5,10 @@
     cd pervinco/source/augmentations
     python3 xml2txt.py
 
+## Calculate anchors
+
+    ./darknet detector calc_anchors /data/Models/yolov4/SPC/data/spc.data -num_of_clusters 9 -width 384 -height 384    
+
 ## yolov4-custom.cfg
 
 - batch = 64
@@ -13,8 +17,7 @@
 - steps = 80 ~ 90% of max_batches
 - width, height = multiple of 32
 - classes = each of 3 [yolo]-layers
-- filters = (classes + 5) * 3 before each [yolo] layer  
-  yolov4-p5 = (classes + 5) * 4 before each [yolo] layer
+- filters = (classes + 5) * 3 before each [yolo] layer
 
 ## train
 

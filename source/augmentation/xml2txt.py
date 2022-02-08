@@ -14,8 +14,8 @@ def yolo2voc(class_id, width, height, x, y, w, h):
     return (class_id, xmin, ymin, xmax, ymax)
 
 if __name__ == "__main__":
-    FOLDERS = ['train2', 'valid2']
-    ROOT_DIR = "/data/Datasets/SPC/full-name7"
+    FOLDERS = ['train', 'valid']
+    ROOT_DIR = "/data/Datasets/SPC/full-name9"
     LABEL_DIR = "/data/Datasets/SPC/Labels/labels.txt"
 
     classes = read_label_file(LABEL_DIR)
