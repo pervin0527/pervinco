@@ -111,7 +111,6 @@ def data_process(is_train, folder_name):
             write_xml(f"{save_dir}/annotations", bboxes, labels, f"{folder_name}_{idx}", image.shape[0], image.shape[1], 'pascal_voc')
             
             if VISUAL:
-                print(opt)
                 visualize(image, bboxes, labels, 'pascal_voc', False)
 
 

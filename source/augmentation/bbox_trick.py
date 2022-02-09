@@ -3,13 +3,14 @@ import os
 import albumentations as A
 from tqdm import tqdm
 from glob import glob
-from src.utils import read_xml, make_save_dir, write_xml, read_label_file, get_files, visualize
+from src.utils import read_xml, write_xml, read_label_file, get_files, visualize
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    FOLDER = "Cvat/Paris_baguette"
-    SAVE_DIR = f"{ROOT_DIR}/test"
+    FOLDER = f"{ROOT_DIR}/Cvat"
+    SAVE_DIR = f"{ROOT_DIR}/full-name9"
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
+    TARGETS = ["Paris_baguette"]
 
     GAP = 6
     limit_ratio = 10
@@ -25,13 +26,12 @@ if __name__ == "__main__":
         os.makedirs(f"{SAVE_DIR}/annotations")
 
     classes = read_label_file(LABEL_DIR)
-    folders = sorted(glob(f"{ROOT_DIR}/{FOLDER}/*"))
-    for dir in folders:
-        IMG_DIR = f"{dir}/JPEGImages"
-        ANNOT_DIR = f"{dir}/Annotations"
 
-        print(dir)
-        images, annotations = get_files(IMG_DIR), get_files(ANNOT_DIR)
+    for target in TARGETS:
+        images = sorted(glob(f"{FOLDER}/{target}/*/JPEGImages/*"))
+        annotations = sorted(glob(f"{FOLDER}/{target}/*/Annotations/*"))
+
+        print(len(images), len(annotations))
         for idx in tqdm(range(len(images))):
             try:
                 image = images[idx]
@@ -61,11 +61,11 @@ if __name__ == "__main__":
                         
                     confirm.append((xmin, ymin, xmax, ymax))
 
-                cv2.imwrite(f"{SAVE_DIR}/images/trick_{filename}.jpg", t_image)
-                write_xml(f"{SAVE_DIR}/annotations", confirm, labels, f"trick_{filename}", height, width, format='pascal_voc')
+                cv2.imwrite(f"{SAVE_DIR}/images/{target}_GAP6-{idx:>05}.jpg", t_image)
+                write_xml(f"{SAVE_DIR}/annotations", confirm, labels, f"{target}_GAP6-{idx:>05}", height, width, format='pascal_voc')
                 
                 if confirm and visual:
-                    print(filename)
+                    # print(filename)
                     visualize(t_image, confirm, labels)
 
             except:

@@ -40,8 +40,8 @@ if __name__ == "__main__":
                 transformed = transform(image=image, bboxes=bboxes, labels=labels)
                 transformed_image, transformed_bboxes, transformed_labels = transformed['image'], transformed['bboxes'], transformed['labels']
 
-                cv2.imwrite(f"{SAVE_DIR}/images/{name}_{idx}.jpg", transformed_image)
-                write_xml(f"{SAVE_DIR}/annotations", transformed_bboxes, transformed_labels, f"{name}_{idx}", IMG_SIZE, IMG_SIZE, format='pascal_voc')
+                cv2.imwrite(f"{SAVE_DIR}/images/{name}_{idx:>05}.jpg", transformed_image)
+                write_xml(f"{SAVE_DIR}/annotations", transformed_bboxes, transformed_labels, f"{name}_{idx:>05}", IMG_SIZE, IMG_SIZE, format='pascal_voc')
 
             except:
                 pass
