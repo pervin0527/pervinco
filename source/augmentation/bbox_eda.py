@@ -1,4 +1,5 @@
 import cv2
+import random
 import albumentations as A
 from src.utils import read_label_file, read_xml, get_files, visualize
 
@@ -7,15 +8,18 @@ ROOT_PATH = "/data/Datasets/SPC"
 LABEL_PATH = f"{ROOT_PATH}/Labels/labels.txt"
 
 # frame_000004_0
-IMAGE_PATH = f"{ROOT_PATH}/full-name9/images"
-ANNOT_PATH = f"{ROOT_PATH}/full-name9/annotations"
+IMAGE_PATH = f"{ROOT_PATH}/full-name10/train/images"
+ANNOT_PATH = f"{ROOT_PATH}/full-name10/train/annotations"
 
 classes = read_label_file(LABEL_PATH)
-
 images, annotations = get_files(IMAGE_PATH), get_files(ANNOT_PATH)
 
+dataset = list(zip(images, annotations))
+# print(dataset)
+random.shuffle(dataset)
+
 max_ratio = 0
-for (image, annot) in zip(images, annotations):
+for (image, annot) in dataset:
     image = cv2.imread(image)
     bboxes, labels = read_xml(annot, classes, format='pascal_voc')
 

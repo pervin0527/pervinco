@@ -116,7 +116,7 @@ def data_process(is_train, folder_name):
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    FOLDER = "full-name9"
+    FOLDER = "full-name10"
     STEPS = 1
     IMG_SIZE = 384
     BBOX_REMOVAL_THRESHOLD = 0.15
