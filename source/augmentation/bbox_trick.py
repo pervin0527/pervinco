@@ -12,8 +12,8 @@ if __name__ == "__main__":
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
     TARGETS = ["Paris_baguette"]
 
-    GAP = 6
-    limit_ratio = 10
+    GAP = 7
+    limit_ratio = 8
     visual = False
 
     IMG_SIZE = 384
@@ -61,8 +61,8 @@ if __name__ == "__main__":
                         
                     confirm.append((xmin, ymin, xmax, ymax))
 
-                cv2.imwrite(f"{SAVE_DIR}/images/{target}_GAP6-{idx:>05}.jpg", t_image)
-                write_xml(f"{SAVE_DIR}/annotations", confirm, labels, f"{target}_GAP6-{idx:>05}", height, width, format='pascal_voc')
+                cv2.imwrite(f"{SAVE_DIR}/images/{target}_GAP{GAP}-{idx:>05}.jpg", t_image)
+                write_xml(f"{SAVE_DIR}/annotations", confirm, labels, f"{target}_GAP{GAP}-{idx:>05}", height, width, format='pascal_voc')
                 
                 if confirm and visual:
                     # print(filename)

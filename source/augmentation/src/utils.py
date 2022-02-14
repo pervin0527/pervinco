@@ -121,12 +121,12 @@ def visualize(image, boxes, labels, format="pascal_voc", show_info=True):
         height, width = image.shape[:-1]
 
         if format == "pascal_voc":
-            cv2.rectangle(image, (int(bb[0]), int(bb[1])), (int(bb[2]), int(bb[3])), (0, 255, 255), thickness=3)
-            cv2.putText(image, str(c), (int(bb[0]), int(bb[1])), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 0), thickness=3)            
+            cv2.rectangle(image, (int(bb[0]), int(bb[1])), (int(bb[2]), int(bb[3])), (0, 0, 255), thickness=2)
+            cv2.putText(image, str(c), (int(bb[0]), int(bb[1])), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255), thickness=2)            
 
         elif format == "albumentations":
-            cv2.rectangle(image, (int(bb[0] * width + 0.5), int(bb[1] * height + 0.5)), (int(bb[2] * width + 0.5), int(bb[3] * height + 0.5)), (0, 255, 255), thickness=3)
-            cv2.putText(image, str(c), (int(bb[0]), int(bb[1])), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 0), thickness=3)
+            cv2.rectangle(image, (int(bb[0] * width + 0.5), int(bb[1] * height + 0.5)), (int(bb[2] * width + 0.5), int(bb[3] * height + 0.5)), (0, 0, 255), thickness=2)
+            cv2.putText(image, str(c), (int(bb[0]), int(bb[1])), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255), thickness=2)
 
     # image = cv2.resize(image, (960, 960))
     cv2.imshow('result', image)

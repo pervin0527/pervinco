@@ -8,8 +8,8 @@ ROOT_PATH = "/data/Datasets/SPC"
 LABEL_PATH = f"{ROOT_PATH}/Labels/labels.txt"
 
 # frame_000004_0
-IMAGE_PATH = f"{ROOT_PATH}/full-name10/train/images"
-ANNOT_PATH = f"{ROOT_PATH}/full-name10/train/annotations"
+IMAGE_PATH = f"{ROOT_PATH}/full-name10/images"
+ANNOT_PATH = f"{ROOT_PATH}/full-name10/annotations"
 
 classes = read_label_file(LABEL_PATH)
 images, annotations = get_files(IMAGE_PATH), get_files(ANNOT_PATH)
