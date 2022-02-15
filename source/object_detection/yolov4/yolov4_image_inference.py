@@ -13,14 +13,14 @@ from yolov4_custom_utils import output_remake, write_xml
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Models/yolov4/SPC"
-    WEIGHT_PATH = f"{ROOT_DIR}/ckpt/full-name9-orig/yolov4_last.weights"
+    WEIGHT_PATH = f"{ROOT_DIR}/ckpt/full-name9/yolov4_final.weights"
     CONFIG_PATH = f"{ROOT_DIR}/deploy/yolov4.cfg"
     DATA_PATH = f"{ROOT_DIR}/data/spc.data"
     THRESH_HOLD = .7
     
     VISUAL = True
-    SAVE_RESULT = False
-    TEST_DIR = "/data/Datasets/SPC/PB/pb-crawler/images"
+    SAVE_RESULT = True
+    TEST_DIR = "/home/barcelona/AutoCrawler/handmade/Paris_baguette"
 
     if SAVE_RESULT:
         folder_name = TEST_DIR.split('/')[-1].split('.')[0]
@@ -38,14 +38,14 @@ if __name__ == "__main__":
 
     test_images = glob(f'{TEST_DIR}/*')
     random.shuffle(test_images)
-    print(len(test_images))
 
+    record = []
     for idx in tqdm(range(len(test_images))):
         test_image = test_images[idx]
         image = cv2.imread(test_image)
         frame_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         frame_resized = cv2.resize(frame_rgb, (width, height), interpolation=cv2.INTER_LINEAR)
-        copy_resized = frame_resized.copy()
+        copy_resized = cv2.cvtColor(frame_resized.copy(), cv2.COLOR_BGR2RGB)
         darknet.copy_image_from_bytes(darknet_image, frame_resized.tobytes())
 
         detections = darknet.detect_image(network, class_names, darknet_image, thresh=THRESH_HOLD)
@@ -53,12 +53,27 @@ if __name__ == "__main__":
         result_image = darknet.draw_boxes(detections, frame_resized, class_colors)
         result_image = cv2.cvtColor(result_image, cv2.COLOR_BGR2RGB)
         
-        if VISUAL:
-            cv2.imshow("inference", result_image)
-            cv2.waitKey(0)
-
         if SAVE_RESULT:
             labels, scores, bboxes = output_remake(detections)
-            write_xml(f"{SAVE_PATH}/annotations", bboxes, labels, f"FRAME_{idx:>06}", frame_resized.shape)
-            cv2.imwrite(f"{SAVE_PATH}/images/FRAME_{idx:>06}.jpg", copy_resized)
-            cv2.imwrite(f"{SAVE_PATH}/result/FRAME_{idx:>06}.jpg", result_image)
+            if labels:
+                write_xml(f"{SAVE_PATH}/annotations", bboxes, labels, f"FRAME_{idx:>06}", frame_resized.shape)
+                cv2.imwrite(f"{SAVE_PATH}/images/FRAME_{idx:>06}.jpg", copy_resized)
+                cv2.imwrite(f"{SAVE_PATH}/result/FRAME_{idx:>06}.jpg", result_image)
+
+        if VISUAL:
+            cv2.imshow("inference", result_image)
+            k = cv2.waitKey()
+            if k == 32: # Space
+                pass
+            elif k == 13: # Enter
+                record.append(test_image)
+                print(len(record))
+
+    if record:
+        f = open(f"{SAVE_PATH}/record.txt", 'w')
+        for line in record:
+            f.write(f"{line} \n")
+
+        f.close()
+
+    cv2.destroyAllWindows()

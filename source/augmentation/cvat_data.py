@@ -10,7 +10,7 @@ if __name__ == "__main__":
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
     FOLDER = "Cvat"
     IMG_SIZE = 384
-    SAVE_DIR = f"{ROOT_DIR}/full-name11"
+    SAVE_DIR = f"{ROOT_DIR}/full-name10"
 
     classes = read_label_file(LABEL_DIR)
     print(classes)
@@ -27,6 +27,7 @@ if __name__ == "__main__":
         os.makedirs(f"{SAVE_DIR}/images")
         os.makedirs(f"{SAVE_DIR}/annotations")
 
+    label_check_list = set()
     for data in dataset:
         name = data.split('/')[-1]
         images =  sorted(glob(f"{data}/*/JPEGImages/*"))
@@ -37,6 +38,10 @@ if __name__ == "__main__":
                 image = cv2.imread(images[idx])
                 bboxes, labels = read_xml(annotations[idx], classes, format="pascal_voc")
 
+                # print(labels)
+                for label in labels:
+                    label_check_list.add(label)
+
                 transformed = transform(image=image, bboxes=bboxes, labels=labels)
                 transformed_image, transformed_bboxes, transformed_labels = transformed['image'], transformed['bboxes'], transformed['labels']
 
@@ -45,3 +50,5 @@ if __name__ == "__main__":
 
             except:
                 pass
+
+    print(label_check_list)

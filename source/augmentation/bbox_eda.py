@@ -39,9 +39,9 @@ for (image, annot) in dataset:
             max_ratio = bbox_ratio
             area = int(bbox_width * bbox_height)
 
-            print(max_ratio, area)
-            visualize(image, bboxes, labels)
+            # print(max_ratio, area)
+            # visualize(image, bboxes, labels)
 
     
-    # if bboxes:
-    #     visualize(image, bboxes, labels)
+    if bboxes:
+        visualize(image, bboxes, labels)
