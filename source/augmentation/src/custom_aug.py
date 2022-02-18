@@ -40,7 +40,7 @@ def crop_image(image, boxes, labels, xmin, ymin, xmax, ymax):
         A.OneOf([
             # A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
             A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
-            A.RandomSnow(p=0.2),
+            # A.RandomSnow(p=0.2),
         ], p=0.5),
     
     ], bbox_params=A.BboxParams(format='pascal_voc', min_area=0.2, min_visibility=0.2, label_fields=['labels']))
@@ -132,7 +132,7 @@ def mixup(idx, ds, img_size, classes, noise_files, alpha=1.0):
         A.OneOf([
             # A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
             A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
-            A.RandomSnow(p=0.2),
+            # A.RandomSnow(p=0.2),
         ], p=0.5),
     
     ], bbox_params=A.BboxParams(format='pascal_voc', min_area=0.2, min_visibility=0.2, label_fields=['labels']))

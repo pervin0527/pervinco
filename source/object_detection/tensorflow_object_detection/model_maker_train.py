@@ -11,11 +11,11 @@ from tflite_model_maker import object_detector
 from tflite_model_maker.config import QuantizationConfig
 
 if __name__ == "__main__":
-    train_data = "/data/Datasets/SPC/full-name10/train"
-    valid_data = "/data/Datasets/SPC/full-name10/valid"
+    train_data = "/data/Datasets/SPC/full-name11/train"
+    valid_data = "/data/Datasets/SPC/full-name11/valid"
     label_file_path = "/data/Datasets/SPC/Labels/labels.txt"
     save_path = "/data/Models/efficientdet_lite"
-    model_file_name = "full-name10-test"
+    model_file_name = "full-name11-GAP6-90"
 
     hparams = {"optimizer" : "sgd",
             "learning_rate" : 0.008,
@@ -49,13 +49,14 @@ if __name__ == "__main__":
                                                 model_dir=f'{save_path}/{model_file_name}')
 
     model = object_detector.create(train_data,
-                                model_spec=spec,
-                                epochs=10,
-                                batch_size=64,
-                                validation_data=validation_data,
-                                train_whole_model=True,)
+                                   model_spec=spec,
+                                   epochs=90,
+                                   batch_size=64,
+                                   validation_data=validation_data,
+                                   train_whole_model=True,)
 
     model.export(export_dir=save_path,
+                saved_model_filename='saved_model',
                 tflite_filename=f'{model_file_name}.tflite',
                 label_filename=f'{save_path}/label_map.txt',
-                export_format=[ExportFormat.TFLITE])
+                export_format=[ExportFormat.TFLITE, ExportFormat.SAVED_MODEL])

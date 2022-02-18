@@ -68,7 +68,7 @@ def data_process(is_train, folder_name):
                             A.OneOf([
                                 # A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
                                 A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
-                                A.RandomSnow(p=0.2),
+                                # A.RandomSnow(p=0.2),
                             ], p=0.5),
                         ])
                     ], bbox_params=A.BboxParams(format='pascal_voc', min_area=0.5, min_visibility=0.2, label_fields=['labels']))
@@ -116,7 +116,7 @@ def data_process(is_train, folder_name):
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    FOLDER = "full-name10"
+    FOLDER = "full-name11"
     STEPS = 1
     IMG_SIZE = 384
     BBOX_REMOVAL_THRESHOLD = 0.15

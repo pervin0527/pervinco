@@ -8,12 +8,12 @@ from src.utils import read_xml, write_xml, read_label_file, get_files, visualize
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
     FOLDER = f"{ROOT_DIR}/Cvat"
-    SAVE_DIR = f"{ROOT_DIR}/full-name10"
+    SAVE_DIR = f"{ROOT_DIR}/full-name11"
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
     TARGETS = ["Paris_baguette"]
 
-    GAP = 7
-    limit_ratio = 8
+    GAP = 6
+    limit_ratio = 10
     visual = False
 
     IMG_SIZE = 384
@@ -26,7 +26,7 @@ if __name__ == "__main__":
         os.makedirs(f"{SAVE_DIR}/annotations")
 
     classes = read_label_file(LABEL_DIR)
-
+    label_check_list = set()
     for target in TARGETS:
         images = sorted(glob(f"{FOLDER}/{target}/*/JPEGImages/*"))
         annotations = sorted(glob(f"{FOLDER}/{target}/*/Annotations/*"))
@@ -40,6 +40,9 @@ if __name__ == "__main__":
                 image = cv2.imread(image)
                 height, width = image.shape[:-1]
                 bboxes, labels = read_xml(annot, classes, format='pascal_voc')
+
+                for label in labels:
+                    label_check_list.add(label)
 
                 transformed = transform(image=image, bboxes=bboxes, labels=labels)
                 t_image, t_bboxes, t_labels = transformed['image'], transformed['bboxes'], transformed['labels']
@@ -70,3 +73,5 @@ if __name__ == "__main__":
 
             except:
                 pass
+
+    print(label_check_list)
