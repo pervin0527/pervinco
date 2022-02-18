@@ -50,11 +50,20 @@ def data_process(is_train, folder_name):
             random.shuffle(dataset)
 
             for idx in tqdm(range(len(annotations)), desc=f"STEP {step}"):
-                image_path, annot_path = dataset[idx]
-                opt = random.randint(0, 2)
+                opt = random.randint(0, 1)
 
+                dataset_copy = dataset.copy()
                 if opt == 0:
-                    image, bboxes, labels = mosaic(idx, dataset, IMG_SIZE, classes)
+                    pieces = []
+                    random.shuffle(dataset_copy)
+                    piece = random.randint(0, len(dataset_copy))
+                    for r in range(4):
+                        random.shuffle(dataset_copy)
+                        while piece in pieces:
+                            piece = random.randint(0, len(dataset_copy))
+                        pieces.append(piece)
+
+                    image, bboxes, labels = mosaic(pieces, dataset_copy, IMG_SIZE, classes)
 
                 # elif opt == 1:
                 #     image, bboxes, labels = mixup(idx, dataset, IMG_SIZE, classes, bg_files)
@@ -83,7 +92,7 @@ def data_process(is_train, folder_name):
                 write_xml(f"{save_dir}/annotations", bboxes, labels, f"{folder_name}_{step}_{idx}", image.shape[0], image.shape[1], 'pascal_voc')
                 
                 if VISUAL:
-                    print(opt)
+                    # print(opt)
                     visualize(image, bboxes, labels, 'pascal_voc', False)
 
     else:
@@ -91,9 +100,7 @@ def data_process(is_train, folder_name):
         make_save_dir(save_dir)
 
         dataset = list(zip(images, annotations))
-        for idx in tqdm(range(int(len(annotations) * 0.2)), desc=f"valid"):
-            image_path, annot_path = dataset[idx]
-
+        for idx in tqdm(range(int(len(annotations) * VALID_RATIO)), desc=f"valid"):
             valid_transform = A.Compose([
                 A.Sequential([
                     A.Resize(IMG_SIZE, IMG_SIZE, p=1),
@@ -116,12 +123,13 @@ def data_process(is_train, folder_name):
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    FOLDER = "full-name11"
+    FOLDER = "full-name10"
     STEPS = 1
     IMG_SIZE = 384
     BBOX_REMOVAL_THRESHOLD = 0.15
-    VISUAL = False
-    INCLUDE_BG = True
+    VALID_RATIO = 0.1
+    VISUAL = True
+    INCLUDE_BG = False
     BG_RATIO = 0.5
     BG_DIR = "/data/Datasets/SPC/download"
     

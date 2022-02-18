@@ -11,11 +11,11 @@ from tflite_model_maker import object_detector
 from tflite_model_maker.config import QuantizationConfig
 
 if __name__ == "__main__":
-    train_data = "/data/Datasets/SPC/full-name11/train"
-    valid_data = "/data/Datasets/SPC/full-name11/valid"
+    train_data = "/data/Datasets/SPC/full-name10/train"
+    valid_data = "/data/Datasets/SPC/full-name10/valid"
     label_file_path = "/data/Datasets/SPC/Labels/labels.txt"
     save_path = "/data/Models/efficientdet_lite"
-    model_file_name = "full-name11-GAP6-90"
+    model_file_name = "full-name10-GAP6-90"
 
     hparams = {"optimizer" : "sgd",
             "learning_rate" : 0.008,

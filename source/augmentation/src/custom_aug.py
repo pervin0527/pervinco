@@ -35,11 +35,10 @@ def crop_image(image, boxes, labels, xmin, ymin, xmax, ymax):
     mosaic_transform = A.Compose([
         A.Resize(width=xmax-xmin, height=ymax-ymin, p=1),
         A.RandomBrightnessContrast(p=0.5, brightness_limit=(-0.2, 0.2)),
-        A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
 
         A.OneOf([
             # A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
-            A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
+            A.Downscale(scale_min=0.5, scale_max=0.8, p=1),
             # A.RandomSnow(p=0.2),
         ], p=0.5),
     
@@ -52,21 +51,12 @@ def crop_image(image, boxes, labels, xmin, ymin, xmax, ymax):
     return image, result_boxes
 
 
-def mosaic(idx, ds, img_size, classes):
-    candidates = [idx]
-    c = random.randint(0, len(ds))
-
-    for r in range(3):
-        while c in candidates:
-            c = random.randint(0, len(ds))
-        candidates.append(c)
-    # print(candidates)
-    
+def mosaic(candidates, ds, img_size, classes):
     result_image = np.full((img_size, img_size, 3), 1, dtype=np.uint8)
     result_boxes, result_labels = [], []
-
     xc, yc = [int(random.uniform(img_size * 0.25, img_size * 0.75)) for _ in range(2)]
 
+    print(candidates)
     for i, id in enumerate(candidates):
         image, annot = ds[i]
         image = cv2.imread(image)
