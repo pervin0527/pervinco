@@ -48,22 +48,13 @@ def data_process(is_train, folder_name):
         dataset = list(zip(images, annotations))
         for step in range(STEPS):
             random.shuffle(dataset)
-
             for idx in tqdm(range(len(annotations)), desc=f"STEP {step}"):
+                # image_path, annot_path = dataset[idx]
                 opt = random.randint(0, 1)
+                # opt = 1
 
-                dataset_copy = dataset.copy()
                 if opt == 0:
-                    pieces = []
-                    random.shuffle(dataset_copy)
-                    piece = random.randint(0, len(dataset_copy))
-                    for r in range(4):
-                        random.shuffle(dataset_copy)
-                        while piece in pieces:
-                            piece = random.randint(0, len(dataset_copy))
-                        pieces.append(piece)
-
-                    image, bboxes, labels = mosaic(pieces, dataset_copy, IMG_SIZE, classes)
+                    image, bboxes, labels = mosaic(idx, dataset, IMG_SIZE, classes)
 
                 # elif opt == 1:
                 #     image, bboxes, labels = mixup(idx, dataset, IMG_SIZE, classes, bg_files)
@@ -94,13 +85,15 @@ def data_process(is_train, folder_name):
                 if VISUAL:
                     # print(opt)
                     visualize(image, bboxes, labels, 'pascal_voc', False)
-
+                
     else:
         save_dir = f"{SAVE_DIR}/{folder_name}"
         make_save_dir(save_dir)
 
         dataset = list(zip(images, annotations))
         for idx in tqdm(range(int(len(annotations) * VALID_RATIO)), desc=f"valid"):
+            # image_path, annot_path = dataset[idx]
+
             valid_transform = A.Compose([
                 A.Sequential([
                     A.Resize(IMG_SIZE, IMG_SIZE, p=1),
@@ -126,8 +119,8 @@ if __name__ == "__main__":
     FOLDER = "full-name10"
     STEPS = 1
     IMG_SIZE = 384
-    BBOX_REMOVAL_THRESHOLD = 0.15
     VALID_RATIO = 0.1
+    BBOX_REMOVAL_THRESHOLD = 0.15
     VISUAL = True
     INCLUDE_BG = False
     BG_RATIO = 0.5
@@ -141,5 +134,5 @@ if __name__ == "__main__":
     classes = read_label_file(LABEL_DIR)
     images, annotations = get_files(IMG_DIR), get_files(ANNOT_DIR)
     
-    data_process(True, "train")
-    data_process(False, "valid")
+    data_process(True, "test")
+    # data_process(False, "valid")
