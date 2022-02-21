@@ -10,51 +10,59 @@ from tqdm import tqdm
 from src.custom_aug import mosaic, mixup
 from src.utils import read_label_file, read_xml, get_files, visualize, make_save_dir, write_xml
 
+def background_process(save_dir):
+    bg_files = []
+    ratio = int(BG_RATIO * len(annotations))
+
+    folders = sorted(glob(f"{BG_DIR}/*"))
+    for folder in folders:
+        files = glob(f"{folder}/*")
+        random.shuffle(files)
+        if len(files) > int(ratio / len(folders)):
+            files = random.sample(files, int(ratio / len(folders)))
+
+        # print(folder, len(files))    
+        bg_files.extend(files)        
+
+    for idx, file in enumerate(bg_files):
+        try:
+            bg_image = cv2.imread(file)
+            bg_image = cv2.resize(bg_image, (IMG_SIZE, IMG_SIZE))
+            cv2.imwrite(f"{save_dir}/images/bg_{idx}.jpg", bg_image)
+            write_xml(f"{save_dir}/annotations", None, None, f"bg_{idx}", bg_image.shape[0], bg_image.shape[1], 'pascal_voc')
+
+        except:
+            pass
+    
+    total = len(glob(f"{save_dir}/images/*"))
+    print(f"Background Images {total} Added")
+
 def data_process(is_train, folder_name):
     if is_train:
+        rebuild_count = 0
+        dataset = list(zip(images, annotations))
         save_dir = f"{SAVE_DIR}/{folder_name}"
         make_save_dir(save_dir)
 
         if INCLUDE_BG:
-            bg_files = []
-            ratio = int(BG_RATIO * len(annotations))
-
-            folders = sorted(glob(f"{BG_DIR}/*"))
-            for folder in folders:
-                files = glob(f"{folder}/*")
-                random.shuffle(files)
-                if len(files) > int(ratio / len(folders)):
-                    files = random.sample(files, int(ratio / len(folders)))
-
-                else:
-                    files = files
-
-                print(folder, len(files))    
-                bg_files.extend(files)        
-
-            print(len(bg_files))
-            for idx, file in enumerate(bg_files):
-                try:
-                    bg_image = cv2.imread(file)
-                    bg_image = cv2.resize(bg_image, (IMG_SIZE, IMG_SIZE))
-                    cv2.imwrite(f"{save_dir}/images/bg_{idx}.jpg", bg_image)
-                    write_xml(f"{save_dir}/annotations", None, None, f"bg_{idx}", bg_image.shape[0], bg_image.shape[1], 'pascal_voc')
-
-                except:
-                    pass
-
-            print(f"Background Images {len(bg_files)} Added")
+            background_process(save_dir)
             
-        dataset = list(zip(images, annotations))
         for step in range(STEPS):
-            random.shuffle(dataset)
-            for idx in tqdm(range(len(annotations)), desc=f"STEP {step}"):
-                # image_path, annot_path = dataset[idx]
+            for idx in tqdm(range(len(dataset)), desc=f"Train {step}"):
+                # print(len(dataset))
                 opt = random.randint(0, 1)
-                # opt = 1
 
                 if opt == 0:
-                    image, bboxes, labels = mosaic(idx, dataset, IMG_SIZE, classes)
+                    if len(dataset) < 4:
+                        rebuild_count += 1
+                        dataset.extend(list(zip(images, annotations)))
+                        random.shuffle(dataset)
+                    
+                    pieces = random.sample(dataset, 4)
+                    image, bboxes, labels = mosaic(pieces, IMG_SIZE, classes)
+                    for piece in pieces:
+                        target = dataset.index(piece)
+                        dataset.pop(target)
 
                 # elif opt == 1:
                 #     image, bboxes, labels = mixup(idx, dataset, IMG_SIZE, classes, bg_files)
@@ -64,16 +72,18 @@ def data_process(is_train, folder_name):
                         A.Sequential([
                             A.Resize(IMG_SIZE, IMG_SIZE, p=1),
                             A.RandomBrightnessContrast(p=1, brightness_limit=(-0.2, 0.2)),
-
-                            A.OneOf([
-                                # A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
-                                A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
-                                # A.RandomSnow(p=0.2),
-                            ], p=0.5),
+                            A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
                         ])
                     ], bbox_params=A.BboxParams(format='pascal_voc', min_area=0.5, min_visibility=0.2, label_fields=['labels']))
 
-                    image, annot = dataset[idx]
+                    if len(dataset) < 1:
+                        rebuild_count += 1
+                        dataset.extend(list(zip(images, annotations)))
+                        random.shuffle(dataset)
+
+                    item = random.sample(dataset, 1)[0]
+                    image, annot = item
+                    dataset.pop(dataset.index(item))
                     image = cv2.imread(image)
                     bboxes, labels = read_xml(annot, classes, 'pascal_voc')
                     transformed = normal_transform(image=image, bboxes=bboxes, labels=labels)
@@ -85,13 +95,15 @@ def data_process(is_train, folder_name):
                 if VISUAL:
                     # print(opt)
                     visualize(image, bboxes, labels, 'pascal_voc', False)
+
+            print(f"Dataset Rebuilded {rebuild_count} times")
                 
     else:
+        dataset = list(zip(images, annotations))
         save_dir = f"{SAVE_DIR}/{folder_name}"
         make_save_dir(save_dir)
 
-        dataset = list(zip(images, annotations))
-        for idx in tqdm(range(int(len(annotations) * VALID_RATIO)), desc=f"valid"):
+        for idx in tqdm(range(int(len(dataset) * VALID_RATIO)), desc=f"Valid 0"):
             # image_path, annot_path = dataset[idx]
 
             valid_transform = A.Compose([
@@ -116,11 +128,10 @@ def data_process(is_train, folder_name):
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    FOLDER = "full-name10"
+    FOLDER = "pb-crawler"
     STEPS = 1
     IMG_SIZE = 384
     VALID_RATIO = 0.1
-    BBOX_REMOVAL_THRESHOLD = 0.15
     VISUAL = True
     INCLUDE_BG = False
     BG_RATIO = 0.5
@@ -134,5 +145,5 @@ if __name__ == "__main__":
     classes = read_label_file(LABEL_DIR)
     images, annotations = get_files(IMG_DIR), get_files(ANNOT_DIR)
     
-    data_process(True, "test")
-    # data_process(False, "valid")
+    data_process(True, "train")
+    data_process(False, "valid")

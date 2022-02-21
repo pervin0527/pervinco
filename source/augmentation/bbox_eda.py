@@ -7,8 +7,8 @@ IMG_SIZE = 384
 ROOT_PATH = "/data/Datasets/SPC"
 LABEL_PATH = f"{ROOT_PATH}/Labels/labels.txt"
 
-IMAGE_PATH = f"{ROOT_PATH}/full-name10/train/images"
-ANNOT_PATH = f"{ROOT_PATH}/full-name10/train/annotations"
+IMAGE_PATH = f"{ROOT_PATH}/full-name-test/images"
+ANNOT_PATH = f"{ROOT_PATH}/full-name-test/annotations"
 
 classes = read_label_file(LABEL_PATH)
 images, annotations = get_files(IMAGE_PATH), get_files(ANNOT_PATH)
@@ -18,6 +18,7 @@ random.shuffle(dataset)
 
 max_ratio = 0
 for (image, annot) in dataset:
+    print(annot)
     image = cv2.imread(image)
     bboxes, labels = read_xml(annot, classes, format='pascal_voc')
 
@@ -40,6 +41,5 @@ for (image, annot) in dataset:
             # print(max_ratio, area)
             # visualize(image, bboxes, labels)
 
-    
     if bboxes:
         visualize(image, bboxes, labels)

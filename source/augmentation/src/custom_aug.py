@@ -32,46 +32,42 @@ def refine_boxes(boxes):
 
 
 def crop_image(image, boxes, labels, xmin, ymin, xmax, ymax):
-    mosaic_transform = A.Compose([
-        A.Resize(width=xmax-xmin, height=ymax-ymin, p=1),
-        A.RandomBrightnessContrast(p=0.5, brightness_limit=(-0.2, 0.2)),
-        A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
-
-        A.OneOf([
-            # A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
+    # print(labels, boxes)
+    if len(boxes) == len(labels):
+        mosaic_transform = A.Compose([
+            A.Resize(width=xmax-xmin, height=ymax-ymin, p=1),
+            A.RandomBrightnessContrast(p=0.5, brightness_limit=(-0.2, 0.2)),
             A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
-            # A.RandomSnow(p=0.2),
-        ], p=0.5),
+
+            # A.OneOf([
+            #     # A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
+            #     A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
+            #     # A.RandomSnow(p=0.2),
+            # ], p=0.5),
+        
+        ], bbox_params=A.BboxParams(format='pascal_voc', label_fields=['labels']))
+        transformed = mosaic_transform(image=image, bboxes=boxes, labels=labels)
+
+        image, boxes, labels = transformed['image'], transformed['bboxes'], transformed['labels']
+        result_boxes = np.array(boxes)
+
+    else:
+        image = np.zeros(shape=((ymax-ymin), (xmax-xmin), 3), dtype=np.uint8)
+        result_boxes = np.array([])
     
-    ], bbox_params=A.BboxParams(format='pascal_voc', min_area=0.2, min_visibility=0.2, label_fields=['labels']))
-    transformed = mosaic_transform(image=image, bboxes=boxes, labels=labels)
-
-    image, boxes, labels = transformed['image'], transformed['bboxes'], transformed['labels']
-    result_boxes = np.array(boxes)
-
     return image, result_boxes
 
 
-def mosaic(idx, ds, img_size, classes):
-    candidates = [idx]
-    c = random.randint(0, len(ds))
-
-    for r in range(3):
-        while c in candidates:
-            c = random.randint(0, len(ds))
-        candidates.append(c)
-    # print(candidates)
-    
+def mosaic(pieces, img_size, classes):
     result_image = np.full((img_size, img_size, 3), 1, dtype=np.uint8)
     result_boxes, result_labels = [], []
-
     xc, yc = [int(random.uniform(img_size * 0.25, img_size * 0.75)) for _ in range(2)]
-
-    for i, id in enumerate(candidates):
-        image, annot = ds[i]
+    for i, piece in enumerate(pieces):
+        image, annot = piece
+        # print(image, annot)
         image = cv2.imread(image)
-        bboxes, labels = read_xml(annot, classes, "pascal_voc")
-        boxes = refine_boxes(bboxes)
+        boxes, labels = read_xml(annot, classes, "pascal_voc")
+        # boxes = refine_boxes(bboxes)
         
         if i == 0 :
             image, boxes = crop_image(image, boxes, labels, img_size-xc, img_size-yc, img_size, img_size)

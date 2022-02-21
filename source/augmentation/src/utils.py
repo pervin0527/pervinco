@@ -114,21 +114,23 @@ def get_augmentation(transform):
 
 def visualize(image, boxes, labels, format="pascal_voc", show_info=True):
     if show_info:
-        print(labels, boxes)
+        print(labels)
+        print(boxes)
+        print()
     
     for bb, c in zip(boxes, labels):       
         # print(c, bb)
         height, width = image.shape[:-1]
 
         if format == "pascal_voc":
-            cv2.rectangle(image, (int(bb[0]), int(bb[1])), (int(bb[2]), int(bb[3])), (0, 0, 255), thickness=2)
-            cv2.putText(image, str(c), (int(bb[0]), int(bb[1])), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255), thickness=2)            
+            cv2.rectangle(image, (int(bb[0]), int(bb[1])), (int(bb[2]), int(bb[3])), (255, 255, 0), thickness=1)
+            cv2.putText(image, str(c), (int(bb[0]), int(bb[1])), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 0), thickness=1)            
 
         elif format == "albumentations":
-            cv2.rectangle(image, (int(bb[0] * width + 0.5), int(bb[1] * height + 0.5)), (int(bb[2] * width + 0.5), int(bb[3] * height + 0.5)), (0, 0, 255), thickness=2)
-            cv2.putText(image, str(c), (int(bb[0]), int(bb[1])), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255), thickness=2)
+            cv2.rectangle(image, (int(bb[0] * width + 0.5), int(bb[1] * height + 0.5)), (int(bb[2] * width + 0.5), int(bb[3] * height + 0.5)), (255, 255, 0), thickness=1)
+            cv2.putText(image, str(c), (int(bb[0]), int(bb[1])), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 0), thickness=1)
 
-    # image = cv2.resize(image, (960, 960))
+    image = cv2.resize(image, (512, 512))
     cv2.imshow('result', image)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
