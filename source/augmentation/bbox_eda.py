@@ -15,30 +15,32 @@ def calculate_bbox(bboxes, labels):
             print(max_ratio, area)
             visualize(image, bboxes, labels)
 
-IMG_SIZE = 384
-ROOT_PATH = "/data/Datasets/SPC"
-LABEL_PATH = f"{ROOT_PATH}/Labels/labels.txt"
+if __name__ == "__main__":
+    IMG_SIZE = 384
+    ROOT_PATH = "/data/Datasets/SPC"
+    LABEL_PATH = f"{ROOT_PATH}/Labels/labels.txt"
 
-IMAGE_PATH = f"{ROOT_PATH}/full-name11/train/images"
-ANNOT_PATH = f"{ROOT_PATH}/full-name11/train/annotations"
+    IMAGE_PATH = f"{ROOT_PATH}/full-name11/train/images"
+    ANNOT_PATH = f"{ROOT_PATH}/full-name11/train/annotations"
 
-classes = read_label_file(LABEL_PATH)
-images, annotations = get_files(IMAGE_PATH), get_files(ANNOT_PATH)
+    classes = read_label_file(LABEL_PATH)
+    images, annotations = get_files(IMAGE_PATH), get_files(ANNOT_PATH)
 
-dataset = list(zip(images, annotations))
-random.shuffle(dataset)
+    dataset = list(zip(images, annotations))
+    random.shuffle(dataset)
 
-max_ratio = 0
-for (image, annot) in dataset:
-    image = cv2.imread(image)
-    bboxes, labels = read_xml(annot, classes, format='pascal_voc')
+    max_ratio = 0
+    for (image, annot) in dataset:
+        # if annot == "/data/Datasets/SPC/full-name11/train/annotations/train_0_3652.xml":
+        image = cv2.imread(image)
+        bboxes, labels = read_xml(annot, classes, format='pascal_voc')
 
-    transform = A.Compose([
-        A.Resize(IMG_SIZE, IMG_SIZE, p=1),
-    ], bbox_params=A.BboxParams(format='pascal_voc', label_fields=['labels']))
+        transform = A.Compose([
+            A.Resize(IMG_SIZE, IMG_SIZE, p=1),
+        ], bbox_params=A.BboxParams(format='pascal_voc', label_fields=['labels']))
 
-    transformed = transform(image=image, bboxes=bboxes, labels=labels)
-    image, bboxes, labels = transformed['image'], transformed['bboxes'], transformed['labels']
-    
-    if bboxes:
-        visualize(image, bboxes, labels)
+        transformed = transform(image=image, bboxes=bboxes, labels=labels)
+        image, bboxes, labels = transformed['image'], transformed['bboxes'], transformed['labels']
+        
+        if bboxes:
+            visualize(image, bboxes, labels)

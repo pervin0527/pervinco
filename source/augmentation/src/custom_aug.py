@@ -66,8 +66,8 @@ def mosaic(pieces, img_size, classes):
         image, annot = piece
         # print(image, annot)
         image = cv2.imread(image)
-        boxes, labels = read_xml(annot, classes, "pascal_voc")
-        # boxes = refine_boxes(bboxes)
+        bboxes, labels = read_xml(annot, classes, "pascal_voc")
+        boxes = refine_boxes(bboxes)
         
         if i == 0 :
             image, boxes = crop_image(image, boxes, labels, img_size-xc, img_size-yc, img_size, img_size)
