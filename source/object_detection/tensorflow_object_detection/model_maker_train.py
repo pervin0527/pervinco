@@ -1,62 +1,68 @@
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-import numpy as np
-import tensorflow as tf
+# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import pandas as pd
+import tensorflow as tf
 
 from absl import logging
-from tflite_model_maker.config import ExportFormat
 from tflite_model_maker import model_spec
 from tflite_model_maker import object_detector
+from tflite_model_maker.config import ExportFormat
 from tflite_model_maker.config import QuantizationConfig
+from tensorflow_examples.lite.model_maker.third_party.efficientdet.keras import train, train_lib
 
 if __name__ == "__main__":
-    train_data = "/data/Datasets/SPC/full-name10/train2"
-    valid_data = "/data/Datasets/SPC/full-name10/valid2"
-    label_file_path = "/data/Datasets/SPC/Labels/labels.txt"
-    save_path = "/data/Models/efficientdet_lite"
-    model_file_name = "full-name10-GAP6-90-ver2"
+    ROOT_DIR = "/data/Datasets/SPC"
+    TRAIN_DIR = f"{ROOT_DIR}/full-name11/train"
+    VALID_DIR = f"{ROOT_DIR}/full-name11/valid"
 
-    hparams = {"optimizer" : "sgd",
-            "learning_rate" : 0.008,
-            "lr_warmup_init" : 0.0008,
-            "anchor_scale" : 7.0,
-            "aspect_ratios" : [8.0, 4.0, 2.0, 1.0, 0.5],
-            "num_scales" : 5,
-            "alpha" : 0.25,
-            "gamma" : 2,
-            "es" : False,
-            "es_monitor" : "val_det_loss",
-            "es_patience" : 15,
-            "ckpt" : None}
+    LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
+    LABEL_FILE = pd.read_csv(LABEL_FILE, sep=',', index_col=False, header=None)
+    CLASSES = LABEL_FILE[0].tolist()
+    print(CLASSES)
+    
+    SAVE_PATH = "/data/Models/efficientdet_lite"
+    MODEL_FILE = "test"
 
-    label_file = pd.read_csv(label_file_path, sep=',', index_col=False, header=None)
-    label_map = label_file[0].tolist()
-    print(label_map)
+    EPOCHS = 90
+    BATCH_SIZE = 32
+    MAX_DETECTIONS = 10
+    HPARAMS = {"optimizer" : "sgd",
+               "learning_rate" : 0.008,
+               "lr_warmup_init" : 0.0008,
+               "anchor_scale" : 7.0,
+               "aspect_ratios" : [8.0, 4.0, 2.0, 1.0, 0.5],
+               "num_scales" : 5,
+               "alpha" : 0.25,
+               "gamma" : 2,
+               "es" : False,
+               "es_monitor" : "val_det_loss",
+               "es_patience" : 15,
+               "ckpt" : None}
 
-    train_data = object_detector.DataLoader.from_pascal_voc(images_dir=f"{train_data}/images",
-                                                            annotations_dir=f"{train_data}/annotations", 
-                                                            label_map=label_map)
+    train_data = object_detector.DataLoader.from_pascal_voc(images_dir=f"{TRAIN_DIR}/images",
+                                                            annotations_dir=f"{TRAIN_DIR}/annotations", 
+                                                            label_map=CLASSES)
 
-    validation_data = object_detector.DataLoader.from_pascal_voc(images_dir=f'{valid_data}/images',
-                                                                annotations_dir=f'{valid_data}/annotations',
-                                                                label_map=label_map)
+    validation_data = object_detector.DataLoader.from_pascal_voc(images_dir=f'{VALID_DIR}/images',
+                                                                annotations_dir=f'{VALID_DIR}/annotations',
+                                                                label_map=CLASSES)
 
     spec = object_detector.EfficientDetLite1Spec(verbose=1,
-                                                strategy=None, # 'gpus'
-                                                hparams=hparams,
-                                                tflite_max_detections=10,
-                                                model_dir=f'{save_path}/{model_file_name}')
+                                                 strategy=None, # 'gpus'
+                                                 hparams=HPARAMS,
+                                                 tflite_max_detections=MAX_DETECTIONS,
+                                                 model_dir=f'{SAVE_PATH}/{MODEL_FILE}')
 
     model = object_detector.create(train_data,
+                                   do_train=True,
+                                   train_whole_model=True,
                                    model_spec=spec,
-                                   epochs=90,
-                                   batch_size=64,
-                                   validation_data=validation_data,
-                                   train_whole_model=True,)
+                                   epochs=EPOCHS,
+                                   batch_size=BATCH_SIZE,
+                                   validation_data=validation_data)
 
-    model.export(export_dir=f"{save_path}/{model_file_name}",
-                 saved_model_filename=f'{save_path}/{model_file_name}/saved_model',
-                 tflite_filename=f'{model_file_name}.tflite',
-                 label_filename=f'{save_path}/label_map.txt',
+    model.export(export_dir=f"{SAVE_PATH}/{MODEL_FILE}",
+                 label_filename=f'{SAVE_PATH}/label_map.txt',
+                 tflite_filename=f'{MODEL_FILE}.tflite',
+                 saved_model_filename=f'{SAVE_PATH}/{MODEL_FILE}/saved_model',
                  export_format=[ExportFormat.TFLITE, ExportFormat.SAVED_MODEL])
