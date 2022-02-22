@@ -11,16 +11,19 @@ from yolov4_custom_utils import output_remake, write_xml
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Models/yolov4/SPC"
-    WEIGHT_PATH = f"{ROOT_DIR}/ckpt/full-name9/yolov4_final.weights"
+    WEIGHT_PATH = f"{ROOT_DIR}/ckpt/full-name11/yolov4_last.weights"
     CONFIG_PATH = f"{ROOT_DIR}/deploy/yolov4.cfg"
     DATA_PATH = f"{ROOT_DIR}/data/spc.data"
-    THRESH_HOLD = .7
+    THRESH_HOLD = .4
 
     VISUAL = True
     SAVE_RESULT = False
     # BR - 20211206_112957
     # DK - 20211206_112431
     # PB - 20211206_113156
+    # "/data/Datasets/SPC/Videos/2021-12-06/20211206_113156.mp4"
+    # "/data/Datasets/SPC/Videos/2022-02-10/20220210_143823.mp4"
+    # "/data/Datasets/SPC/Videos/2021-11-11/pb&br.mp4"
     VIDEO_PATH = "/data/Datasets/SPC/Videos/2021-12-06/20211206_113156.mp4"
     
     cap = cv2.VideoCapture(VIDEO_PATH)

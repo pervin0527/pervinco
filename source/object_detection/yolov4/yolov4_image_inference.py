@@ -13,14 +13,14 @@ from yolov4_custom_utils import output_remake, write_xml
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Models/yolov4/SPC"
-    WEIGHT_PATH = f"{ROOT_DIR}/ckpt/full-name9/yolov4_final.weights"
+    WEIGHT_PATH = f"{ROOT_DIR}/ckpt/full-name11/yolov4_last.weights"
     CONFIG_PATH = f"{ROOT_DIR}/deploy/yolov4.cfg"
     DATA_PATH = f"{ROOT_DIR}/data/spc.data"
     THRESH_HOLD = .7
     
     VISUAL = True
     SAVE_RESULT = True
-    TEST_DIR = "/home/barcelona/AutoCrawler/handmade/Paris_baguette"
+    TEST_DIR = "/data/Datasets/SPC/full-name11/images"
 
     if SAVE_RESULT:
         folder_name = TEST_DIR.split('/')[-1].split('.')[0]
