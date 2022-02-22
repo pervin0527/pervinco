@@ -21,7 +21,7 @@ def background_process(save_dir):
         if len(files) > int(ratio / len(folders)):
             files = random.sample(files, int(ratio / len(folders)))
 
-        # print(folder, len(files))    
+        print(folder, len(files))    
         bg_files.extend(files)        
 
     for idx, file in enumerate(bg_files):
@@ -134,7 +134,7 @@ if __name__ == "__main__":
     VALID_RATIO = 0.1
     VISUAL = False
     INCLUDE_BG = True
-    BG_RATIO = 0.5
+    BG_RATIO = 0.25
     BG_DIR = "/data/Datasets/SPC/download"
     
     IMG_DIR = f"{ROOT_DIR}/{FOLDER}/images"
@@ -145,5 +145,5 @@ if __name__ == "__main__":
     classes = read_label_file(LABEL_DIR)
     images, annotations = get_files(IMG_DIR), get_files(ANNOT_DIR)
     
-    data_process(True, "train")
-    data_process(False, "valid")
+    data_process(True, "train2")
+    data_process(False, "valid2")
