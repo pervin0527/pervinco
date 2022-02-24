@@ -2,7 +2,7 @@ import os
 import cv2
 from glob import glob
 
-root = "/data/Datasets/SPC/Videos/2022-02-22"
+root = "/data/test/SPC-20220224/타브랜드"
 videos = glob(f"{root}/*.MOV")
 print(videos)
 

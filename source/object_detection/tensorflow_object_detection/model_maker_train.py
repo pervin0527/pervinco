@@ -12,19 +12,16 @@ from tensorflow_examples.lite.model_maker.third_party.efficientdet.keras import 
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    TRAIN_DIR = f"{ROOT_DIR}/full-name11/train"
-    VALID_DIR = f"{ROOT_DIR}/full-name11/valid"
+    TRAIN_DIR = f"{ROOT_DIR}/full-name12/train"
+    VALID_DIR = f"{ROOT_DIR}/full-name12/valid"
 
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
     LABEL_FILE = pd.read_csv(LABEL_FILE, sep=',', index_col=False, header=None)
     CLASSES = LABEL_FILE[0].tolist()
     print(CLASSES)
     
-    SAVE_PATH = "/data/Models/efficientdet_lite"
-    MODEL_FILE = "test"
-
-    EPOCHS = 90
-    BATCH_SIZE = 32
+    EPOCHS = 300
+    BATCH_SIZE = 64
     MAX_DETECTIONS = 10
     HPARAMS = {"optimizer" : "sgd",
                "learning_rate" : 0.008,
@@ -38,6 +35,10 @@ if __name__ == "__main__":
                "es_monitor" : "val_det_loss",
                "es_patience" : 15,
                "ckpt" : None}
+
+    SAVE_PATH = "/data/Models/efficientdet_lite"
+    MODEL_FILE = f"full-name12-GAP6-{EPOCHS}"
+
 
     train_data = object_detector.DataLoader.from_pascal_voc(images_dir=f"{TRAIN_DIR}/images",
                                                             annotations_dir=f"{TRAIN_DIR}/annotations", 
@@ -54,12 +55,12 @@ if __name__ == "__main__":
                                                  model_dir=f'{SAVE_PATH}/{MODEL_FILE}')
 
     model = object_detector.create(train_data,
-                                   do_train=True,
-                                   train_whole_model=True,
                                    model_spec=spec,
                                    epochs=EPOCHS,
                                    batch_size=BATCH_SIZE,
-                                   validation_data=validation_data)
+                                   validation_data=validation_data,
+                                   do_train=True,
+                                   train_whole_model=True,)
 
     model.export(export_dir=f"{SAVE_PATH}/{MODEL_FILE}",
                  label_filename=f'{SAVE_PATH}/label_map.txt',

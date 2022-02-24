@@ -1,6 +1,7 @@
 import cv2
 import random
 import albumentations as A
+from glob import glob
 from src.utils import read_label_file, read_xml, get_files, visualize
 
 def calculate_bbox(bboxes, labels):
@@ -19,12 +20,17 @@ if __name__ == "__main__":
     IMG_SIZE = 384
     ROOT_PATH = "/data/Datasets/SPC"
     LABEL_PATH = f"{ROOT_PATH}/Labels/labels.txt"
-
-    IMAGE_PATH = f"{ROOT_PATH}/full-name11/train/images"
-    ANNOT_PATH = f"{ROOT_PATH}/full-name11/train/annotations"
-
     classes = read_label_file(LABEL_PATH)
-    images, annotations = get_files(IMAGE_PATH), get_files(ANNOT_PATH)
+
+    # IMAGE_PATH = f"{ROOT_PATH}/full-name12/images"
+    # ANNOT_PATH = f"{ROOT_PATH}/full-name12/annotations"
+    # images, annotations = get_files(IMAGE_PATH), get_files(ANNOT_PATH)
+    
+    IMAGE_PATH = f"{ROOT_PATH}/full-name12/train/images"
+    ANNOT_PATH = f"{ROOT_PATH}/full-name12/train/annotations"
+    images = sorted(glob(f"{IMAGE_PATH}/*"))
+    annotations = sorted(glob(f"{ANNOT_PATH}/*"))
+    print(len(images), len(annotations))
 
     dataset = list(zip(images, annotations))
     random.shuffle(dataset)

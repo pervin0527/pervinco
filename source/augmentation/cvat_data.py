@@ -10,7 +10,7 @@ if __name__ == "__main__":
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
     FOLDER = "Cvat"
     IMG_SIZE = 384
-    SAVE_DIR = f"{ROOT_DIR}/full-name11"
+    SAVE_DIR = f"{ROOT_DIR}/full-name12"
 
     classes = read_label_file(LABEL_DIR)
     print(classes)
