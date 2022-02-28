@@ -20,7 +20,7 @@ if __name__ == "__main__":
     
     VISUAL = True
     SAVE_RESULT = True
-    TEST_DIR = "/data/Datasets/SPC/full-name11/images"
+    TEST_DIR = "/data/Datasets/SPC/Videos/2022-02-22/dunkin"
 
     if SAVE_RESULT:
         folder_name = TEST_DIR.split('/')[-1].split('.')[0]
@@ -37,6 +37,7 @@ if __name__ == "__main__":
     darknet_image = darknet.make_image(width, height, 3)
 
     test_images = glob(f'{TEST_DIR}/*')
+    print(len(test_images))
     random.shuffle(test_images)
 
     record = []

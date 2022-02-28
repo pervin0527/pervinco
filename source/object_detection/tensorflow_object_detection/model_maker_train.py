@@ -8,7 +8,6 @@ from tflite_model_maker import model_spec
 from tflite_model_maker import object_detector
 from tflite_model_maker.config import ExportFormat
 from tflite_model_maker.config import QuantizationConfig
-from tensorflow_examples.lite.model_maker.third_party.efficientdet.keras import train, train_lib
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"

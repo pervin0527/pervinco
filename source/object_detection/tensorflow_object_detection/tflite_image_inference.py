@@ -63,14 +63,13 @@ def postprocess(boxes, classes, scores, image_path):
             cv2.rectangle(image, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (255, 0, 0))
             cv2.putText(image, f"{label} {score:.2f}%", (int(xmin), int(ymin)), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 0))
 
-    if final_result:
-        # cv2.imshow('result', image)
-        # cv2.waitKey(0)    
-        print(image_path, final_result)
+    cv2.imshow('result', image)
+    cv2.waitKey(0)    
+    print(image_path, final_result)
 
 if __name__ == "__main__":
-    model_path = "/data/Models/efficientdet_lite/test-300.tflite"
-    images_path = "/data/Datasets/SPC/Background/images"
+    model_path = "/data/Models/efficientdet_lite/full-name10-GAP6-300/full-name10-GAP6-300.tflite"
+    images_path = "/data/Datasets/SPC/Videos/2022-02-22/dunkin"
     label_path = "/data/Datasets/SPC/Labels/labels.txt"
     threshold = 0.7
 
@@ -105,5 +104,4 @@ if __name__ == "__main__":
         scores = interpreter.get_tensor(output_details[2]['index'])
         num_detections = interpreter.get_tensor(output_details[3]['index'])
 
-        if any(score > threshold for score in scores):
-            postprocess(boxes, classes, scores, image)
+        postprocess(boxes, classes, scores, image)

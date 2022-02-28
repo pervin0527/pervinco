@@ -14,17 +14,11 @@ if __name__ == "__main__":
     WEIGHT_PATH = f"{ROOT_DIR}/ckpt/full-name11/yolov4_last.weights"
     CONFIG_PATH = f"{ROOT_DIR}/deploy/yolov4.cfg"
     DATA_PATH = f"{ROOT_DIR}/data/spc.data"
-    THRESH_HOLD = .4
+    THRESH_HOLD = .7
 
     VISUAL = True
     SAVE_RESULT = False
-    # BR - 20211206_112957
-    # DK - 20211206_112431
-    # PB - 20211206_113156
-    # "/data/Datasets/SPC/Videos/2021-12-06/20211206_113156.mp4"
-    # "/data/Datasets/SPC/Videos/2022-02-10/20220210_143823.mp4"
-    # "/data/Datasets/SPC/Videos/2021-11-11/pb&br.mp4"
-    VIDEO_PATH = "/data/Datasets/SPC/Videos/2021-12-06/20211206_113156.mp4"
+    VIDEO_PATH = "/data/Datasets/SPC/Videos/2022-02-22/20220222_Br1.MOV"
     
     cap = cv2.VideoCapture(VIDEO_PATH)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH,  960)
@@ -63,6 +57,7 @@ if __name__ == "__main__":
         result_image = cv2.cvtColor(result_image, cv2.COLOR_BGR2RGB)
 
         if VISUAL:
+            # cv2.imshow("inference", cv2.resize(result_image, (512, 512)))
             cv2.imshow("inference", result_image)
             key = cv2.waitKey(33)
             if key == 27 or key == 'esc':
