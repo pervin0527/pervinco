@@ -18,7 +18,7 @@ def calculate_bbox(bboxes, labels):
 
 if __name__ == "__main__":
     IMG_SIZE = 384
-    ROOT_PATH = "/data/Datasets/SPC"
+    ROOT_PATH = "/data/Datasets/SPC-Hannam"
     LABEL_PATH = f"{ROOT_PATH}/Labels/labels.txt"
     classes = read_label_file(LABEL_PATH)
 
@@ -26,8 +26,8 @@ if __name__ == "__main__":
     # ANNOT_PATH = f"{ROOT_PATH}/full-name12/annotations"
     # images, annotations = get_files(IMAGE_PATH), get_files(ANNOT_PATH)
     
-    IMAGE_PATH = f"{ROOT_PATH}/full-name12/train/images"
-    ANNOT_PATH = f"{ROOT_PATH}/full-name12/train/annotations"
+    IMAGE_PATH = f"{ROOT_PATH}/ver3/train/images"
+    ANNOT_PATH = f"{ROOT_PATH}/ver3/train/annotations"
     images = sorted(glob(f"{IMAGE_PATH}/*"))
     annotations = sorted(glob(f"{ANNOT_PATH}/*"))
     print(len(images), len(annotations))

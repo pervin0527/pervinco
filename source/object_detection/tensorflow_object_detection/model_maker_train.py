@@ -10,34 +10,49 @@ from tflite_model_maker.config import ExportFormat
 from tflite_model_maker.config import QuantizationConfig
 
 if __name__ == "__main__":
-    ROOT_DIR = "/data/Datasets/SPC"
-    TRAIN_DIR = f"{ROOT_DIR}/full-name12/train"
-    VALID_DIR = f"{ROOT_DIR}/full-name12/valid"
+    ROOT_DIR = "/data/Datasets/SPC-Hannam"
+    TRAIN_DIR = f"{ROOT_DIR}/ver3/train"
+    VALID_DIR = f"{ROOT_DIR}/ver3/valid"
 
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
     LABEL_FILE = pd.read_csv(LABEL_FILE, sep=',', index_col=False, header=None)
     CLASSES = LABEL_FILE[0].tolist()
+    # CLASSES = CLASSES[:-1]
     print(CLASSES)
     
-    EPOCHS = 300
+    EPOCHS = 10
     BATCH_SIZE = 64
     MAX_DETECTIONS = 10
+    # HPARAMS = {"optimizer" : "sgd",
+    #            "learning_rate" : 0.008,
+    #            "lr_warmup_init" : 0.0008,
+    #            "anchor_scale" : 7.0,
+    #            "aspect_ratios" : [8.0, 4.0, 2.0, 1.0, 0.5],
+    #            "num_scales" : 5,
+    #            "alpha" : 0.25,
+    #            "gamma" : 2,
+    #            "es" : False,
+    #            "es_monitor" : "val_det_loss",
+    #            "es_patience" : 15,
+    #            "ckpt" : None}
+
     HPARAMS = {"optimizer" : "sgd",
-               "learning_rate" : 0.008,
-               "lr_warmup_init" : 0.0008,
-               "anchor_scale" : 7.0,
-               "aspect_ratios" : [8.0, 4.0, 2.0, 1.0, 0.5],
-               "num_scales" : 5,
+               "learning_rate" : 0.08, # 0.008
+               "lr_warmup_init" : 0.008, # 0.0008
+               "anchor_scale" : 4.0, # 7.0
+               "aspect_ratios" : [1.0, 2.0, 0.5], # [8.0, 4.0, 2.0, 1.0, 0.5]
+               "num_scales" : 3, # 5
                "alpha" : 0.25,
-               "gamma" : 2,
+               "gamma" : 1.5, # 2
                "es" : False,
                "es_monitor" : "val_det_loss",
                "es_patience" : 15,
                "ckpt" : None}
 
     SAVE_PATH = "/data/Models/efficientdet_lite"
-    MODEL_FILE = f"full-name12-GAP6-{EPOCHS}"
-
+    PROJECT = ROOT_DIR.split('/')[-1]
+    DS_NAME = TRAIN_DIR.split('/')[-2]
+    MODEL_FILE = f"{PROJECT}-{DS_NAME}-{EPOCHS}"
 
     train_data = object_detector.DataLoader.from_pascal_voc(images_dir=f"{TRAIN_DIR}/images",
                                                             annotations_dir=f"{TRAIN_DIR}/annotations", 
@@ -47,7 +62,7 @@ if __name__ == "__main__":
                                                                 annotations_dir=f'{VALID_DIR}/annotations',
                                                                 label_map=CLASSES)
 
-    spec = object_detector.EfficientDetLite1Spec(verbose=1,
+    spec = object_detector.EfficientDetLite0Spec(verbose=1,
                                                  strategy=None, # 'gpus'
                                                  hparams=HPARAMS,
                                                  tflite_max_detections=MAX_DETECTIONS,
