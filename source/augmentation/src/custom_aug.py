@@ -39,9 +39,9 @@ def crop_image(image, boxes, labels, xmin, ymin, xmax, ymax):
             A.RandomBrightnessContrast(p=0.5, brightness_limit=(-0.2, 0.2)),
 
             # A.OneOf([
-            #     # A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
+            #    # A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
             #     A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
-            #     # A.RandomSnow(p=0.2),
+            #     A.RandomSnow(p=0.2),
             # ], p=0.5),
 
             A.OneOf([

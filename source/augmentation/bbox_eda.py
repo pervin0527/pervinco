@@ -26,8 +26,8 @@ if __name__ == "__main__":
     # ANNOT_PATH = f"{ROOT_PATH}/full-name12/annotations"
     # images, annotations = get_files(IMAGE_PATH), get_files(ANNOT_PATH)
     
-    IMAGE_PATH = f"{ROOT_PATH}/ver3/train/images"
-    ANNOT_PATH = f"{ROOT_PATH}/ver3/train/annotations"
+    IMAGE_PATH = f"{ROOT_PATH}/ver4/images"
+    ANNOT_PATH = f"{ROOT_PATH}/ver4/annotations"
     images = sorted(glob(f"{IMAGE_PATH}/*"))
     annotations = sorted(glob(f"{ANNOT_PATH}/*"))
     print(len(images), len(annotations))

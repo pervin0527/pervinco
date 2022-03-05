@@ -6,11 +6,11 @@ from tqdm import tqdm
 from src.utils import read_label_file, read_xml, get_files, get_content_filename, write_xml, visualize, make_save_dir
 
 if __name__ == "__main__":
-    ROOT_DIR = "/data/Datasets/SPC-Hannam"
+    ROOT_DIR = "/data/Datasets/SPC"
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
     FOLDER = "Cvat"
-    IMG_SIZE = 320
-    SAVE_DIR = f"{ROOT_DIR}/ver3"
+    IMG_SIZE = 384
+    SAVE_DIR = f"{ROOT_DIR}/full-name12"
 
     classes = read_label_file(LABEL_DIR)
     print(classes)
