@@ -11,14 +11,24 @@ def output_remake(detect_result):
 
     return labels, scores, bboxes
 
-def write_xml(save_dir, bboxes, labels, img_name, img_shape):
+def write_xml(image_path, save_dir, bboxes, labels, img_name, img_shape):
     root = Element("annotation")
     
     folder = SubElement(root, "folder")
-    folder.text = "images"
+    # folder.text = "images"
+    folder.text = "data"
 
     file_name = SubElement(root, "filename")
     file_name.text = f"{img_name}.jpg"
+
+    path = SubElement(root, 'path')
+    path.text = f'{image_path}'
+
+    source = SubElement(root, 'source')
+    database = SubElement(source, "database")
+    database.text = "Unknown"
+    segmented = SubElement(source, 'segmented')
+    segmented.text = "0"
 
     size = SubElement(root, "size")
     w = SubElement(size, "width")
