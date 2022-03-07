@@ -17,11 +17,11 @@ if __name__ == "__main__":
     WEIGHT_PATH = f"{ROOT_DIR}/ckpt/full-name12/yolov4_last.weights"
     CONFIG_PATH = f"{ROOT_DIR}/deploy/yolov4.cfg"
     DATA_PATH = f"{ROOT_DIR}/data/spc.data"
-    THRESH_HOLD = .55
+    THRESH_HOLD = .7
     
-    VISUAL = True
-    SAVE_RESULT = True
-    TEST_DIR = "/home/barcelona/바탕화면/naver_map/Paris_baguette"
+    VISUAL = False
+    SAVE_RESULT = False
+    TEST_DIR = "/home/barcelona/바탕화면/naver_map/test"
 
     if SAVE_RESULT:
         folder_name = TEST_DIR.split('/')[-1].split('.')[0]
@@ -52,36 +52,17 @@ if __name__ == "__main__":
 
             detections = darknet.detect_image(network, class_names, darknet_image, thresh=THRESH_HOLD)
             # darknet.print_detections(detections)
+            print(detections)
             result_image = darknet.draw_boxes(detections, frame_resized, class_colors)
             result_image = cv2.cvtColor(result_image, cv2.COLOR_BGR2RGB)
             
             if VISUAL:
-                # result_image = cv2.resize(result_image, (960, 960))
                 cv2.imshow("result", result_image)
                 k = cv2.waitKeyEx()
-                if k == 65363: # 방향키 오른쪽
-                    continue
+                cv2.destroyAllWindows()
 
-                elif k == 65364: # 방향키 아래쪽
-                    record.append(test_image)
-                    print(len(record))
-
-                    labels, scores, bboxes = output_remake(detections)
-                    write_xml(f"{SAVE_PATH}/data/FRAME_{idx:>06}.jpg", f"{SAVE_PATH}/data", bboxes, labels, f"FRAME_{idx:>06}", frame_resized.shape)
-                    cv2.imwrite(f"{SAVE_PATH}/data/FRAME_{idx:>06}.jpg", copy_resized)
-                    cv2.imwrite(f"{SAVE_PATH}/result/FRAME_{idx:>06}.jpg", result_image)
-
-                elif k == 65535: # Del 키
-                    os.remove(test_image)
-
-                elif k == 27:
-                    break
-
-            cv2.destroyAllWindows()
-
-    if record:
-        f = open(f"{SAVE_PATH}/record.txt", 'w')
-        for line in record:
-            f.write(f"{line} \n")
-
-        f.close()
+            if SAVE_RESULT:
+                labels, scores, bboxes = output_remake(detections)
+                write_xml(f"{SAVE_PATH}/data/FRAME_{idx:>06}.jpg", f"{SAVE_PATH}/data", bboxes, labels, f"FRAME_{idx:>06}", frame_resized.shape)
+                cv2.imwrite(f"{SAVE_PATH}/data/FRAME_{idx:>06}.jpg", copy_resized)
+                cv2.imwrite(f"{SAVE_PATH}/result/FRAME_{idx:>06}.jpg", result_image)

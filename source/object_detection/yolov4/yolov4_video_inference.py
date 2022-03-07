@@ -11,16 +11,17 @@ from yolov4_custom_utils import output_remake, write_xml
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Models/yolov4/SPC"
-    WEIGHT_PATH = f"{ROOT_DIR}/ckpt/full-name11/yolov4_last.weights"
+    WEIGHT_PATH = f"{ROOT_DIR}/ckpt/full-name12/yolov4_last.weights"
     CONFIG_PATH = f"{ROOT_DIR}/deploy/yolov4.cfg"
     DATA_PATH = f"{ROOT_DIR}/data/spc.data"
     THRESH_HOLD = .7
 
     VISUAL = True
-    SAVE_RESULT = False
-    VIDEO_PATH = "/data/Datasets/SPC/Videos/2022-02-22/20220222_Br1.MOV"
+    SAVE_RESULT = True
+    VIDEO_PATH = "/data/Datasets/SPC/Videos/2022-02-22/20220222_Dk2.MOV"
     
     cap = cv2.VideoCapture(VIDEO_PATH)
+    # cap = cv2.VideoCapture(-1)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH,  960)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 960)
     cap.set(cv2.CAP_PROP_BRIGHTNESS, 100)
@@ -58,6 +59,7 @@ if __name__ == "__main__":
 
         if VISUAL:
             # cv2.imshow("inference", cv2.resize(result_image, (512, 512)))
+            result_image = cv2.resize(result_image, (960, 960))
             cv2.imshow("inference", result_image)
             key = cv2.waitKey(33)
             if key == 27 or key == 'esc':
@@ -65,7 +67,8 @@ if __name__ == "__main__":
 
         if SAVE_RESULT:
             labels, scores, bboxes = output_remake(detections)
-            write_xml(f"{SAVE_PATH}/annotations", bboxes, labels, f"FRAME_{idx:>06}", frame_resized.shape)
+            print(frame_resized.shape)
+            write_xml(image_path=f"{SAVE_PATH}/images/FRAME_{idx:>06}.jpg", save_dir=f"{SAVE_PATH}/annotations", bboxes=bboxes, labels=labels, img_name=f"FRAME_{idx:>06}", img_shape=frame_resized.shape)
             cv2.imwrite(f"{SAVE_PATH}/images/FRAME_{idx:>06}.jpg", copy_resized)
             cv2.imwrite(f"{SAVE_PATH}/result/FRAME_{idx:>06}.jpg", result_image)
             idx += 1
