@@ -18,16 +18,13 @@ def calculate_bbox(bboxes, labels):
 
 if __name__ == "__main__":
     IMG_SIZE = 384
-    ROOT_PATH = "/data/Datasets/SPC-Hannam"
+    ROOT_PATH = "/data/Datasets/SPC"
+    FOLDER = "PB-test"
     LABEL_PATH = f"{ROOT_PATH}/Labels/labels.txt"
     classes = read_label_file(LABEL_PATH)
-
-    # IMAGE_PATH = f"{ROOT_PATH}/full-name12/images"
-    # ANNOT_PATH = f"{ROOT_PATH}/full-name12/annotations"
-    # images, annotations = get_files(IMAGE_PATH), get_files(ANNOT_PATH)
     
-    IMAGE_PATH = f"{ROOT_PATH}/ver4/images"
-    ANNOT_PATH = f"{ROOT_PATH}/ver4/annotations"
+    IMAGE_PATH = f"{ROOT_PATH}/{FOLDER}/images"
+    ANNOT_PATH = f"{ROOT_PATH}/{FOLDER}/annotations"
     images = sorted(glob(f"{IMAGE_PATH}/*"))
     annotations = sorted(glob(f"{ANNOT_PATH}/*"))
     print(len(images), len(annotations))
@@ -37,7 +34,8 @@ if __name__ == "__main__":
 
     max_ratio = 0
     for (image, annot) in dataset:
-        # if annot == "/data/Datasets/SPC/full-name11/train/annotations/train_0_3652.xml":
+        print(image)
+        print(annot)
         image = cv2.imread(image)
         bboxes, labels = read_xml(annot, classes, format='pascal_voc')
 

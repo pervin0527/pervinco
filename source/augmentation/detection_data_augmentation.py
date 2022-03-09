@@ -72,16 +72,18 @@ def data_process(is_train, folder_name):
                         A.Sequential([
                             A.Resize(IMG_SIZE, IMG_SIZE, p=1),
                             A.RandomBrightnessContrast(p=1, brightness_limit=(-0.2, 0.2)),
-                            A.OneOf([
-                                A.RandomRotate90(p=0.4),
-                                A.Downscale(scale_min=0.5, scale_max=0.8, p=0.2),
-                                A.VerticalFlip(p=0.2),
-                                A.HorizontalFlip(p=0.2)
-                            ], p=1),
+                            A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
+                            
+                            # A.OneOf([
+                            #     A.RandomRotate90(p=0.4),
+                            #     A.Downscale(scale_min=0.5, scale_max=0.8, p=0.2),
+                            #     A.VerticalFlip(p=0.2),
+                            #     A.HorizontalFlip(p=0.2)
+                            # ], p=1),
 
                             # A.OneOf([
                             #     A.Downscale(scale_min=0.5, scale_max=0.8, p=0.2),
-                            #     A.RandomSnow(p=0.2),
+                            #     # A.RandomSnow(p=0.2),
                             # ], p=1)
 
                         ])
@@ -139,8 +141,8 @@ def data_process(is_train, folder_name):
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    FOLDER = "full-name12"
-    STEPS = 2
+    FOLDER = "full-name13"
+    STEPS = 1
     IMG_SIZE = 384
     VALID_RATIO = 0.1
     VISUAL = False

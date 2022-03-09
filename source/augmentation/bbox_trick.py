@@ -8,7 +8,7 @@ from src.utils import read_xml, write_xml, read_label_file, get_files, visualize
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
     FOLDER = f"{ROOT_DIR}/Cvat"
-    SAVE_DIR = f"{ROOT_DIR}/full-name12"
+    SAVE_DIR = f"{ROOT_DIR}/PB-test"
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
     TARGETS = ["Paris_baguette"]
 
@@ -27,45 +27,57 @@ if __name__ == "__main__":
 
     classes = read_label_file(LABEL_DIR)
     label_check_list = set()
+    multi = []
     for target in TARGETS:
         images = sorted(glob(f"{FOLDER}/{target}/*/JPEGImages/*"))
         annotations = sorted(glob(f"{FOLDER}/{target}/*/Annotations/*"))
 
         print(len(images), len(annotations))
         for idx in tqdm(range(len(images))):
-            image = images[idx]
-            annot = annotations[idx]
-            filename = image.split('/')[-1].split('.')[0]
-            image = cv2.imread(image)
-            height, width = image.shape[:-1]
-            bboxes, labels = read_xml(annot, classes, format='pascal_voc')
+            try:
+                image = images[idx]
+                annot = annotations[idx]
+                # print(image)
+                filename = image.split('/')[-1].split('.')[0]
+                image = cv2.imread(image)
+                height, width = image.shape[:-1]
+                bboxes, labels = read_xml(annot, classes, format='pascal_voc')
 
-            for label in labels:
-                label_check_list.add(label)
+                if len(labels) > 1:
+                    multi.append((annot, labels))
 
-            transformed = transform(image=image, bboxes=bboxes, labels=labels)
-            t_image, t_bboxes, t_labels = transformed['image'], transformed['bboxes'], transformed['labels']
+                for label in labels:
+                    label_check_list.add(label)
 
-            confirm = []
-            for xmin, ymin, xmax, ymax in t_bboxes:
-                if (xmax - xmin) / (ymax - ymin) > limit_ratio:
-                    print(annot)               
-                    if (ymin - GAP) > 0 and (ymax + GAP) < height - 1:
-                        ymin -= GAP
-                        ymax += GAP            
-                        confirm.append((xmin, ymin, xmax, ymax))
+                transformed = transform(image=image, bboxes=bboxes, labels=labels)
+                t_image, t_bboxes, t_labels = transformed['image'], transformed['bboxes'], transformed['labels']
 
-                    print(f"Bbox revised {t_bboxes} -------> {confirm}")
-            
-            if confirm and visual:
-                # print(filename)
-                visualize(t_image, confirm, labels)
+                confirm = []
+                for xmin, ymin, xmax, ymax in t_bboxes:
+                    if (xmax - xmin) / (ymax - ymin) > limit_ratio:
+                        print(annot)               
+                        if (ymin - GAP) > 0 and (ymax + GAP) < height - 1:
+                            ymin -= GAP
+                            ymax += GAP            
+                            confirm.append((xmin, ymin, xmax, ymax))
 
-            if confirm:
-                cv2.imwrite(f"{SAVE_DIR}/images/{target}_GAP{GAP}-{idx:>05}.jpg", t_image)
-                write_xml(f"{SAVE_DIR}/annotations", confirm, labels, f"{target}_GAP{GAP}-{idx:>05}", height, width, format='pascal_voc')
-            else:
-                cv2.imwrite(f"{SAVE_DIR}/images/{target}_{idx:>05}.jpg", t_image)
-                write_xml(f"{SAVE_DIR}/annotations", t_bboxes, labels, f"{target}_{idx:>05}", height, width, format='pascal_voc')
+                        print(f"Bbox revised {t_bboxes} -------> {confirm}")
+                
+                if confirm and visual:
+                    # print(filename)
+                    visualize(t_image, confirm, labels)
+
+                if confirm:
+                    cv2.imwrite(f"{SAVE_DIR}/images/{target}_GAP{GAP}-{idx:>05}.jpg", t_image)
+                    write_xml(f"{SAVE_DIR}/annotations", confirm, labels, f"{target}_GAP{GAP}-{idx:>05}", height, width, format='pascal_voc')
+                else:
+                    cv2.imwrite(f"{SAVE_DIR}/images/{target}_{idx:>05}.jpg", t_image)
+                    write_xml(f"{SAVE_DIR}/annotations", t_bboxes, labels, f"{target}_{idx:>05}", height, width, format='pascal_voc')
+
+            except:
+                pass
 
     print(label_check_list)
+    
+    for item in multi:
+        print(item)
