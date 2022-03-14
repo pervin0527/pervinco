@@ -113,6 +113,7 @@ def data_process(is_train, folder_name):
                 
     else:
         dataset = list(zip(images, annotations))
+        random.shuffle(dataset)
         save_dir = f"{SAVE_DIR}/{folder_name}"
         make_save_dir(save_dir)
 

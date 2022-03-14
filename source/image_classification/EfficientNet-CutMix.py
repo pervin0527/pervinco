@@ -335,7 +335,7 @@ if __name__ == "__main__":
     lr_schedule = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1)
 
     # Checkpoint callback setup
-    SAVED_PATH = f'/data/Models/{DATASET_NAME}'
+    SAVED_PATH = f'/data/Models/classification/{DATASET_NAME}'
     LOG_TIME = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M")
     WEIGHT_FNAME = '{epoch:02d}-{val_categorical_accuracy:.2f}.hdf5'
     checkpoint_path = f'/{SAVED_PATH}/{LOG_TIME}/{WEIGHT_FNAME}'
@@ -375,5 +375,6 @@ if __name__ == "__main__":
 
     model.save(f'{SAVED_PATH}/{LOG_TIME}/main_model.h5')
     model.save(f'{SAVED_PATH}/{LOG_TIME}/pb_model', save_format='tf')
+    tf.saved_model.save(model, f'{SAVED_PATH}/{LOG_TIME}/')
 
     display_training_curves(history)

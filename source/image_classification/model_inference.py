@@ -1,4 +1,6 @@
-import os, cv2, argparse, time, pathlib
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+import cv2, argparse, time, pathlib
 import numpy as np
 import tensorflow as tf
 import pandas as pd
@@ -57,11 +59,13 @@ if __name__ == "__main__":
 
     model = tf.keras.models.load_model(args.model_path)
     test_images = read_images(args.testset_path)
-    label_path = args.model_path.split('/')[:-1]
-    label_path = '/'.join(label_path)
-    label_file = pd.read_csv(f'{label_path}/main_labels.txt', sep=' ', index_col=False, header=None)
+    # label_path = args.model_path.split('/')[:-1]
+    # label_path = '/'.join(label_path)
+    print(f'{args.model_path}/main_labels.txt')
+    label_file = pd.read_csv(f'{args.model_path}/main_labels.txt', sep=' ', index_col=False, header=None)
 
     CLASSES = sorted(label_file[0].tolist())
+    print(CLASSES)
     IMG_SIZE = 224
     AUTOTUNE = tf.data.experimental.AUTOTUNE
     BATCH_SIZE = len(test_images)
@@ -70,18 +74,23 @@ if __name__ == "__main__":
     
     predictions = model.predict(testset)
     os.system('clear')
-    print(len(test_images))
-    
+
     for pred, file_name in zip(predictions, test_images):
-        pred = [(idx, score) for idx, score in enumerate(pred)]
+        label_index = np.argmax(pred, axis=0)
+        label = CLASSES[label_index]
+        score = pred[label_index]
+
+        print(file_name, label, score)
+    # for pred, file_name in zip(predictions, test_images):
+    #     pred = [(idx, score) for idx, score in enumerate(pred)]
         
-        score_board = []
-        for _ in range(3):
-            tmp = max(pred, key=lambda x : x[1])
-            pred.pop(tmp[0])
+    #     score_board = []
+    #     for _ in range(3):
+    #         tmp = max(pred, key=lambda x : x[1])
+    #         pred.pop(tmp[0])
 
-            label = CLASSES[tmp[0]]
-            score = format(tmp[1], ".2f")
-            score_board.append((label, score))
+    #         label = CLASSES[tmp[0]]
+    #         score = format(tmp[1], ".2f")
+    #         score_board.append((label, score))
 
-        print(file_name, score_board)
+    #     print(file_name, score_board)

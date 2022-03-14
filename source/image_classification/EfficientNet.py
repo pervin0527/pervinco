@@ -148,7 +148,7 @@ def str2bool(v):
 
 def get_model():
     with strategy.scope():
-        base_model = tf.keras.applications.EfficientNetB1(input_shape=(IMG_SIZE, IMG_SIZE, 3),
+        base_model = tf.keras.applications.EfficientNetB3(input_shape=(IMG_SIZE, IMG_SIZE, 3),
                                                           weights="imagenet", # noisy-student
                                                           include_top=False)
         for layer in base_model.layers:
@@ -179,8 +179,8 @@ if __name__ == "__main__":
     AUTO = tf.data.experimental.AUTOTUNE
     SAMPLE_LEN = 100
     EPOCHS = 1000
-    BATCH_SIZE = 64 * strategy.num_replicas_in_sync
-    IMG_SIZE = 224
+    BATCH_SIZE = 32 * strategy.num_replicas_in_sync
+    IMG_SIZE = 300
 
     train_dataset, train_total, train_classes = make_tf_dataset(TRAIN_PATH, True)
     valid_dataset, valid_total, valid_classes = make_tf_dataset(VALID_PATH, False)
@@ -200,7 +200,7 @@ if __name__ == "__main__":
     lr_schedule = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1)
 
     # Checkpoint callback setup
-    SAVED_PATH = f'/data/Models/{DATASET_NAME}'
+    SAVED_PATH = f'/data/Models/classification/{DATASET_NAME}'
     LOG_TIME = datetime.datetime.now().strftime("%Y.%m.%d_%H:%M")
     WEIGHT_FNAME = '{epoch:02d}-{val_categorical_accuracy:.2f}.hdf5'
     checkpoint_path = f'/{SAVED_PATH}/{LOG_TIME}/{WEIGHT_FNAME}'
