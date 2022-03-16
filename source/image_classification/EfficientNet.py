@@ -178,7 +178,7 @@ if __name__ == "__main__":
     # Load data & Set hyper-parameters
     AUTO = tf.data.experimental.AUTOTUNE
     SAMPLE_LEN = 100
-    EPOCHS = 1000
+    EPOCHS = 100
     BATCH_SIZE = 32 * strategy.num_replicas_in_sync
     IMG_SIZE = 300
 
