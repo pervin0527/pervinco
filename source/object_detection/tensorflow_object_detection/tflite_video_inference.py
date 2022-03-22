@@ -1,90 +1,78 @@
 import os
 import cv2
-import numpy as np
-import pandas as pd
-import tensorflow as tf
-
-# GPU setup
-gpus = tf.config.experimental.list_physical_devices('GPU')
-if len(gpus) > 1:
-    try:
-        print("Activate Multi GPU")
-        for gpu in gpus:
-            tf.config.experimental.set_memory_growth(gpu, True)
-        strategy = tf.distribute.MirroredStrategy(cross_device_ops=tf.distribute.HierarchicalCopyAllReduce())
-    except RuntimeError as e:
-        print(e)
-
-else:
-    try:
-        print("Activate Sigle GPU")
-        tf.config.experimental.set_memory_growth(gpus[0], True)
-        strategy = tf.distribute.experimental.CentralStorageStrategy()
-    except RuntimeError as e:
-        print(e)
-
+import time
+import random
+import darknet
+import argparse
+from ctypes import *
+from queue import Queue
+# from threading import Thread, enumerate
+from yolov4_custom_utils import output_remake, write_xml
 
 if __name__ == "__main__":
-    model_file_path = "/data/Models/efficientdet_lite/efdet_dmc_d0-final-test.tflite"
-    video_file_path = "/data/Datasets/Seeds/DMC/samples/sample_video_1.mp4"
-    label_file_path = "/data/Datasets/Seeds/DMC/labels/labels.txt"
-    threshold = 0.7
+    ROOT_DIR = "/data/Models/yolov4/SPC"
+    WEIGHT_PATH = f"{ROOT_DIR}/ckpt/full-name13-tiny/yolov4-tiny_last.weights"
+    CONFIG_PATH = f"{ROOT_DIR}/deploy/yolov4-tiny.cfg"
+    DATA_PATH = f"{ROOT_DIR}/data/spc.data"
+    THRESH_HOLD = .7
 
-    LABEL_FILE = pd.read_csv(label_file_path, sep=' ', index_col=False, header=None)
-    CLASSES = LABEL_FILE[0].tolist()
+    VISUAL = True
+    SAVE_RESULT = True
+    VIDEO_PATH = "/data/Datasets/SPC/Videos/2022-02-22/20220222_Dk2.MOV"
+    
+    cap = cv2.VideoCapture(VIDEO_PATH)
+    # cap = cv2.VideoCapture(-1)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH,  960)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 960)
+    cap.set(cv2.CAP_PROP_BRIGHTNESS, 100)
+    cap.set(cv2.CAP_PROP_FOURCC, 1196444237.0)
+    cap.set(cv2.CAP_PROP_AUTOFOCUS, 1)
 
-    interpreter = tf.lite.Interpreter(model_path=model_file_path)
-    interpreter.allocate_tensors()
+    if SAVE_RESULT:
+        folder_name = VIDEO_PATH.split('/')[-1].split('.')[0]
+        SAVE_PATH = f"{('/').join(WEIGHT_PATH.split('/')[:-1])}/labels/{folder_name}"
+        if not os.path.isdir(SAVE_PATH):
+            os.makedirs(f"{SAVE_PATH}/images")
+            os.makedirs(f"{SAVE_PATH}/annotations")
+            os.makedirs(f"{SAVE_PATH}/result")
 
-    input_details = interpreter.get_input_details()
-    output_details = interpreter.get_output_details()
+    network, class_names, class_colors = darknet.load_network(CONFIG_PATH, DATA_PATH, WEIGHT_PATH, batch_size=1)
+    width = darknet.network_width(network)
+    height = darknet.network_height(network)
+    darknet_image = darknet.make_image(width, height, 3)
 
-    input_shape = input_details[0].get('shape')
-    input_width, input_height = input_shape[1], input_shape[2]
-    input_dtype = input_details[0].get('dtype')
-
-    cap = cv2.VideoCapture(video_file_path)
-    filename = 0
-
+    idx = 0
     while True:
         ret, frame = cap.read()
-
-        if ret == False:
+        if not ret:
             break
 
-        frame_resized = cv2.resize(frame, (input_width, input_height))
-        input_tensor = np.expand_dims(frame_resized, 0)
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        frame_resized = cv2.resize(frame_rgb, (width, height), interpolation=cv2.INTER_LINEAR)
+        copy_resized = cv2.cvtColor(frame_resized.copy(), cv2.COLOR_BGR2RGB)
+        darknet.copy_image_from_bytes(darknet_image, frame_resized.tobytes())
         
-        interpreter.set_tensor(input_details[0]['index'], input_tensor.astype(np.uint8))
-        interpreter.invoke()
+        detections = darknet.detect_image(network, class_names, darknet_image, thresh=THRESH_HOLD, hier_thresh=.5, nms=.45)
+        # darknet.print_detections(detections)
+        result_image = darknet.draw_boxes(detections, frame_resized, class_colors)
+        result_image = cv2.cvtColor(result_image, cv2.COLOR_BGR2RGB)
 
-        boxes = interpreter.get_tensor(output_details[0]['index'])
-        classes = interpreter.get_tensor(output_details[1]['index'])
-        scores = interpreter.get_tensor(output_details[2]['index'])
+        if VISUAL:
+            # cv2.imshow("inference", cv2.resize(result_image, (512, 512)))
+            result_image = cv2.resize(result_image, (960, 960))
+            cv2.imshow("inference", result_image)
+            key = cv2.waitKey(33)
+            if key == 27 or key == 'esc':
+                break
 
-        boxes = boxes[0]
-        classes = classes[0]
-        scores = scores[0]
+        if SAVE_RESULT:
+            labels, scores, bboxes = output_remake(detections)
+            # print(frame_resized.shape)
+            write_xml(image_path=f"{SAVE_PATH}/images/FRAME_{idx:>06}.jpg", save_dir=f"{SAVE_PATH}/annotations", bboxes=bboxes, labels=labels, img_name=f"FRAME_{idx:>06}", img_shape=frame_resized.shape)
+            cv2.imwrite(f"{SAVE_PATH}/images/FRAME_{idx:>06}.jpg", copy_resized)
+            cv2.imwrite(f"{SAVE_PATH}/result/FRAME_{idx:>06}.jpg", result_image)
+            idx += 1
 
-        for index, score in enumerate(scores):
-            if score > threshold:
-                box = boxes[index]
-                label = CLASSES[int(classes[index])]
-
-                ymin, xmin, ymax, xmax = int(box[0] * input_width), int(box[1] * input_width), int(box[2] * input_width), int(box[3] * input_width)
-
-                cv2.rectangle(frame, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (255, 0, 0))
-                cv2.putText(frame, f"{label} {score:.2f}%", (int(xmin), int(ymin)), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 0))
-
-        cv2.imshow('result', frame)
-        
-        k = cv2.waitKey(1)
-        if k == ord('q'):
-            os.system('clear')
-            break
-
-        cv2.imwrite(f"/data/Datasets/Seeds/DMC/results/d0-final-test/{filename}.jpg", frame)
-        filename += 1
-
-cap.release()
-cv2.destroyAllWindows()
+    if cap.isOpened():
+        cap.release()
+    cv2.destroyAllWindows()

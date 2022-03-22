@@ -11,8 +11,8 @@ from tflite_model_maker.config import QuantizationConfig
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC-Hannam"
-    TRAIN_DIR = f"{ROOT_DIR}/ver4/train"
-    VALID_DIR = f"{ROOT_DIR}/ver4/valid"
+    TRAIN_DIR = f"{ROOT_DIR}/ver1/train"
+    VALID_DIR = f"{ROOT_DIR}/ver1/valid"
 
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
     LABEL_FILE = pd.read_csv(LABEL_FILE, sep=',', index_col=False, header=None)
@@ -20,7 +20,7 @@ if __name__ == "__main__":
     # CLASSES = CLASSES[:-1]
     print(CLASSES)
     
-    EPOCHS = 5
+    EPOCHS = 3
     BATCH_SIZE = 64
     MAX_DETECTIONS = 10
     # HPARAMS = {"optimizer" : "sgd",
@@ -59,10 +59,10 @@ if __name__ == "__main__":
                                                             label_map=CLASSES)
 
     validation_data = object_detector.DataLoader.from_pascal_voc(images_dir=f'{VALID_DIR}/images',
-                                                                annotations_dir=f'{VALID_DIR}/annotations',
-                                                                label_map=CLASSES)
+                                                                 annotations_dir=f'{VALID_DIR}/annotations',
+                                                                 label_map=CLASSES)
 
-    spec = object_detector.EfficientDetLite0Spec(verbose=1,
+    spec = object_detector.EfficientDetLite1Spec(verbose=1,
                                                  strategy=None, # 'gpus'
                                                  hparams=HPARAMS,
                                                  tflite_max_detections=MAX_DETECTIONS,
@@ -76,11 +76,13 @@ if __name__ == "__main__":
                                    do_train=True,
                                    train_whole_model=True,)
 
-    config = QuantizationConfig.for_int8(representative_data=validation_data)                                   
+    # config = QuantizationConfig.for_int8(representative_data=validation_data)
+    # config = QuantizationConfig.for_float16()                                   
 
     model.export(export_dir=f"{SAVE_PATH}/{MODEL_FILE}",
                  label_filename=f'{SAVE_PATH}/label_map.txt',
                  tflite_filename=f'{MODEL_FILE}.tflite',
                  saved_model_filename=f'{SAVE_PATH}/{MODEL_FILE}/saved_model',
                  export_format=[ExportFormat.TFLITE, ExportFormat.SAVED_MODEL],
-                 quantization_config=config)
+                #  quantization_config=config
+                 )

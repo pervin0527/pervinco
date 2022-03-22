@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="740f26a3-e50f-466e-88e7-07994f41f84b" name="Default Changelist" comment="" />
+    <list default="true" id="740f26a3-e50f-466e-88e7-07994f41f84b" name="Default Changelist" comment="latest update 2020.04.23">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/source/object_detection/tensorflow_object_detection/model_maker_train.py" beforeDir="false" afterPath="$PROJECT_DIR$/source/object_detection/tensorflow_object_detection/model_maker_train.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/source/object_detection/tensorflow_object_detection/tflite_image_inference.py" beforeDir="false" afterPath="$PROJECT_DIR$/source/object_detection/tensorflow_object_detection/tflite_image_inference.py" afterDir="false" />
+    </list>
     <list id="5b89db4e-0a06-42d3-acf0-65b56fcb6000" name="latest update 2020.03.04" comment="" />
     <list id="67f3f067-78d1-47c4-be84-37f0882f3257" name="nnnn" comment="nnnn" />
     <list id="b34898d4-e57d-41c1-817e-36a78745f5b3" name="Revert &quot;code&quot;" comment="Revert &quot;code&quot;&#10;&#10;This reverts commit df60ada1" />
@@ -17,9 +24,6 @@
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
-  </component>
-  <component name="FavoritesManager">
-    <favorites_list name="pervinco" />
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -39,20 +43,34 @@
     <option name="ROOT_SYNC" value="SYNC" />
     <option name="UPDATE_TYPE" value="MERGE" />
   </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file:///usr/local/lib/python3.8/dist-packages/tflite_model_maker/object_detector/__init__.py" root0="FORCE_HIGHLIGHTING" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
   <component name="ProjectId" id="1TuByG2y9o1NSqTG7JTDCwE6OXV" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
-    <option name="showExcludedFiles" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
     <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="settings.editor.selected.configurable" value="project.propVCSSupport.Mappings" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../darknet" />
+    <property name="node.js.detected.package.eslint" value="true" />
+    <property name="node.js.detected.package.tslint" value="true" />
+    <property name="node.js.selected.package.eslint" value="(autodetect)" />
+    <property name="node.js.selected.package.tslint" value="(autodetect)" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
-  <component name="RunManager" selected="Python.tf_ResNet50">
+  <component name="ReaderModeSettings">
+    <option name="enabled" value="false" />
+  </component>
+  <component name="RunManager" selected="Python.model_maker_train">
     <configuration name="images" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="pervinco" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -65,6 +83,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test_code/images.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -74,7 +93,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="load_batch" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="model_maker_train" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="pervinco" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -82,11 +101,12 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/test_code" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/source/object_detection/tensorflow_object_detection" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test_code/load_batch.py" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/source/object_detection/tensorflow_object_detection/model_maker_train.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -107,6 +127,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/source/tf_ResNet50.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -128,6 +149,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/source/tf_alex_net.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -149,6 +171,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test_code/tlqkf.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -160,11 +183,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.model_maker_train" />
         <item itemvalue="Python.tf_ResNet50" />
         <item itemvalue="Python.tlqkf" />
         <item itemvalue="Python.tf_alex_net" />
         <item itemvalue="Python.images" />
-        <item itemvalue="Python.load_batch" />
       </list>
     </recent_temporary>
   </component>
@@ -181,6 +204,7 @@
     </option>
     <option name="showServicesTree" value="false" />
   </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="SvnConfiguration">
     <configuration />
   </component>
@@ -193,6 +217,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1574300352654</updated>
+      <workItem from="1647924541211" duration="3157000" />
     </task>
     <task id="LOCAL-00072" summary="latest update 1.3">
       <created>1578028768235</created>
@@ -540,14 +565,15 @@
     <option name="localTasksCounter" value="121" />
     <servers />
   </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
       <map>
         <entry key="MAIN">
           <value>
-            <State>
-              <option name="COLUMN_ORDER" />
-            </State>
+            <State />
           </value>
         </entry>
       </map>
@@ -589,108 +615,7 @@
     <MESSAGE value="latest update 2020.04.23" />
     <option name="LAST_COMMIT_MESSAGE" value="latest update 2020.04.23" />
   </component>
-  <component name="WindowStateProjectService">
-    <state x="528" y="139" width="867" height="865" key="CommitChangelistDialog2" timestamp="1587629673111">
-      <screen x="0" y="30" width="1920" height="1050" />
-    </state>
-    <state x="528" y="130" width="854" height="824" key="CommitChangelistDialog2/1920.0.1920.1080/0.27.1920.996@0.27.1920.996" timestamp="1582788800152" />
-    <state x="2448" y="112" width="854" height="823" key="CommitChangelistDialog2/1920.0.1920.1080/0.27.1920.996@1920.0.1920.1080" timestamp="1580777865965" />
-    <state x="528" y="139" width="867" height="865" key="CommitChangelistDialog2/1920.0.1920.1080/0.30.1920.1050@0.30.1920.1050" timestamp="1587629673111" />
-    <state x="743" y="284" width="704" height="511" key="FileChooserDialogImpl" timestamp="1586494750964">
-      <screen x="0" y="30" width="1920" height="1050" />
-    </state>
-    <state x="743" y="268" width="424" height="484" key="FileChooserDialogImpl/1920.0.1920.1080/0.27.1920.996@0.27.1920.996" timestamp="1580970650040" />
-    <state x="743" y="284" width="704" height="511" key="FileChooserDialogImpl/1920.0.1920.1080/0.30.1920.1050@0.30.1920.1050" timestamp="1586494750964" />
-    <state width="1893" height="202" key="GridCell.Tab.0.bottom" timestamp="1580971587894">
-      <screen x="0" y="27" width="1920" height="996" />
-    </state>
-    <state width="1893" height="202" key="GridCell.Tab.0.bottom/1920.0.1920.1080/0.27.1920.996@0.27.1920.996" timestamp="1580971587894" />
-    <state width="1920" height="938" key="GridCell.Tab.0.bottom/1920.0.1920.1080/0.27.1920.996@1920.0.1920.1080" timestamp="1580946552495" />
-    <state width="1893" height="202" key="GridCell.Tab.0.center" timestamp="1580971587894">
-      <screen x="0" y="27" width="1920" height="996" />
-    </state>
-    <state width="1893" height="202" key="GridCell.Tab.0.center/1920.0.1920.1080/0.27.1920.996@0.27.1920.996" timestamp="1580971587894" />
-    <state width="1920" height="938" key="GridCell.Tab.0.center/1920.0.1920.1080/0.27.1920.996@1920.0.1920.1080" timestamp="1580946552495" />
-    <state width="1893" height="202" key="GridCell.Tab.0.left" timestamp="1580971587894">
-      <screen x="0" y="27" width="1920" height="996" />
-    </state>
-    <state width="1893" height="202" key="GridCell.Tab.0.left/1920.0.1920.1080/0.27.1920.996@0.27.1920.996" timestamp="1580971587894" />
-    <state width="1920" height="938" key="GridCell.Tab.0.left/1920.0.1920.1080/0.27.1920.996@1920.0.1920.1080" timestamp="1580946552495" />
-    <state width="1893" height="202" key="GridCell.Tab.0.right" timestamp="1580971587894">
-      <screen x="0" y="27" width="1920" height="996" />
-    </state>
-    <state width="1893" height="202" key="GridCell.Tab.0.right/1920.0.1920.1080/0.27.1920.996@0.27.1920.996" timestamp="1580971587894" />
-    <state width="1920" height="938" key="GridCell.Tab.0.right/1920.0.1920.1080/0.27.1920.996@1920.0.1920.1080" timestamp="1580946552495" />
-    <state x="790" y="248" width="329" height="581" key="RollbackChangesDialog" timestamp="1584947874637">
-      <screen x="0" y="30" width="1920" height="1050" />
-    </state>
-    <state x="790" y="248" width="329" height="581" key="RollbackChangesDialog/1920.0.1920.1080/0.30.1920.1050@0.30.1920.1050" timestamp="1584947874637" />
-    <state x="449" y="185" key="SettingsEditor" timestamp="1583210957699">
-      <screen x="0" y="30" width="1920" height="1050" />
-    </state>
-    <state x="449" y="174" key="SettingsEditor/1920.0.1920.1080/0.27.1920.996@0.27.1920.996" timestamp="1580971578586" />
-    <state x="2369" y="159" key="SettingsEditor/1920.0.1920.1080/0.27.1920.996@1920.0.1920.1080" timestamp="1580775785942" />
-    <state x="449" y="185" key="SettingsEditor/1920.0.1920.1080/0.30.1920.1050@0.30.1920.1050" timestamp="1583210957699" />
-    <state x="804" y="450" width="302" height="177" key="VCS.ChangelistChooser" timestamp="1583280790976">
-      <screen x="0" y="30" width="1920" height="1050" />
-    </state>
-    <state x="804" y="450" width="302" height="177" key="VCS.ChangelistChooser/1920.0.1920.1080/0.30.1920.1050@0.30.1920.1050" timestamp="1583280790976" />
-    <state x="555" y="281" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1587629682527">
-      <screen x="0" y="30" width="1920" height="1050" />
-    </state>
-    <state x="555" y="265" width="800" height="531" key="Vcs.Push.Dialog.v2/1920.0.1920.1080/0.27.1920.996@0.27.1920.996" timestamp="1582788803788" />
-    <state x="2475" y="258" width="800" height="531" key="Vcs.Push.Dialog.v2/1920.0.1920.1080/0.27.1920.996@1920.0.1920.1080" timestamp="1580777992470" />
-    <state x="555" y="281" width="800" height="528" key="Vcs.Push.Dialog.v2/1920.0.1920.1080/0.30.1920.1050@0.30.1920.1050" timestamp="1587629682527" />
-    <state x="622" y="373" key="com.intellij.ide.util.TipDialog" timestamp="1586494720509">
-      <screen x="0" y="30" width="1920" height="1050" />
-    </state>
-    <state x="622" y="352" key="com.intellij.ide.util.TipDialog/1920.0.1920.1080/0.27.1920.996@0.27.1920.996" timestamp="1582273024266" />
-    <state x="2542" y="352" key="com.intellij.ide.util.TipDialog/1920.0.1920.1080/0.27.1920.996@1920.0.1920.1080" timestamp="1580870942600" />
-    <state x="622" y="373" key="com.intellij.ide.util.TipDialog/1920.0.1920.1080/0.30.1920.1050@0.30.1920.1050" timestamp="1586494720509" />
-    <state x="733" y="451" width="453" height="172" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1587629554994">
-      <screen x="0" y="30" width="1920" height="1050" />
-    </state>
-    <state x="733" y="426" width="453" height="168" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/1920.0.1920.1080/0.27.1920.996@0.27.1920.996" timestamp="1582175940542" />
-    <state x="733" y="451" width="453" height="172" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/1920.0.1920.1080/0.30.1920.1050@0.30.1920.1050" timestamp="1587629554994" />
-    <state x="1920" y="30" width="1629" height="1028" key="dock-window-1" timestamp="1584509958662">
-      <screen x="1920" y="0" width="1920" height="1080" />
-    </state>
-    <state x="2202" y="27" width="1624" height="973" maximized="true" key="dock-window-1/1920.0.1920.1080/0.27.1920.996@0.27.1920.996" timestamp="1582504582257" />
-    <state x="40" y="27" width="1624" height="946" maximized="true" key="dock-window-1/1920.0.1920.1080/0.27.1920.996@1920.0.1920.1080" timestamp="1580872372339" />
-    <state x="1920" y="30" width="1629" height="1028" key="dock-window-1/1920.0.1920.1080/0.30.1920.1050@0.30.1920.1050" timestamp="1584509958662" />
-    <state x="1920" y="27" width="1624" height="973" key="dock-window-2" timestamp="1581986895570">
-      <screen x="1920" y="0" width="1920" height="1080" />
-    </state>
-    <state x="1920" y="27" width="1624" height="973" key="dock-window-2/1920.0.1920.1080/0.27.1920.996@0.27.1920.996" timestamp="1581986895570" />
-    <state x="102" y="27" width="1624" height="946" key="dock-window-2/1920.0.1920.1080/0.27.1920.996@1920.0.1920.1080" timestamp="1580879816488" />
-    <state x="2208" y="27" width="1624" height="973" key="dock-window-3" timestamp="1581057005913">
-      <screen x="1920" y="0" width="1920" height="1080" />
-    </state>
-    <state x="2208" y="27" width="1624" height="973" key="dock-window-3/1920.0.1920.1080/0.27.1920.996@0.27.1920.996" timestamp="1581057005913" />
-    <state x="169" y="26" width="1624" height="946" key="dock-window-3/1920.0.1920.1080/0.27.1920.996@1920.0.1920.1080" timestamp="1580880320114" />
-    <state x="259" y="27" width="1624" height="946" key="dock-window-4" timestamp="1580884165732">
-      <screen x="0" y="27" width="1920" height="996" />
-    </state>
-    <state x="259" y="27" width="1624" height="946" key="dock-window-4/1920.0.1920.1080/0.27.1920.996@1920.0.1920.1080" timestamp="1580884165732" />
-    <state x="3" y="27" width="1624" height="946" maximized="true" key="dock-window-5" timestamp="1580887793748">
-      <screen x="0" y="27" width="1920" height="996" />
-    </state>
-    <state x="3" y="27" width="1624" height="946" maximized="true" key="dock-window-5/1920.0.1920.1080/0.27.1920.996@1920.0.1920.1080" timestamp="1580887793748" />
-    <state x="275" y="27" width="1624" height="946" maximized="true" key="dock-window-6" timestamp="1580970330607">
-      <screen x="0" y="27" width="1920" height="996" />
-    </state>
-    <state x="275" y="27" width="1624" height="946" maximized="true" key="dock-window-6/1920.0.1920.1080/0.27.1920.996@1920.0.1920.1080" timestamp="1580892779767" />
-    <state x="624" y="325" width="662" height="439" key="git4idea.merge.GitPullDialog" timestamp="1586307630165">
-      <screen x="0" y="30" width="1920" height="1050" />
-    </state>
-    <state x="624" y="307" key="git4idea.merge.GitPullDialog/1920.0.1920.1080/0.27.1920.996@0.27.1920.996" timestamp="1580970576146" />
-    <state x="2544" y="304" width="662" height="439" key="git4idea.merge.GitPullDialog/1920.0.1920.1080/0.27.1920.996@1920.0.1920.1080" timestamp="1580777922750" />
-    <state x="624" y="325" key="git4idea.merge.GitPullDialog/1920.0.1920.1080/0.30.1920.1050@0.30.1920.1050" timestamp="1586307630165" />
-    <state x="622" y="265" width="676" height="665" key="search.everywhere.popup" timestamp="1584509970816">
-      <screen x="0" y="30" width="1920" height="1050" />
-    </state>
-    <state x="623" y="251" width="672" height="626" key="search.everywhere.popup/1920.0.1920.1080/0.27.1920.996@0.27.1920.996" timestamp="1582180356966" />
-    <state x="2543" y="243" width="672" height="678" key="search.everywhere.popup/1920.0.1920.1080/0.27.1920.996@1920.0.1920.1080" timestamp="1580881116191" />
-    <state x="622" y="265" width="676" height="665" key="search.everywhere.popup/1920.0.1920.1080/0.30.1920.1050@0.30.1920.1050" timestamp="1584509970816" />
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/pervinco$model_maker_train.coverage" NAME="model_maker_train Coverage Results" MODIFIED="1647925159431" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/source/object_detection/tensorflow_object_detection" />
   </component>
 </project>

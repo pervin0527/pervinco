@@ -68,8 +68,8 @@ def postprocess(boxes, classes, scores, image_path):
     print(image_path, final_result)
 
 if __name__ == "__main__":
-    model_path = "/data/Models/efficientdet_lite/full-name10-GAP6-300/full-name10-GAP6-300.tflite"
-    images_path = "/data/Datasets/SPC/Videos/2022-02-22/dunkin"
+    model_path = "/data/Models/efficientdet_lite/full-name13-GAP6-300/full-name13-GAP6-300.tflite"
+    images_path = "/data/test/spc-sample"
     label_path = "/data/Datasets/SPC/Labels/labels.txt"
     threshold = 0.7
 
