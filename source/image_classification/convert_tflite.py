@@ -21,7 +21,7 @@ def representative_data_gen():
         yield [input_value]
 
 
-saved_model_dir = "/data/Models/classification/SPC/2022.03.24_17:42"
+saved_model_dir = "/data/Models/classification/SPC/2022.03.24_18:18"
 converter = tf.lite.TFLiteConverter.from_saved_model(saved_model_dir)
 converter.optimizations = [tf.lite.Optimize.DEFAULT]
 converter.representative_dataset = representative_data_gen
