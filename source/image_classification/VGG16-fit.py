@@ -24,8 +24,8 @@ else:
 def preprocess_image(images, label):
     image = tf.io.read_file(images)
     image = tf.image.decode_jpeg(image, channels=3)
-    image = tf.cast(image, tf.float32) / 255.0
-    image = tf.image.per_image_standardization(image)
+    # image = tf.cast(image, tf.float32) / 255.0
+    # image = tf.image.per_image_standardization(image)
     image = tf.image.resize(image, [IMG_SIZE, IMG_SIZE])
 
     return image, label
@@ -64,7 +64,8 @@ def get_dataset(ds_path, is_train):
 
 class VGG16(tf.keras.Model):
     def __init__(self):
-        super(VGG16, self).__init__()        
+        super(VGG16, self).__init__()
+        self.normalization = tf.keras.layers.experimental.preprocessing.Rescaling(1./255)        
         self.block1_conv1 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv1', kernel_initializer='he_uniform')
         self.block1_conv2 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv2', kernel_initializer='he_uniform')
         self.block1_pool = tf.keras.layers.MaxPool2D((2, 2), strides=(2, 2), name='block1_pool')
@@ -96,7 +97,8 @@ class VGG16(tf.keras.Model):
         self.prediction = tf.keras.layers.Dense(n_classes, activation='softmax', name='predictions')
 
     def call(self, inputs, training):
-        net = self.block1_conv1(inputs)
+        net = self.normalization(inputs)
+        net = self.block1_conv1(net)
         net = self.block1_conv2(net)
         net = self.block1_pool(net)
         net = self.block2_conv1(net)
@@ -151,16 +153,16 @@ def train(model, images, labels):
 
 if __name__ == "__main__":
     IMG_SIZE = 224
-    BATCH_SIZE = 32
-    LR_INIT = 0.00001
-    EPOCHS = 200
-    minimum_loss = 2147000000    
+    BATCH_SIZE = 64
+    LR_INIT = 0.001
+    EPOCHS = 1
     PATIENCE = 3
     INPUT_SHAPE = (IMG_SIZE, IMG_SIZE, 3)
     AUTOTUNE = tf.data.experimental.AUTOTUNE
+    ROOT = "/data/Datasets/SPC"
 
-    train_dataset, _, n_classes = get_dataset('/data/tf_workspace/Auged_datasets/natural_images/2021.03.26_09:26:52/train', True)
-    test_dataset, _, _ = get_dataset('/data/tf_workspace/Auged_datasets/natural_images/2021.03.26_09:26:52/valid', False)
+    train_dataset, _, n_classes = get_dataset(f'{ROOT}/Cls/train', True)
+    test_dataset, _, _ = get_dataset(f'{ROOT}/Cls/valid', False)
     n_classes = len(n_classes)
 
     optimizer = tf.keras.optimizers.SGD(learning_rate=LR_INIT)
@@ -175,3 +177,5 @@ if __name__ == "__main__":
               verbose=1,
               validation_data=test_dataset,
               callbacks=callbacks)
+
+    model.save("/data/Models/classification/tflite-test")
