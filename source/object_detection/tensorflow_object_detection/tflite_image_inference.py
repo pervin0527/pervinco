@@ -104,4 +104,9 @@ if __name__ == "__main__":
         scores = interpreter.get_tensor(output_details[2]['index'])
         num_detections = interpreter.get_tensor(output_details[3]['index'])
 
+        print(boxes.shape)
+        print(classes.shape)
+        print(scores.shape)
+        print(num_detections.shape)
+
         postprocess(boxes, classes, scores, image)
