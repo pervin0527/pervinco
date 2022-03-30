@@ -154,7 +154,7 @@ if __name__ == "__main__":
     
     IMG_DIR = f"{ROOT_DIR}/{FOLDER}/images"
     ANNOT_DIR = f"{ROOT_DIR}/{FOLDER}/annotations"
-    LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
+    LABEL_DIR = f"{ROOT_DIR}/Labels/custom_labels.txt"
     SAVE_DIR = f"{ROOT_DIR}/{FOLDER}"
 
     classes = read_label_file(LABEL_DIR)

@@ -9,6 +9,7 @@ label_path = f"{data_path}/Labels/labels.txt"
 save_path = f"{data_path}/CUSTOM"
 
 targets = ['person', 'car', 'motorbike', 'bus', 'truck', 'backpack', 'umbrella', 'bottle', 'cup', 'laptop', 'mouse', 'keyboard']
+check = set()
 
 classes = read_label_file(label_path)
 print(classes)
@@ -24,11 +25,20 @@ for index in tqdm(range(len(images))):
     bboxes, labels = read_xml(annotations[index], classes, format='pascal_voc')
     # print(labels)
 
-    for label in labels:
-        if not label in targets:
-            del bboxes[labels.index(label)]
-            labels.remove(label)
+    new_labels, new_bboxes = [], []
+    for label, bbox in zip(labels, bboxes):
+        if label in targets:
+            new_labels.append(label)
+            new_bboxes.append(bbox)
+            
+    # print(labels)
+    for label in new_labels:
+        # print(label)
+        check.add(label)
 
     write_xml(f"{save_path}/annotations", bboxes, labels, filename, image_height, image_width, format="pascal_voc")
     cv2.imwrite(f"{save_path}/images/{filename}.jpg", image)
     # visualize(image, bboxes, labels, format="pascal_voc", show_info=True)
+
+    # break
+print(check)
