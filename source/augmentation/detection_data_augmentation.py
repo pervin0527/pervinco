@@ -74,12 +74,12 @@ def data_process(is_train, folder_name):
                             A.RandomBrightnessContrast(p=1, brightness_limit=(-0.2, 0.2)),
                             A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
                             
-                            # A.OneOf([
-                            #     A.RandomRotate90(p=0.4),
-                            #     A.Downscale(scale_min=0.5, scale_max=0.8, p=0.2),
-                            #     A.VerticalFlip(p=0.2),
-                            #     A.HorizontalFlip(p=0.2)
-                            # ], p=1),
+                            A.OneOf([
+                                A.RandomRotate90(p=0.4),
+                                A.Downscale(scale_min=0.5, scale_max=0.8, p=0.2),
+                                A.VerticalFlip(p=0.2),
+                                A.HorizontalFlip(p=0.2)
+                            ], p=1),
 
                             # A.OneOf([
                             #     A.Downscale(scale_min=0.5, scale_max=0.8, p=0.2),
@@ -141,13 +141,13 @@ def data_process(is_train, folder_name):
 
 
 if __name__ == "__main__":
-    ROOT_DIR = "/data/Datasets/SPC"
-    FOLDER = "full-name13"
+    ROOT_DIR = "/data/Datasets/COCO2017"
+    FOLDER = "CUSTOM"
     STEPS = 1
     IMG_SIZE = 384
     VALID_RATIO = 0.1
     VISUAL = False
-    INCLUDE_BG = True
+    INCLUDE_BG = False
     BG_RATIO = 0.2
     # BG_DIR = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012/TEST"
     BG_DIR = "/data/Datasets/SPC/download"
