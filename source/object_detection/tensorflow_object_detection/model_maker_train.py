@@ -10,9 +10,9 @@ from tflite_model_maker.config import ExportFormat
 from tflite_model_maker.config import QuantizationConfig
 
 if __name__ == "__main__":
-    ROOT_DIR = "/data/Datasets/SPC-Hannam"
-    TRAIN_DIR = f"{ROOT_DIR}/ver1/train"
-    VALID_DIR = f"{ROOT_DIR}/ver1/valid"
+    ROOT_DIR = "/data/Datasets/COCO2017"
+    TRAIN_DIR = f"{ROOT_DIR}/CUSTOM/train"
+    VALID_DIR = f"{ROOT_DIR}/CUSTOM/valid"
 
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
     LABEL_FILE = pd.read_csv(LABEL_FILE, sep=',', index_col=False, header=None)
@@ -62,7 +62,7 @@ if __name__ == "__main__":
                                                                  annotations_dir=f'{VALID_DIR}/annotations',
                                                                  label_map=CLASSES)
 
-    spec = object_detector.EfficientDetLite1Spec(verbose=1,
+    spec = object_detector.EfficientDetLite0Spec(verbose=1,
                                                  strategy=None, # 'gpus'
                                                  hparams=HPARAMS,
                                                  tflite_max_detections=MAX_DETECTIONS,
