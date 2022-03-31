@@ -10,9 +10,9 @@ from tflite_model_maker.config import ExportFormat
 from tflite_model_maker.config import QuantizationConfig
 
 if __name__ == "__main__":
-    ROOT_DIR = "/data/Datasets/COCO2017"
-    TRAIN_DIR = f"{ROOT_DIR}/CUSTOM/train"
-    VALID_DIR = f"{ROOT_DIR}/CUSTOM/valid"
+    ROOT_DIR = "/data/Datasets/SPC"
+    TRAIN_DIR = f"{ROOT_DIR}/full-name13/train"
+    VALID_DIR = f"{ROOT_DIR}/full-name13/valid"
 
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
     LABEL_FILE = pd.read_csv(LABEL_FILE, sep=',', index_col=False, header=None)
@@ -20,7 +20,7 @@ if __name__ == "__main__":
     # CLASSES = CLASSES[:-1]
     print(CLASSES)
     
-    EPOCHS = 3
+    EPOCHS = 50
     BATCH_SIZE = 64
     MAX_DETECTIONS = 10
     # HPARAMS = {"optimizer" : "sgd",
@@ -36,14 +36,28 @@ if __name__ == "__main__":
     #            "es_patience" : 15,
     #            "ckpt" : None}
 
+    # HPARAMS = {"optimizer" : "sgd",
+    #            "learning_rate" : 0.08, # 0.008
+    #            "lr_warmup_init" : 0.008, # 0.0008
+    #            "anchor_scale" : 4.0, # 7.0
+    #            "aspect_ratios" : [1.0, 2.0, 0.5], # [8.0, 4.0, 2.0, 1.0, 0.5]
+    #            "num_scales" : 3, # 5
+    #            "alpha" : 0.25,
+    #            "gamma" : 1.5, # 2
+    #            "es" : False,
+    #            "es_monitor" : "val_det_loss",
+    #            "es_patience" : 15,
+    #            "ckpt" : None}
+
+    ## TEST
     HPARAMS = {"optimizer" : "sgd",
-               "learning_rate" : 0.08, # 0.008
-               "lr_warmup_init" : 0.008, # 0.0008
-               "anchor_scale" : 4.0, # 7.0
-               "aspect_ratios" : [1.0, 2.0, 0.5], # [8.0, 4.0, 2.0, 1.0, 0.5]
-               "num_scales" : 3, # 5
+               "learning_rate" : 0.08,
+               "lr_warmup_init" : 0.008,
+               "anchor_scale" : 4.0,
+               "aspect_ratios" : [1.07, 3.11, 7.67, 15.59],
+               "num_scales" : 3,
                "alpha" : 0.25,
-               "gamma" : 1.5, # 2
+               "gamma" : 2,
                "es" : False,
                "es_monitor" : "val_det_loss",
                "es_patience" : 15,
