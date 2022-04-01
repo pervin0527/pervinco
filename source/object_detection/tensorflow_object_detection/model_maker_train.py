@@ -11,8 +11,8 @@ from tflite_model_maker.config import QuantizationConfig
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    TRAIN_DIR = f"{ROOT_DIR}/full-name13/train"
-    VALID_DIR = f"{ROOT_DIR}/full-name13/valid"
+    TRAIN_DIR = f"{ROOT_DIR}/scale-test/train"
+    VALID_DIR = f"{ROOT_DIR}/scale-test/valid"
 
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
     LABEL_FILE = pd.read_csv(LABEL_FILE, sep=',', index_col=False, header=None)
@@ -53,8 +53,8 @@ if __name__ == "__main__":
     HPARAMS = {"optimizer" : "sgd",
                "learning_rate" : 0.08,
                "lr_warmup_init" : 0.008,
-               "anchor_scale" : 4.0,
-               "aspect_ratios" : [1.07, 3.11, 7.67, 15.59],
+               "anchor_scale" : 7.0,
+               "aspect_ratios" : [1.16, 3.48, 9.23, 20.39],
                "num_scales" : 3,
                "alpha" : 0.25,
                "gamma" : 2,

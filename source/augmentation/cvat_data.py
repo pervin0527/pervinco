@@ -9,14 +9,14 @@ if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
     FOLDER = "Cvat"
-    IMG_SIZE = 384
-    SAVE_DIR = f"{ROOT_DIR}/full-name13"
+    IMG_SIZE = 320
+    SAVE_DIR = f"{ROOT_DIR}/scale-test"
 
     classes = read_label_file(LABEL_DIR)
     print(classes)
 
     dataset = sorted(glob(f"{ROOT_DIR}/{FOLDER}/*"))
-    dataset = dataset[:-1] # except "Paris_baguette"
+    # dataset = dataset[:-1] # except "Paris_baguette"
     print(dataset)
 
     transform = A.Compose([

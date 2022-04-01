@@ -74,17 +74,17 @@ def data_process(is_train, folder_name):
                             A.RandomBrightnessContrast(p=1, brightness_limit=(-0.2, 0.2)),
                             A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
                             
-                            A.OneOf([
-                                A.RandomRotate90(p=0.4),
-                                A.Downscale(scale_min=0.5, scale_max=0.8, p=0.2),
-                                A.VerticalFlip(p=0.2),
-                                A.HorizontalFlip(p=0.2)
-                            ], p=1),
-
                             # A.OneOf([
+                            #     A.RandomRotate90(p=0.4),
                             #     A.Downscale(scale_min=0.5, scale_max=0.8, p=0.2),
-                            #     # A.RandomSnow(p=0.2),
-                            # ], p=1)
+                            #     A.VerticalFlip(p=0.2),
+                            #     A.HorizontalFlip(p=0.2)
+                            # ], p=1),
+
+                            A.OneOf([
+                                A.Downscale(scale_min=0.5, scale_max=0.8, p=0.2),
+                                # A.RandomSnow(p=0.2),
+                            ], p=1)
 
                         ])
                     ], bbox_params=A.BboxParams(format='pascal_voc', min_area=0.5, min_visibility=0.2, label_fields=['labels']))
@@ -141,10 +141,10 @@ def data_process(is_train, folder_name):
 
 
 if __name__ == "__main__":
-    ROOT_DIR = "/data/Datasets/COCO2017"
-    FOLDER = "CUSTOM"
+    ROOT_DIR = "/data/Datasets/SPC"
+    FOLDER = "scale-test"
     STEPS = 1
-    IMG_SIZE = 384
+    IMG_SIZE = 320
     VALID_RATIO = 0.1
     VISUAL = False
     INCLUDE_BG = False
@@ -154,7 +154,7 @@ if __name__ == "__main__":
     
     IMG_DIR = f"{ROOT_DIR}/{FOLDER}/images"
     ANNOT_DIR = f"{ROOT_DIR}/{FOLDER}/annotations"
-    LABEL_DIR = f"{ROOT_DIR}/Labels/custom_labels.txt"
+    LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
     SAVE_DIR = f"{ROOT_DIR}/{FOLDER}"
 
     classes = read_label_file(LABEL_DIR)
