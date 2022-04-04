@@ -8,11 +8,11 @@ from src.utils import read_xml, write_xml, read_label_file, get_files, visualize
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
     FOLDER = f"{ROOT_DIR}/Cvat"
-    SAVE_DIR = f"{ROOT_DIR}/PB-test"
+    SAVE_DIR = f"{ROOT_DIR}/full-name14"
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
     TARGETS = ["Paris_baguette"]
 
-    GAP = 6
+    GAP = 4
     limit_ratio = 10
     visual = False
 

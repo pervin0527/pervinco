@@ -12,39 +12,39 @@ df = pd.read_csv(label_path, sep=',', index_col=False, header=None)
 CLASSES = df[0].tolist()
 print(CLASSES)
 
-# transform = A.Compose([
-#     A.Resize(width=320, height=320, p=1),
-#     A.RandomBrightnessContrast(p=1)
-# ])
+transform = A.Compose([
+    A.Resize(width=320, height=320, p=1),
+    A.RandomBrightnessContrast(p=1)
+])
 
-# for label in CLASSES:
-#     files = sorted(glob(f"{ds_path}/Cvat/{label}/*/JPEGImages/*"))
+for label in CLASSES:
+    files = sorted(glob(f"{ds_path}/Cvat/{label}/*/JPEGImages/*"))
 
-#     if not os.path.isdir(f"{ds_path}/Cls/train/{label}"):
-#         os.makedirs(f"{ds_path}/Cls/train/{label}")
+    if not os.path.isdir(f"{ds_path}/Cls/train/{label}"):
+        os.makedirs(f"{ds_path}/Cls/train/{label}")
     
-#     for idx in tqdm(range(len(files))):
-#         file = files[idx]
-#         file_name = file.split('/')[-1].split('.')[0]
-#         image = cv2.imread(file)
+    for idx in tqdm(range(len(files))):
+        file = files[idx]
+        file_name = file.split('/')[-1].split('.')[0]
+        image = cv2.imread(file)
 
-#         transformed = transform(image=image)
-#         transformed_image = transformed['image']
-#         cv2.imwrite(f"{ds_path}/Cls/train/{label}/{file_name}.jpg", transformed_image)
+        transformed = transform(image=image)
+        transformed_image = transformed['image']
+        cv2.imwrite(f"{ds_path}/Cls/train/{label}/{file_name}.jpg", transformed_image)
 
-#     files = random.choices(files, k=int(len(files) * 0.1))
+    files = random.choices(files, k=int(len(files) * 0.1))
 
-#     if not os.path.isdir(f"{ds_path}/Cls/valid/{label}"):
-#         os.makedirs(f"{ds_path}/Cls/valid/{label}")
+    if not os.path.isdir(f"{ds_path}/Cls/valid/{label}"):
+        os.makedirs(f"{ds_path}/Cls/valid/{label}")
 
-#     for idx in tqdm(range(len(files))):
-#         file = files[idx]
-#         file_name = file.split('/')[-1].split('.')[0]
-#         image = cv2.imread(file)
+    for idx in tqdm(range(len(files))):
+        file = files[idx]
+        file_name = file.split('/')[-1].split('.')[0]
+        image = cv2.imread(file)
 
-#         transformed = transform(image=image)
-#         transformed_image = transformed['image']
-#         cv2.imwrite(f"{ds_path}/Cls/valid/{label}/{file_name}.jpg", transformed_image)
+        transformed = transform(image=image)
+        transformed_image = transformed['image']
+        cv2.imwrite(f"{ds_path}/Cls/valid/{label}/{file_name}.jpg", transformed_image)
 
 
 if not os.path.isdir(f"{ds_path}/Cls/train/Background"):

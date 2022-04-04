@@ -2,8 +2,8 @@ import os
 import cv2
 from glob import glob
 
-root = "/data/test/SPC-20220224/타브랜드"
-videos = glob(f"{root}/*.MOV")
+root = "/data/Datasets/SPC/Videos/night"
+videos = glob(f"{root}/*.mp4")
 print(videos)
 
 for video in videos:
