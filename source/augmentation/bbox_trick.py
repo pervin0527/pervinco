@@ -12,7 +12,7 @@ if __name__ == "__main__":
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
     TARGETS = ["Paris_baguette"]
 
-    GAP = 4
+    GAP = 6
     limit_ratio = 10
     visual = False
 

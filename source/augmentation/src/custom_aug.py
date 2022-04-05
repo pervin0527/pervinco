@@ -3,6 +3,7 @@ import cv2
 import random
 import numpy as np
 import albumentations as A
+from glob import glob
 from copy import deepcopy
 from collections import namedtuple
 from albumentations.core.transforms_interface import DualTransform
@@ -127,31 +128,39 @@ def mosaic(pieces, img_size, classes):
     return result_image, result_boxes, result_labels
 
 
-def mixup(idx, ds, img_size, classes, noise_files, alpha=1.0):
-    image, annot = ds[idx]
-    image = cv2.imread(image)
-    bboxes, labels = read_xml(annot, classes, 'pascal_voc')
-
-    mixup_transform = A.Compose([
+def mixup(image, bboxes, labels, img_size, mixup_bg, alpha=1.0):
+    main_transform = A.Compose([
         A.Resize(width=img_size, height=img_size, p=1),
         A.RandomBrightnessContrast(p=1, brightness_limit=(-0.2, 0.2)),
-
-        A.OneOf([
-            # A.Cutout(num_holes=32, max_h_size=16, max_w_size=16, fill_value=0, p=0.2),
-            A.Downscale(scale_min=0.5, scale_max=0.8, p=0.3),
-            # A.RandomSnow(p=0.2),
-        ], p=0.5),
-    
     ], bbox_params=A.BboxParams(format='pascal_voc', min_area=0.2, min_visibility=0.2, label_fields=['labels']))
-    transformed = mixup_transform(image=image, bboxes=bboxes, labels=labels)
+    transformed = main_transform(image=image, bboxes=bboxes, labels=labels)
 
     image, bboxes, labels = transformed['image'], transformed['bboxes'], transformed['labels']
 
-    lam = np.clip(np.random.beta(alpha, alpha), 0, 0.2)
+    lam = np.clip(np.random.beta(alpha, alpha), 0.4, 0.4)
 
-    rand_id = random.randint(0, len(noise_files)-1)
-    noise_image = cv2.imread(noise_files[rand_id])
-    noise_image = cv2.resize(noise_image, (img_size, img_size))
-    mixedup_images = (lam*noise_image + (1 - lam)*image).astype(np.uint8)
+    background_transform = A.Compose([
+        A.Resize(width=img_size, height=img_size, p=1),
+
+        A.OneOf([
+            A.RandomRotate90(p=0.3),
+            A.HorizontalFlip(p=0.3),
+            A.VerticalFlip(p=0.3),
+        ], p=1),
+
+        A.OneOf([
+            A.RandomBrightnessContrast(brightness_limit=(-0.4, 0.4), p=0.3),
+            A.HueSaturationValue(val_shift_limit=(0, 100), p=0.3),
+            # A.ChannelShuffle(p=0.3)
+        ], p=1)
+    ])
+
+    bg_files = glob(f"{mixup_bg}/*")
+    rand_id = random.randint(0, len(bg_files)-1)
+    background_image = cv2.imread(bg_files[rand_id])
+    transformed = background_transform(image=background_image)
+    background_image = transformed['image']
+    
+    mixedup_images = (lam*background_image + (1 - lam)*image).astype(np.uint8)
 
     return mixedup_images, bboxes, labels

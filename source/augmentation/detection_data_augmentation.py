@@ -40,7 +40,6 @@ def background_process(save_dir):
 def data_process(is_train, folder_name):
     if is_train:
         rebuild_count = 0
-        dataset = list(zip(images, annotations))
         save_dir = f"{SAVE_DIR}/{folder_name}"
         make_save_dir(save_dir)
 
@@ -48,10 +47,11 @@ def data_process(is_train, folder_name):
             background_process(save_dir)
             
         for step in range(STEPS):
+            dataset = list(zip(images, annotations))
             for idx in tqdm(range(len(dataset)), desc=f"Train {step}"):
                 # print(len(dataset))
                 opt = random.randint(0, 2)
-                # opt = 1
+                opt = 2
 
                 if opt == 0:
                     if len(dataset) < 4:
@@ -81,6 +81,12 @@ def data_process(is_train, folder_name):
 
                         A.GridDropout(unit_size_min=16, unit_size_max=32, random_offset=True, p=0.6),
                     ])
+
+                    if len(dataset) < 1:
+                        rebuild_count += 1
+                        dataset.extend(list(zip(images, annotations)))
+                        random.shuffle(dataset)
+
                     item = random.sample(dataset, 1)[0]
                     image, annot = item
                     dataset.pop(dataset.index(item))
@@ -93,6 +99,21 @@ def data_process(is_train, folder_name):
                     resize_transform = A.Compose([A.Resize(height=IMG_SIZE, width=IMG_SIZE, p=1)], bbox_params=A.BboxParams(format="pascal_voc", label_fields=['labels']))
                     resize_transformed = resize_transform(image=image, bboxes=bboxes, labels=labels)
                     image, bboxes, labels = resize_transformed['image'], resize_transformed['bboxes'], resize_transformed['labels']
+
+                elif opt == 2:
+                    if len(dataset) < 1:
+                        rebuild_count += 1
+                        dataset.extend(list(zip(images, annotations)))
+                        random.shuffle(dataset)
+
+                    item = random.sample(dataset, 1)[0]
+                    image, annot = item
+                    dataset.pop(dataset.index(item))
+
+                    image = cv2.imread(image)
+                    bboxes, labels = read_xml(annot, classes, 'pascal_voc')
+
+                    image, bboxes, labels = mixup(image, bboxes, labels, IMG_SIZE, MX_BG)
 
                 else:
                     normal_transform = A.Compose([
@@ -174,7 +195,7 @@ def data_process(is_train, folder_name):
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
     FOLDER = "full-name14"
-    STEPS = 3
+    STEPS = 2
     IMG_SIZE = 320
     VALID_RATIO = 0.1
     VISUAL = False
@@ -182,6 +203,7 @@ if __name__ == "__main__":
     BG_RATIO = 0.2
     # BG_DIR = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012/TEST"
     BG_DIR = "/data/Datasets/SPC/download"
+    MX_BG = "/data/Datasets/Mixup_background"
     
     IMG_DIR = f"{ROOT_DIR}/{FOLDER}/images"
     ANNOT_DIR = f"{ROOT_DIR}/{FOLDER}/annotations"

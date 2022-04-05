@@ -20,8 +20,8 @@ if __name__ == "__main__":
     # CLASSES = CLASSES[:-1]
     print(CLASSES)
     
-    EPOCHS = 50
-    BATCH_SIZE = 64
+    EPOCHS = 5
+    BATCH_SIZE = 32
     MAX_DETECTIONS = 10
     # HPARAMS = {"optimizer" : "sgd",
     #            "learning_rate" : 0.008,
