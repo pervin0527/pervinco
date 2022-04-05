@@ -61,37 +61,20 @@ def draw_result(detection_results):
 def check_result(detect_results, annotations):
     final_total_result = []
     for det, annot in zip(detect_results, annotations):
-        step_result = []
-        object_num = False
         gt_bboxes, gt_labels = read_xml(annot, CLASSES)
 
         file_name = det.pop(0)
-        gt_num_objects = len(gt_labels)
-        pred_num_objects = int(len(det) / 6)
-
-        if gt_num_objects == pred_num_objects:
-            # print(gt_num_objects, pred_num_objects)
-            object_num = True
-
-        step_result.extend([file_name, object_num])
-
-        for i in range(pred_num_objects):
-            is_correct = None
+        pred_labels = []
+        is_correct = False
+        for i in range(int(len(det) / 6)):
             pred_label = det[0 + (6 * i)]
-            gt_label = gt_labels[i]
+            pred_labels.append(pred_label)
 
-            if pred_label == gt_label:
-                is_correct = True
+        if len(gt_labels) == len(pred_labels) and sorted(gt_labels) == sorted(pred_labels):
+            is_correct = True
 
-            else:
-                is_correct = False
-
-            step_result.extend([is_correct])
-
-        final_total_result.append(step_result)
-
+        final_total_result.append([file_name, gt_labels, pred_labels, is_correct])
     return final_total_result
-
             
 if __name__ == "__main__":
     model_path = "/data/Models/efficientdet_lite/full-name13-GAP6-300/full-name13-GAP6-300.tflite"
@@ -159,4 +142,4 @@ if __name__ == "__main__":
     # df.to_csv('/data/Datasets/SPC/full-name14/test/test-result.csv', index=False, header=None)
 
     df = pd.DataFrame(final)
-    df.to_csv('/data/Datasets/SPC/full-name14/test/ttt.csv', index=False, header=["filename", "num of objects", "GT == Pred"])
+    df.to_csv('/data/Datasets/SPC/full-name14/test/ttt.csv', index=False, header=["filename", "GT", "Pred", "GT == Pred"])
