@@ -128,7 +128,7 @@ def mosaic(pieces, img_size, classes):
     return result_image, result_boxes, result_labels
 
 
-def mixup(image, bboxes, labels, img_size, mixup_bg, alpha=1.0):
+def mixup(image, bboxes, labels, img_size, mixup_bg, min=0.4, max=0.5, alpha=1.0):
     main_transform = A.Compose([
         A.Resize(width=img_size, height=img_size, p=1),
         A.RandomBrightnessContrast(p=1, brightness_limit=(-0.2, 0.2)),
@@ -137,7 +137,7 @@ def mixup(image, bboxes, labels, img_size, mixup_bg, alpha=1.0):
 
     image, bboxes, labels = transformed['image'], transformed['bboxes'], transformed['labels']
 
-    lam = np.clip(np.random.beta(alpha, alpha), 0.4, 0.4)
+    lam = np.clip(np.random.beta(alpha, alpha), min, max)
 
     background_transform = A.Compose([
         A.Resize(width=img_size, height=img_size, p=1),

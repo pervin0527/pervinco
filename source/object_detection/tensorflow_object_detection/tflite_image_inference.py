@@ -60,18 +60,21 @@ def postprocess(boxes, classes, scores, image_path):
             ymin, xmin, ymax, xmax = int(box[0] * input_width), int(box[1] * input_width), int(box[2] * input_width), int(box[3] * input_width)
             final_result.append((label, score, (xmin, ymin, xmax, ymax))) 
 
-            cv2.rectangle(image, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (255, 0, 0))
-            cv2.putText(image, f"{label} {score:.2f}%", (int(xmin), int(ymin)), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 0))
+    #         cv2.rectangle(image, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (255, 0, 0))
+    #         cv2.putText(image, f"{label} {score:.2f}%", (int(xmin), int(ymin)), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 0))
 
-    cv2.imshow('result', image)
-    cv2.waitKey(0)    
-    print(image_path, final_result)
+    # cv2.imshow('result', image)
+    # cv2.waitKey(0)    
+    # print(image_path, final_result)
+    
+    return final_result
 
 if __name__ == "__main__":
     model_path = "/data/Models/efficientdet_lite/full-name13-GAP6-300/full-name13-GAP6-300.tflite"
-    images_path = "/data/test/spc-sample"
+    images_path = "/data/Datasets/SPC/full-name14/test/images"
     label_path = "/data/Datasets/SPC/Labels/labels.txt"
     threshold = 0.7
+    count = 0
 
     LABEL_FILE = pd.read_csv(label_path, sep=' ', index_col=False, header=None)
     CLASSES = LABEL_FILE[0].tolist()
@@ -104,9 +107,13 @@ if __name__ == "__main__":
         scores = interpreter.get_tensor(output_details[2]['index'])
         num_detections = interpreter.get_tensor(output_details[3]['index'])
 
-        print(boxes.shape)
-        print(classes.shape)
-        print(scores.shape)
-        print(num_detections.shape)
+        # print(boxes.shape)
+        # print(classes.shape)
+        # print(scores.shape)
+        # print(num_detections.shape)
 
-        postprocess(boxes, classes, scores, image)
+        result = postprocess(boxes, classes, scores, image)
+        if result:
+            count += 1
+
+    print(count)

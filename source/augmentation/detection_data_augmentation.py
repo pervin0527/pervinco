@@ -51,7 +51,6 @@ def data_process(is_train, folder_name):
             for idx in tqdm(range(len(dataset)), desc=f"Train {step}"):
                 # print(len(dataset))
                 opt = random.randint(0, 2)
-                opt = 2
 
                 if opt == 0:
                     if len(dataset) < 4:
@@ -113,7 +112,7 @@ def data_process(is_train, folder_name):
                     image = cv2.imread(image)
                     bboxes, labels = read_xml(annot, classes, 'pascal_voc')
 
-                    image, bboxes, labels = mixup(image, bboxes, labels, IMG_SIZE, MX_BG)
+                    image, bboxes, labels = mixup(image, bboxes, labels, IMG_SIZE, MX_BG, min=0.4, max=0.4, alpha=1.0)
 
                 else:
                     normal_transform = A.Compose([
@@ -195,11 +194,11 @@ def data_process(is_train, folder_name):
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
     FOLDER = "full-name14"
-    STEPS = 2
+    STEPS = 1
     IMG_SIZE = 320
     VALID_RATIO = 0.1
     VISUAL = False
-    INCLUDE_BG = True
+    INCLUDE_BG = False
     BG_RATIO = 0.2
     # BG_DIR = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012/TEST"
     BG_DIR = "/data/Datasets/SPC/download"
@@ -213,5 +212,5 @@ if __name__ == "__main__":
     classes = read_label_file(LABEL_DIR)
     images, annotations = get_files(IMG_DIR), get_files(ANNOT_DIR)
     
-    data_process(True, "train")
-    data_process(False, "valid")
+    data_process(True, "sample")
+    # data_process(False, "valid")

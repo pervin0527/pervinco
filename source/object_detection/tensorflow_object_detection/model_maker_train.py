@@ -20,7 +20,7 @@ if __name__ == "__main__":
     # CLASSES = CLASSES[:-1]
     print(CLASSES)
     
-    EPOCHS = 5
+    EPOCHS = 50
     BATCH_SIZE = 32
     MAX_DETECTIONS = 10
     # HPARAMS = {"optimizer" : "sgd",
