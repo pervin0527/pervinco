@@ -1,14 +1,98 @@
 import os
-
+from tabnanny import check
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import cv2
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+import xml.etree.ElementTree as ET
 import tflite_runtime.interpreter as tflite
 from glob import glob
 from tqdm import tqdm
+from lxml.etree import Element, SubElement, tostring
 
+def read_xml(xml_file, classes):
+    tree = ET.parse(xml_file)
+    root = tree.getroot()
+    
+    width = int(root.find('size').find('width').text)
+    height = int(root.find('size').find('height').text)
+    objects = root.findall("object")
+    
+    # bboxes, labels, areas = [], [], []
+    bboxes, labels = [], []
+    if len(objects) > 0:
+        class_names = [object.findtext("name") for object in objects]
+        
+        for idx, name in enumerate(class_names):
+            if name in classes:
+                bbox = objects[idx].find("bndbox")
+
+                xmin = int(float(bbox.find('xmin').text))
+                ymin = int(float(bbox.find('ymin').text))
+                xmax = int(float(bbox.find('xmax').text))
+                ymax = int(float(bbox.find('ymax').text))               
+                    
+                bboxes.append([xmin, ymin, xmax, ymax])
+                labels.append(name)
+                # areas.append((xmax - xmin) * (ymax - ymin))
+
+    # return bboxes, labels, areas    
+    return bboxes, labels
+
+def draw_result(detection_results):
+    record = detection_results[:]
+    image_file = record.pop(0)
+    file_name = image_file.split('/')[-1].split('.')[0]
+    image = cv2.imread(image_file)
+    image = cv2.resize(image, (input_height, input_width))
+
+    result_length = int(len(record) / 6)
+
+    for i in range(result_length):
+        label, score, xmin, ymin, xmax, ymax = record[0+(6*i)], record[1+(6*i)], record[2+(6*i)], record[3+(6*i)],record[4+(6*i)], record[5+(6*i)]
+        cv2.rectangle(image, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (255, 0, 0))
+        cv2.putText(image, f"{label} {float(score) : .2f}%", (int(xmin), int(ymin)), cv2.FONT_HERSHEY_PLAIN, 1, (255, 0, 0))
+
+    cv2.imwrite(f"/data/Datasets/SPC/full-name14/test/result_images/{file_name}.jpg", image)
+    # cv2.imshow('result', image)
+    # cv2.waitKey(0)           
+
+def check_result(detect_results, annotations):
+    final_total_result = []
+    for det, annot in zip(detect_results, annotations):
+        step_result = []
+        object_num = False
+        gt_bboxes, gt_labels = read_xml(annot, CLASSES)
+
+        file_name = det.pop(0)
+        gt_num_objects = len(gt_labels)
+        pred_num_objects = int(len(det) / 6)
+
+        if gt_num_objects == pred_num_objects:
+            # print(gt_num_objects, pred_num_objects)
+            object_num = True
+
+        step_result.extend([file_name, object_num])
+
+        for i in range(pred_num_objects):
+            is_correct = None
+            pred_label = det[0 + (6 * i)]
+            gt_label = gt_labels[i]
+
+            if pred_label == gt_label:
+                is_correct = True
+
+            else:
+                is_correct = False
+
+            step_result.extend([is_correct])
+
+        final_total_result.append(step_result)
+
+    return final_total_result
+
+            
 if __name__ == "__main__":
     model_path = "/data/Models/efficientdet_lite/full-name13-GAP6-300/full-name13-GAP6-300.tflite"
     images_path = "/data/Datasets/SPC/full-name14/test/images"
@@ -18,7 +102,11 @@ if __name__ == "__main__":
     LABEL_FILE = pd.read_csv(label_path, sep=' ', index_col=False, header=None)
     CLASSES = LABEL_FILE[0].tolist()
 
+    if not os.path.isdir("/data/Datasets/SPC/full-name14/test/result_images"):
+        os.makedirs("/data/Datasets/SPC/full-name14/test/result_images")
+
     images = sorted(glob(f"{images_path}/*"))
+    annotations = sorted(glob(f"/data/Datasets/SPC/full-name14/test/annotations/*"))
 
     interpreter = tflite.Interpreter(model_path=model_path)
     interpreter.allocate_tensors()
@@ -61,9 +149,14 @@ if __name__ == "__main__":
                     ymin, xmin, ymax, xmax = int(bbox[0] * input_width), int(bbox[1] * input_width), int(bbox[2] * input_width), int(bbox[3] * input_width)
                     result.extend([label, score, xmin, ymin, xmax, ymax])
         else:
-            result.extend(["No object", -1, -1, -1, -1, -1])
+            result.extend(["No Results"])
 
+        draw_result(result)
         total.append(result)
      
-    df = pd.DataFrame(total)
-    df.to_csv('/data/Datasets/SPC/full-name14/test-result.csv', index=False, header=['file name', 'label', 'score', 'xmin', 'ymin', 'xmax', 'ymax'])
+    final = check_result(total, annotations)
+    # df = pd.DataFrame(total)
+    # df.to_csv('/data/Datasets/SPC/full-name14/test/test-result.csv', index=False, header=None)
+
+    df = pd.DataFrame(final)
+    df.to_csv('/data/Datasets/SPC/full-name14/test/ttt.csv', index=False, header=["filename", "num of objects", "GT == Pred"])

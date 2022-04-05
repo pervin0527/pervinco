@@ -32,7 +32,7 @@ if __name__ == "__main__":
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
     SAVE_DIR = f"{ROOT_DIR}/{FOLDER}/test"
 
-    ITER = 1000
+    ITER = 100
     IMG_SIZE = 640
     MX_BG = "/data/Datasets/Mixup_background"
 
