@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 if __name__ == "__main__":
     model_path = "/data/Models/efficientdet_lite/full-name13-GAP6-300/full-name13-GAP6-300.tflite"
-    images_path = "/data/Datasets/SPC/sample_images"
+    images_path = "/data/Datasets/SPC/full-name14/test/images"
     label_path = "/data/Datasets/SPC/Labels/labels.txt"
     threshold = 0.7
 
