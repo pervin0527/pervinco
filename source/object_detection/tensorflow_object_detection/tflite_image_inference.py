@@ -79,19 +79,20 @@ def check_result(detect_results, annotations):
     return final_total_result
             
 if __name__ == "__main__":
-    model_path = "/data/Models/efficientdet_lite/SPC-full-name14-50/SPC-full-name14-50.tflite"
-    images_path = "/data/Datasets/SPC/full-name14/test/images"
+    model_path = "/data/Models/efficientdet_lite/SPC-sample-set1-10/SPC-sample-set1-10.tflite"
+    images_path = "/data/Datasets/SPC/sample-set1/test/images"
     label_path = "/data/Datasets/SPC/Labels/labels.txt"
-    threshold = 0.55
+    result_csv = f"/data/Datasets/SPC/sample-set1/test/{model_path.split('/')[-2]}.csv"
+    threshold = 0.45
 
     LABEL_FILE = pd.read_csv(label_path, sep=' ', index_col=False, header=None)
     CLASSES = LABEL_FILE[0].tolist()
 
-    if not os.path.isdir("/data/Datasets/SPC/full-name14/test/result_images"):
-        os.makedirs("/data/Datasets/SPC/full-name14/test/result_images")
+    if not os.path.isdir(f"{'/'.join(images_path.split('/')[:-1])}/result_images"):
+        os.makedirs(f"{'/'.join(images_path.split('/')[-1])}/result_images")
 
     images = sorted(glob(f"{images_path}/*"))
-    annotations = sorted(glob(f"/data/Datasets/SPC/full-name14/test/annotations/*"))
+    annotations = sorted(glob(f"{'/'.join(images_path.split('/')[:-1])}/annotations/*"))
 
     interpreter = tflite.Interpreter(model_path=model_path)
     interpreter.allocate_tensors()
@@ -144,4 +145,4 @@ if __name__ == "__main__":
     # df.to_csv('/data/Datasets/SPC/full-name14/test/test-result.csv', index=False, header=None)
 
     df = pd.DataFrame(final)
-    df.to_csv('/data/Datasets/SPC/full-name14/test/ttt.csv', index=False, header=["filename", "GT", "Pred", "GT == Pred", "Top-1 Score"])
+    df.to_csv(result_csv, index=False, header=["filename", "GT", "Pred", "GT == Pred", "Top-1 Score"])
