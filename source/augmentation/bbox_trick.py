@@ -27,7 +27,7 @@ if __name__ == "__main__":
 
     classes = read_label_file(LABEL_DIR)
     label_check_list = set()
-    multi = []
+
     for target in TARGETS:
         images = sorted(glob(f"{FOLDER}/{target}/*/JPEGImages/*"))
         annotations = sorted(glob(f"{FOLDER}/{target}/*/Annotations/*"))
@@ -42,9 +42,6 @@ if __name__ == "__main__":
                 image = cv2.imread(image)
                 height, width = image.shape[:-1]
                 bboxes, labels = read_xml(annot, classes, format='pascal_voc')
-
-                if len(labels) > 1:
-                    multi.append((annot, labels))
 
                 for label in labels:
                     label_check_list.add(label)
@@ -78,6 +75,3 @@ if __name__ == "__main__":
                 pass
 
     print(label_check_list)
-    
-    for item in multi:
-        print(item)
