@@ -53,7 +53,7 @@ def draw_result(detection_results):
         cv2.rectangle(image, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (255, 0, 0))
         cv2.putText(image, f"{label} {float(score) : .2f}%", (int(xmin), int(ymin)), cv2.FONT_HERSHEY_PLAIN, 1, (255, 0, 0))
 
-    cv2.imwrite(f"/data/Datasets/SPC/full-name14/test/result_images/{file_name}.jpg", image)
+    cv2.imwrite(f"/data/Datasets/SPC/{folder_name}/test/result_images/{file_name}.jpg", image)
     # cv2.imshow('result', image)
     # cv2.waitKey(0)           
 
@@ -79,17 +79,19 @@ def check_result(detect_results, annotations):
     return final_total_result
             
 if __name__ == "__main__":
-    model_path = "/data/Models/efficientdet_lite/SPC-sample-set1-10/SPC-sample-set1-10.tflite"
-    images_path = "/data/Datasets/SPC/sample-set1/test/images"
+    folder_name = "full-name13"
+    model_name = "full-name13-GAP6-300"
     label_path = "/data/Datasets/SPC/Labels/labels.txt"
-    result_csv = f"/data/Datasets/SPC/sample-set1/test/{model_path.split('/')[-2]}.csv"
+    model_path = f"/data/Models/efficientdet_lite/{model_name}/{model_name}.tflite"
+    images_path = f"/data/Datasets/SPC/{folder_name}/test/images"
+    result_csv = f"/data/Datasets/SPC/{folder_name}/test/{model_name}.csv"
     threshold = 0.45
 
     LABEL_FILE = pd.read_csv(label_path, sep=' ', index_col=False, header=None)
     CLASSES = LABEL_FILE[0].tolist()
 
     if not os.path.isdir(f"{'/'.join(images_path.split('/')[:-1])}/result_images"):
-        os.makedirs(f"{'/'.join(images_path.split('/')[-1])}/result_images")
+        os.makedirs(f"{'/'.join(images_path.split('/')[:-1])}/result_images")
 
     images = sorted(glob(f"{images_path}/*"))
     annotations = sorted(glob(f"{'/'.join(images_path.split('/')[:-1])}/annotations/*"))
