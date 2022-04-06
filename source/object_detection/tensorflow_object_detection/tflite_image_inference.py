@@ -1,5 +1,4 @@
 import os
-from tabnanny import check
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import cv2
 import numpy as np
@@ -65,22 +64,25 @@ def check_result(detect_results, annotations):
 
         file_name = det.pop(0)
         pred_labels = []
+        pred_scores = []
         is_correct = False
         for i in range(int(len(det) / 6)):
             pred_label = det[0 + (6 * i)]
             pred_labels.append(pred_label)
+            pred_score = det[1 + (6 * i)]
+            pred_scores.append(pred_score)
 
         if len(gt_labels) == len(pred_labels) and sorted(gt_labels) == sorted(pred_labels):
             is_correct = True
 
-        final_total_result.append([file_name, gt_labels, pred_labels, is_correct])
+        final_total_result.append([file_name, gt_labels, pred_labels, is_correct, pred_scores])
     return final_total_result
             
 if __name__ == "__main__":
-    model_path = "/data/Models/efficientdet_lite/full-name13-GAP6-300/full-name13-GAP6-300.tflite"
+    model_path = "/data/Models/efficientdet_lite/SPC-full-name14-50/SPC-full-name14-50.tflite"
     images_path = "/data/Datasets/SPC/full-name14/test/images"
     label_path = "/data/Datasets/SPC/Labels/labels.txt"
-    threshold = 0.7
+    threshold = 0.55
 
     LABEL_FILE = pd.read_csv(label_path, sep=' ', index_col=False, header=None)
     CLASSES = LABEL_FILE[0].tolist()
@@ -142,4 +144,4 @@ if __name__ == "__main__":
     # df.to_csv('/data/Datasets/SPC/full-name14/test/test-result.csv', index=False, header=None)
 
     df = pd.DataFrame(final)
-    df.to_csv('/data/Datasets/SPC/full-name14/test/ttt.csv', index=False, header=["filename", "GT", "Pred", "GT == Pred"])
+    df.to_csv('/data/Datasets/SPC/full-name14/test/ttt.csv', index=False, header=["filename", "GT", "Pred", "GT == Pred", "Top-1 Score"])
