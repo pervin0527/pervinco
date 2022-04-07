@@ -11,8 +11,8 @@ from tflite_model_maker.config import QuantizationConfig
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    TRAIN_DIR = f"{ROOT_DIR}/full-name14/train"
-    VALID_DIR = f"{ROOT_DIR}/full-name14/valid"
+    TRAIN_DIR = f"{ROOT_DIR}/sample-set1/train"
+    VALID_DIR = f"{ROOT_DIR}/sample-set1/valid"
 
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
     LABEL_FILE = pd.read_csv(LABEL_FILE, sep=',', index_col=False, header=None)
