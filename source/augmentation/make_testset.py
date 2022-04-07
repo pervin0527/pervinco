@@ -34,12 +34,12 @@ def create_testset():
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    FOLDER = "sample-set2"
-
-    IMG_DIR = f"{ROOT_DIR}/{FOLDER}/images"
-    ANNOT_DIR = f"{ROOT_DIR}/{FOLDER}/annotations"
+    FOLDER_NAME = "Normal"
+    SAVE_DIR = f"{ROOT_DIR}/Testset/{FOLDER_NAME}"
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
-    SAVE_DIR = f"{ROOT_DIR}/{FOLDER}/test"
+
+    IMG_DIR = f"{ROOT_DIR}/Cvat/*/*/JPEGImages"
+    ANNOT_DIR = f"{ROOT_DIR}/Cvat/*/*/Annotations"
 
     IS_NORMAL = True
     ITER = 100
@@ -47,7 +47,7 @@ if __name__ == "__main__":
     MX_BG = "/data/Datasets/Mixup_background"
 
     classes = read_label_file(LABEL_DIR)
-    images, annotations = get_files(IMG_DIR), get_files(ANNOT_DIR)
+    images, annotations = sorted(glob(f"{IMG_DIR}/*")), sorted(glob(f"{ANNOT_DIR}/*"))
 
     make_save_dir(SAVE_DIR)
     create_testset()

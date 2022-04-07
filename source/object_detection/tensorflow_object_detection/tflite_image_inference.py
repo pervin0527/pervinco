@@ -53,7 +53,7 @@ def draw_result(detection_results):
         cv2.rectangle(image, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (255, 0, 0))
         cv2.putText(image, f"{label} {float(score) : .2f}%", (int(xmin), int(ymin)), cv2.FONT_HERSHEY_PLAIN, 1, (255, 0, 0))
 
-    cv2.imwrite(f"/data/Datasets/{project_name}/{folder_name}/test/result_images/{file_name}.jpg", image)
+    cv2.imwrite(f"{testset}/Records/{model_name}/result_img/{file_name}.jpg", image)
     # cv2.imshow('result', image)
     # cv2.waitKey(0)           
 
@@ -79,27 +79,24 @@ def check_result(detect_results, annotations):
     return final_total_result
             
 if __name__ == "__main__":
-    project_name = "SPC"
-    folder_name = "sample-set1"
-    model_name = "SPC-sample-set1-3"
+    model_file = "/data/Models/efficientdet_lite/full-name13-GAP6-300/full-name13-GAP6-300.tflite"
+    testset = "/data/Datasets/SPC/Testset/Normal"
     threshold = 0.45
-
-
+    
+    project_name, folder_name, model_name = testset.split('/')[-3], testset.split('/')[-1], model_file.split('/')[-1].split('.')[0]
     label_path = f"/data/Datasets/{project_name}/Labels/labels.txt"
-    model_path = f"/data/Models/efficientdet_lite/{model_name}/{model_name}.tflite"
-    images_path = f"/data/Datasets/{project_name}/{folder_name}/test/images"
-    result_csv = f"/data/Datasets/{project_name}/{folder_name}/test/{model_name}.csv"
+    csv = f"{testset}/Records/{model_name}/result.csv"
 
     LABEL_FILE = pd.read_csv(label_path, sep=' ', index_col=False, header=None)
     CLASSES = LABEL_FILE[0].tolist()
 
-    if not os.path.isdir(f"{'/'.join(images_path.split('/')[:-1])}/result_images"):
-        os.makedirs(f"{'/'.join(images_path.split('/')[:-1])}/result_images")
+    if not os.path.isdir(f"{testset}/Records/{model_name}"):
+        os.makedirs(f"{testset}/Records/{model_name}/result_img")
 
-    images = sorted(glob(f"{images_path}/*"))
-    annotations = sorted(glob(f"{'/'.join(images_path.split('/')[:-1])}/annotations/*"))
+    images = sorted(glob(f"{testset}/images/*"))
+    annotations = sorted(glob(f"{testset}/annotations/*"))
 
-    interpreter = tflite.Interpreter(model_path=model_path)
+    interpreter = tflite.Interpreter(model_path=model_file)
     interpreter.allocate_tensors()
 
     input_details = interpreter.get_input_details()
@@ -152,4 +149,4 @@ if __name__ == "__main__":
     # df.to_csv('/data/Datasets/SPC/full-name14/test/test-result.csv', index=False, header=None)
 
     df = pd.DataFrame(final)
-    df.to_csv(result_csv, index=False, header=["filename", "GT", "Pred", "GT == Pred", "Top-1 Score"])
+    df.to_csv(csv, index=False, header=["filename", "GT", "Pred", "GT == Pred", "Top-1 Score"])
