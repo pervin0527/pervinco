@@ -78,7 +78,7 @@ def data_process(is_train, folder_name):
                             ], p=1),
                         ], p=1),
 
-                        A.GridDropout(unit_size_min=16, unit_size_max=32, random_offset=True, p=0.6),
+                        # A.GridDropout(unit_size_min=16, unit_size_max=32, random_offset=True, p=0.6),
                     ])
 
                     if len(dataset) < 1:
@@ -193,7 +193,7 @@ def data_process(is_train, folder_name):
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    FOLDER = "sample-set1"
+    FOLDER = "sample-set2"
     STEPS = 1
     IMG_SIZE = 320
     VALID_RATIO = 0.1
@@ -212,5 +212,5 @@ if __name__ == "__main__":
     classes = read_label_file(LABEL_DIR)
     images, annotations = get_files(IMG_DIR), get_files(ANNOT_DIR)
     
-    data_process(True, "train")
-    data_process(False, "valid")
+    data_process(True, "train2")
+    data_process(False, "valid2")

@@ -17,9 +17,9 @@ def calculate_bbox(bboxes, labels):
             visualize(image, bboxes, labels)
 
 if __name__ == "__main__":
-    IMG_SIZE = 384
+    IMG_SIZE = 320
     ROOT_PATH = "/data/Datasets/SPC"
-    FOLDER = "PB-test"
+    FOLDER = "sample-set1"
     LABEL_PATH = f"{ROOT_PATH}/Labels/labels.txt"
     classes = read_label_file(LABEL_PATH)
     

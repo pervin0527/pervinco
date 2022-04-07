@@ -53,7 +53,7 @@ def draw_result(detection_results):
         cv2.rectangle(image, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (255, 0, 0))
         cv2.putText(image, f"{label} {float(score) : .2f}%", (int(xmin), int(ymin)), cv2.FONT_HERSHEY_PLAIN, 1, (255, 0, 0))
 
-    cv2.imwrite(f"/data/Datasets/SPC/{folder_name}/test/result_images/{file_name}.jpg", image)
+    cv2.imwrite(f"/data/Datasets/{project_name}/{folder_name}/test/result_images/{file_name}.jpg", image)
     # cv2.imshow('result', image)
     # cv2.waitKey(0)           
 
@@ -79,13 +79,16 @@ def check_result(detect_results, annotations):
     return final_total_result
             
 if __name__ == "__main__":
-    folder_name = "full-name13"
-    model_name = "full-name13-GAP6-300"
-    label_path = "/data/Datasets/SPC/Labels/labels.txt"
-    model_path = f"/data/Models/efficientdet_lite/{model_name}/{model_name}.tflite"
-    images_path = f"/data/Datasets/SPC/{folder_name}/test/images"
-    result_csv = f"/data/Datasets/SPC/{folder_name}/test/{model_name}.csv"
+    project_name = "SPC"
+    folder_name = "sample-set1"
+    model_name = "SPC-sample-set1-3"
     threshold = 0.45
+
+
+    label_path = f"/data/Datasets/{project_name}/Labels/labels.txt"
+    model_path = f"/data/Models/efficientdet_lite/{model_name}/{model_name}.tflite"
+    images_path = f"/data/Datasets/{project_name}/{folder_name}/test/images"
+    result_csv = f"/data/Datasets/{project_name}/{folder_name}/test/{model_name}.csv"
 
     LABEL_FILE = pd.read_csv(label_path, sep=' ', index_col=False, header=None)
     CLASSES = LABEL_FILE[0].tolist()
@@ -101,9 +104,6 @@ if __name__ == "__main__":
 
     input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
-
-    # print_info(input_details, "Input")
-    # print_info(output_details, "Output")
 
     input_shape = input_details[0].get('shape')
     input_width, input_height = input_shape[1], input_shape[2]
@@ -124,6 +124,11 @@ if __name__ == "__main__":
         classes = interpreter.get_tensor(output_details[1]['index'])
         scores = interpreter.get_tensor(output_details[2]['index'])
         num_detections = interpreter.get_tensor(output_details[3]['index'])
+
+        # scores = interpreter.get_tensor(output_details[0]['index'])
+        # bboxes = interpreter.get_tensor(output_details[1]['index'])
+        # num_detections = interpreter.get_tensor(output_details[2]['index'])
+        # classes = interpreter.get_tensor(output_details[3]['index'])
 
         result = [image_file]
         if any(scores[0] > threshold):

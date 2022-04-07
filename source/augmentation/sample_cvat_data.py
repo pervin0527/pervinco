@@ -21,11 +21,11 @@ if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
     FOLDER = "Cvat"
-    GAP = 6
+    GAP = 8
     IMG_SIZE = 320
-    SAVE_DIR = f"{ROOT_DIR}/sample-set1"
+    SAVE_DIR = f"{ROOT_DIR}/sample-set2"
 
-    number = 100
+    number = 300
     limit_ratio = 10
     finish_set = set()
     classes = read_label_file(LABEL_DIR)

@@ -11,8 +11,8 @@ from tflite_model_maker.config import QuantizationConfig
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    TRAIN_DIR = f"{ROOT_DIR}/sample-set1/train"
-    VALID_DIR = f"{ROOT_DIR}/sample-set1/valid"
+    TRAIN_DIR = f"{ROOT_DIR}/full-name14/train"
+    VALID_DIR = f"{ROOT_DIR}/full-name14/valid"
 
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
     LABEL_FILE = pd.read_csv(LABEL_FILE, sep=',', index_col=False, header=None)
@@ -20,21 +20,22 @@ if __name__ == "__main__":
     # CLASSES = CLASSES[:-1]
     print(CLASSES)
     
-    EPOCHS = 85
+    EPOCHS = 300
     BATCH_SIZE = 64
     MAX_DETECTIONS = 10
-    # HPARAMS = {"optimizer" : "sgd",
-    #            "learning_rate" : 0.008,
-    #            "lr_warmup_init" : 0.0008,
-    #            "anchor_scale" : 7.0,
-    #            "aspect_ratios" : [8.0, 4.0, 2.0, 1.0, 0.5],
-    #            "num_scales" : 5,
-    #            "alpha" : 0.25,
-    #            "gamma" : 2,
-    #            "es" : False,
-    #            "es_monitor" : "val_det_loss",
-    #            "es_patience" : 15,
-    #            "ckpt" : None}
+
+    HPARAMS = {"optimizer" : "sgd",
+               "learning_rate" : 0.008,
+               "lr_warmup_init" : 0.0008,
+               "anchor_scale" : 7.0,
+               "aspect_ratios" : [8.0, 4.0, 2.0, 1.0, 0.5],
+               "num_scales" : 5,
+               "alpha" : 0.25,
+               "gamma" : 2,
+               "es" : False,
+               "es_monitor" : "val_det_loss",
+               "es_patience" : 15,
+               "ckpt" : None}
 
     # HPARAMS = {"optimizer" : "sgd",
     #            "learning_rate" : 0.08, # 0.008
@@ -50,18 +51,18 @@ if __name__ == "__main__":
     #            "ckpt" : None}
 
     ## TEST
-    HPARAMS = {"optimizer" : "sgd",
-               "learning_rate" : 0.08,
-               "lr_warmup_init" : 0.008,
-               "anchor_scale" : [1.0, 3.0, 5.0, 7.0, 9.0],
-               "aspect_ratios" : [1.16, 3.48, 9.23, 20.39],
-               "num_scales" : 3,
-               "alpha" : 0.25,
-               "gamma" : 2,
-               "es" : False,
-               "es_monitor" : "val_det_loss",
-               "es_patience" : 15,
-               "ckpt" : None}
+    # HPARAMS = {"optimizer" : "sgd",
+    #            "learning_rate" : 0.08,
+    #            "lr_warmup_init" : 0.008,
+    #            "anchor_scale" : [1.0, 3.0, 5.0, 7.0, 9.0],
+    #            "aspect_ratios" : [1.16, 3.48, 9.23, 20.39],
+    #            "num_scales" : 3,
+    #            "alpha" : 0.25,
+    #            "gamma" : 2,
+    #            "es" : False,
+    #            "es_monitor" : "val_det_loss",
+    #            "es_patience" : 15,
+    #            "ckpt" : None}
 
     SAVE_PATH = "/data/Models/efficientdet_lite"
     PROJECT = ROOT_DIR.split('/')[-1]
