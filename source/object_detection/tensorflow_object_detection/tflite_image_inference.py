@@ -53,7 +53,7 @@ def draw_result(detection_results):
         cv2.rectangle(image, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (255, 0, 0))
         cv2.putText(image, f"{label} {float(score) : .2f}%", (int(xmin), int(ymin)), cv2.FONT_HERSHEY_PLAIN, 1, (255, 0, 0))
 
-    cv2.imwrite(f"{testset}/Records/{model_name}/result_img/{file_name}.jpg", image)
+    cv2.imwrite(f"{testset}/Records/{model_name}/{threshold}_result_img/{file_name}.jpg", image)
     # cv2.imshow('result', image)
     # cv2.waitKey(0)           
 
@@ -79,19 +79,20 @@ def check_result(detect_results, annotations):
     return final_total_result
             
 if __name__ == "__main__":
-    model_file = "/data/Models/efficientdet_lite/full-name13-GAP6-300/full-name13-GAP6-300.tflite"
-    testset = "/data/Datasets/SPC/Testset/Normal"
+    # model_file = "/data/Models/efficientdet_lite/full-name13-GAP6-300/full-name13-GAP6-300.tflite"
+    model_file = "/data/Models/efficientdet_lite/SPC-sample-set1-300/SPC-sample-set1-300.tflite"
+    testset = "/data/Datasets/SPC/Testset/Mixup"
     threshold = 0.45
     
     project_name, folder_name, model_name = testset.split('/')[-3], testset.split('/')[-1], model_file.split('/')[-1].split('.')[0]
     label_path = f"/data/Datasets/{project_name}/Labels/labels.txt"
-    csv = f"{testset}/Records/{model_name}/result.csv"
+    csv = f"{testset}/Records/{model_name}/{threshold}_result.csv"
 
     LABEL_FILE = pd.read_csv(label_path, sep=' ', index_col=False, header=None)
     CLASSES = LABEL_FILE[0].tolist()
 
-    if not os.path.isdir(f"{testset}/Records/{model_name}"):
-        os.makedirs(f"{testset}/Records/{model_name}/result_img")
+    if not os.path.isdir(f"{testset}/Records/{model_name}/{threshold}_result_img"):
+        os.makedirs(f"{testset}/Records/{model_name}/{threshold}_result_img")
 
     images = sorted(glob(f"{testset}/images/*"))
     annotations = sorted(glob(f"{testset}/annotations/*"))
