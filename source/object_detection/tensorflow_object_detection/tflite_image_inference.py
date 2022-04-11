@@ -12,6 +12,25 @@ from tqdm import tqdm
 from lxml.etree import Element, SubElement, tostring
 from tensorflow.keras.preprocessing.image import img_to_array
 
+# GPU setup
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if len(gpus) > 1:
+    try:
+        print("Activate Multi GPU")
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+        strategy = tf.distribute.MirroredStrategy(cross_device_ops=tf.distribute.HierarchicalCopyAllReduce())
+    except RuntimeError as e:
+        print(e)
+
+else:
+    try:
+        print("Activate Sigle GPU")
+        tf.config.experimental.set_memory_growth(gpus[0], True)
+        strategy = tf.distribute.experimental.CentralStorageStrategy()
+    except RuntimeError as e:
+        print(e)
+
 def read_xml(xml_file, classes):
     tree = ET.parse(xml_file)
     root = tree.getroot()
@@ -80,7 +99,7 @@ def check_result(detect_results, annotations):
         final_total_result.append([file_name, gt_labels, pred_labels, is_correct, pred_scores])
     return final_total_result
 
-def VizGradCAM(model, image, interpolant=0.5, plot_results=True):
+def VizGradCAM(model, image, number, interpolant=0.5, plot_results=True):
     original_img = np.asarray(image, dtype = np.float32)
     img = np.expand_dims(original_img, axis=0)
     prediction = model.predict(img)
@@ -116,22 +135,11 @@ def VizGradCAM(model, image, interpolant=0.5, plot_results=True):
     cvt_heatmap = img_to_array(cvt_heatmap)
 
     plt.imshow(np.uint8(original_img * interpolant + cvt_heatmap * (1 - interpolant)))
-    plt.show()
-    # cv2.imshow('result', cvt_heatmap)
-    # cv2.waitKey(0)
-
-    # #enlarge plot
-    # plt.rcParams["figure.dpi"] = 100
-
-    # if plot_results == True:
-    #     plt.imshow(np.uint8(original_img * interpolant + cvt_heatmap * (1 - interpolant)))
-    # else:
-    #     return cvt_heatmap
+    plt.savefig(f"{testset}/Records/{model_name}/{threshold}_cam/{number:>05}.jpg")
             
 if __name__ == "__main__":
-    # model_file = "/data/Models/efficientdet_lite/full-name13-GAP6-300/full-name13-GAP6-300.tflite"
     model_file = "/data/Models/efficientdet_lite/SPC-sample-set1-300/SPC-sample-set1-300.tflite"
-    ckpt_file = "/data/Models/efficientdet_lite/full-name13-GAP6-300/ckpt"
+    ckpt_file = "/data/Models/efficientdet_lite/SPC-sample-set1-300/ckpt"
     testset = "/data/Datasets/SPC/Testset/Normal"
     threshold = 0.45
     
@@ -143,11 +151,13 @@ if __name__ == "__main__":
     CLASSES = LABEL_FILE[0].tolist()
     ckpt = tf.keras.models.load_model(ckpt_file)
 
-    if not os.path.isdir(f"{testset}/Records/{model_name}/{threshold}_result_img"):
+    if not os.path.isdir(f"{testset}/Records/{model_name}"):
         os.makedirs(f"{testset}/Records/{model_name}/{threshold}_result_img")
+        os.makedirs(f"{testset}/Records/{model_name}/{threshold}_cam")
 
     images = sorted(glob(f"{testset}/images/*"))
     annotations = sorted(glob(f"{testset}/annotations/*"))
+    print(len(images), len(annotations))
 
     interpreter = tflite.Interpreter(model_path=model_file)
     interpreter.allocate_tensors()
@@ -165,7 +175,7 @@ if __name__ == "__main__":
         image = cv2.imread(image_file)
         image = cv2.resize(image, (input_height, input_width))
 
-        VizGradCAM(ckpt, image)
+        VizGradCAM(ckpt, image, idx)
         input_tensor = np.expand_dims(image, axis=0)
                 
         interpreter.set_tensor(input_details[0]['index'], input_tensor.astype(np.uint8))
