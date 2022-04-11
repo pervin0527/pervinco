@@ -20,7 +20,7 @@ if __name__ == "__main__":
     # CLASSES = CLASSES[:-1]
     print(CLASSES)
     
-    EPOCHS = 300
+    EPOCHS = 5
     BATCH_SIZE = 64
     MAX_DETECTIONS = 10
 
@@ -67,7 +67,8 @@ if __name__ == "__main__":
     SAVE_PATH = "/data/Models/efficientdet_lite"
     PROJECT = ROOT_DIR.split('/')[-1]
     DS_NAME = TRAIN_DIR.split('/')[-2]
-    MODEL_FILE = f"{PROJECT}-{DS_NAME}-{EPOCHS}"
+    # MODEL_FILE = f"{PROJECT}-{DS_NAME}-{EPOCHS}"
+    MODEL_FILE = "TEST"
 
     train_data = object_detector.DataLoader.from_pascal_voc(images_dir=f"{TRAIN_DIR}/images",
                                                             annotations_dir=f"{TRAIN_DIR}/annotations", 

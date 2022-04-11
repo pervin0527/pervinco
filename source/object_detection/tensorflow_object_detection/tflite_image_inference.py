@@ -4,11 +4,13 @@ import cv2
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+import matplotlib.pyplot as plt
 import xml.etree.ElementTree as ET
 import tflite_runtime.interpreter as tflite
 from glob import glob
 from tqdm import tqdm
 from lxml.etree import Element, SubElement, tostring
+from tensorflow.keras.preprocessing.image import img_to_array
 
 def read_xml(xml_file, classes):
     tree = ET.parse(xml_file)
@@ -77,11 +79,60 @@ def check_result(detect_results, annotations):
 
         final_total_result.append([file_name, gt_labels, pred_labels, is_correct, pred_scores])
     return final_total_result
+
+def VizGradCAM(model, image, interpolant=0.5, plot_results=True):
+    original_img = np.asarray(image, dtype = np.float32)
+    img = np.expand_dims(original_img, axis=0)
+    prediction = model.predict(img)
+    prediction_idx = np.argmax(prediction)
+
+    last_conv_layer = next(x for x in model.layers[::-1] if isinstance(x, tf.keras.layers.Conv2D))
+    target_layer = model.get_layer(last_conv_layer.name)
+
+    with tf.GradientTape() as tape:
+        gradient_model = tf.keras.Model([model.inputs], [target_layer.output, model.output])
+        conv2d_out, prediction = gradient_model(img)
+        loss = prediction[:, prediction_idx]
+
+    gradients = tape.gradient(loss, conv2d_out)
+    output = conv2d_out[0]
+    weights = tf.reduce_mean(gradients[0], axis=(0, 1))
+    activation_map = np.zeros(output.shape[0:2], dtype=np.float32)
+    for idx, weight in enumerate(weights):
+        activation_map += weight * output[:, :, idx]
+    activation_map = cv2.resize(activation_map.numpy(), 
+                                (original_img.shape[1], 
+                                 original_img.shape[0]))
+    activation_map = np.maximum(activation_map, 0)
+    activation_map = (activation_map - activation_map.min()) / (activation_map.max() - activation_map.min())
+    activation_map = np.uint8(255 * activation_map)
+
+
+    heatmap = cv2.applyColorMap(activation_map, cv2.COLORMAP_JET)
+
+    #superimpose heatmap onto image
+    original_img = np.uint8((original_img - original_img.min()) / (original_img.max() - original_img.min()) * 255)
+    cvt_heatmap = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB)
+    cvt_heatmap = img_to_array(cvt_heatmap)
+
+    plt.imshow(np.uint8(original_img * interpolant + cvt_heatmap * (1 - interpolant)))
+    plt.show()
+    # cv2.imshow('result', cvt_heatmap)
+    # cv2.waitKey(0)
+
+    # #enlarge plot
+    # plt.rcParams["figure.dpi"] = 100
+
+    # if plot_results == True:
+    #     plt.imshow(np.uint8(original_img * interpolant + cvt_heatmap * (1 - interpolant)))
+    # else:
+    #     return cvt_heatmap
             
 if __name__ == "__main__":
     # model_file = "/data/Models/efficientdet_lite/full-name13-GAP6-300/full-name13-GAP6-300.tflite"
     model_file = "/data/Models/efficientdet_lite/SPC-sample-set1-300/SPC-sample-set1-300.tflite"
-    testset = "/data/Datasets/SPC/Testset/Mixup"
+    ckpt_file = "/data/Models/efficientdet_lite/full-name13-GAP6-300/ckpt"
+    testset = "/data/Datasets/SPC/Testset/Normal"
     threshold = 0.45
     
     project_name, folder_name, model_name = testset.split('/')[-3], testset.split('/')[-1], model_file.split('/')[-1].split('.')[0]
@@ -90,6 +141,7 @@ if __name__ == "__main__":
 
     LABEL_FILE = pd.read_csv(label_path, sep=' ', index_col=False, header=None)
     CLASSES = LABEL_FILE[0].tolist()
+    ckpt = tf.keras.models.load_model(ckpt_file)
 
     if not os.path.isdir(f"{testset}/Records/{model_name}/{threshold}_result_img"):
         os.makedirs(f"{testset}/Records/{model_name}/{threshold}_result_img")
@@ -112,6 +164,8 @@ if __name__ == "__main__":
         image_file = images[idx]
         image = cv2.imread(image_file)
         image = cv2.resize(image, (input_height, input_width))
+
+        VizGradCAM(ckpt, image)
         input_tensor = np.expand_dims(image, axis=0)
                 
         interpreter.set_tensor(input_details[0]['index'], input_tensor.astype(np.uint8))
