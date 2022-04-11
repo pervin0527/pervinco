@@ -34,14 +34,14 @@ def create_testset():
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    FOLDER_NAME = "Normal"
+    FOLDER_NAME = "Mixup"
     SAVE_DIR = f"{ROOT_DIR}/Testset/{FOLDER_NAME}"
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
 
     IMG_DIR = f"{ROOT_DIR}/Cvat/*/*/JPEGImages"
     ANNOT_DIR = f"{ROOT_DIR}/Cvat/*/*/Annotations"
 
-    IS_NORMAL = True
+    IS_NORMAL = False
     ITER = 100
     IMG_SIZE = 512
     MX_BG = "/data/Datasets/Mixup_background"
