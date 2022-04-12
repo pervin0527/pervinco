@@ -68,17 +68,16 @@ def data_process(is_train, folder_name):
                     just_image_transform = A.Compose([
                         A.OneOf([
                             A.OneOf([
-                                A.RandomBrightnessContrast(brightness_limit=(-0.3, 0.3), contrast_limit=(-0.3, 0.3), p=0.5),
-                                A.HueSaturationValue(hue_shift_limit=0, sat_shift_limit=(0, 0), val_shift_limit=(0, 3), p=0.5),
+                                A.RandomBrightnessContrast(brightness_limit=(-0.25, 0.25), contrast_limit=(-0.3, 0.3), p=0.5),
+                                A.HueSaturationValue(hue_shift_limit=0, sat_shift_limit=(0, 0), val_shift_limit=(65, 100), p=0.5),
                             ], p=1),
 
                             A.OneOf([
-                                A.RandomRain(blur_value=4, brightness_coefficient=0.3, p=0.5),
-                                A.Downscale(scale_min=0.65, scale_max=0.9, p=0.5),
+                                A.RandomRain(blur_value=3, brightness_coefficient=0.8, p=0.3),
+                                A.Downscale(scale_min=0.9, scale_max=0.95, p=0.3),
+                                A.GridDropout(unit_size_min=4, unit_size_max=8, random_offset=True, p=0.3),
                             ], p=1),
                         ], p=1),
-
-                        # A.GridDropout(unit_size_min=16, unit_size_max=32, random_offset=True, p=0.6),
                     ])
 
                     if len(dataset) < 1:
@@ -95,7 +94,12 @@ def data_process(is_train, folder_name):
                     transformed = just_image_transform(image=image)
                     image = transformed['image']
 
-                    resize_transform = A.Compose([A.Resize(height=IMG_SIZE, width=IMG_SIZE, p=1)], bbox_params=A.BboxParams(format="pascal_voc", label_fields=['labels']))
+                    resize_transform = A.Compose([
+                        A.OneOf([
+                            A.Resize(height=IMG_SIZE, width=IMG_SIZE, p=0.5),
+                            A.RandomSizedBBoxSafeCrop(width=IMG_SIZE, height=IMG_SIZE, p=0.5),
+                        ], p=1),
+                    ], bbox_params=A.BboxParams(format="pascal_voc", label_fields=['labels']))
                     resize_transformed = resize_transform(image=image, bboxes=bboxes, labels=labels)
                     image, bboxes, labels = resize_transformed['image'], resize_transformed['bboxes'], resize_transformed['labels']
 
@@ -132,7 +136,7 @@ def data_process(is_train, folder_name):
                             A.OneOf([
                                 # A.Equalize(mode='cv', by_channels=True, p=0.3),
                                 A.RandomRain(blur_value=4, brightness_coefficient=0.3, p=0.4),
-                                A.Downscale(scale_min=0.65, scale_max=0.9, p=0.3),
+                                A.Downscale(scale_min=0.85, scale_max=0.95, p=0.3),
                                 A.MotionBlur(blur_limit=(3, 5), p=0.3)
                             ], p=0.3)
                         ], p=1),
@@ -194,11 +198,11 @@ def data_process(is_train, folder_name):
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
     FOLDER = "sample-set2"
-    STEPS = 1
+    STEPS = 3
     IMG_SIZE = 320
     VALID_RATIO = 0.1
     VISUAL = False
-    INCLUDE_BG = False
+    INCLUDE_BG = True
     BG_RATIO = 0.2
     # BG_DIR = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012/TEST"
     BG_DIR = "/data/Datasets/SPC/download"

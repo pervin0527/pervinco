@@ -41,19 +41,12 @@ def crop_image(image, boxes, labels, xmin, ymin, xmax, ymax):
             A.OneOf([
                 A.OneOf([
                     A.RandomBrightnessContrast(brightness_limit=(-0.3, 0.3), contrast_limit=(-0.3, 0.3), p=0.5),
-                    A.HueSaturationValue(hue_shift_limit=0, sat_shift_limit=(0, 0), val_shift_limit=(0, 3), p=0.5),
-                    # A.Sequential([
-                    #     A.HueSaturationValue(hue_shift_limit=0, sat_shift_limit=(0, 0), val_shift_limit=(0, 3), p=1),
-                    #     A.RandomBrightness(limit=0.3, p=1)
-                    # ], p=0.5),
-                    # A.GridDropout(p=1),
+                    A.HueSaturationValue(hue_shift_limit=0, sat_shift_limit=(0, 0), val_shift_limit=(0, 100), p=0.5),
                 ], p=1),
 
                 A.OneOf([
-                    # A.Equalize(mode='cv', by_channels=True, p=0.3),
-                    A.RandomRain(blur_value=4, brightness_coefficient=0.3, p=0.4),
-                    A.Downscale(scale_min=0.65, scale_max=0.9, p=0.3),
-                    A.MotionBlur(blur_limit=(3, 7), p=0.3)
+                    A.Downscale(scale_min=0.9, scale_max=0.95, p=0.3),
+                    A.MotionBlur(blur_limit=(3, 4), p=0.3)
                 ], p=0.3)
             ], p=1),
         
@@ -131,7 +124,7 @@ def mosaic(pieces, img_size, classes):
 def mixup(image, bboxes, labels, img_size, mixup_bg, min=0.4, max=0.5, alpha=1.0):
     main_transform = A.Compose([
         A.Resize(width=img_size, height=img_size, p=1),
-        A.RandomBrightnessContrast(p=1, brightness_limit=(-0.2, 0.2)),
+        A.RandomBrightnessContrast(p=1, brightness_limit=(-0.3, 0.2)),
     ], bbox_params=A.BboxParams(format='pascal_voc', min_area=0.2, min_visibility=0.2, label_fields=['labels']))
     transformed = main_transform(image=image, bboxes=bboxes, labels=labels)
 
@@ -150,7 +143,7 @@ def mixup(image, bboxes, labels, img_size, mixup_bg, min=0.4, max=0.5, alpha=1.0
 
         A.OneOf([
             A.RandomBrightnessContrast(brightness_limit=(-0.4, 0.4), p=0.3),
-            A.HueSaturationValue(val_shift_limit=(0, 100), p=0.3),
+            A.HueSaturationValue(val_shift_limit=(40, 80), p=0.3),
             # A.ChannelShuffle(p=0.3)
         ], p=1)
     ])

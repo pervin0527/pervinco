@@ -60,9 +60,9 @@ def read_xml(xml_file, classes):
     # return bboxes, labels, areas    
     return bboxes, labels
 
-def draw_result(detection_results):
-    record = detection_results[:]
-    image_file = record.pop(0)
+def draw_result(image_file, detection_results):
+    record = detection_results[1:]
+    # print(record)
     file_name = image_file.split('/')[-1].split('.')[0]
     image = cv2.imread(image_file)
     image = cv2.resize(image, (input_height, input_width))
@@ -139,9 +139,9 @@ def VizGradCAM(model, image, number, interpolant=0.5, plot_results=True):
             
 if __name__ == "__main__":
     model_file = "/data/Models/efficientdet_lite/SPC-sample-set1-300/SPC-sample-set1-300.tflite"
-    ckpt_file = "/data/Models/efficientdet_lite/SPC-sample-set1-300/ckpt"
-    testset = "/data/Datasets/SPC/Testset/Normal"
-    threshold = 0.45
+    testset = "/data/Datasets/SPC/Testset/Real"
+    threshold = 0.7
+    activation_map = False
     
     project_name, folder_name, model_name = testset.split('/')[-3], testset.split('/')[-1], model_file.split('/')[-1].split('.')[0]
     label_path = f"/data/Datasets/{project_name}/Labels/labels.txt"
@@ -149,11 +149,14 @@ if __name__ == "__main__":
 
     LABEL_FILE = pd.read_csv(label_path, sep=' ', index_col=False, header=None)
     CLASSES = LABEL_FILE[0].tolist()
-    ckpt = tf.keras.models.load_model(ckpt_file)
 
     if not os.path.isdir(f"{testset}/Records/{model_name}"):
         os.makedirs(f"{testset}/Records/{model_name}/{threshold}_result_img")
+
+    if activation_map:
+        ckpt_file = f"{'/'.join(model_file.split('/')[:-1])}/ckpt"
         os.makedirs(f"{testset}/Records/{model_name}/{threshold}_cam")
+        ckpt = tf.keras.models.load_model(ckpt_file)
 
     images = sorted(glob(f"{testset}/images/*"))
     annotations = sorted(glob(f"{testset}/annotations/*"))
@@ -175,7 +178,8 @@ if __name__ == "__main__":
         image = cv2.imread(image_file)
         image = cv2.resize(image, (input_height, input_width))
 
-        VizGradCAM(ckpt, image, idx)
+        if activation_map:
+            VizGradCAM(ckpt, image, idx)
         input_tensor = np.expand_dims(image, axis=0)
                 
         interpreter.set_tensor(input_details[0]['index'], input_tensor.astype(np.uint8))
@@ -192,7 +196,8 @@ if __name__ == "__main__":
         # num_detections = interpreter.get_tensor(output_details[2]['index'])
         # classes = interpreter.get_tensor(output_details[3]['index'])
 
-        result = [image_file]
+        file_name = image_file.split('/')[-1]
+        result = [file_name]
         if any(scores[0] > threshold):
             for i, score in enumerate(scores[0]):
                 if score > threshold:
@@ -206,7 +211,7 @@ if __name__ == "__main__":
         else:
             result.extend(["No Results"])
 
-        draw_result(result)
+        draw_result(image_file, result)
         total.append(result)
      
     final = check_result(total, annotations)
