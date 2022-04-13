@@ -197,12 +197,12 @@ def data_process(is_train, folder_name):
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    FOLDER = "sample-set2"
-    STEPS = 3
-    IMG_SIZE = 320
+    FOLDER = "full-name14"
+    STEPS = 1
+    IMG_SIZE = 384
     VALID_RATIO = 0.1
-    VISUAL = False
-    INCLUDE_BG = True
+    VISUAL = True
+    INCLUDE_BG = False
     BG_RATIO = 0.2
     # BG_DIR = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012/TEST"
     BG_DIR = "/data/Datasets/SPC/download"

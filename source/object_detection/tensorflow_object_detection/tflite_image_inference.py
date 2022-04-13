@@ -138,8 +138,8 @@ def VizGradCAM(model, image, number, interpolant=0.5, plot_results=True):
     plt.savefig(f"{testset}/Records/{model_name}/{threshold}_cam/{number:>05}.jpg")
             
 if __name__ == "__main__":
-    model_file = "/data/Models/efficientdet_lite/SPC-sample-set1-300/SPC-sample-set1-300.tflite"
-    testset = "/data/Datasets/SPC/Testset/Real"
+    model_file = "/data/Models/efficientdet_lite/full-name13-GAP6-300/full-name13-GAP6-300.tflite"
+    testset = "/data/Datasets/SPC/Testset/day_night"
     threshold = 0.7
     activation_map = False
     
@@ -149,14 +149,6 @@ if __name__ == "__main__":
 
     LABEL_FILE = pd.read_csv(label_path, sep=' ', index_col=False, header=None)
     CLASSES = LABEL_FILE[0].tolist()
-
-    if not os.path.isdir(f"{testset}/Records/{model_name}"):
-        os.makedirs(f"{testset}/Records/{model_name}/{threshold}_result_img")
-
-    if activation_map:
-        ckpt_file = f"{'/'.join(model_file.split('/')[:-1])}/ckpt"
-        os.makedirs(f"{testset}/Records/{model_name}/{threshold}_cam")
-        ckpt = tf.keras.models.load_model(ckpt_file)
 
     images = sorted(glob(f"{testset}/images/*"))
     annotations = sorted(glob(f"{testset}/annotations/*"))
@@ -171,6 +163,14 @@ if __name__ == "__main__":
     input_shape = input_details[0].get('shape')
     input_width, input_height = input_shape[1], input_shape[2]
     input_dtype = input_details[0].get('dtype')
+
+    if not os.path.isdir(f"{testset}/Records/{model_name}"):
+        os.makedirs(f"{testset}/Records/{model_name}/{threshold}_result_img")
+
+    if activation_map:
+        ckpt_file = f"{'/'.join(model_file.split('/')[:-1])}/ckpt"
+        os.makedirs(f"{testset}/Records/{model_name}/{threshold}_cam")
+        ckpt = tf.keras.models.load_model(ckpt_file)
 
     total = []
     for idx in tqdm(range(len(images))):
