@@ -139,8 +139,8 @@ def VizGradCAM(model, image, number, interpolant=0.5, plot_results=True):
     plt.savefig(f"{testset}/Records/{model_name}/{threshold}_cam/{number:>05}.jpg")
             
 if __name__ == "__main__":
-    model_file = "/data/Models/efficientdet_lite/full-name13-GAP6-300/full-name13-GAP6-300.tflite"
-    testset = "/data/Datasets/SPC/Testset/Normal"
+    model_file = "/data/Models/efficientdet_lite/SPC-full-name14-d1-300/SPC-full-name14-d1-300.tflite"
+    testset = "/data/Datasets/SPC/Testset/day_night2"
     threshold = 0.7
     activation_map = False
     

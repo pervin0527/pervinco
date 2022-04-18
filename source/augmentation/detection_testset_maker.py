@@ -34,7 +34,7 @@ def create_testset():
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    FOLDER_NAME = "day_night"
+    FOLDER_NAME = "day_night2"
     SAVE_DIR = f"{ROOT_DIR}/Testset/{FOLDER_NAME}"
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
 

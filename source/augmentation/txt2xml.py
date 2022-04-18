@@ -22,31 +22,32 @@ def unconvert(width, height, x, y, w, h):
     return (xmin, xmax, ymin, ymax)
 
 if __name__ == "__main__":
-    TXT_DIR = "/data/Datasets/SPC/full-name2/labels"
+    TXT_DIR = "/home/barcelona/yolov5-tflite/yolov5-5.0/runs/detect/exp3/labels"
     LABEL_DIR = "/data/Datasets/SPC/Labels/labels.txt"
-    IMG_DIR = f"{('/').join(TXT_DIR.split('/')[:-1])}/images"
+    IMG_DIR = "/data/Datasets/SPC/Testset/day_night2/original/images"
     SAVE_DIR = f"{('/').join(TXT_DIR.split('/')[:-1])}/txt2xml"
+    IMG_SIZE = 384
 
     classes = read_label_file(LABEL_DIR)
     txts = get_files(TXT_DIR)
     print(len(txts))
 
+    images = get_files(IMG_DIR)
+    print(len(images))
+
     if not os.path.isdir(SAVE_DIR):
-        os.makedirs(SAVE_DIR)
+        os.makedirs(f"{SAVE_DIR}/annotations")
+        os.makedirs(f"{SAVE_DIR}/images")
 
     for txt in txts:
         filename = txt.split('/')[-1].split('.')[0]
         image = cv2.imread(f"{IMG_DIR}/{filename}.jpg")
+        image = cv2.resize(image, (IMG_SIZE, IMG_SIZE))
         height, width = image.shape[:-1]
 
         df = pd.read_csv(txt, sep=',', header=None, index_col=False)
         df_list = df[0].tolist()
 
         labels, bboxes = get_annot_data(df_list)
-        # print(labels, bboxes)
-
-        # for label, bbox in zip(labels, bboxes):
-        #     result = unconvert(1440, 1440, bbox[0], bbox[1], bbox[2], bbox[3])
-        #     print(result)
-        write_xml(SAVE_DIR, bboxes, labels, filename, height, width, format="yolo")
-        # break
+        write_xml(f"{SAVE_DIR}/annotations", bboxes, labels, filename, height, width, format="yolo")
+        cv2.imwrite(f"{SAVE_DIR}/images/{filename}.jpg", image)
