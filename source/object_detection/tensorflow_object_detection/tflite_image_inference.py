@@ -101,6 +101,7 @@ def check_result(detect_results, annotations):
 
 def VizGradCAM(model, image, number, interpolant=0.5, plot_results=True):
     original_img = np.asarray(image, dtype = np.float32)
+    original_img = cv2.resize(original_img, (320, 320))
     img = np.expand_dims(original_img, axis=0)
     prediction = model.predict(img)
     prediction_idx = np.argmax(prediction)
@@ -139,7 +140,7 @@ def VizGradCAM(model, image, number, interpolant=0.5, plot_results=True):
             
 if __name__ == "__main__":
     model_file = "/data/Models/efficientdet_lite/full-name13-GAP6-300/full-name13-GAP6-300.tflite"
-    testset = "/data/Datasets/SPC/Testset/day_night"
+    testset = "/data/Datasets/SPC/Testset/Normal"
     threshold = 0.7
     activation_map = False
     
