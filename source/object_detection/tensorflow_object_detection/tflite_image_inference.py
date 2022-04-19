@@ -31,6 +31,7 @@ else:
     except RuntimeError as e:
         print(e)
 
+
 def read_xml(xml_file, classes):
     tree = ET.parse(xml_file)
     root = tree.getroot()
@@ -60,6 +61,7 @@ def read_xml(xml_file, classes):
     # return bboxes, labels, areas    
     return bboxes, labels
 
+
 def draw_result(image_file, detection_results):
     record = detection_results[1:]
     # print(record)
@@ -77,6 +79,7 @@ def draw_result(image_file, detection_results):
     cv2.imwrite(f"{testset}/Records/{model_name}/{threshold}_result_img/{file_name}.jpg", image)
     # cv2.imshow('result', image)
     # cv2.waitKey(0)           
+
 
 def check_result(detect_results, annotations):
     final_total_result = []
@@ -98,6 +101,7 @@ def check_result(detect_results, annotations):
 
         final_total_result.append([file_name, gt_labels, pred_labels, is_correct, pred_scores])
     return final_total_result
+
 
 def VizGradCAM(model, image, number, interpolant=0.5, plot_results=True):
     original_img = np.asarray(image, dtype = np.float32)
@@ -137,11 +141,12 @@ def VizGradCAM(model, image, number, interpolant=0.5, plot_results=True):
 
     plt.imshow(np.uint8(original_img * interpolant + cvt_heatmap * (1 - interpolant)))
     plt.savefig(f"{testset}/Records/{model_name}/{threshold}_cam/{number:>05}.jpg")
+          
             
 if __name__ == "__main__":
     model_file = "/data/Models/efficientdet_lite/SPC-full-name14-d1-300/SPC-full-name14-d1-300.tflite"
-    testset = "/data/Datasets/SPC/Testset/day_night2"
-    threshold = 0.7
+    testset = "/data/Datasets/SPC/Testset/test"
+    threshold = 0.55
     activation_map = False
     
     project_name, folder_name, model_name = testset.split('/')[-3], testset.split('/')[-1], model_file.split('/')[-1].split('.')[0]
