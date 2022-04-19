@@ -141,11 +141,11 @@ def VizGradCAM(model, image, number, interpolant=0.5, plot_results=True):
 
     plt.imshow(np.uint8(original_img * interpolant + cvt_heatmap * (1 - interpolant)))
     plt.savefig(f"{testset}/Records/{model_name}/{threshold}_cam/{number:>05}.jpg")
-          
-            
+
+
 if __name__ == "__main__":
     model_file = "/data/Models/efficientdet_lite/SPC-full-name14-d1-300/SPC-full-name14-d1-300.tflite"
-    testset = "/data/Datasets/SPC/Testset/test"
+    testset = "/data/Datasets/SPC/Testset/test2"
     threshold = 0.55
     activation_map = False
     

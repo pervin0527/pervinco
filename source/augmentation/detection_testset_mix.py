@@ -18,8 +18,8 @@ if __name__ == "__main__":
         "/data/Datasets/SPC/Testset/Real",
         "/data/Datasets/SPC/Testset/day_night"
     ]
-    save_dir = "/data/Datasets/SPC/Testset/test2"
-    ratio = [.5, .5]
+    save_dir = "/data/Datasets/SPC/Testset/test3"
+    ratio = [.3, .7]
 
     assert len(datasets) == len(ratio), "len dataset and len ratio must be same"
     
