@@ -146,7 +146,7 @@ def VizGradCAM(model, image, number, interpolant=0.5, plot_results=True):
 if __name__ == "__main__":
     model_file = "/data/Models/efficientdet_lite/SPC-full-name14-d1-300/SPC-full-name14-d1-300.tflite"
     testset = "/data/Datasets/SPC/Testset/test2"
-    threshold = 0.55
+    threshold = 0.7
     activation_map = False
     
     project_name, folder_name, model_name = testset.split('/')[-3], testset.split('/')[-1], model_file.split('/')[-1].split('.')[0]
@@ -170,7 +170,7 @@ if __name__ == "__main__":
     input_width, input_height = input_shape[1], input_shape[2]
     input_dtype = input_details[0].get('dtype')
 
-    if not os.path.isdir(f"{testset}/Records/{model_name}"):
+    if not os.path.isdir(f"{testset}/Records/{model_name}/{threshold}_result_img"):
         os.makedirs(f"{testset}/Records/{model_name}/{threshold}_result_img")
 
     if activation_map:
