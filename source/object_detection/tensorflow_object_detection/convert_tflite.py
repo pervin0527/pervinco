@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2
+from glob import glob
 from tflite_support.metadata_writers import object_detector
 from tflite_support.metadata_writers import writer_utils
 
@@ -22,19 +22,37 @@ else:
     except RuntimeError as e:
         print(e)
 
+def preprocess_image(images):
+    image = tf.io.read_file(images)
+    image = tf.image.decode_jpeg(image, channels=3)
+    image = tf.image.resize(image, [512, 512])
+    # image = tf.keras.applications.mobilenet.preprocess_input(image)
 
-label_file_paths='/data/Datasets/Seeds/SPC/Labels/labels.txt'
-path = "/data/Models/efficientdet/SPC-21-11-22/export/"
-saved_model_dir = f"{path}/saved_model"
+    return image
 
-converter = tf.lite.TFLiteConverter.from_saved_model(saved_model_dir, signature_keys=['serving_default'])
+def representative_data_gen():
+    images = sorted(glob("/data/Datasets/COCO2017/images/*"))
+    idx = 0
+    for input_value in tf.data.Dataset.from_tensor_slices(images).map(preprocess_image).batch(1).take(100):
+        idx += 1
+        print(idx)
+        yield [input_value]
+
+label_file_paths='/data/Datasets/COCO2017/Labels/labels.txt'
+graph_path = "/home/barcelona/tensorflow/models/research/object_detection/jun/efficientdet_d0_coco17_tpu-32/exported_gp"
+saved_model_dir = f"{graph_path}/saved_model"
+
+converter = tf.lite.TFLiteConverter.from_saved_model(saved_model_dir)
 converter.optimizations = [tf.lite.Optimize.DEFAULT]
-converter.experimental_new_converter = True
-converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS, tf.lite.OpsSet.SELECT_TF_OPS]
+converter.representative_dataset = representative_data_gen
+converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8,
+                                       tf.lite.OpsSet.TFLITE_BUILTINS]
+converter.inference_input_type = tf.uint8
+converter.inference_output_type = tf.uint8                                       
 tflite_model = converter.convert()
 
-with tf.io.gfile.GFile(f'{path}/custom.tflite', 'wb') as f:
+with tf.io.gfile.GFile(f'{graph_path}/custom.tflite', 'wb') as f:
   f.write(tflite_model)
 
-writer = object_detector.MetadataWriter.create_for_inference(writer_utils.load_file(f'{path}/custom.tflite'), input_norm_mean=[0], input_norm_std=[255], label_file_paths=[label_file_paths])
-writer_utils.save_file(writer.populate(), f'{path}/custom.tflite')
+writer = object_detector.MetadataWriter.create_for_inference(writer_utils.load_file(f'{graph_path}/custom.tflite'), input_norm_mean=[0], input_norm_std=[255], label_file_paths=[label_file_paths])
+writer_utils.save_file(writer.populate(), f'{graph_path}/custom.tflite')

@@ -11,8 +11,8 @@ from tflite_model_maker.config import QuantizationConfig
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
-    TRAIN_DIR = f"{ROOT_DIR}/sample-set2/train2"
-    VALID_DIR = f"{ROOT_DIR}/sample-set2/valid2"
+    TRAIN_DIR = f"{ROOT_DIR}/sample-set1/train"
+    VALID_DIR = f"{ROOT_DIR}/sample-set1/valid"
 
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
     LABEL_FILE = pd.read_csv(LABEL_FILE, sep=',', index_col=False, header=None)
@@ -20,7 +20,7 @@ if __name__ == "__main__":
     # CLASSES = CLASSES[:-1]
     print(CLASSES)
     
-    EPOCHS = 50
+    EPOCHS = 1
     BATCH_SIZE = 64
     MAX_DETECTIONS = 10
 
@@ -67,8 +67,8 @@ if __name__ == "__main__":
     SAVE_PATH = "/data/Models/efficientdet_lite"
     PROJECT = ROOT_DIR.split('/')[-1]
     DS_NAME = TRAIN_DIR.split('/')[-2]
-    MODEL_FILE = f"{PROJECT}-{DS_NAME}-{EPOCHS}"
-    # MODEL_FILE = "TEST"
+    # MODEL_FILE = f"{PROJECT}-{DS_NAME}-{EPOCHS}"
+    MODEL_FILE = "TEST"
 
     train_data = object_detector.DataLoader.from_pascal_voc(images_dir=f"{TRAIN_DIR}/images",
                                                             annotations_dir=f"{TRAIN_DIR}/annotations", 

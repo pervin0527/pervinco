@@ -144,8 +144,9 @@ def VizGradCAM(model, image, number, interpolant=0.5, plot_results=True):
 
 
 if __name__ == "__main__":
-    model_file = "/data/Models/efficientdet_lite/SPC-full-name14-d1-300/SPC-full-name14-d1-300.tflite"
-    testset = "/data/Datasets/SPC/Testset/test2"
+    model_file = "/data/Models/efficientdet_lite/full-name13-GAP6-300/full-name13-GAP6-300.tflite"
+    # model_file = "/data/Models/efficientdet_lite/SPC-full-name14-d1-300/SPC-full-name14-d1-300.tflite"
+    testset = "/data/Datasets/SPC/Testset/test3"
     threshold = 0.7
     activation_map = False
     
