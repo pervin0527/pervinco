@@ -25,7 +25,7 @@ else:
 def preprocess_image(images):
     image = tf.io.read_file(images)
     image = tf.image.decode_jpeg(image, channels=3)
-    image = tf.image.resize(image, [512, 512])
+    image = tf.image.resize(image, [640, 640])
     # image = tf.keras.applications.mobilenet.preprocess_input(image)
 
     return image
@@ -38,21 +38,31 @@ def representative_data_gen():
         print(idx)
         yield [input_value]
 
-label_file_paths='/data/Datasets/COCO2017/Labels/labels.txt'
-graph_path = "/home/barcelona/tensorflow/models/research/object_detection/jun/efficientdet_d0_coco17_tpu-32/exported_gp"
-saved_model_dir = f"{graph_path}/saved_model"
+if __name__ == "__main__":
+    int8 = True
+    input_norm_mean, input_norm_std = [127.5], [127.5]
+    label_file_paths='/home/barcelona/tensorflow/examples/lite/examples/object_detection/android/app/src/main/assets/labelmap.txt'
+    # graph_path = "/home/barcelona/tensorflow/models/research/object_detection/jun/efficientdet_d0_coco17_tpu-32/exported_gp"
+    graph_path = "/home/barcelona/tensorflow/models/research/object_detection/jun/ssd_mobilenet_v2_fpnlite_640x640_coco17_tpu-8/export"
+    saved_model_dir = f"{graph_path}/saved_model"
 
-converter = tf.lite.TFLiteConverter.from_saved_model(saved_model_dir)
-converter.optimizations = [tf.lite.Optimize.DEFAULT]
-converter.representative_dataset = representative_data_gen
-converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8,
-                                       tf.lite.OpsSet.TFLITE_BUILTINS]
-converter.inference_input_type = tf.uint8
-converter.inference_output_type = tf.uint8                                       
-tflite_model = converter.convert()
+    converter = tf.lite.TFLiteConverter.from_saved_model(saved_model_dir)
+    converter.optimizations = [tf.lite.Optimize.DEFAULT]
 
-with tf.io.gfile.GFile(f'{graph_path}/custom.tflite', 'wb') as f:
-  f.write(tflite_model)
+    if int8:
+        converter.representative_dataset = representative_data_gen
+        # converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8, tf.lite.OpsSet.SELECT_TF_OPS]
+        converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+        converter.inference_input_type = tf.uint8
+        converter.inference_output_type = tf.uint8
 
-writer = object_detector.MetadataWriter.create_for_inference(writer_utils.load_file(f'{graph_path}/custom.tflite'), input_norm_mean=[0], input_norm_std=[255], label_file_paths=[label_file_paths])
-writer_utils.save_file(writer.populate(), f'{graph_path}/custom.tflite')
+    else:
+        converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS]                                       
+    
+    tflite_model = converter.convert()
+
+    with tf.io.gfile.GFile(f'{graph_path}/custom.tflite', 'wb') as f:
+        f.write(tflite_model)
+
+    writer = object_detector.MetadataWriter.create_for_inference(writer_utils.load_file(f'{graph_path}/custom.tflite'), input_norm_mean=input_norm_mean, input_norm_std=input_norm_std, label_file_paths=[label_file_paths])
+    writer_utils.save_file(writer.populate(), f'{graph_path}/custom_meta.tflite')
