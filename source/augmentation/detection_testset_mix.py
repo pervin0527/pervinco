@@ -15,11 +15,11 @@ def make_file_list(ds_list):
 
 if __name__ == "__main__":
     datasets = [
-        "/data/Datasets/SPC/Testset/Real",
-        "/data/Datasets/SPC/Testset/day_night"
+        "/data/Datasets/SPC/Testset/day_night",
+        "/data/Datasets/SPC/Testset/Normal"
     ]
-    save_dir = "/data/Datasets/SPC/Testset/test3"
-    ratio = [.3, .7]
+    save_dir = "/data/Datasets/SPC/Testset/night_normal-73"
+    ratio = [.7, .3]
 
     assert len(datasets) == len(ratio), "len dataset and len ratio must be same"
     
