@@ -145,7 +145,7 @@ def VizGradCAM(model, image, number, interpolant=0.5, plot_results=True):
 
 if __name__ == "__main__":
     model_file = "/data/Models/efficientdet_lite/SPC-full-name14-d1-300-train2/SPC-full-name14-d1-300-train2.tflite"
-    testset = "/data/Datasets/SPC/Testset/Normal"
+    testset = "/data/Datasets/SPC/Testset/night_normal-73" # Normal, night_normal-37, night_normal-55, night_normal-73
     threshold = 0.7
     activation_map = False
     

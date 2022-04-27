@@ -200,9 +200,9 @@ def DataGenerator(train_dir, label_dir, batch_size, height, width, classes, augm
 
 
 def display(display_list):
-    plt.figure(figsize=(15, 15))
+    plt.figure(figsize=(10, 10))
 
-    title = ['Input Image', 'True Mask', 'Predicted Mask']
+    title = ['Input Image', 'True Mask', 'Predicted Mask', 'Encoded Pred Mask']
 
     for i in range(len(display_list)):
         plt.subplot(1, len(display_list), i+1)
@@ -219,12 +219,16 @@ def create_mask(pred_mask):
 
 
 def show_predictions():
-    gt_mask = onehot_decode(tf.cast(sample_mask, dtype=tf.uint8))
     pred = model.predict(sample_image[tf.newaxis, ...])
+    print("input image : ", sample_image.shape)
+    print("sample mask, prediction mask : ", sample_mask.shape, pred.shape)
+    
+    gt_mask = onehot_decode(tf.cast(sample_mask, dtype=tf.uint8))
     pred_mask = create_mask(pred)
-    print(sample_image.shape, sample_mask.shape, pred_mask.shape)
-
-    display([sample_image, gt_mask, pred_mask])
+    encode_pred_mask = onehot_decode(tf.cast(pred[0], dtype=tf.uint8))
+    
+    print("ground-truth, prediction mask", gt_mask.shape, pred_mask.shape)
+    display([sample_image, gt_mask, pred_mask, encode_pred_mask])
 
 
 def onehot_decode(input):
@@ -232,17 +236,12 @@ def onehot_decode(input):
     for i, cls in enumerate(MODEL_CLASSES):
         idx = TOTAL_CLASSES.index(cls)
         img = tf.repeat(input[:, :, i, tf.newaxis], 3, axis=-1)
-        img = img * tf.constant(VOC_COLORMAP[idx][::-1], dtype=tf.uint8)
+        # img = img * tf.constant(VOC_COLORMAP[idx][::-1], dtype=tf.uint8)
+        img = img *tf.constant(VOC_COLORMAP[idx], dtype=tf.uint8)
         stack.append(img)
     stack = tf.stack(stack, axis=-1)
     return tf.reduce_sum(stack, axis=-1)
 
-
-# def onehot_encode(input):
-#     stack = []
-#     for i in range(len(MODEL_CLASSES)):
-#         stack.append(tf.math.reduce_prod(tf.cast(input == VOC_COLORMAP[i][::-1], tf.float32), axis=-1))
-#     stack = tf.stack(stack, axis=-1)
 
 class DisplayCallback(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
@@ -250,7 +249,26 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
         clear_output(wait=True)
         show_predictions()
-        print ('\n에포크 이후 예측 예시 {}\n'.format(epoch+1))
+        # print ('\n에포크 이후 예측 예시 {}\n'.format(epoch+1))
+        print(f"{epoch+1} After Prediction")
+
+
+def build_lrfn(lr_start=0.00001, lr_max=0.00005, 
+               lr_min=0.00001, lr_rampup_epochs=5, 
+               lr_sustain_epochs=0, lr_exp_decay=.8):
+    lr_max = lr_max * strategy.num_replicas_in_sync
+
+    def lrfn(epoch):
+        if epoch < lr_rampup_epochs:
+            lr = (lr_max - lr_start) / lr_rampup_epochs * epoch + lr_start
+        elif epoch < lr_rampup_epochs + lr_sustain_epochs:
+            lr = lr_max
+        else:
+            lr = (lr_max - lr_min) *\
+                 lr_exp_decay**(epoch - lr_rampup_epochs\
+                                - lr_sustain_epochs) + lr_min
+        return lr
+    return lrfn
 
 
 if __name__ == "__main__":
@@ -261,14 +279,23 @@ if __name__ == "__main__":
     y_valid_dir = f"{DATA_DIR}/valid/masks"
 
 
-    TOTAL_CLASSES = pd.read_csv(f"{DATA_DIR}/labels/class_labels.txt", sep='\n', header=None, index_col=False)
-    TOTAL_CLASSES = TOTAL_CLASSES[0].to_list()
+    # TOTAL_CLASSES = pd.read_csv(f"{DATA_DIR}/labels/class_labels.txt", sep='\n', header=None, index_col=False)
+    # TOTAL_CLASSES = TOTAL_CLASSES[0].to_list()
+    TOTAL_CLASSES = [
+        "background",
+        "aeroplane", "bicycle", "bird", "boat", "bottle",
+        "bus", "car", "cat", "chair", "cow", 
+        "diningtable", "dog", "horse", "motorbike", "person",
+        "potted plant", "sheep", "sofa", "train", "tv/monitor"]
+
     N_TOTAL_CLASSES = len(TOTAL_CLASSES)
     
-    CLASSES_PIXEL_COUNT_DICT = {'background': 361560627, 'aeroplane': 3704393, 'bicycle': 1571148, 'bird': 4384132, 'boat': 2862913,
-                                'bottle': 3438963, 'bus': 8696374, 'car': 7088203, 'cat': 12473466,'chair': 4975284,
-                                'cow': 5027769, 'diningtable': 6246382, 'dog': 9379340, 'horse': 4925676, 'motorbike': 5476081,
-                                'person': 24995476, 'potted plant': 2904902, 'sheep': 4187268, 'sofa': 7091464, 'train': 7903243, 'tv/monitor': 4120989}
+    CLASSES_PIXEL_COUNT_DICT = {
+        'background': 361560627,
+        'aeroplane': 3704393, 'bicycle': 1571148, 'bird': 4384132, 'boat': 2862913, 'bottle': 3438963,
+        'bus': 8696374, 'car': 7088203, 'cat': 12473466,'chair': 4975284, 'cow': 5027769,
+        'diningtable': 6246382, 'dog': 9379340, 'horse': 4925676, 'motorbike': 5476081, 'person': 24995476,
+        'potted plant': 2904902, 'sheep': 4187268, 'sofa': 7091464, 'train': 7903243, 'tv/monitor': 4120989,} # 'background': 361560627
 
     MODEL_CLASSES = TOTAL_CLASSES
     ALL_CLASSES = False
@@ -277,35 +304,37 @@ if __name__ == "__main__":
         # MODEL_CLASSES = MODEL_CLASSES[1:]
         ALL_CLASSES = True
 
-    EPOCHS = 500
-    BATCH_SIZE = 16
+    EPOCHS = 3000
+    BATCH_SIZE = 32
     N_CLASSES = len(MODEL_CLASSES)
     HEIGHT,WIDTH = 320, 320
     WEIGHTS = "imagenet"
     BACKBONE_NAME = "efficientnetb0"
     WWO_AUG = False
 
-    VOC_COLORMAP = [[0, 0, 0],
-                    [128, 0, 0],
-                    [0, 128, 0],
-                    [128, 128, 0],
-                    [0, 0, 128],
-                    [128, 0, 128],
-                    [0, 128, 128],
-                    [128, 128, 128],
-                    [64, 0, 0],
-                    [192, 0, 0],
-                    [64, 128, 0],
-                    [192, 128, 0],
-                    [64, 0, 128],
-                    [192, 0, 128],
-                    [64, 128, 128],
-                    [192, 128, 128],
-                    [0, 64, 0],
-                    [128, 64, 0],
-                    [0, 192, 0],
-                    [128, 192, 0],
-                    [0, 64, 128]]
+    VOC_COLORMAP = [
+        [0, 0, 0], # background
+        [128, 0, 0], # aeroplane
+        [0, 128, 0], # bicycle
+        [128, 128, 0], # bird
+        [0, 0, 128], # boat
+        [128, 0, 128], # bottle
+        [0, 128, 128], # bus
+        [128, 128, 128], # car
+        [64, 0, 0], # cat
+        [192, 0, 0], # chair
+        [64, 128, 0], # cow
+        [192, 128, 0], # diningtable
+        [64, 0, 128], # dog
+        [192, 0, 128], # horse
+        [64, 128, 128], # motorbike
+        [192, 128, 128], # person
+        [0, 64, 0], # potted plant
+        [128, 64, 0], # sheep
+        [0, 192, 0], # sofa
+        [128, 192, 0], # train
+        [0, 64, 128], # tv/monitor
+    ]
 
     class_weights = get_balancing_class_weights(MODEL_CLASSES, CLASSES_PIXEL_COUNT_DICT)
     print(class_weights)
@@ -315,17 +344,24 @@ if __name__ == "__main__":
     BACKBONE_TRAINABLE = False
     model = tasm.DeepLabV3plus(n_classes=N_CLASSES, base_model=base_model, output_layers=layers, backbone_trainable=BACKBONE_TRAINABLE)
 
-    opt = tf.keras.optimizers.SGD(learning_rate=0.001, momentum=0.9)
+    # opt = tf.keras.optimizers.SGD(learning_rate=0.2, momentum=0.9)
+    # opt = tf.keras.optimizers.Adam(0.0001)
+    opt = tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.9)
     metrics = [tasm.metrics.IOUScore(threshold=0.5)]
     categorical_focal_dice_loss = tasm.losses.CategoricalFocalLoss(alpha=0.25, gamma=2.0) + tasm.losses.DiceLoss(class_weights=class_weights)
 
     model.compile(optimizer=opt, loss=categorical_focal_dice_loss, metrics=metrics)
+    # model.compile(optimizer=opt, loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True), metrics=['accuracy'])
     model.run_eagerly = True
 
-    callbacks = [tf.keras.callbacks.ReduceLROnPlateau(monitor="iou_score", factor=0.2, patience=6, verbose=1, mode="max"),
-                 tf.keras.callbacks.ModelCheckpoint("/data/Models/segmentation/DeepLabV3plus.ckpt", verbose=1, save_weights_only=True, save_best_only=True),
-                #  DisplayCallback(),
-                 tf.keras.callbacks.EarlyStopping(monitor="iou_score", patience=16, mode="max", verbose=1, restore_best_weights=True)]
+    lrfn = build_lrfn()
+    callbacks = [
+        # tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1),
+        tf.keras.callbacks.ModelCheckpoint("/data/Models/segmentation/DeepLabV3plus.ckpt", verbose=1, save_weights_only=True, save_best_only=True),
+        tf.keras.callbacks.EarlyStopping(monitor="iou_score", patience=16, mode="max", verbose=1, restore_best_weights=True),
+        tf.keras.callbacks.ReduceLROnPlateau(monitor="iou_score", factor=0.2, patience=6, verbose=1, mode="max"),
+        #  DisplayCallback(),
+        ]
 
     TrainSet = DataGenerator(x_train_dir,
                              y_train_dir,
