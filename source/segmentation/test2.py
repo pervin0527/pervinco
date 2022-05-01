@@ -159,6 +159,7 @@ def plot_samples_matplotlib(display_list, figsize=(5, 3)):
         else:
             axes[i].imshow(display_list[i])
     plt.show()
+    plt.savefig("./result.png")
 
 
 def plot_predictions(images_list, colormap, model):
