@@ -143,7 +143,6 @@ def decode_segmentation_masks(mask, colormap, n_classes):
     return rgb
 
 
-
 def get_overlay(image, colored_mask):
     image = tf.keras.preprocessing.image.array_to_img(image)
     image = np.array(image).astype(np.uint8)
@@ -206,12 +205,7 @@ if __name__ == "__main__":
                "bus", "car", "cat", "chair", "cow", 
                "diningtable", "dog", "horse", "motorbike", "person",
                "potted plant", "sheep", "sofa", "train", "tv/monitor"]
-
-    # CLASSES = ["aeroplane", "bicycle", "bird", "boat", "bottle",
-    #            "bus", "car", "cat", "chair", "cow", 
-    #            "diningtable", "dog", "horse", "motorbike", "person",
-    #            "potted plant", "sheep", "sofa", "train", "tv/monitor"]
-
+               
     NUM_CLASSES = len(CLASSES)
 
     root = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012/Segmentation"
@@ -234,29 +228,4 @@ if __name__ == "__main__":
     model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), loss=loss, metrics=["accuracy"])
 
     history = model.fit(train_dataset, validation_data=valid_dataset, epochs=EPOCHS)
-
-    # plt.plot(history.history["loss"])
-    # plt.title("Training Loss")
-    # plt.ylabel("loss")
-    # plt.xlabel("epoch")
-    # plt.show()
-
-    # plt.plot(history.history["accuracy"])
-    # plt.title("Training Accuracy")
-    # plt.ylabel("accuracy")
-    # plt.xlabel("epoch")
-    # plt.show()
-
-    # plt.plot(history.history["val_loss"])
-    # plt.title("Validation Loss")
-    # plt.ylabel("val_loss")
-    # plt.xlabel("epoch")
-    # plt.show()
-
-    # plt.plot(history.history["val_accuracy"])
-    # plt.title("Validation Accuracy")
-    # plt.ylabel("val_accuracy")
-    # plt.xlabel("epoch")
-    # plt.show()
-
     plot_predictions(valid_images[:4], colormap, model=model)
