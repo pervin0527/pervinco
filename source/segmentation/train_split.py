@@ -183,7 +183,7 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 if __name__ == "__main__":
     BATCH_SIZE = 4
-    EPOCHS = 50
+    EPOCHS = 100
     IMG_SIZE = 512
     VALID_RATIO = 0.1
 
@@ -250,7 +250,8 @@ if __name__ == "__main__":
                         steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
                         validation_data=valid_dataset,
                         validation_steps=VALID_STEPS_PER_EPOCH,
-                        callbacks=callbacks,
+                        # callbacks=callbacks,
                         epochs=EPOCHS)
 
     plot_predictions(valid_images[:4], colormap, model=model)
+    tf.saved_model.save(model, './')
