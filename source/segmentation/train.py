@@ -1,4 +1,5 @@
 import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import cv2
 import numpy as np
 import pandas as pd
@@ -7,6 +8,7 @@ import matplotlib.pyplot as plt
 
 from glob import glob
 from IPython.display import clear_output
+from sklearn.model_selection import train_test_split
 
 # GPU setup
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -104,7 +106,7 @@ def read_image(image_path, mask=False):
         image = tf.image.decode_png(image, channels=3)
         image.set_shape([None, None, 3])
         image = tf.image.resize(images=image, size=[IMG_SIZE, IMG_SIZE])
-        image = image / 127.5 - 1
+#         image = image / 127.5 - 1
 
     return image
 
@@ -124,7 +126,6 @@ def data_generator(image_list, mask_list):
     dataset = dataset.prefetch(tf.data.AUTOTUNE)
 
     return dataset
-
 
 def infer(model, image_tensor):
     predictions = model.predict(np.expand_dims((image_tensor), axis=0))
@@ -176,24 +177,6 @@ def plot_predictions(images_list, colormap, model):
         plot_samples_matplotlib([image_tensor, overlay, prediction_colormap], figsize=(18, 14))
 
 
-def build_lrfn(lr_start=0.0001, lr_max=0.0005, 
-               lr_min=0.0001, lr_rampup_epochs=5, 
-               lr_sustain_epochs=0, lr_exp_decay=.8):
-    lr_max = lr_max * strategy.num_replicas_in_sync
-
-    def lrfn(epoch):
-        if epoch < lr_rampup_epochs:
-            lr = (lr_max - lr_start) / lr_rampup_epochs * epoch + lr_start
-        elif epoch < lr_rampup_epochs + lr_sustain_epochs:
-            lr = lr_max
-        else:
-            lr = (lr_max - lr_min) *\
-                 lr_exp_decay**(epoch - lr_rampup_epochs\
-                                - lr_sustain_epochs) + lr_min
-        return lr
-    return lrfn
-
-
 class DisplayCallback(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         clear_output(wait=True)
@@ -201,11 +184,47 @@ class DisplayCallback(tf.keras.callbacks.Callback):
         plot_predictions([valid_images[idx]], colormap, model=model)
 
 
+def display_training_curves(history):
+    acc = history.history['accuracy']
+    val_acc = history.history['val_accuracy']
+
+    loss = history.history['loss']
+    val_loss = history.history['val_loss']
+
+    epochs_range = range(len(history.history['loss']))
+
+    plt.figure(figsize=(8, 8))
+    plt.subplot(1, 2, 1)
+    plt.plot(epochs_range, acc, label='Training Accuracy')
+    plt.plot(epochs_range, val_acc, label='Validation Accuracy')
+    plt.legend(loc='lower right')
+    plt.title('Training and Validation Accuracy')
+
+    plt.subplot(1, 2, 2)
+    plt.plot(epochs_range, loss, label='Training Loss')
+    plt.plot(epochs_range, val_loss, label='Validation Loss')
+    plt.legend(loc='upper right')
+    plt.title('Training and Validation Loss')
+    
+    plt.show()
+
+
+def get_images(masks):
+    image_files = []
+    for mask in masks:
+        file_name = mask.split('/')[-1].split('.')[0]
+        if os.path.isfile(f"{images}/{file_name}.jpg"):
+            image_files.append(f"{images}/{file_name}.jpg")
+
+    return image_files
+
+
 if __name__ == "__main__":
     BATCH_SIZE = 8
-    EPOCHS = 100
+    EPOCHS = 50
     IMG_SIZE = 512
-    BUFFER_SIZE = 1000
+    LEARNING_RATE = 0.00001
+    IS_SPLIT = True
 
     colormap = [[0, 0, 0],
                 [128, 0, 0],
@@ -232,19 +251,33 @@ if __name__ == "__main__":
     colormap = np.array(colormap, dtype=np.uint8)
 
     CLASSES = ["background", 
-               "aeroplane", "bicycle", "bird", "boat", "bottle",
-               "bus", "car", "cat", "chair", "cow", 
-               "diningtable", "dog", "horse", "motorbike", "person",
-               "potted plant", "sheep", "sofa", "train", "tv/monitor"]
-               
+                "aeroplane", "bicycle", "bird", "boat", "bottle",
+                "bus", "car", "cat", "chair", "cow", 
+                "diningtable", "dog", "horse", "motorbike", "person",
+                "potted plant", "sheep", "sofa", "train", "tv/monitor"]
+                
     NUM_CLASSES = len(CLASSES)
 
-    root = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012/Segmentation"
-    train_dir = f"{root}/train"
-    valid_dir = f"{root}/valid"
+    if not IS_SPLIT:
+        root = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012/Segmentation"
+        train_dir = f"{root}/train"
+        valid_dir = f"{root}/valid"
 
-    train_images, train_masks, n_train_images, n_train_masks = get_file_list(train_dir)
-    valid_images, valid_masks, n_valid_images, n_valid_masks = get_file_list(valid_dir)
+        train_images, train_masks, n_train_images, n_train_masks = get_file_list(train_dir)
+        valid_images, valid_masks, n_valid_images, n_valid_masks = get_file_list(valid_dir)
+
+    else:
+        root = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012"
+        masks = sorted(glob(f"{root}/SegmentationRaw/*.png"))
+        images = f"{root}/JPEGImages"
+
+        images = get_images(masks)
+        print(len(images), len(masks))
+
+        train_images, valid_images, train_masks, valid_masks = train_test_split(images, masks, test_size=0.1, shuffle=True, random_state=42)
+        print(len(train_images), len(train_masks))
+        print(len(valid_images), len(valid_masks))
+
 
     train_dataset = data_generator(train_images, train_masks)
     valid_dataset = data_generator(valid_images, valid_masks)
@@ -256,23 +289,20 @@ if __name__ == "__main__":
     model.summary()
 
     loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001), loss=loss, metrics=["accuracy"])
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE), loss=loss, metrics=["accuracy"])
 
     TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_images) / BATCH_SIZE).numpy())
     VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_images) / BATCH_SIZE).numpy())
 
-    lrfn = build_lrfn()
-    lr_schedule = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1)
-    
-    callbacks = [DisplayCallback(),
-                 lr_schedule]
-
+    callbacks = [DisplayCallback()]
     history = model.fit(train_dataset,
                         steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
                         validation_data=valid_dataset,
                         validation_steps=VALID_STEPS_PER_EPOCH,
                         callbacks=callbacks,
                         epochs=EPOCHS)
+
+    display_training_curves(history)
 
     plot_predictions(valid_images[:4], colormap, model=model)
     tf.saved_model.save(model, '/data/Models/segmentation/saved_model')
