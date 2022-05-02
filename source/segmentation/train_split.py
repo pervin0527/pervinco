@@ -9,7 +9,6 @@ from glob import glob
 from IPython.display import clear_output
 from sklearn.model_selection import train_test_split
 
-# GPU setup
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if len(gpus) > 1:
     try:
@@ -29,23 +28,10 @@ else:
         print(e)
 
 
-def convolution_block(
-    block_input,
-    num_filters=256,
-    kernel_size=3,
-    dilation_rate=1,
-    padding="same",
-    use_bias=False,
-):
-    x = tf.keras.layers.Conv2D(
-        num_filters,
-        kernel_size=kernel_size,
-        dilation_rate=dilation_rate,
-        padding="same",
-        use_bias=use_bias,
-        kernel_initializer=tf.keras.initializers.HeNormal(),
-    )(block_input)
+def convolution_block(block_input, num_filters=256, kernel_size=3, dilation_rate=1, padding="same", use_bias=False,):
+    x = tf.keras.layers.Conv2D(num_filters, kernel_size=kernel_size, dilation_rate=dilation_rate, padding="same", use_bias=use_bias, kernel_initializer=tf.keras.initializers.HeNormal(),)(block_input)
     x = tf.keras.layers.BatchNormalization()(x)
+
     return tf.nn.relu(x)
 
 
