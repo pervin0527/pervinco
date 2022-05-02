@@ -170,6 +170,13 @@ def plot_predictions(images_list, colormap, model):
         plot_samples_matplotlib([image_tensor, overlay, prediction_colormap], figsize=(18, 14))
 
 
+class DisplayCallback(tf.keras.callbacks.Callback):
+    def on_epoch_end(self, epoch, logs=None):
+        clear_output(wait=True)
+        idx = np.random.randint(len(valid_images))
+        plot_predictions([valid_images[idx]], colormap, model=model)
+
+
 if __name__ == "__main__":
     BATCH_SIZE = 4
     EPOCHS = 10
@@ -227,5 +234,15 @@ if __name__ == "__main__":
     loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
     model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), loss=loss, metrics=["accuracy"])
 
-    history = model.fit(train_dataset, validation_data=valid_dataset, epochs=EPOCHS)
+    TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_images) / BATCH_SIZE).numpy())
+    VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_images) / BATCH_SIZE).numpy())
+    callbacks = [DisplayCallback()]
+
+    history = model.fit(train_dataset,
+                        steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
+                        validation_data=valid_dataset,
+                        validation_steps=VALID_STEPS_PER_EPOCH,
+                        # callbacks=callbacks,
+                        epochs=EPOCHS)
     plot_predictions(valid_images[:4], colormap, model=model)
+    tf.saved_model.save(model, './')
