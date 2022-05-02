@@ -119,7 +119,10 @@ def load_data(image_list, mask_list):
 def data_generator(image_list, mask_list):
     dataset = tf.data.Dataset.from_tensor_slices((image_list, mask_list))
     dataset = dataset.map(load_data, num_parallel_calls=tf.data.AUTOTUNE)
+    dataset = dataset.repeat()
     dataset = dataset.batch(BATCH_SIZE, drop_remainder=True)
+    dataset = dataset.prefetch(tf.data.AUTOTUNE)
+
     return dataset
 
 
@@ -158,7 +161,7 @@ def plot_samples_matplotlib(display_list, figsize=(5, 3)):
         else:
             axes[i].imshow(display_list[i])
     plt.show()
-    plt.savefig("./result.png")
+    # plt.savefig("./result.png")
 
 
 def plot_predictions(images_list, colormap, model):
@@ -178,8 +181,8 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 
 if __name__ == "__main__":
-    BATCH_SIZE = 4
-    EPOCHS = 10
+    BATCH_SIZE = 8
+    EPOCHS = 100
     IMG_SIZE = 512
     BUFFER_SIZE = 1000
 
@@ -244,5 +247,6 @@ if __name__ == "__main__":
                         validation_steps=VALID_STEPS_PER_EPOCH,
                         # callbacks=callbacks,
                         epochs=EPOCHS)
+
     plot_predictions(valid_images[:4], colormap, model=model)
-    tf.saved_model.save(model, './')
+    tf.saved_model.save(model, '/data/Models/segmentation/saved_model')

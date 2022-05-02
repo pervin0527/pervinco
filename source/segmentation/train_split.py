@@ -182,7 +182,7 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 
 if __name__ == "__main__":
-    BATCH_SIZE = 4
+    BATCH_SIZE = 8
     EPOCHS = 100
     IMG_SIZE = 512
     VALID_RATIO = 0.1
@@ -254,4 +254,4 @@ if __name__ == "__main__":
                         epochs=EPOCHS)
 
     plot_predictions(valid_images[:4], colormap, model=model)
-    tf.saved_model.save(model, './')
+    tf.saved_model.save(model, '/data/Models/segmentation/saved_model')
