@@ -104,7 +104,7 @@ def read_image(image_path, mask=False):
         image = tf.image.decode_png(image, channels=3)
         image.set_shape([None, None, 3])
         image = tf.image.resize(images=image, size=[IMG_SIZE, IMG_SIZE])
-        # image = image / 127.5 - 1
+        image = image / 127.5 - 1
 
     return image
 
@@ -130,6 +130,7 @@ def infer(model, image_tensor):
     predictions = model.predict(np.expand_dims((image_tensor), axis=0))
     predictions = np.squeeze(predictions)
     predictions = np.argmax(predictions, axis=2)
+
     return predictions
 
 
@@ -143,6 +144,7 @@ def decode_segmentation_masks(mask, colormap, n_classes):
         g[idx] = colormap[l, 1]
         b[idx] = colormap[l, 2]
     rgb = np.stack([r, g, b], axis=2)
+
     return rgb
 
 
@@ -150,6 +152,7 @@ def get_overlay(image, colored_mask):
     image = tf.keras.preprocessing.image.array_to_img(image)
     image = np.array(image).astype(np.uint8)
     overlay = cv2.addWeighted(image, 0.35, colored_mask, 0.65, 0)
+
     return overlay
 
 
@@ -173,8 +176,8 @@ def plot_predictions(images_list, colormap, model):
         plot_samples_matplotlib([image_tensor, overlay, prediction_colormap], figsize=(18, 14))
 
 
-def build_lrfn(lr_start=0.00001, lr_max=0.00005, 
-               lr_min=0.00001, lr_rampup_epochs=5, 
+def build_lrfn(lr_start=0.0001, lr_max=0.0005, 
+               lr_min=0.0001, lr_rampup_epochs=5, 
                lr_sustain_epochs=0, lr_exp_decay=.8):
     lr_max = lr_max * strategy.num_replicas_in_sync
 
@@ -200,7 +203,7 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 if __name__ == "__main__":
     BATCH_SIZE = 8
-    EPOCHS = 10
+    EPOCHS = 100
     IMG_SIZE = 512
     BUFFER_SIZE = 1000
 

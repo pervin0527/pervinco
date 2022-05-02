@@ -92,7 +92,7 @@ def read_image(image_path, mask=False):
         image = tf.image.decode_png(image, channels=3)
         image.set_shape([None, None, 3])
         image = tf.image.resize(images=image, size=[IMG_SIZE, IMG_SIZE])
-        # image = image / 127.5 - 1
+        image = image / 127.5 - 1
 
     return image
 
@@ -174,8 +174,8 @@ def get_images(masks):
     return image_files
 
 
-def build_lrfn(lr_start=0.00001, lr_max=0.00005, 
-               lr_min=0.00001, lr_rampup_epochs=5, 
+def build_lrfn(lr_start=0.0001, lr_max=0.0005, 
+               lr_min=0.0001, lr_rampup_epochs=5, 
                lr_sustain_epochs=0, lr_exp_decay=.8):
     lr_max = lr_max * strategy.num_replicas_in_sync
 
