@@ -104,7 +104,7 @@ def read_image(image_path, mask=False):
         image = tf.image.decode_png(image, channels=3)
         image.set_shape([None, None, 3])
         image = tf.image.resize(images=image, size=[IMG_SIZE, IMG_SIZE])
-        image = image / 127.5 - 1
+        # image = image / 127.5 - 1
 
     return image
 
@@ -173,6 +173,24 @@ def plot_predictions(images_list, colormap, model):
         plot_samples_matplotlib([image_tensor, overlay, prediction_colormap], figsize=(18, 14))
 
 
+def build_lrfn(lr_start=0.00001, lr_max=0.00005, 
+               lr_min=0.00001, lr_rampup_epochs=5, 
+               lr_sustain_epochs=0, lr_exp_decay=.8):
+    lr_max = lr_max * strategy.num_replicas_in_sync
+
+    def lrfn(epoch):
+        if epoch < lr_rampup_epochs:
+            lr = (lr_max - lr_start) / lr_rampup_epochs * epoch + lr_start
+        elif epoch < lr_rampup_epochs + lr_sustain_epochs:
+            lr = lr_max
+        else:
+            lr = (lr_max - lr_min) *\
+                 lr_exp_decay**(epoch - lr_rampup_epochs\
+                                - lr_sustain_epochs) + lr_min
+        return lr
+    return lrfn
+
+
 class DisplayCallback(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         clear_output(wait=True)
@@ -182,7 +200,7 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 if __name__ == "__main__":
     BATCH_SIZE = 8
-    EPOCHS = 100
+    EPOCHS = 10
     IMG_SIZE = 512
     BUFFER_SIZE = 1000
 
@@ -235,17 +253,22 @@ if __name__ == "__main__":
     model.summary()
 
     loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), loss=loss, metrics=["accuracy"])
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001), loss=loss, metrics=["accuracy"])
 
     TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_images) / BATCH_SIZE).numpy())
     VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_images) / BATCH_SIZE).numpy())
-    callbacks = [DisplayCallback()]
+
+    lrfn = build_lrfn()
+    lr_schedule = tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1)
+    
+    callbacks = [DisplayCallback(),
+                 lr_schedule]
 
     history = model.fit(train_dataset,
                         steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
                         validation_data=valid_dataset,
                         validation_steps=VALID_STEPS_PER_EPOCH,
-                        # callbacks=callbacks,
+                        callbacks=callbacks,
                         epochs=EPOCHS)
 
     plot_predictions(valid_images[:4], colormap, model=model)
