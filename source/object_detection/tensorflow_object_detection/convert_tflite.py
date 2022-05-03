@@ -35,7 +35,7 @@ def representative_data_gen():
     idx = 0
     for input_value in tf.data.Dataset.from_tensor_slices(images).map(preprocess_image).batch(1).take(100):
         idx += 1
-        print(idx)
+        
         yield [input_value]
 
 if __name__ == "__main__":
