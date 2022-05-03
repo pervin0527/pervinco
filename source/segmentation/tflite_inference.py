@@ -22,8 +22,9 @@ else:
 
 if __name__ == "__main__":
     model_path = "/data/Models/segmentation/saved_model/model_meta.tflite"
-    image_path = "./dog.jpg"
+    # model_path = "/data/Models/segmentation/lite-model_deeplabv3_1_metadata_2.tflite"
     img_size = 512
+    image_path = "./dog.jpg"
 
     interpreter = tf.lite.Interpreter(model_path=model_path)
     interpreter.allocate_tensors()
@@ -39,8 +40,10 @@ if __name__ == "__main__":
     image = cv2.resize(image, (img_size, img_size))
     input_tensor = np.expand_dims(image, axis=0)
 
-    interpreter.set_tensor(input_details[0]['index'], input_tensor.astype(np.uint8))
+    # interpreter.set_tensor(input_details[0]['index'], input_tensor.astype(np.uint8))
+    interpreter.set_tensor(input_details[0]['index'], input_tensor.astype(np.float32))
     interpreter.invoke()
 
     prediticons = interpreter.get_tensor(output_details[0]['index'])
+    print(prediticons.shape)
     print(prediticons)

@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 import matplotlib.pyplot as plt
+import tensorflow_addons as tfa
 
 from glob import glob
 from IPython.display import clear_output
@@ -127,6 +128,7 @@ def data_generator(image_list, mask_list):
 
     return dataset
 
+
 def infer(model, image_tensor):
     predictions = model.predict(np.expand_dims((image_tensor), axis=0))
     predictions = np.squeeze(predictions)
@@ -177,13 +179,6 @@ def plot_predictions(images_list, colormap, model):
         plot_samples_matplotlib([image_tensor, overlay, prediction_colormap], figsize=(18, 14))
 
 
-class DisplayCallback(tf.keras.callbacks.Callback):
-    def on_epoch_end(self, epoch, logs=None):
-        clear_output(wait=True)
-        idx = np.random.randint(len(valid_images))
-        plot_predictions([valid_images[idx]], colormap, model=model)
-
-
 def display_training_curves(history):
     acc = history.history['accuracy']
     val_acc = history.history['val_accuracy']
@@ -219,10 +214,20 @@ def get_images(masks):
     return image_files
 
 
+class DisplayCallback(tf.keras.callbacks.Callback):
+    def on_epoch_end(self, epoch, logs=None):
+        clear_output(wait=True)
+        
+        # idx = np.random.randint(len(valid_images))
+        # plot_predictions([valid_images[idx]], colormap, model=model)
+
+        plot_predictions(valid_images[:4], colormap, model=model)
+
+
 if __name__ == "__main__":
-    BATCH_SIZE = 8
-    EPOCHS = 50
-    IMG_SIZE = 512
+    BATCH_SIZE = 16
+    EPOCHS = 300
+    IMG_SIZE = 320
     LEARNING_RATE = 0.00001
     IS_SPLIT = True
 
@@ -251,10 +256,26 @@ if __name__ == "__main__":
     colormap = np.array(colormap, dtype=np.uint8)
 
     CLASSES = ["background", 
-                "aeroplane", "bicycle", "bird", "boat", "bottle",
-                "bus", "car", "cat", "chair", "cow", 
-                "diningtable", "dog", "horse", "motorbike", "person",
-                "potted plant", "sheep", "sofa", "train", "tv/monitor"]
+            "aeroplane",
+            "bicycle",
+            "bird",
+            "boat",
+            "bottle",
+            "bus",
+            "car",
+            "cat",
+            "chair",
+            "cow", 
+            "diningtable",
+            "dog",
+            "horse",
+            "motorbike",
+            "person",
+            "potted plant",
+            "sheep",
+            "sofa",
+            "train",
+            "tv/monitor"]
                 
     NUM_CLASSES = len(CLASSES)
 
@@ -295,14 +316,24 @@ if __name__ == "__main__":
     VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_images) / BATCH_SIZE).numpy())
 
     callbacks = [DisplayCallback()]
+                
     history = model.fit(train_dataset,
                         steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
                         validation_data=valid_dataset,
                         validation_steps=VALID_STEPS_PER_EPOCH,
                         callbacks=callbacks,
+                        verbose=1,
                         epochs=EPOCHS)
 
     display_training_curves(history)
 
     plot_predictions(valid_images[:4], colormap, model=model)
-    tf.saved_model.save(model, '/data/Models/segmentation/saved_model')
+
+    run_model = tf.function(lambda x : model(x))
+    batch_size = 1
+    input_size = IMG_SIZE
+
+    concrete_func = run_model.get_concrete_function(tf.TensorSpec([batch_size, input_size, input_size, 3], model.inputs[0].dtype))
+
+    # tf.saved_model.save(model, '/data/Models/segmentation/saved_model')
+    tf.saved_model.save(model, '/data/Models/segmentation/saved_model', signatures=concrete_func)
