@@ -226,19 +226,27 @@ class DisplayCallback(tf.keras.callbacks.Callback):
         # idx = np.random.randint(len(valid_images))
         # plot_predictions([valid_images[idx]], colormap, model=model)
         
-        plot_predictions(valid_images[:4], colormap, model=model)
+        plot_predictions(valid_images[:4], COLORMAP, model=model)
 
 
 if __name__ == "__main__":
     ROOT = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012"
+    LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
     SAVE_PATH = "/data/Models/segmentation"
+    IS_SPLIT = False
+    FOLDER = "Augmentation2"
+
     BATCH_SIZE = 16
     EPOCHS = 300
     IMG_SIZE = 320
     LEARNING_RATE = 0.00001
-    IS_SPLIT = False
 
-    colormap = [[0, 0, 0],
+    label_df = pd.read_csv(LABEL_PATH, sep='\n', header=None, index_col=False)
+    CLASSES = label_df[0].to_list()
+    NUM_CLASSES = len(CLASSES)
+    print(CLASSES)
+
+    COLORMAP = [[0, 0, 0],
                 [128, 0, 0],
                 [0, 128, 0],
                 [128, 128, 0],
@@ -259,32 +267,7 @@ if __name__ == "__main__":
                 [0, 192, 0],
                 [128, 192, 0],
                 [0, 64, 128]]
-
-    colormap = np.array(colormap, dtype=np.uint8)
-
-    CLASSES = ["background", 
-            "aeroplane",
-            "bicycle",
-            "bird",
-            "boat",
-            "bottle",
-            "bus",
-            "car",
-            "cat",
-            "chair",
-            "cow", 
-            "diningtable",
-            "dog",
-            "horse",
-            "motorbike",
-            "person",
-            "potted plant",
-            "sheep",
-            "sofa",
-            "train",
-            "tv/monitor"]
-                
-    NUM_CLASSES = len(CLASSES)
+    COLORMAP = np.array(COLORMAP, dtype=np.uint8)
 
     if not IS_SPLIT:
         root = f"{ROOT}/Augmentation"
@@ -334,7 +317,7 @@ if __name__ == "__main__":
 
     display_training_curves(history)
 
-    plot_predictions(valid_images[:4], colormap, model=model)
+    plot_predictions(valid_images[:4], COLORMAP, model=model)
 
     run_model = tf.function(lambda x : model(x))
     batch_size = 1
