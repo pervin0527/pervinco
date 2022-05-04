@@ -230,6 +230,8 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 
 if __name__ == "__main__":
+    ROOT = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012"
+    SAVE_PATH = "/data/Models/segmentation"
     BATCH_SIZE = 16
     EPOCHS = 300
     IMG_SIZE = 320
@@ -285,7 +287,7 @@ if __name__ == "__main__":
     NUM_CLASSES = len(CLASSES)
 
     if not IS_SPLIT:
-        root = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012/Augmentation"
+        root = f"{ROOT}/Augmentation"
         train_dir = f"{root}/train"
         valid_dir = f"{root}/valid"
 
@@ -293,7 +295,7 @@ if __name__ == "__main__":
         valid_images, valid_masks, n_valid_images, n_valid_masks = get_file_list(valid_dir)
 
     else:
-        root = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012"
+        root = f"{ROOT}"
         masks = sorted(glob(f"{root}/SegmentationRaw/*.png"))
         images = f"{root}/JPEGImages"
 
@@ -340,5 +342,5 @@ if __name__ == "__main__":
 
     concrete_func = run_model.get_concrete_function(tf.TensorSpec([batch_size, input_size, input_size, 3], model.inputs[0].dtype))
 
-    # tf.saved_model.save(model, '/data/Models/segmentation/saved_model')
-    tf.saved_model.save(model, '/data/Models/segmentation/saved_model', signatures=concrete_func)
+    # tf.saved_model.save(model, f'{SAVE_PATH}/saved_model')
+    tf.saved_model.save(model, f'{SAVE_PATH}/saved_model', signatures=concrete_func)
