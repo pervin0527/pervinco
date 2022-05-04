@@ -270,7 +270,7 @@ if __name__ == "__main__":
     COLORMAP = np.array(COLORMAP, dtype=np.uint8)
 
     if not IS_SPLIT:
-        root = f"{ROOT}/Augmentation"
+        root = f"{ROOT}/{FOLDER}"
         train_dir = f"{root}/train"
         valid_dir = f"{root}/valid"
 
