@@ -301,8 +301,9 @@ if __name__ == "__main__":
     print("Train Dataset:", train_dataset)
     print("Val Dataset:", valid_dataset)
 
+    ### weights : "pascal_voc", "cityscapes", None
     # model = Deeplabv3(weights="pascal_voc", input_tensor=None, input_shape=(IMG_SIZE, IMG_SIZE, 3), classes=len(CLASSES), backbone='xception', OS=16, alpha=1., activation=None)
-    model = Deeplabv3(weights=None, input_tensor=None, input_shape=(IMG_SIZE, IMG_SIZE, 3), classes=len(CLASSES), backbone='xception', OS=16, alpha=1., activation=None)
+    model = Deeplabv3(weights="cityscapes", input_tensor=None, input_shape=(IMG_SIZE, IMG_SIZE, 3), classes=len(CLASSES), backbone='xception', OS=16, alpha=1., activation=None)
     model.summary()
 
     for layer in model.layers:
