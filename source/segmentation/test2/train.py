@@ -11,6 +11,8 @@ from glob import glob
 from IPython.display import clear_output
 from sklearn.model_selection import train_test_split
 
+from model import Deeplabv3
+
 # GPU setup
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if len(gpus) > 1:
@@ -111,7 +113,7 @@ def read_image(image_path, mask=False):
         image = tf.image.decode_png(image, channels=3)
         image.set_shape([None, None, 3])
         image = tf.image.resize(images=image, size=[IMG_SIZE, IMG_SIZE])
-        # image = image / 127.5 - 1
+        image = image / 127.5 - 1
 
     return image
 
@@ -207,7 +209,9 @@ def display_training_curves(history):
     plt.legend(loc='upper right')
     plt.title('Training and Validation Loss')
     
-    plt.show()
+    plt.savefig(f"./train_graph.png")
+    # plt.show()
+    plt.close()
 
 
 def get_images(masks):
@@ -233,16 +237,16 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 if __name__ == "__main__":
     ROOT = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
-    SAVE_PATH = "/data/Models/segmentation"
+    SAVE_PATH = "/data/Models/segmentation-test"
     IS_SPLIT = False
-    FOLDER = "Augmentation2"
+    FOLDER = "Augmentation-sample"
 
     BATCH_SIZE = 16
-    EPOCHS = 10
+    EPOCHS = 500
     IMG_SIZE = 320
-    LEARNING_RATE = 0.00001
+    LEARNING_RATE = 0.001
 
-    label_df = pd.read_csv(LABEL_PATH, sep='\n', header=None, index_col=False)
+    label_df = pd.read_csv(LABEL_PATH, lineterminator="\n", header=None, index_col=False)
     CLASSES = label_df[0].to_list()
     NUM_CLASSES = len(CLASSES)
     print(CLASSES)
@@ -297,11 +301,14 @@ if __name__ == "__main__":
     print("Train Dataset:", train_dataset)
     print("Val Dataset:", valid_dataset)
 
-    model = DeeplabV3Plus(image_size=IMG_SIZE, num_classes=NUM_CLASSES)
+    # model = Deeplabv3(weights="pascal_voc", input_tensor=None, input_shape=(IMG_SIZE, IMG_SIZE, 3), classes=len(CLASSES), backbone='xception', OS=16, alpha=1., activation=None)
+    model = Deeplabv3(weights=None, input_tensor=None, input_shape=(IMG_SIZE, IMG_SIZE, 3), classes=len(CLASSES), backbone='xception', OS=16, alpha=1., activation=None)
     model.summary()
 
     loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE), loss=loss, metrics=["accuracy"])
+    # loss = tf.keras.losses.SparseCategoricalCrossentropy()
+    # model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE), loss=loss, metrics=["accuracy"])
+    model.compile(optimizer=tf.keras.optimizers.SGD(learning_rate=LEARNING_RATE, momentum=0.9), loss=loss, metrics=["accuracy"])
 
     TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_images) / BATCH_SIZE).numpy())
     VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_images) / BATCH_SIZE).numpy())
@@ -317,7 +324,6 @@ if __name__ == "__main__":
                         epochs=EPOCHS)
 
     display_training_curves(history)
-
     plot_predictions(valid_images[:4], COLORMAP, model=model)
 
     run_model = tf.function(lambda x : model(x))

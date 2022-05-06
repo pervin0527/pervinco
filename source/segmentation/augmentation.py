@@ -159,11 +159,12 @@ def augmentation(images, masks, is_train):
 
 
 if __name__ == "__main__":
-    image_path = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012/JPEGImages"
-    mask_path = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012/SegmentationRaw"
-    output_path = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012/Augmentation2"
+    root = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012"
+    image_path = f"{root}/JPEGImages"
+    mask_path = f"{root}/SegmentationRaw"
+    output_path = f"{root}/Augmentation-sample"
 
-    ITER = 20
+    ITER = 2
     IMG_SIZE = 320
     VISUAL = False
     images, masks = voc_get_files(mask_path)
