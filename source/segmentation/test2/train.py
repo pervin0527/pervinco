@@ -239,10 +239,10 @@ if __name__ == "__main__":
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
     SAVE_PATH = "/data/Models/segmentation-test"
     IS_SPLIT = False
-    FOLDER = "Augmentation-sample"
+    FOLDER = "Augmentation2"
 
     BATCH_SIZE = 16
-    EPOCHS = 500
+    EPOCHS = 100
     IMG_SIZE = 320
     LEARNING_RATE = 0.001
 
@@ -304,6 +304,10 @@ if __name__ == "__main__":
     # model = Deeplabv3(weights="pascal_voc", input_tensor=None, input_shape=(IMG_SIZE, IMG_SIZE, 3), classes=len(CLASSES), backbone='xception', OS=16, alpha=1., activation=None)
     model = Deeplabv3(weights=None, input_tensor=None, input_shape=(IMG_SIZE, IMG_SIZE, 3), classes=len(CLASSES), backbone='xception', OS=16, alpha=1., activation=None)
     model.summary()
+
+    for layer in model.layers:
+        layer.trainable = True
+        # print(layer.name + ": " + str(layer.trainable))
 
     loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
     # loss = tf.keras.losses.SparseCategoricalCrossentropy()
