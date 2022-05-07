@@ -113,7 +113,7 @@ def read_image(image_path, mask=False):
         image = tf.image.decode_png(image, channels=3)
         image.set_shape([None, None, 3])
         image = tf.image.resize(images=image, size=[IMG_SIZE, IMG_SIZE])
-        image = image / 127.5 - 1
+        # image = image / 127.5 - 1
 
     return image
 
