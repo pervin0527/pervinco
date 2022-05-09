@@ -181,12 +181,12 @@ if __name__ == "__main__":
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
     SAVE_PATH = "/data/Models/segmentation"
     IS_SPLIT = False
-    FOLDER = "TEST"
+    FOLDER = "Augmentation-ver1"
 
     BATCH_SIZE = 16
     EPOCHS = 100
     IMG_SIZE = 320
-    LEARNING_RATE = 0.0001
+    LEARNING_RATE = 0.00001
     BACKBONE_NAME = "Xception"
     SAVE_NAME = f"{BACKBONE_NAME}_{EPOCHS}"
 
