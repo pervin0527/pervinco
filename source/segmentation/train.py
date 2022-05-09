@@ -187,7 +187,7 @@ if __name__ == "__main__":
     EPOCHS = 100
     IMG_SIZE = 320
     LEARNING_RATE = 0.00001
-    BACKBONE_NAME = "Xception"
+    BACKBONE_NAME = "ResNet50"
     SAVE_NAME = f"{BACKBONE_NAME}_{EPOCHS}"
 
     label_df = pd.read_csv(LABEL_PATH, lineterminator='\n', header=None, index_col=False)
