@@ -181,14 +181,15 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 if __name__ == "__main__":
     ROOT = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
-    SAVE_PATH = "/data/Models/segmentation-test"
+    SAVE_PATH = "/data/Models/segmentation"
     IS_SPLIT = False
-    FOLDER = "Augmentation2"
+    FOLDER = "Augmentation-sample"
 
     BATCH_SIZE = 16
     EPOCHS = 100
     IMG_SIZE = 320
-    LEARNING_RATE = 0.001
+    LEARNING_RATE = 0.0001
+    SAVE_NAME = f"Xception-{EPOCHS}"
 
     label_df = pd.read_csv(LABEL_PATH, lineterminator="\n", header=None, index_col=False)
     CLASSES = label_df[0].to_list()
@@ -262,7 +263,8 @@ if __name__ == "__main__":
     TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_images) / BATCH_SIZE).numpy())
     VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_images) / BATCH_SIZE).numpy())
 
-    callbacks = [DisplayCallback()]
+    callbacks = [DisplayCallback(),
+                 tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", 'val_loss', verbose=1, save_best_only=True, save_weights_only=True)]
                 
     history = model.fit(train_dataset,
                         steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
@@ -275,6 +277,10 @@ if __name__ == "__main__":
     display_training_curves(history)
     plot_predictions(valid_images[:4], COLORMAP, model=model)
 
+    model = Deeplabv3(weights=None, input_tensor=None, input_shape=(IMG_SIZE, IMG_SIZE, 3), classes=len(CLASSES), backbone='xception', OS=8, alpha=1., activation=None)
+    model.load_weights(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt")
+    plot_predictions(valid_images[:4], COLORMAP, model=model)
+
     run_model = tf.function(lambda x : model(x))
     batch_size = 1
     input_size = IMG_SIZE
@@ -282,4 +288,4 @@ if __name__ == "__main__":
     concrete_func = run_model.get_concrete_function(tf.TensorSpec([batch_size, input_size, input_size, 3], model.inputs[0].dtype))
 
     # tf.saved_model.save(model, f'{SAVE_PATH}/saved_model')
-    tf.saved_model.save(model, f'{SAVE_PATH}/saved_model', signatures=concrete_func)
+    tf.saved_model.save(model, f'{SAVE_PATH}/{SAVE_NAME}/saved_model', signatures=concrete_func)
