@@ -53,9 +53,9 @@ def ASPP(tensor):
 def DeepLabV3Plus(img_height, img_width, nclasses=66):
     print('*** Building DeepLabv3Plus Network ***')
 
-    model_input = tf.keras.Input(shape=(img_width, img_height, 3))
     # base_model = tf.keras.applications.ResNet50(input_shape=(img_height, img_width, 3), weights='imagenet', include_top=False)
-    
+
+    model_input = tf.keras.Input(shape=(img_width, img_height, 3))
     rescale = tf.keras.layers.experimental.preprocessing.Rescaling((1.0 / 127.5) - 1)(model_input)
     base_model = tf.keras.applications.ResNet50(input_tensor=rescale, weights='imagenet', include_top=False)
     
