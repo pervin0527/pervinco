@@ -54,7 +54,6 @@ def read_image(image_path, mask=False):
         image = tf.image.decode_png(image, channels=3)
         image.set_shape([None, None, 3])
         image = tf.image.resize(images=image, size=[IMG_SIZE, IMG_SIZE])
-        # image = image / 127.5 - 1
 
     return image
 
@@ -107,6 +106,9 @@ def get_overlay(image, colored_mask):
 
 
 def plot_samples_matplotlib(display_list, idx, figsize=(5, 3)):
+    if not os.path.isdir("./train_result"):
+        os.makedirs("./train_result")
+
     _, axes = plt.subplots(nrows=1, ncols=len(display_list), figsize=figsize)
     for i in range(len(display_list)):
         if display_list[i].shape[-1] == 3:
@@ -114,7 +116,7 @@ def plot_samples_matplotlib(display_list, idx, figsize=(5, 3)):
         else:
             axes[i].imshow(display_list[i])
 
-    plt.savefig(f"./result_{idx}.png")
+    plt.savefig(f"./train_result/result_{idx}.png")
     # plt.show()
     plt.close()
 
@@ -150,7 +152,9 @@ def display_training_curves(history):
     plt.legend(loc='upper right')
     plt.title('Training and Validation Loss')
     
-    plt.show()
+    plt.savefig(f"./train_result/train_history.png")
+    # plt.show()
+    plt.close()
 
 
 def get_images(masks):
@@ -178,14 +182,15 @@ if __name__ == "__main__":
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
     SAVE_PATH = "/data/Models/segmentation"
     IS_SPLIT = False
-    FOLDER = "Augmentation2"
+    FOLDER = "TEST"
 
     BATCH_SIZE = 16
-    EPOCHS = 10
+    EPOCHS = 50
     IMG_SIZE = 320
-    LEARNING_RATE = 0.00001
+    LEARNING_RATE = 0.0001
+    SAVE_NAME = f"ResNet50-{EPOCHS}-test1"
 
-    label_df = pd.read_csv(LABEL_PATH, sep='\n', header=None, index_col=False)
+    label_df = pd.read_csv(LABEL_PATH, lineterminator='\n', header=None, index_col=False)
     CLASSES = label_df[0].to_list()
     NUM_CLASSES = len(CLASSES)
     print(CLASSES)
@@ -250,7 +255,8 @@ if __name__ == "__main__":
     TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_images) / BATCH_SIZE).numpy())
     VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_images) / BATCH_SIZE).numpy())
 
-    callbacks = [DisplayCallback()]
+    callbacks = [DisplayCallback(),
+                 tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", 'val_loss', verbose=1, save_best_only=True, save_weights_only=True)]
                 
     history = model.fit(train_dataset,
                         steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
@@ -271,4 +277,4 @@ if __name__ == "__main__":
     concrete_func = run_model.get_concrete_function(tf.TensorSpec([batch_size, input_size, input_size, 3], model.inputs[0].dtype))
 
     # tf.saved_model.save(model, f'{SAVE_PATH}/saved_model')
-    tf.saved_model.save(model, f'{SAVE_PATH}/saved_model', signatures=concrete_func)
+    tf.saved_model.save(model, f'{SAVE_PATH}/{SAVE_NAME}/saved_model', signatures=concrete_func)

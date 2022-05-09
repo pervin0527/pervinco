@@ -55,10 +55,11 @@ def DilatedSpatialPyramidPooling(dspp_input):
 
 def DeeplabV3Plus(image_size, num_classes):
     model_input = tf.keras.Input(shape=(image_size, image_size, 3))
-    resnet50 = tf.keras.applications.ResNet50(weights="imagenet", include_top=False, input_tensor=model_input)
+    # resnet50 = tf.keras.applications.ResNet50(weights="imagenet", include_top=False, input_tensor=model_input)
     
     # rescale = tf.keras.layers.experimental.preprocessing.Rescaling(1.0 / 255)(model_input)
-    # resnet50 = tf.keras.applications.ResNet50(weights="imagenet", include_top=False, input_tensor=rescale)
+    rescale = tf.keras.layers.experimental.preprocessing.Rescaling((1.0 / 127.5) - 1)(model_input)
+    resnet50 = tf.keras.applications.ResNet50(weights="imagenet", include_top=False, input_tensor=rescale)
 
     x = resnet50.get_layer("conv4_block6_2_relu").output
     x = DilatedSpatialPyramidPooling(x)
@@ -97,7 +98,6 @@ def read_image(image_path, mask=False):
         image = tf.image.decode_png(image, channels=3)
         image.set_shape([None, None, 3])
         image = tf.image.resize(images=image, size=[IMG_SIZE, IMG_SIZE])
-        # image = image / 127.5 - 1
 
     return image
 
@@ -161,7 +161,7 @@ def plot_samples_matplotlib(display_list, idx, figsize=(5, 3)):
             axes[i].imshow(display_list[i])
 
     plt.savefig(f"./train_result/result_{idx}.png")
-    plt.show()
+    # plt.show()
     plt.close()
 
 
@@ -226,15 +226,15 @@ if __name__ == "__main__":
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
     SAVE_PATH = "/data/Models/segmentation"
     IS_SPLIT = False
-    FOLDER = "Augmentation-sample"
+    FOLDER = "TEST"
 
     BATCH_SIZE = 16
-    EPOCHS = 10
+    EPOCHS = 50
     IMG_SIZE = 320
     LEARNING_RATE = 0.0001
-    SAVE_NAME = f"ResNet50-{EPOCHS}"
+    SAVE_NAME = f"ResNet50-{EPOCHS}-Norm_-1to1"
 
-    label_df = pd.read_csv(LABEL_PATH, sep='\n', header=None, index_col=False)
+    label_df = pd.read_csv(LABEL_PATH, lineterminator='\n', header=None, index_col=False)
     CLASSES = label_df[0].to_list()
     NUM_CLASSES = len(CLASSES)
     print(CLASSES)
