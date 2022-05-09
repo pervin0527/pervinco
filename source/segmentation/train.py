@@ -184,10 +184,11 @@ if __name__ == "__main__":
     FOLDER = "TEST"
 
     BATCH_SIZE = 16
-    EPOCHS = 50
+    EPOCHS = 100
     IMG_SIZE = 320
-    LEARNING_RATE = 0.00001
-    SAVE_NAME = f"ResNet50-{EPOCHS}"
+    LEARNING_RATE = 0.0001
+    BACKBONE_NAME = "Xception"
+    SAVE_NAME = f"{BACKBONE_NAME}_{EPOCHS}"
 
     label_df = pd.read_csv(LABEL_PATH, lineterminator='\n', header=None, index_col=False)
     CLASSES = label_df[0].to_list()
@@ -245,7 +246,7 @@ if __name__ == "__main__":
     print("Val Dataset:", valid_dataset)
 
     # model = DeeplabV3Plus(image_size=IMG_SIZE, num_classes=NUM_CLASSES)
-    model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(CLASSES))
+    model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(CLASSES), backbone_name=BACKBONE_NAME)
     model.summary()
 
     loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
@@ -255,7 +256,7 @@ if __name__ == "__main__":
     VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_images) / BATCH_SIZE).numpy())
 
     callbacks = [DisplayCallback(),
-                 tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", 'val_loss', verbose=1, save_best_only=True, save_weights_only=True)]
+                 tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_loss', verbose=1, mode="min", save_best_only=True, save_weights_only=True)]
                 
     history = model.fit(train_dataset,
                         steps_per_epoch=TRAIN_STEPS_PER_EPOCH,

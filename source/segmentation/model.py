@@ -1,3 +1,4 @@
+import sys
 import tensorflow as tf
 from tensorflow.keras import backend as K
 from tensorflow.keras.models import Model
@@ -50,24 +51,35 @@ def ASPP(tensor):
     return y
 
 
-def DeepLabV3Plus(img_height, img_width, nclasses=66):
+def DeepLabV3Plus(img_height, img_width, nclasses=66, backbone_name="resnet50"):
     print('*** Building DeepLabv3Plus Network ***')
 
-    # base_model = tf.keras.applications.ResNet50(input_shape=(img_height, img_width, 3), weights='imagenet', include_top=False)
+    if backbone_name.lower() == "resnet50":
+        # base_model = tf.keras.applications.ResNet50(input_shape=(img_height, img_width, 3), weights='imagenet', include_top=False)
 
-    model_input = tf.keras.Input(shape=(img_width, img_height, 3))
-    rescale = tf.keras.layers.experimental.preprocessing.Rescaling((1.0 / 127.5) - 1)(model_input)
-    base_model = tf.keras.applications.ResNet50(input_tensor=rescale, weights='imagenet', include_top=False)
+        model_input = tf.keras.Input(shape=(img_width, img_height, 3))
+        rescale = tf.keras.layers.experimental.preprocessing.Rescaling((1.0 / 127.5) - 1)(model_input)
+        base_model = tf.keras.applications.ResNet50(input_tensor=rescale, weights='imagenet', include_top=False)
+
+    elif backbone_name.lower() == "xception":
+        # base_model = tf.keras.applications.Xception(input_shape=(img_height, img_width, 3), weights='imagenet', include_top=False)
+
+        model_input = tf.keras.Input(shape=(img_width, img_height, 3))
+        rescale = tf.keras.layers.experimental.preprocessing.Rescaling((1.0 / 127.5) - 1)(model_input)
+        base_model = tf.keras.applications.Xception(input_tensor=rescale, weights='imagenet', include_top=False)
     
+    base_model.summary()
     
-    image_features = base_model.get_layer('conv4_block6_2_relu').output
+    image_features = base_model.get_layer('block14_sepconv2_act').output
     x_a = ASPP(image_features)
-    x_a = Upsample(tensor=x_a, size=[img_height // 4, img_width // 4])
+    x_a = Upsample(tensor=x_a, size=[(img_height // 4) - 1, (img_width // 4) - 1])
+    print(x_a)
 
-    x_b = base_model.get_layer('conv2_block3_2_relu').output
+    x_b = base_model.get_layer('block3_sepconv2_act').output
     x_b = Conv2D(filters=48, kernel_size=1, padding='same', kernel_initializer='he_normal', name='low_level_projection', use_bias=False)(x_b)
     x_b = BatchNormalization(name=f'bn_low_level_projection')(x_b)
     x_b = Activation('relu', name='low_level_activation')(x_b)
+    print(x_b)
 
     x = concatenate([x_a, x_b], name='decoder_concat')
 
