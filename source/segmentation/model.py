@@ -70,7 +70,7 @@ def DeepLabV3Plus(img_height, img_width, nclasses=66, backbone_name="resnet50"):
     
     image_features = base_model.get_layer('block14_sepconv2_act').output
     x_a = ASPP(image_features)
-    x_a = Upsample(tensor=x_a, size=[img_height // 4, img_width // 4])
+    # x_a = Upsample(tensor=x_a, size=[img_height // 4, img_width // 4])
     x_a = Upsample(tensor=x_a, size=[(img_height // 4) - 1, (img_width // 4) - 1])
     # print(x_a)
 
