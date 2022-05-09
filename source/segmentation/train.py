@@ -69,10 +69,10 @@ def DilatedSpatialPyramidPooling(dspp_input):
 
 def DeeplabV3Plus(image_size, num_classes):
     model_input = tf.keras.Input(shape=(image_size, image_size, 3))
-    # resnet50 = tf.keras.applications.ResNet50(weights="imagenet", include_top=False, input_tensor=model_input)
+    resnet50 = tf.keras.applications.ResNet50(weights="imagenet", include_top=False, input_tensor=model_input)
     
-    rescale = tf.keras.layers.experimental.preprocessing.Rescaling(1.0 / 255)(model_input)
-    resnet50 = tf.keras.applications.ResNet50(weights="imagenet", include_top=False, input_tensor=rescale)
+    # rescale = tf.keras.layers.experimental.preprocessing.Rescaling(1.0 / 255)(model_input)
+    # resnet50 = tf.keras.applications.ResNet50(weights="imagenet", include_top=False, input_tensor=rescale)
 
     x = resnet50.get_layer("conv4_block6_2_relu").output
     x = DilatedSpatialPyramidPooling(x)
@@ -164,6 +164,9 @@ def get_overlay(image, colored_mask):
 
 
 def plot_samples_matplotlib(display_list, idx, figsize=(5, 3)):
+    if not os.path.isdir("./train_result"):
+        os.makedirs("./train_result")
+
     _, axes = plt.subplots(nrows=1, ncols=len(display_list), figsize=figsize)
     for i in range(len(display_list)):
         if display_list[i].shape[-1] == 3:
@@ -171,8 +174,8 @@ def plot_samples_matplotlib(display_list, idx, figsize=(5, 3)):
         else:
             axes[i].imshow(display_list[i])
 
-    plt.savefig(f"./result_{idx}.png")
-    # plt.show()
+    plt.savefig(f"./train_result/result_{idx}.png")
+    plt.show()
     plt.close()
 
 
@@ -207,7 +210,9 @@ def display_training_curves(history):
     plt.legend(loc='upper right')
     plt.title('Training and Validation Loss')
     
-    plt.show()
+    plt.savefig(f"./train_result/train_history.png")
+    # plt.show()
+    plt.close()
 
 
 def get_images(masks):
