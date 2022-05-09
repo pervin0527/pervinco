@@ -51,7 +51,7 @@ def ASPP(tensor):
     return y
 
 
-def DeepLabV3Plus(img_height, img_width, nclasses=66, backbone_name="resnet50"):
+def DeepLabV3Plus(img_height, img_width, nclasses=66, backbone_name="resnet50", backbone_trainable=False):
     print('*** Building DeepLabv3Plus Network ***')
 
     if backbone_name.lower() == "resnet50":
@@ -71,6 +71,8 @@ def DeepLabV3Plus(img_height, img_width, nclasses=66, backbone_name="resnet50"):
         base_model = tf.keras.applications.Xception(input_tensor=rescale, weights='imagenet', include_top=False)
         layer_names = ["block14_sepconv2_act", "block3_sepconv2_act"]
         upsample_scale = [(img_height // 4) - 1, (img_width // 4) - 1]
+
+    base_model.trainable = backbone_trainable
     
     image_features = base_model.get_layer(layer_names[0]).output
     x_a = ASPP(image_features)

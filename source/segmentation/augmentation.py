@@ -162,9 +162,9 @@ if __name__ == "__main__":
     root = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012"
     image_path = f"{root}/JPEGImages"
     mask_path = f"{root}/SegmentationRaw"
-    output_path = f"{root}/Augmentation-ver1"
+    output_path = f"{root}/Augmentation-ver2"
 
-    ITER = 5
+    ITER = 20
     IMG_SIZE = 320
     VISUAL = False
     images, masks = voc_get_files(mask_path)

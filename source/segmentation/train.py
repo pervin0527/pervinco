@@ -186,8 +186,9 @@ if __name__ == "__main__":
     BATCH_SIZE = 16
     EPOCHS = 100
     IMG_SIZE = 320
-    LEARNING_RATE = 0.00001
-    BACKBONE_NAME = "ResNet50"
+    LEARNING_RATE = 0.001
+    BACKBONE_NAME = "Xception"
+    BACKBONE_TRAINABLE = True
     SAVE_NAME = f"{BACKBONE_NAME}_{EPOCHS}"
 
     label_df = pd.read_csv(LABEL_PATH, lineterminator='\n', header=None, index_col=False)
@@ -246,7 +247,7 @@ if __name__ == "__main__":
     print("Val Dataset:", valid_dataset)
 
     # model = DeeplabV3Plus(image_size=IMG_SIZE, num_classes=NUM_CLASSES)
-    model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(CLASSES), backbone_name=BACKBONE_NAME)
+    model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(CLASSES), backbone_name=BACKBONE_NAME, backbone_trainable=BACKBONE_TRAINABLE)
     model.summary()
 
     loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
@@ -267,14 +268,9 @@ if __name__ == "__main__":
                         epochs=EPOCHS)
 
     display_training_curves(history)
-
     plot_predictions(valid_images[:4], COLORMAP, model=model)
 
     run_model = tf.function(lambda x : model(x))
-    batch_size = 1
-    input_size = IMG_SIZE
-
-    concrete_func = run_model.get_concrete_function(tf.TensorSpec([batch_size, input_size, input_size, 3], model.inputs[0].dtype))
-
-    # tf.saved_model.save(model, f'{SAVE_PATH}/saved_model')
+    BATCH_SIZE = 1
+    concrete_func = run_model.get_concrete_function(tf.TensorSpec([BATCH_SIZE, IMG_SIZE, IMG_SIZE, 3], model.inputs[0].dtype))
     tf.saved_model.save(model, f'{SAVE_PATH}/{SAVE_NAME}/saved_model', signatures=concrete_func)
