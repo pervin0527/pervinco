@@ -37,9 +37,9 @@ def representative_data_gen():
 
 if __name__ == "__main__":
     int8 = False
-    image_size = 512
-    saved_model_path = "/data/Models/segmentation/saved_model"
-    label_file_path = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012/Segmentation/labels/class_labels.txt"
+    image_size = 320
+    saved_model_path = "/data/Models/segmentation-test/saved_model"
+    label_file_path = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012/Labels/class_labels.txt"
     representative_data_path = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012/Segmentation/valid/images"
 
     lite_name = None
