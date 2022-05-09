@@ -139,12 +139,12 @@ def Deeplabv3(weights='pascal_voc', input_tensor=None, input_shape=(512, 512, 3)
             exit_block_rates = (1, 2)
             atrous_rates = (6, 12, 18)
 
-        # x = tf.keras.layers.Conv2D(32, (3, 3), strides=(2, 2), name='entry_flow_conv1_1', use_bias=False, padding='same')(img_input)
+        x = tf.keras.layers.Conv2D(32, (3, 3), strides=(2, 2), name='entry_flow_conv1_1', use_bias=False, padding='same')(img_input)
 
         ### Preprocessing Layer [0, 1] or [-1, 1]
-        x = tf.keras.layers.experimental.preprocessing.Rescaling(1.0 / 255)(img_input)
+        # x = tf.keras.layers.experimental.preprocessing.Rescaling(1.0 / 255)(img_input)
         # x = tf.keras.layers.experimental.preprocessing.Rescaling((1.0 / 127.5) - 1)(img_input)
-        x = tf.keras.layers.Conv2D(32, (3, 3), strides=(2, 2), name='entry_flow_conv1_1', use_bias=False, padding='same')(x)
+        # x = tf.keras.layers.Conv2D(32, (3, 3), strides=(2, 2), name='entry_flow_conv1_1', use_bias=False, padding='same')(x)
 
         x = tf.keras.layers.BatchNormalization(name='entry_flow_conv1_1_BN')(x)
         x = tf.keras.layers.Activation(tf.nn.relu)(x)

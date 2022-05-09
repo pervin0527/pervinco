@@ -164,7 +164,7 @@ if __name__ == "__main__":
     mask_path = f"{root}/SegmentationRaw"
     output_path = f"{root}/Augmentation-sample"
 
-    ITER = 2
+    ITER = 3
     IMG_SIZE = 320
     VISUAL = False
     images, masks = voc_get_files(mask_path)
