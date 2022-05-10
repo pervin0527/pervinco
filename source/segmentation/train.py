@@ -156,7 +156,7 @@ def display_training_curves(history):
     plt.close()
 
 
-def build_lrfn(lr_start=0.0001, lr_max=0.0005, lr_min=0.0001, lr_rampup_epochs=5, lr_sustain_epochs=0, lr_exp_decay=.8):
+def build_lrfn(lr_start=0.00001, lr_max=0.00005, lr_min=0.00001, lr_rampup_epochs=5, lr_sustain_epochs=0, lr_exp_decay=.8):
     lr_max = lr_max * strategy.num_replicas_in_sync
 
     def lrfn(epoch):
@@ -248,7 +248,7 @@ if __name__ == "__main__":
 
     lrfn = build_lrfn()
     callbacks = [DisplayCallback(),
-                 tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1),
+                #  tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1),
                  tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_loss', verbose=1, mode="min", save_best_only=True, save_weights_only=True)]
                 
     history = model.fit(train_dataset,
