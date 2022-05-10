@@ -68,7 +68,8 @@ def DeepLabV3Plus(img_height, img_width, nclasses=66, backbone_name="resnet50", 
         # base_model = tf.keras.applications.Xception(input_shape=(img_height, img_width, 3), weights='imagenet', include_top=False)
 
         model_input = tf.keras.Input(shape=(img_width, img_height, 3))
-        rescale = tf.keras.layers.experimental.preprocessing.Rescaling((1.0 / 127.5) - 1)(model_input)
+        rescale = tf.keras.layers.experimental.preprocessing.Rescaling(1.0 / 255.0)(model_input)
+        # rescale = tf.keras.layers.experimental.preprocessing.Rescaling((1.0 / 127.5) - 1)(model_input)
         base_model = tf.keras.applications.Xception(input_tensor=rescale, weights='imagenet', include_top=False)
         layer_names = ["block14_sepconv2_act", "block3_sepconv2_act"]
         # layer_names = ["block4_sepconv2_act", "block3_sepconv2_act"]
