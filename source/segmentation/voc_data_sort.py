@@ -31,7 +31,7 @@ def sorting_ds(file_list, save_path, is_train):
 
 
 if __name__ == "__main__":
-    root = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012"
+    root = "/data/Datasets/VOCdevkit/VOC2012"
     save_path = f"{root}/Segmentation"
     annotation_dir = f"{root}/SegmentationClass"
     image_dir = f"{root}/JPEGImages"

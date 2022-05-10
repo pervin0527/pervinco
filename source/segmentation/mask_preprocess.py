@@ -17,11 +17,11 @@ import tensorflow as tf
 
 FLAGS = tf.compat.v1.flags.FLAGS
 
-tf.compat.v1.flags.DEFINE_string('original_gt_folder', '/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012/SegmentationClass', 'Original ground truth annotations.')
+tf.compat.v1.flags.DEFINE_string('original_gt_folder', '/data/Datasets/VOCdevkit/VOC2012/SegmentationClass', 'Original ground truth annotations.')
 
 tf.compat.v1.flags.DEFINE_string('segmentation_format', 'png', 'Segmentation format.')
 
-tf.compat.v1.flags.DEFINE_string('output_dir', '/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012/SegmentationRaw', 'folder to save modified ground truth annotations.')
+tf.compat.v1.flags.DEFINE_string('output_dir', '/data/Datasets/VOCdevkit/VOC2012/SegmentationRaw', 'folder to save modified ground truth annotations.')
 
 
 def _remove_colormap(filename):

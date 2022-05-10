@@ -181,7 +181,7 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 
 if __name__ == "__main__":
-    ROOT = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012"
+    ROOT = "/data/Datasets/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
     SAVE_PATH = "/data/Models/segmentation"    
     FOLDER = "SAMPLE01"

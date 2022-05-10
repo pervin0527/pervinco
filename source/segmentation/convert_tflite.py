@@ -39,8 +39,8 @@ if __name__ == "__main__":
     int8 = False
     image_size = 320
     saved_model_path = "/data/Models/segmentation/sample/saved_model"
-    label_file_path = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012/Labels/class_labels.txt"
-    representative_data_path = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012/Segmentation/valid/images"
+    label_file_path = "/data/Datasets/VOCdevkit/VOC2012/Labels/class_labels.txt"
+    representative_data_path = "/data/Datasets/VOCdevkit/VOC2012/Segmentation/valid/images"
 
     lite_name = None
     if not int8:

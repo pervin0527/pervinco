@@ -232,7 +232,7 @@ def augmentation(images, masks, is_train):
 
 
 if __name__ == "__main__":
-    root = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012"
+    root = "/data/Datasets/VOCdevkit/VOC2012"
     image_path = f"{root}/JPEGImages"
     mask_path = f"{root}/SegmentationRaw"
     output_path = f"{root}/SAMPLE02"
