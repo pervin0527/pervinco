@@ -156,16 +156,6 @@ def display_training_curves(history):
     plt.close()
 
 
-def get_images(masks):
-    image_files = []
-    for mask in masks:
-        file_name = mask.split('/')[-1].split('.')[0]
-        if os.path.isfile(f"{images}/{file_name}.jpg"):
-            image_files.append(f"{images}/{file_name}.jpg")
-
-    return image_files
-
-
 def build_lrfn(lr_start=0.00001, lr_max=0.00005, lr_min=0.00001, lr_rampup_epochs=5, lr_sustain_epochs=0, lr_exp_decay=.8):
     lr_max = lr_max * strategy.num_replicas_in_sync
 
@@ -193,18 +183,16 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 if __name__ == "__main__":
     ROOT = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
-    SAVE_PATH = "/data/Models/segmentation"
-    
-    IS_SPLIT = True
+    SAVE_PATH = "/data/Models/segmentation"    
     FOLDER = "Augmentation-ver3"
 
     BATCH_SIZE = 16
-    EPOCHS = 100
+    EPOCHS = 300
     IMG_SIZE = 320
     LEARNING_RATE = 0.00001
     
     BACKBONE_TRAINABLE = True
-    BACKBONE_NAME = "Xception"
+    BACKBONE_NAME = "ResNet50"
     SAVE_NAME = f"{BACKBONE_NAME}_{EPOCHS}_trainable"
 
     label_df = pd.read_csv(LABEL_PATH, lineterminator='\n', header=None, index_col=False)
@@ -235,26 +223,13 @@ if __name__ == "__main__":
                 [0, 64, 128]]
     COLORMAP = np.array(COLORMAP, dtype=np.uint8)
 
-    if not IS_SPLIT:
-        root = f"{ROOT}/{FOLDER}"
-        train_dir = f"{root}/train"
-        valid_dir = f"{root}/valid"
 
-        train_images, train_masks, n_train_images, n_train_masks = get_file_list(train_dir)
-        valid_images, valid_masks, n_valid_images, n_valid_masks = get_file_list(valid_dir)
+    root = f"{ROOT}/{FOLDER}"
+    train_dir = f"{root}/train"
+    valid_dir = f"{root}/valid"
 
-    else:
-        root = f"{ROOT}"
-        masks = sorted(glob(f"{root}/SegmentationRaw/*.png"))
-        images = f"{root}/JPEGImages"
-
-        images = get_images(masks)
-        print(len(images), len(masks))
-
-        train_images, valid_images, train_masks, valid_masks = train_test_split(images, masks, test_size=0.1, shuffle=True, random_state=42)
-        print(len(train_images), len(train_masks))
-        print(len(valid_images), len(valid_masks))
-
+    train_images, train_masks, n_train_images, n_train_masks = get_file_list(train_dir)
+    valid_images, valid_masks, n_valid_images, n_valid_masks = get_file_list(valid_dir)
 
     train_dataset = data_generator(train_images, train_masks)
     valid_dataset = data_generator(valid_images, valid_masks)
@@ -262,7 +237,6 @@ if __name__ == "__main__":
     print("Train Dataset:", train_dataset)
     print("Val Dataset:", valid_dataset)
 
-    # model = DeeplabV3Plus(image_size=IMG_SIZE, num_classes=NUM_CLASSES)
     model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(CLASSES), backbone_name=BACKBONE_NAME, backbone_trainable=BACKBONE_TRAINABLE)
     model.summary()
 

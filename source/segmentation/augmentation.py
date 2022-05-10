@@ -191,7 +191,7 @@ def augmentation(images, masks, is_train):
             mask = cv2.imread(mask, cv2.IMREAD_GRAYSCALE)
         
             for idx in range(ITER):
-                number = randint(0, 1)
+                number = randint(0, 2)
                 # print(number)
 
                 if number == 0:
@@ -235,9 +235,9 @@ if __name__ == "__main__":
     root = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012"
     image_path = f"{root}/JPEGImages"
     mask_path = f"{root}/SegmentationRaw"
-    output_path = f"{root}/Augmentation-ver3"
+    output_path = f"{root}/Augmentation-sample"
 
-    ITER = 20
+    ITER = 3
     IMG_SIZE = 320
     VISUAL = False
     images, masks = voc_get_files(mask_path)
