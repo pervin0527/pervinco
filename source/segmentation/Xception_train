@@ -181,18 +181,18 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 
 if __name__ == "__main__":
-    ROOT = "/data/Datasets/VOCdevkit/VOC2012"
+    ROOT = "/home/ubuntu/Datasets/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
-    SAVE_PATH = "/data/Models/segmentation"    
-    FOLDER = "SAMPLE02"
+    SAVE_PATH = "/home/ubuntu/Models/segmentation"    
+    FOLDER = "SAMPLE01"
 
-    BATCH_SIZE = 16
+    BATCH_SIZE = 32
     EPOCHS = 300
     IMG_SIZE = 320
-    LEARNING_RATE = 0.00001 # Xception = 0.00005, ResNet50 = 0.00001
+    LEARNING_RATE = 0.00005 # 0.0005
     
     BACKBONE_TRAINABLE = True
-    BACKBONE_NAME = "ResNet50"
+    BACKBONE_NAME = "Xception"
     SAVE_NAME = f"{BACKBONE_NAME}_{EPOCHS}_trainable"
 
     label_df = pd.read_csv(LABEL_PATH, lineterminator='\n', header=None, index_col=False)
@@ -250,7 +250,6 @@ if __name__ == "__main__":
     lrfn = build_lrfn()
     callbacks = [DisplayCallback(),
                 #  tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1),
-                 tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10),
                  tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_loss', verbose=1, mode="min", save_best_only=True, save_weights_only=True)]
                 
     history = model.fit(train_dataset,
