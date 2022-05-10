@@ -166,6 +166,20 @@ def get_images(masks):
     return image_files
 
 
+def build_lrfn(lr_start=0.00001, lr_max=0.00005, lr_min=0.00001, lr_rampup_epochs=5, lr_sustain_epochs=0, lr_exp_decay=.8):
+    lr_max = lr_max * strategy.num_replicas_in_sync
+
+    def lrfn(epoch):
+        if epoch < lr_rampup_epochs:
+            lr = (lr_max - lr_start) / lr_rampup_epochs * epoch + lr_start
+        elif epoch < lr_rampup_epochs + lr_sustain_epochs:
+            lr = lr_max
+        else:
+            lr = (lr_max - lr_min) * lr_exp_decay**(epoch - lr_rampup_epochs - lr_sustain_epochs) + lr_min
+        return lr
+    return lrfn
+
+
 class DisplayCallback(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         clear_output(wait=True)
@@ -180,16 +194,18 @@ if __name__ == "__main__":
     ROOT = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
     SAVE_PATH = "/data/Models/segmentation"
-    IS_SPLIT = False
-    FOLDER = "Augmentation-ver1"
+    
+    IS_SPLIT = True
+    FOLDER = "Augmentation-ver3"
 
     BATCH_SIZE = 16
     EPOCHS = 100
     IMG_SIZE = 320
-    LEARNING_RATE = 0.001
-    BACKBONE_NAME = "Xception"
+    LEARNING_RATE = 0.00001
+    
     BACKBONE_TRAINABLE = True
-    SAVE_NAME = f"{BACKBONE_NAME}_{EPOCHS}"
+    BACKBONE_NAME = "Xception"
+    SAVE_NAME = f"{BACKBONE_NAME}_{EPOCHS}_trainable"
 
     label_df = pd.read_csv(LABEL_PATH, lineterminator='\n', header=None, index_col=False)
     CLASSES = label_df[0].to_list()
@@ -256,7 +272,9 @@ if __name__ == "__main__":
     TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_images) / BATCH_SIZE).numpy())
     VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_images) / BATCH_SIZE).numpy())
 
+    lrfn = build_lrfn()
     callbacks = [DisplayCallback(),
+                 tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1),
                  tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_loss', verbose=1, mode="min", save_best_only=True, save_weights_only=True)]
                 
     history = model.fit(train_dataset,

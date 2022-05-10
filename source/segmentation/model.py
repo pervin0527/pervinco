@@ -69,25 +69,26 @@ def DeepLabV3Plus(img_height, img_width, nclasses=66, backbone_name="resnet50", 
         model_input = tf.keras.Input(shape=(img_width, img_height, 3))
         rescale = tf.keras.layers.experimental.preprocessing.Rescaling((1.0 / 127.5) - 1)(model_input)
         base_model = tf.keras.applications.Xception(input_tensor=rescale, weights='imagenet', include_top=False)
-        layer_names = ["block14_sepconv2_act", "block3_sepconv2_act"]
+        # layer_names = ["block14_sepconv2_act", "block3_sepconv2_act"]
+        layer_names = ["block4_sepconv2_act", "block3_sepconv2_act"]
+        # layer_names = ["block13_sepconv2_act", "block3_sepconv2_act"]
         upsample_scale = [(img_height // 4) - 1, (img_width // 4) - 1]
 
     base_model.trainable = backbone_trainable
     
     image_features = base_model.get_layer(layer_names[0]).output
     x_a = ASPP(image_features)
-    # x_a = Upsample(tensor=x_a, size=[img_height // 4, img_width // 4])
     x_a = Upsample(tensor=x_a, size=[upsample_scale[0], upsample_scale[1]])
-    # print(x_a)
 
     x_b = base_model.get_layer(layer_names[1]).output
     # x_b = tf.image.resize(x_b, size=[img_height // 4, img_width // 4])
     x_b = Conv2D(filters=48, kernel_size=1, padding='same', kernel_initializer='he_normal', name='low_level_projection', use_bias=False)(x_b)
     x_b = BatchNormalization(name=f'bn_low_level_projection')(x_b)
     x_b = Activation('relu', name='low_level_activation')(x_b)
-    # print(x_b)
 
+    # print(x_a.shape, x_b.shape)
     x = concatenate([x_a, x_b], name='decoder_concat')
+    # sys.exit()
 
     x = Conv2D(filters=256, kernel_size=3, padding='same', activation='relu', kernel_initializer='he_normal', name='decoder_conv2d_1', use_bias=False)(x)
     x = BatchNormalization(name=f'bn_decoder_1')(x)

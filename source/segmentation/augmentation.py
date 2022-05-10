@@ -5,7 +5,7 @@ import albumentations as A
 import matplotlib.pyplot as plt
 from glob import glob
 from tqdm import tqdm
-from random import randint
+from random import randint, uniform, sample, shuffle
 from sklearn.model_selection import train_test_split
 
 def create_save_dir(path):
@@ -108,6 +108,76 @@ def cutmix(image1, mask1, beta=1.0):
     return cutmix_image, cutmix_mask
 
 
+def crop(image, mask, xmin, ymin, xmax, ymax):
+    mosaic_transform = A.Compose([
+        A.Resize(width=xmax-xmin, height=ymax-ymin, always_apply=True),
+        
+        A.OneOf([
+            A.RandomBrightnessContrast(brightness_limit=(-0.3, 0.3), contrast_limit=(-0.3, 0.3), p=0.5),
+            A.HueSaturationValue(hue_shift_limit=0, sat_shift_limit=(0, 0), val_shift_limit=(0, 100), p=0.5),
+        ], p=1),
+
+        A.OneOf([
+            A.VerticalFlip(p=0.3),
+            A.HorizontalFlip(p=0.3),
+        ], p=0.5),
+
+        A.OneOf([
+            A.ShiftScaleRotate(p=0.25, border_mode=0),
+            A.OpticalDistortion(p=0.25, distort_limit=0.85, shift_limit=0.85, mask_value=0, border_mode=0),
+            A.GridDistortion(p=0.25, distort_limit=0.85, mask_value=0, border_mode=0)
+        ], p=1),
+        
+        A.OneOf([
+            A.RandomBrightnessContrast(p=0.5),
+            A.HueSaturationValue(p=0.5),
+        ], p=1),
+    ])
+    transformed = mosaic_transform(image=image, mask=mask)
+    result_image, result_mask = transformed['image'], transformed['mask']
+
+    return result_image, result_mask
+
+
+
+def mosaic(image1, mask1):
+    result_image = np.full((IMG_SIZE, IMG_SIZE, 3), 1, dtype=np.uint8)
+    result_mask = np.full((IMG_SIZE, IMG_SIZE), 1, dtype=np.uint8)
+    
+    xc, yc = [int(uniform(IMG_SIZE * 0.25, IMG_SIZE * 0.75)) for _ in range(2)]
+    indexes = sample(range(len(images)), 3)
+
+    pieces = [(image1, mask1)]
+    for i in indexes:
+        image = cv2.imread(images[i])
+        mask = cv2.imread(masks[i], cv2.IMREAD_GRAYSCALE)
+        pieces.append((image, mask))
+
+    shuffle(pieces)
+    for i, (piece_image, piece_mask) in enumerate(pieces):
+        if i == 0:
+            crop_image, crop_mask = crop(piece_image, piece_mask, IMG_SIZE-xc, IMG_SIZE-yc, IMG_SIZE, IMG_SIZE)
+            result_image[0 : yc, 0 : xc, :] = crop_image
+            result_mask[0 : yc, 0 : xc] = crop_mask
+
+        elif i == 1:
+            crop_image, crop_mask = crop(piece_image, piece_mask, 0, IMG_SIZE-yc, IMG_SIZE-xc, IMG_SIZE)
+            result_image[0 : yc, xc : IMG_SIZE, :] = crop_image
+            result_mask[0 : yc, xc : IMG_SIZE] = crop_mask
+
+        elif i == 2:
+            crop_image, crop_mask = crop(piece_image, piece_mask, 0, 0, IMG_SIZE-xc, IMG_SIZE-yc)
+            result_image[yc:IMG_SIZE, xc:IMG_SIZE, :] = crop_image
+            result_mask[yc:IMG_SIZE, xc:IMG_SIZE] = crop_mask
+
+        else:
+            crop_image, crop_mask = crop(piece_image, piece_mask, IMG_SIZE-xc, 0, IMG_SIZE, IMG_SIZE-yc)
+            result_image[yc : IMG_SIZE, 0 : xc, :] = crop_image
+            result_mask[yc : IMG_SIZE, 0 : xc] = crop_mask
+
+    return result_image, result_mask
+
+
 def augmentation(images, masks, is_train):
     if is_train:
         save_path = f"{output_path}/train"
@@ -130,6 +200,9 @@ def augmentation(images, masks, is_train):
 
                 elif number == 1:
                     result_image, result_mask = cutmix(image, mask)
+
+                elif number == 2:
+                    result_image, result_mask = mosaic(image, mask)
 
                 if not VISUAL:
                     cv2.imwrite(f"{save_path}/images/{file_name}_{idx}.jpg", result_image)
@@ -162,7 +235,7 @@ if __name__ == "__main__":
     root = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012"
     image_path = f"{root}/JPEGImages"
     mask_path = f"{root}/SegmentationRaw"
-    output_path = f"{root}/Augmentation-ver2"
+    output_path = f"{root}/Augmentation-ver3"
 
     ITER = 20
     IMG_SIZE = 320
@@ -213,23 +286,18 @@ if __name__ == "__main__":
             ], p=1),
             
             A.OneOf([
-                A.Blur(blur_limit=3, p=0.5),
-                A.MotionBlur(blur_limit=3, p=0.5)
-            ], p=0.4),
-
-            A.OneOf([
                 A.RandomBrightnessContrast(p=0.5),
                 A.HueSaturationValue(p=0.5),
             ], p=1),
 
-            A.OneOf([
-                A.GridDropout(fill_value=0, mask_fill_value=0, random_offset=True, p=0.5),
-                A.CoarseDropout(min_holes=32, max_holes=64,
-                                min_height=16, min_width=16,
-                                max_height=28, max_width=28,
-                                fill_value=0, mask_fill_value=0,
-                                p=0.5),
-            ], p=0.6),
+            # A.OneOf([
+            #     A.GridDropout(fill_value=0, mask_fill_value=0, random_offset=True, p=0.5),
+            #     A.CoarseDropout(min_holes=32, max_holes=64,
+            #                     min_height=16, min_width=16,
+            #                     max_height=28, max_width=28,
+            #                     fill_value=0, mask_fill_value=0,
+            #                     p=0.5),
+            # ], p=0.6),
 
     ])
 
