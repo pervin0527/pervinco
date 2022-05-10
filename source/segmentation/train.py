@@ -156,7 +156,7 @@ def display_training_curves(history):
     plt.close()
 
 
-def build_lrfn(lr_start=0.00001, lr_max=0.00005, lr_min=0.00001, lr_rampup_epochs=5, lr_sustain_epochs=0, lr_exp_decay=.8):
+def build_lrfn(lr_start=0.0001, lr_max=0.0005, lr_min=0.0001, lr_rampup_epochs=5, lr_sustain_epochs=0, lr_exp_decay=.8):
     lr_max = lr_max * strategy.num_replicas_in_sync
 
     def lrfn(epoch):
@@ -184,7 +184,7 @@ if __name__ == "__main__":
     ROOT = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
     SAVE_PATH = "/data/Models/segmentation"    
-    FOLDER = "Augmentation-ver3"
+    FOLDER = "SAMPLE01"
 
     BATCH_SIZE = 16
     EPOCHS = 300
