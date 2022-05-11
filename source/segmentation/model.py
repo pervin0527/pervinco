@@ -101,10 +101,9 @@ def DeepLabV3Plus(img_height, img_width, nclasses=66, backbone_name="resnet50", 
     x = Activation('relu', name='activation_decoder_2')(x)
     x = Upsample(x, [img_height, img_width])
 
-    if final_activation == None:
-        x = Conv2D(nclasses, (1, 1), name='output_layer')(x)
+    x = Conv2D(nclasses, (1, 1), name='output_layer')(x)
 
-    elif final_activation == "softmax":
+    if final_activation == "softmax":
         x = Activation('softmax')(x)
 
     model = Model(inputs=base_model.input, outputs=x, name='DeepLabV3_Plus')

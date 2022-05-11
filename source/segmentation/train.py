@@ -269,7 +269,7 @@ if __name__ == "__main__":
     lrfn = build_lrfn()
     callbacks = [DisplayCallback(),
                 #  tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1),
-                 tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=ES_PATIENT),
+                 tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=ES_PATIENT, verbose=1),
                  tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_loss', verbose=1, mode="min", save_best_only=True, save_weights_only=True)]
 
     history = model.fit(train_dataset,
