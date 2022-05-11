@@ -136,45 +136,14 @@ def plot_predictions(images_list, colormap, model):
         plot_samples_matplotlib([image_tensor, overlay, prediction_colormap], idx, figsize=(18, 14))
 
 
-def display_training_curves(history):
-    acc = history.history['accuracy']
-    val_acc = history.history['val_accuracy']
-
-    loss = history.history['loss']
-    val_loss = history.history['val_loss']
-
-    epochs_range = range(len(history.history['loss']))
-
-    plt.figure(figsize=(8, 8))
-    plt.subplot(1, 2, 1)
-    plt.plot(epochs_range, acc, label='Training Accuracy')
-    plt.plot(epochs_range, val_acc, label='Validation Accuracy')
-    plt.legend(loc='lower right')
-    plt.title('Training and Validation Accuracy')
-
-    plt.subplot(1, 2, 2)
-    plt.plot(epochs_range, loss, label='Training Loss')
-    plt.plot(epochs_range, val_loss, label='Validation Loss')
-    plt.legend(loc='upper right')
-    plt.title('Training and Validation Loss')
-    
-    plt.savefig(f"./train_result/train_history.png")
-    # plt.show()
-    plt.close()
-
-
-def build_lrfn(lr_start=0.00001, lr_max=0.00005, lr_min=0.00001, lr_rampup_epochs=5, lr_sustain_epochs=0, lr_exp_decay=.8):
-    lr_max = lr_max * strategy.num_replicas_in_sync
-
-    def lrfn(epoch):
-        if epoch < lr_rampup_epochs:
-            lr = (lr_max - lr_start) / lr_rampup_epochs * epoch + lr_start
-        elif epoch < lr_rampup_epochs + lr_sustain_epochs:
-            lr = lr_max
-        else:
-            lr = (lr_max - lr_min) * lr_exp_decay**(epoch - lr_rampup_epochs - lr_sustain_epochs) + lr_min
-        return lr
-    return lrfn
+def lrfn(epoch):
+    if epoch < LR_RAMPUP_EPOCHS:
+        lr = (LR_MAX - LR_START) / LR_RAMPUP_EPOCHS * epoch + LR_START
+    elif epoch < LR_RAMPUP_EPOCHS + LR_SUSTAIN_EPOCHS:
+        lr = LR_MAX
+    else:
+        lr = (LR_MAX - LR_MIN) * LR_EXP_DECAY**(epoch - LR_RAMPUP_EPOCHS - LR_SUSTAIN_EPOCHS) + LR_MIN
+    return lr
 
 
 def categorical_focal_loss(gamma=2., alpha=.25):
@@ -207,23 +176,25 @@ if __name__ == "__main__":
     ROOT = "/data/Datasets/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
     SAVE_PATH = "/data/Models/segmentation"    
-    FOLDER = "SAMPLE01"
+    FOLDER = "SAMPLE03"
+
+    CATEGORICAL = True
+    BACKBONE_TRAINABLE = True
+    BACKBONE_NAME = "ResNet50" # Xception, ResNet50
+    FINAL_ACTIVATION = "softmax" # None, softmax
+    SAVE_NAME = f"{ROOT.split('/')[-1]}-{BACKBONE_NAME}-{FOLDER}"
 
     BATCH_SIZE = 16
     EPOCHS = 300
     IMG_SIZE = 320
     ES_PATIENT = 10
-    LEARNING_RATE = 0.00005 # Xception = 0.00005, ResNet50 = 0.00001
     
-    CATEGORICAL = True
-    BACKBONE_TRAINABLE = True
-    BACKBONE_NAME = "ResNet50" # Xception, ResNet50
-    FINAL_ACTIVATION = "softmax" # None, softmax
-
-    if BACKBONE_TRAINABLE:
-        SAVE_NAME = f"{BACKBONE_NAME}_{EPOCHS}_trainable"
-    else:
-        SAVE_NAME = f"{BACKBONE_NAME}_{EPOCHS}"
+    LR_START = 0.00001
+    LR_MAX = 0.00005
+    LR_MIN = 0.00001
+    LR_RAMPUP_EPOCHS = 4
+    LR_SUSTAIN_EPOCHS = 4
+    LR_EXP_DECAY = .8
 
     label_df = pd.read_csv(LABEL_PATH, lineterminator='\n', header=None, index_col=False)
     CLASSES = label_df[0].to_list()
@@ -279,14 +250,13 @@ if __name__ == "__main__":
         loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 
     # model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE), loss=loss, metrics=["accuracy"])
-    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE), loss=loss, metrics=[tf.keras.metrics.OneHotMeanIoU(num_classes=NUM_CLASSES)])
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=LR_START), loss=loss, metrics=[tf.keras.metrics.OneHotMeanIoU(num_classes=NUM_CLASSES)])
 
     TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_images) / BATCH_SIZE).numpy())
     VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_images) / BATCH_SIZE).numpy())
 
-    lrfn = build_lrfn()
     callbacks = [DisplayCallback(),
-                #  tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1),
+                 tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=True),
                  tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=ES_PATIENT, verbose=1),
                  tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_loss', verbose=1, mode="min", save_best_only=True, save_weights_only=True)]
 
