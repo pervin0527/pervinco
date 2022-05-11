@@ -176,7 +176,7 @@ if __name__ == "__main__":
     ROOT = "/data/Datasets/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
     SAVE_PATH = "/data/Models/segmentation"    
-    FOLDER = "SAMPLE03"
+    FOLDER = "SAMPLE02"
 
     CATEGORICAL = True
     BACKBONE_TRAINABLE = True
@@ -256,7 +256,7 @@ if __name__ == "__main__":
     VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_images) / BATCH_SIZE).numpy())
 
     callbacks = [DisplayCallback(),
-                 tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=True),
+                #  tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=True),
                  tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=ES_PATIENT, verbose=1),
                  tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_loss', verbose=1, mode="min", save_best_only=True, save_weights_only=True)]
 

@@ -1,3 +1,4 @@
+from faulthandler import disable
 import os
 import cv2
 import numpy as np
@@ -36,14 +37,18 @@ def get_overlay(image, colored_mask):
 
 
 def visualize(display_list):
-    plt.figure(figsize=(15, 15))
+    fig = plt.figure(figsize=(10, 10))
+    rows, cols = 2, 2
 
-    for i in range(len(display_list)):
-        if display_list[i].shape[-1] == 3:
-            display_list[i] = cv2.cvtColor(display_list[i], cv2.COLOR_BGR2RGB)
-        plt.subplot(1, len(display_list), i+1)
-        plt.imshow(display_list[i])
-        plt.axis('off')
+    x_labels = ["Original image", "Original mask", "Augmented image", "Augmented mask"]
+    for idx, image in enumerate(display_list):
+        ax = fig.add_subplot(rows, cols, idx+1)
+        if image.shape[-1] == 3:
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        ax.imshow(image)
+        ax.set_xlabel(x_labels[idx])
+        ax.set_xticks([]), ax.set_yticks([])
+    
     plt.show()
 
 
@@ -210,7 +215,8 @@ def augmentation(images, masks, is_train):
                 else:
                     decode_mask = decode_segmentation_masks(result_mask, colormap, len(colormap))
                     overlay = get_overlay(result_image, decode_mask)
-                    visualize([cv2.resize(image, (IMG_SIZE, IMG_SIZE)), cv2.resize(mask, (IMG_SIZE, IMG_SIZE)), result_image, result_mask, overlay])
+                    # visualize([cv2.resize(image, (IMG_SIZE, IMG_SIZE)), cv2.resize(mask, (IMG_SIZE, IMG_SIZE)), result_image, result_mask, overlay])
+                    visualize([cv2.resize(image, (IMG_SIZE, IMG_SIZE)), cv2.resize(mask, (IMG_SIZE, IMG_SIZE)), result_image, result_mask])
 
     else:
         save_path = f"{output_path}/valid"
@@ -234,11 +240,11 @@ if __name__ == "__main__":
     root = "/data/Datasets/VOCdevkit/VOC2012"
     image_path = f"{root}/JPEGImages"
     mask_path = f"{root}/SegmentationRaw" # SegmentationClass
-    output_path = f"{root}/SAMPLE03"
+    output_path = f"{root}/SAMPLE04"
 
-    ITER = 10
+    ITER = 20
     IMG_SIZE = 320
-    VISUAL = True
+    VISUAL = False
     images, masks = voc_get_files(mask_path)
     print(len(images), len(masks))
     train_images, valid_images, train_masks, valid_masks = train_test_split(images, masks, test_size=0.1, shuffle=True)

@@ -1,4 +1,4 @@
-import os
+import os, sys
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import cv2
 import numpy as np
@@ -67,6 +67,8 @@ def DeeplabV3Plus(image_size, num_classes):
     input_a = tf.keras.layers.UpSampling2D(size=(image_size // 4 // x.shape[1], image_size // 4 // x.shape[2]), interpolation="bilinear",)(x)
     input_b = resnet50.get_layer("conv2_block3_2_relu").output
     input_b = convolution_block(input_b, num_filters=48, kernel_size=1)
+
+    print(input_a.shape, input_b.shape)
 
     x = tf.keras.layers.Concatenate(axis=-1)([input_a, input_b])
     x = convolution_block(x)
@@ -222,17 +224,17 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 
 if __name__ == "__main__":
-    ROOT = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012"
+    ROOT = "/home/ubuntu/Datasets/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
-    SAVE_PATH = "/data/Models/segmentation"
+    SAVE_PATH = "/home/ubuntu/Models/segmentation"
     IS_SPLIT = False
-    FOLDER = "TEST"
+    FOLDER = "SAMPLE02"
 
-    BATCH_SIZE = 16
-    EPOCHS = 50
+    BATCH_SIZE = 32
+    EPOCHS = 100
     IMG_SIZE = 320
     LEARNING_RATE = 0.0001
-    SAVE_NAME = f"ResNet50-{EPOCHS}-Norm_-1to1"
+    SAVE_NAME = f"ResNet50-basic-{EPOCHS}-ver2"
 
     label_df = pd.read_csv(LABEL_PATH, lineterminator='\n', header=None, index_col=False)
     CLASSES = label_df[0].to_list()
@@ -299,6 +301,7 @@ if __name__ == "__main__":
     VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_images) / BATCH_SIZE).numpy())
 
     callbacks = [DisplayCallback(),
+                 tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5, verbose=1),
                  tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", 'val_loss', verbose=1, save_best_only=True, save_weights_only=True)]
                 
     history = model.fit(train_dataset,
