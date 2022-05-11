@@ -51,7 +51,7 @@ def ASPP(tensor):
     return y
 
 
-def DeepLabV3Plus(img_height, img_width, nclasses=66, backbone_name="resnet50", backbone_trainable=False):
+def DeepLabV3Plus(img_height, img_width, nclasses=66, backbone_name="resnet50", backbone_trainable=False, final_activation=None):
     print('*** Building DeepLabv3Plus Network ***')
 
     if backbone_name.lower() == "resnet50":
@@ -101,14 +101,12 @@ def DeepLabV3Plus(img_height, img_width, nclasses=66, backbone_name="resnet50", 
     x = Activation('relu', name='activation_decoder_2')(x)
     x = Upsample(x, [img_height, img_width])
 
-    x = Conv2D(nclasses, (1, 1), name='output_layer')(x)
-    '''
-    x = Activation('softmax')(x) 
-    tf.losses.SparseCategoricalCrossentropy(from_logits=True)
-    Args:
-        from_logits: Whether `y_pred` is expected to be a logits tensor. By default,
-        we assume that `y_pred` encodes a probability distribution.
-    '''     
+    if final_activation == None:
+        x = Conv2D(nclasses, (1, 1), name='output_layer')(x)
+
+    elif final_activation == "softmax":
+        x = Activation('softmax')(x)
+
     model = Model(inputs=base_model.input, outputs=x, name='DeepLabV3_Plus')
     print(f'*** Output_Shape => {model.output_shape} ***')
     return model

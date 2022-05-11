@@ -1,4 +1,4 @@
-import os
+import os, sys
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import cv2
 import numpy as np
@@ -11,6 +11,7 @@ from model import DeepLabV3Plus
 from glob import glob
 from IPython.display import clear_output
 from sklearn.model_selection import train_test_split
+from tensorflow.keras import backend as K
 
 # GPU setup
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -46,13 +47,19 @@ def read_image(image_path, mask=False):
 
     if mask:
         image = tf.image.decode_png(image, channels=1)
-        image.set_shape([None, None, 1])
-        image = tf.image.resize(images=image, size=[IMG_SIZE, IMG_SIZE])
+        image.set_shape([IMG_SIZE, IMG_SIZE, 1])
+        # image.set_shape([None, None, 1])
+        # image = tf.image.resize(images=image, size=[IMG_SIZE, IMG_SIZE])
+
+        if CATEGORICAL:
+            image = tf.squeeze(image, axis=-1)
+            image = tf.one_hot(image, NUM_CLASSES)
 
     else:
         image = tf.image.decode_png(image, channels=3)
-        image.set_shape([None, None, 3])
-        image = tf.image.resize(images=image, size=[IMG_SIZE, IMG_SIZE])
+        image.set_shape([IMG_SIZE, IMG_SIZE, 3])
+        # image.set_shape([None, None, 3])
+        # image = tf.image.resize(images=image, size=[IMG_SIZE, IMG_SIZE])
 
     return image
 
@@ -184,16 +191,23 @@ if __name__ == "__main__":
     ROOT = "/data/Datasets/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
     SAVE_PATH = "/data/Models/segmentation"    
-    FOLDER = "SAMPLE02"
+    FOLDER = "SAMPLE01"
 
     BATCH_SIZE = 16
     EPOCHS = 300
     IMG_SIZE = 320
+    ES_PATIENT = 10
     LEARNING_RATE = 0.00001 # Xception = 0.00005, ResNet50 = 0.00001
     
+    CATEGORICAL = True
     BACKBONE_TRAINABLE = True
     BACKBONE_NAME = "ResNet50"
-    SAVE_NAME = f"{BACKBONE_NAME}_{EPOCHS}_trainable"
+    FINAL_ACTIVATION = "softmax"
+
+    if BACKBONE_TRAINABLE:
+        SAVE_NAME = f"{BACKBONE_NAME}_{EPOCHS}_trainable"
+    else:
+        SAVE_NAME = f"{BACKBONE_NAME}_{EPOCHS}"
 
     label_df = pd.read_csv(LABEL_PATH, lineterminator='\n', header=None, index_col=False)
     CLASSES = label_df[0].to_list()
@@ -224,7 +238,6 @@ if __name__ == "__main__":
     ]
     COLORMAP = np.array(COLORMAP, dtype=np.uint8)
 
-
     root = f"{ROOT}/{FOLDER}"
     train_dir = f"{root}/train"
     valid_dir = f"{root}/valid"
@@ -237,11 +250,17 @@ if __name__ == "__main__":
 
     print("Train Dataset:", train_dataset)
     print("Val Dataset:", valid_dataset)
-
-    model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(CLASSES), backbone_name=BACKBONE_NAME, backbone_trainable=BACKBONE_TRAINABLE)
+    
+    model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(CLASSES), backbone_name=BACKBONE_NAME, backbone_trainable=BACKBONE_TRAINABLE, final_activation=FINAL_ACTIVATION)
     model.summary()
 
-    loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+    if CATEGORICAL:
+        loss = tf.keras.losses.CategoricalCrossentropy()
+        # loss = tfa.losses.SigmoidFocalCrossEntropy(from_logits=False, alpha=0.25, gamma=2)
+
+    else:
+        loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+
     model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE), loss=loss, metrics=["accuracy"])
 
     TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_images) / BATCH_SIZE).numpy())
@@ -250,9 +269,9 @@ if __name__ == "__main__":
     lrfn = build_lrfn()
     callbacks = [DisplayCallback(),
                 #  tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=1),
-                 tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10),
+                 tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=ES_PATIENT),
                  tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_loss', verbose=1, mode="min", save_best_only=True, save_weights_only=True)]
-                
+
     history = model.fit(train_dataset,
                         steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
                         validation_data=valid_dataset,

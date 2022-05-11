@@ -139,7 +139,6 @@ def crop(image, mask, xmin, ymin, xmax, ymax):
     return result_image, result_mask
 
 
-
 def mosaic(image1, mask1):
     result_image = np.full((IMG_SIZE, IMG_SIZE, 3), 1, dtype=np.uint8)
     result_mask = np.full((IMG_SIZE, IMG_SIZE), 1, dtype=np.uint8)
@@ -234,12 +233,12 @@ def augmentation(images, masks, is_train):
 if __name__ == "__main__":
     root = "/data/Datasets/VOCdevkit/VOC2012"
     image_path = f"{root}/JPEGImages"
-    mask_path = f"{root}/SegmentationRaw"
-    output_path = f"{root}/SAMPLE02"
+    mask_path = f"{root}/SegmentationRaw" # SegmentationClass
+    output_path = f"{root}/SAMPLE03"
 
-    ITER = 5
+    ITER = 10
     IMG_SIZE = 320
-    VISUAL = False
+    VISUAL = True
     images, masks = voc_get_files(mask_path)
     print(len(images), len(masks))
     train_images, valid_images, train_masks, valid_masks = train_test_split(images, masks, test_size=0.1, shuffle=True)
