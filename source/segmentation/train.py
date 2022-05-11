@@ -176,7 +176,7 @@ if __name__ == "__main__":
     ROOT = "/data/Datasets/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
     SAVE_PATH = "/data/Models/segmentation"    
-    FOLDER = "SAMPLE02"
+    FOLDER = "SAMPLE00"
 
     CATEGORICAL = True
     BACKBONE_TRAINABLE = True
@@ -189,7 +189,7 @@ if __name__ == "__main__":
     IMG_SIZE = 320
     ES_PATIENT = 10
     
-    LR_START = 0.00001
+    LR_START = 0.0001
     LR_MAX = 0.00005
     LR_MIN = 0.00001
     LR_RAMPUP_EPOCHS = 4
@@ -249,8 +249,9 @@ if __name__ == "__main__":
     else:
         loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 
-    # model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE), loss=loss, metrics=["accuracy"])
-    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=LR_START), loss=loss, metrics=[tf.keras.metrics.OneHotMeanIoU(num_classes=NUM_CLASSES)])
+    optimizer = tf.keras.optimizers.Adam(learning_rate=LR_START)
+    metric = tf.keras.metrics.OneHotMeanIoU(num_classes=NUM_CLASSES)
+    model.compile(optimizer=optimizer, loss=loss, metrics=[metric])
 
     TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_images) / BATCH_SIZE).numpy())
     VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_images) / BATCH_SIZE).numpy())
