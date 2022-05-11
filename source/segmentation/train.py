@@ -162,6 +162,28 @@ def categorical_focal_loss(gamma=2., alpha=.25):
     return categorical_focal_loss_fixed
 
 
+def dice_loss(y_true, y_pred):
+  y_true = tf.cast(y_true, tf.float32)
+  y_pred = tf.math.sigmoid(y_pred)
+  numerator = 2 * tf.reduce_sum(y_true * y_pred)
+  denominator = tf.reduce_sum(y_true + y_pred)
+
+  return 1 - numerator / denominator
+
+
+def combined_loss(y_true, y_pred):
+    def dice_loss(y_true, y_pred):
+      y_pred = tf.math.sigmoid(y_pred)
+      numerator = 2 * tf.reduce_sum(y_true * y_pred)
+      denominator = tf.reduce_sum(y_true + y_pred)
+
+      return 1 - numerator / denominator
+
+    y_true = tf.cast(y_true, tf.float32)
+    o = tf.nn.sigmoid_cross_entropy_with_logits(y_true, y_pred) + dice_loss(y_true, y_pred)
+    return tf.reduce_mean(o)
+
+
 class DisplayCallback(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         clear_output(wait=True)
@@ -182,12 +204,12 @@ if __name__ == "__main__":
     BACKBONE_TRAINABLE = True
     BACKBONE_NAME = "ResNet50" # Xception, ResNet50
     FINAL_ACTIVATION = "softmax" # None, softmax
-    SAVE_NAME = f"{ROOT.split('/')[-1]}-{BACKBONE_NAME}-{FOLDER}"
+    SAVE_NAME = f"{ROOT.split('/')[-1]}-{BACKBONE_NAME}-{FOLDER}-dice"
 
     BATCH_SIZE = 16
     EPOCHS = 300
     IMG_SIZE = 320
-    ES_PATIENT = 10
+    ES_PATIENT = 20
     
     LR_START = 0.0001
     LR_MAX = 0.00005
@@ -243,8 +265,9 @@ if __name__ == "__main__":
 
     if CATEGORICAL:
         # loss = tf.keras.losses.CategoricalCrossentropy()
-        # loss = tfa.losses.SigmoidFocalCrossEntropy(from_logits=True, alpha=0.25, gamma=2)
-        loss = categorical_focal_loss()
+        # loss = categorical_focal_loss()
+        # loss = dice_loss
+        loss = combined_loss
 
     else:
         loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
