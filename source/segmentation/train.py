@@ -197,7 +197,7 @@ if __name__ == "__main__":
     EPOCHS = 300
     IMG_SIZE = 320
     ES_PATIENT = 10
-    LEARNING_RATE = 0.0001 # Xception = 0.00005, ResNet50 = 0.00001
+    LEARNING_RATE = 0.0008 # Xception = 0.00005, ResNet50 = 0.00001
     
     CATEGORICAL = True
     BACKBONE_TRAINABLE = True
@@ -261,7 +261,8 @@ if __name__ == "__main__":
     else:
         loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 
-    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE), loss=loss, metrics=["accuracy"])
+    # model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE), loss=loss, metrics=["accuracy"])
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE), loss=loss, metrics=[tf.keras.metrics.MeanIoU(num_classes=NUM_CLASSES)])
 
     TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_images) / BATCH_SIZE).numpy())
     VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_images) / BATCH_SIZE).numpy())
