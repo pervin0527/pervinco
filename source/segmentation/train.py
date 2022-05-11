@@ -177,17 +177,20 @@ def build_lrfn(lr_start=0.00001, lr_max=0.00005, lr_min=0.00001, lr_rampup_epoch
     return lrfn
 
 
-def focal_loss(gamma=2., alpha=.25):
-  def focal_loss_fixed(y_true, y_pred):
-    pt_1 = tf.where(tf.equal(y_true, 1), y_pred, tf.ones_like(y_pred))
-    pt_0 = tf.where(tf.equal(y_true, 0), y_pred, tf.zeros_like(y_pred))
+def categorical_focal_loss(gamma=2., alpha=.25):
+    def categorical_focal_loss_fixed(y_true, y_pred):
+        y_pred /= K.sum(y_pred, axis=-1, keepdims=True)
 
-    pt_1 = K.clip(pt_1, 1e-3, .999)
-    pt_0 = K.clip(pt_0, 1e-3, .999)
+        epsilon = K.epsilon()
+        y_pred = K.clip(y_pred, epsilon, 1. - epsilon)
 
-    return -K.sum(alpha * K.pow(1. - pt_1, gamma) * K.log(pt_1))-K.sum((1-alpha) * K.pow( pt_0, gamma) * K.log(1. - pt_0))
-  
-  return focal_loss_fixed
+        cross_entropy = -y_true * K.log(y_pred)
+
+        loss = alpha * K.pow(1 - y_pred, gamma) * cross_entropy
+
+        return K.sum(loss, axis=1)
+
+    return categorical_focal_loss_fixed
 
 
 class DisplayCallback(tf.keras.callbacks.Callback):
@@ -270,7 +273,7 @@ if __name__ == "__main__":
     if CATEGORICAL:
         # loss = tf.keras.losses.CategoricalCrossentropy()
         # loss = tfa.losses.SigmoidFocalCrossEntropy(from_logits=True, alpha=0.25, gamma=2)
-        loss = focal_loss()
+        loss = categorical_focal_loss()
 
     else:
         loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
@@ -295,7 +298,7 @@ if __name__ == "__main__":
                         verbose=1,
                         epochs=EPOCHS)
 
-    display_training_curves(history)
+    # display_training_curves(history)
     plot_predictions(valid_images[:4], COLORMAP, model=model)
 
     run_model = tf.function(lambda x : model(x))
