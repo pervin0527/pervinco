@@ -197,12 +197,12 @@ if __name__ == "__main__":
     EPOCHS = 300
     IMG_SIZE = 320
     ES_PATIENT = 10
-    LEARNING_RATE = 0.00001 # Xception = 0.00005, ResNet50 = 0.00001
+    LEARNING_RATE = 0.0001 # Xception = 0.00005, ResNet50 = 0.00001
     
     CATEGORICAL = True
     BACKBONE_TRAINABLE = True
-    BACKBONE_NAME = "ResNet50"
-    FINAL_ACTIVATION = "softmax"
+    BACKBONE_NAME = "ResNet50" # Xception, ResNet50
+    FINAL_ACTIVATION = "softmax" # None, softmax
 
     if BACKBONE_TRAINABLE:
         SAVE_NAME = f"{BACKBONE_NAME}_{EPOCHS}_trainable"
@@ -255,8 +255,8 @@ if __name__ == "__main__":
     model.summary()
 
     if CATEGORICAL:
-        loss = tf.keras.losses.CategoricalCrossentropy()
-        # loss = tfa.losses.SigmoidFocalCrossEntropy(from_logits=False, alpha=0.25, gamma=2)
+        # loss = tf.keras.losses.CategoricalCrossentropy()
+        loss = tfa.losses.SigmoidFocalCrossEntropy(from_logits=True, alpha=0.25, gamma=2)
 
     else:
         loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)

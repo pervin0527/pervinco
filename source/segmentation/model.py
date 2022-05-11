@@ -103,8 +103,8 @@ def DeepLabV3Plus(img_height, img_width, nclasses=66, backbone_name="resnet50", 
 
     x = Conv2D(nclasses, (1, 1), name='output_layer')(x)
 
-    if final_activation == "softmax":
-        x = Activation('softmax')(x)
+    if final_activation != None:
+        x = Activation(final_activation)(x)
 
     model = Model(inputs=base_model.input, outputs=x, name='DeepLabV3_Plus')
     print(f'*** Output_Shape => {model.output_shape} ***')
