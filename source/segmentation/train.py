@@ -33,6 +33,22 @@ else:
         print(e)
 
 
+def visualize(display_list):
+    fig = plt.figure(figsize=(10, 10))
+    rows, cols = 1, 2
+
+    x_labels = ["Train image", "Train mask"]
+    for idx, image in enumerate(display_list):
+        ax = fig.add_subplot(rows, cols, idx+1)
+        # if image.shape[-1] == 3:
+        #     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        ax.imshow(image)
+        ax.set_xlabel(x_labels[idx])
+        ax.set_xticks([]), ax.set_yticks([])
+    
+    plt.show()
+
+
 def get_file_list(path):
     images = sorted(glob(f"{path}/images/*.jpg"))
     masks = sorted(glob(f"{path}/masks/*.png"))
@@ -53,7 +69,7 @@ def read_image(image_path, mask=False):
 
         if CATEGORICAL:
             image = tf.squeeze(image, axis=-1)
-            image = tf.one_hot(image, NUM_CLASSES)
+            image = tf.one_hot(image, len(CLASSES))
 
     else:
         image = tf.image.decode_png(image, channels=3)
@@ -112,8 +128,8 @@ def get_overlay(image, colored_mask):
 
 
 def plot_samples_matplotlib(display_list, idx, figsize=(5, 3)):
-    if not os.path.isdir("./train_result"):
-        os.makedirs("./train_result")
+    if not os.path.isdir("./on_train"):
+        os.makedirs("./on_train")
 
     _, axes = plt.subplots(nrows=1, ncols=len(display_list), figsize=figsize)
     for i in range(len(display_list)):
@@ -122,7 +138,7 @@ def plot_samples_matplotlib(display_list, idx, figsize=(5, 3)):
         else:
             axes[i].imshow(display_list[i])
 
-    plt.savefig(f"./train_result/result_{idx}.png")
+    plt.savefig(f"./on_train/result_{idx}.png")
     # plt.show()
     plt.close()
 
@@ -131,7 +147,7 @@ def plot_predictions(images_list, colormap, model):
     for idx, image_file in enumerate(images_list):
         image_tensor = read_image(image_file)
         prediction_mask = infer(image_tensor=image_tensor, model=model)
-        prediction_colormap = decode_segmentation_masks(prediction_mask, colormap, NUM_CLASSES)
+        prediction_colormap = decode_segmentation_masks(prediction_mask, colormap, len(CLASSES))
         overlay = get_overlay(image_tensor, prediction_colormap)
         plot_samples_matplotlib([image_tensor, overlay, prediction_colormap], idx, figsize=(18, 14))
 
@@ -194,24 +210,46 @@ class DisplayCallback(tf.keras.callbacks.Callback):
         plot_predictions(valid_images[:4], COLORMAP, model=model)
 
 
+def get_model():
+    with strategy.scope():
+    
+        if CATEGORICAL:
+            # loss = tf.keras.losses.CategoricalCrossentropy()
+            # loss = categorical_focal_loss()
+            # loss = dice_loss
+            loss = combined_loss
+
+        else:
+            loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+
+        optimizer = tf.keras.optimizers.Adam(learning_rate=LR_START)
+        metric = tf.keras.metrics.OneHotMeanIoU(num_classes=len(CLASSES))
+        model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(CLASSES), backbone_name=BACKBONE_NAME, backbone_trainable=BACKBONE_TRAINABLE, final_activation=FINAL_ACTIVATION)
+    
+        model.summary()
+        model.compile(optimizer=optimizer, loss=loss, metrics=[metric])
+
+    return model
+
+
 if __name__ == "__main__":
     ROOT = "/data/Datasets/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
     SAVE_PATH = "/data/Models/segmentation"    
-    FOLDER = "SAMPLE00"
+    FOLDER = "SAMPLE05"
 
-    CATEGORICAL = True
+    CATEGORICAL = False
     BACKBONE_TRAINABLE = True
-    BACKBONE_NAME = "ResNet50" # Xception, ResNet50
+    BACKBONE_NAME = "ResNet50" # Xception, ResNet50, ResNet101
     FINAL_ACTIVATION = "softmax" # None, softmax
-    SAVE_NAME = f"{ROOT.split('/')[-1]}-{BACKBONE_NAME}-{FOLDER}-dice"
+    SAVE_NAME = f"{ROOT.split('/')[-1]}-{BACKBONE_NAME}-{FOLDER}-combined"
 
     BATCH_SIZE = 16
     EPOCHS = 300
     IMG_SIZE = 320
     ES_PATIENT = 20
     
-    LR_START = 0.0001
+    LR_START = 0.00001
     LR_MAX = 0.00005
     LR_MIN = 0.00001
     LR_RAMPUP_EPOCHS = 4
@@ -220,7 +258,6 @@ if __name__ == "__main__":
 
     label_df = pd.read_csv(LABEL_PATH, lineterminator='\n', header=None, index_col=False)
     CLASSES = label_df[0].to_list()
-    NUM_CLASSES = len(CLASSES)
     print(CLASSES)
 
     COLORMAP = [[0, 0, 0], # background
@@ -259,43 +296,35 @@ if __name__ == "__main__":
 
     print("Train Dataset:", train_dataset)
     print("Val Dataset:", valid_dataset)
+
+    for item in train_dataset.take(10):
+        image, mask = item[0][0], item[1][0]
+        image = image.numpy()
+        mask = decode_segmentation_masks(mask.numpy(), COLORMAP, len(CLASSES))
+        mask = np.squeeze(mask, axis=-1)
+
+        visualize([image, mask])
     
-    model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(CLASSES), backbone_name=BACKBONE_NAME, backbone_trainable=BACKBONE_TRAINABLE, final_activation=FINAL_ACTIVATION)
-    model.summary()
+    # TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_images) / BATCH_SIZE).numpy())
+    # VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_images) / BATCH_SIZE).numpy())
 
-    if CATEGORICAL:
-        # loss = tf.keras.losses.CategoricalCrossentropy()
-        # loss = categorical_focal_loss()
-        # loss = dice_loss
-        loss = combined_loss
+    # callbacks = [DisplayCallback(),
+    #             #  tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=True),
+    #             #  tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=ES_PATIENT, verbose=1),
+    #              tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_loss', verbose=1, mode="min", save_best_only=True, save_weights_only=True)]
 
-    else:
-        loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+    # model = get_model()
+    # history = model.fit(train_dataset,
+    #                     steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
+    #                     validation_data=valid_dataset,
+    #                     validation_steps=VALID_STEPS_PER_EPOCH,
+    #                     callbacks=callbacks,
+    #                     verbose=1,
+    #                     epochs=EPOCHS)
 
-    optimizer = tf.keras.optimizers.Adam(learning_rate=LR_START)
-    metric = tf.keras.metrics.OneHotMeanIoU(num_classes=NUM_CLASSES)
-    model.compile(optimizer=optimizer, loss=loss, metrics=[metric])
+    # plot_predictions(valid_images[:4], COLORMAP, model=model)
 
-    TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_images) / BATCH_SIZE).numpy())
-    VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_images) / BATCH_SIZE).numpy())
-
-    callbacks = [DisplayCallback(),
-                #  tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=True),
-                 tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=ES_PATIENT, verbose=1),
-                 tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_loss', verbose=1, mode="min", save_best_only=True, save_weights_only=True)]
-
-    history = model.fit(train_dataset,
-                        steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
-                        validation_data=valid_dataset,
-                        validation_steps=VALID_STEPS_PER_EPOCH,
-                        callbacks=callbacks,
-                        verbose=1,
-                        epochs=EPOCHS)
-
-    # display_training_curves(history)
-    plot_predictions(valid_images[:4], COLORMAP, model=model)
-
-    run_model = tf.function(lambda x : model(x))
-    BATCH_SIZE = 1
-    concrete_func = run_model.get_concrete_function(tf.TensorSpec([BATCH_SIZE, IMG_SIZE, IMG_SIZE, 3], model.inputs[0].dtype))
-    tf.saved_model.save(model, f'{SAVE_PATH}/{SAVE_NAME}/saved_model', signatures=concrete_func)
+    # run_model = tf.function(lambda x : model(x))
+    # BATCH_SIZE = 1
+    # concrete_func = run_model.get_concrete_function(tf.TensorSpec([BATCH_SIZE, IMG_SIZE, IMG_SIZE, 3], model.inputs[0].dtype))
+    # tf.saved_model.save(model, f'{SAVE_PATH}/{SAVE_NAME}/saved_model', signatures=concrete_func)

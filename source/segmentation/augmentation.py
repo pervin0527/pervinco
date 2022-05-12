@@ -195,7 +195,8 @@ def augmentation(images, masks, is_train):
             mask = cv2.imread(mask, cv2.IMREAD_GRAYSCALE)
         
             for idx in range(ITER):
-                number = randint(0, 2)
+                # number = randint(0, 2)
+                number = 0
                 # print(number)
 
                 if number == 0:
@@ -240,9 +241,9 @@ if __name__ == "__main__":
     root = "/data/Datasets/VOCdevkit/VOC2012"
     image_path = f"{root}/JPEGImages"
     mask_path = f"{root}/SegmentationRaw" # SegmentationClass
-    output_path = f"{root}/SAMPLE00"
+    output_path = f"{root}/SAMPLE05"
 
-    ITER = 1
+    ITER = 10
     IMG_SIZE = 320
     VISUAL = False
     images, masks = voc_get_files(mask_path)
@@ -275,34 +276,34 @@ if __name__ == "__main__":
     train_transform = A.Compose([
             # A.PadIfNeeded(min_height=IMG_SIZE, min_width=IMG_SIZE, border_model=0, p=0.1),
             A.Resize(IMG_SIZE, IMG_SIZE, p=1, always_apply=True),
-            # A.RandomSizedCrop(min_max_height=(IMG_SIZE/2, IMG_SIZE), height=IMG_SIZE, width=IMG_SIZE, p=0.5),
+            A.RandomSizedCrop(min_max_height=(IMG_SIZE/2, IMG_SIZE), height=IMG_SIZE, width=IMG_SIZE, p=0.5),
 
-            # A.OneOf([
-            #     A.VerticalFlip(p=0.3),
-            #     A.HorizontalFlip(p=0.3),
-            #     A.Transpose(p=0.3)
-            # ], p=0.5),
+            A.OneOf([
+                A.VerticalFlip(p=0.3),
+                A.HorizontalFlip(p=0.3),
+                A.Transpose(p=0.3)
+            ], p=0.5),
 
-            # A.OneOf([
-            #     A.ShiftScaleRotate(p=0.25, border_mode=0),
-            #     A.RandomRotate90(p=0.25),
-            #     A.OpticalDistortion(p=0.25, distort_limit=0.85, shift_limit=0.85, mask_value=0, border_mode=0),
-            #     A.GridDistortion(p=0.25, distort_limit=0.85, mask_value=0, border_mode=0)
-            # ], p=1),
+            A.OneOf([
+                A.ShiftScaleRotate(p=0.25, border_mode=0),
+                A.RandomRotate90(p=0.25),
+                # A.OpticalDistortion(p=0.25, distort_limit=0.85, shift_limit=0.85, mask_value=0, border_mode=0),
+                # A.GridDistortion(p=0.25, distort_limit=0.85, mask_value=0, border_mode=0)
+            ], p=1),
             
-            # A.OneOf([
-            #     A.RandomBrightnessContrast(p=0.5),
-            #     A.HueSaturationValue(p=0.5),
-            # ], p=1),
+            A.OneOf([
+                A.RandomBrightnessContrast(p=0.5),
+                A.HueSaturationValue(p=0.5),
+            ], p=1),
 
-            # A.OneOf([
-            #     A.GridDropout(fill_value=0, mask_fill_value=0, random_offset=True, p=0.5),
-            #     A.CoarseDropout(min_holes=32, max_holes=64,
-            #                     min_height=16, min_width=16,
-            #                     max_height=28, max_width=28,
-            #                     fill_value=0, mask_fill_value=0,
-            #                     p=0.5),
-            # ], p=0.6),
+            A.OneOf([
+                A.GridDropout(fill_value=0, mask_fill_value=0, random_offset=True, p=0.5),
+                A.CoarseDropout(min_holes=1, max_holes=1,
+                                min_height=80, min_width=80,
+                                max_height=160, max_width=160,
+                                fill_value=0, mask_fill_value=0,
+                                p=0.5),
+            ], p=0.6),
 
     ])
 
