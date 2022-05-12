@@ -34,7 +34,7 @@ else:
 
 
 def visualize(display_list):
-    fig = plt.figure(figsize=(10, 10))
+    fig = plt.figure(figsize=(8, 5))
     rows, cols = 1, 2
 
     x_labels = ["Train image", "Train mask"]
@@ -238,7 +238,8 @@ if __name__ == "__main__":
     SAVE_PATH = "/data/Models/segmentation"    
     FOLDER = "SAMPLE05"
 
-    CATEGORICAL = False
+    VIS_SAMPLE = False
+    CATEGORICAL = True
     BACKBONE_TRAINABLE = True
     BACKBONE_NAME = "ResNet50" # Xception, ResNet50, ResNet101
     FINAL_ACTIVATION = "softmax" # None, softmax
@@ -297,34 +298,35 @@ if __name__ == "__main__":
     print("Train Dataset:", train_dataset)
     print("Val Dataset:", valid_dataset)
 
-    for item in train_dataset.take(10):
-        image, mask = item[0][0], item[1][0]
-        image = image.numpy()
-        mask = decode_segmentation_masks(mask.numpy(), COLORMAP, len(CLASSES))
-        mask = np.squeeze(mask, axis=-1)
+    if VIS_SAMPLE:
+        for item in train_dataset.take(4):
+            image, mask = item[0][0], item[1][0]
+            image = image.numpy()
+            mask = decode_segmentation_masks(mask.numpy(), COLORMAP, len(CLASSES))
+            mask = np.squeeze(mask, axis=-1)
 
-        visualize([image, mask])
+            visualize([image, mask])
     
-    # TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_images) / BATCH_SIZE).numpy())
-    # VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_images) / BATCH_SIZE).numpy())
+    TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_images) / BATCH_SIZE).numpy())
+    VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_images) / BATCH_SIZE).numpy())
 
-    # callbacks = [DisplayCallback(),
-    #             #  tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=True),
-    #             #  tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=ES_PATIENT, verbose=1),
-    #              tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_loss', verbose=1, mode="min", save_best_only=True, save_weights_only=True)]
+    callbacks = [DisplayCallback(),
+                #  tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=True),
+                #  tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=ES_PATIENT, verbose=1),
+                 tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_loss', verbose=1, mode="min", save_best_only=True, save_weights_only=True)]
 
-    # model = get_model()
-    # history = model.fit(train_dataset,
-    #                     steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
-    #                     validation_data=valid_dataset,
-    #                     validation_steps=VALID_STEPS_PER_EPOCH,
-    #                     callbacks=callbacks,
-    #                     verbose=1,
-    #                     epochs=EPOCHS)
+    model = get_model()
+    history = model.fit(train_dataset,
+                        steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
+                        validation_data=valid_dataset,
+                        validation_steps=VALID_STEPS_PER_EPOCH,
+                        callbacks=callbacks,
+                        verbose=1,
+                        epochs=EPOCHS)
 
-    # plot_predictions(valid_images[:4], COLORMAP, model=model)
+    plot_predictions(valid_images[:4], COLORMAP, model=model)
 
-    # run_model = tf.function(lambda x : model(x))
-    # BATCH_SIZE = 1
-    # concrete_func = run_model.get_concrete_function(tf.TensorSpec([BATCH_SIZE, IMG_SIZE, IMG_SIZE, 3], model.inputs[0].dtype))
-    # tf.saved_model.save(model, f'{SAVE_PATH}/{SAVE_NAME}/saved_model', signatures=concrete_func)
+    run_model = tf.function(lambda x : model(x))
+    BATCH_SIZE = 1
+    concrete_func = run_model.get_concrete_function(tf.TensorSpec([BATCH_SIZE, IMG_SIZE, IMG_SIZE, 3], model.inputs[0].dtype))
+    tf.saved_model.save(model, f'{SAVE_PATH}/{SAVE_NAME}/saved_model', signatures=concrete_func)
