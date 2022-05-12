@@ -6,13 +6,12 @@ import pandas as pd
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import tensorflow_addons as tfa
-import advisor
 
-from glob import glob
 from model import DeepLabV3Plus
+from glob import glob
 from IPython.display import clear_output
+from sklearn.model_selection import train_test_split
 from tensorflow.keras import backend as K
-from tensorflow.keras import losses
 
 # GPU setup
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -35,8 +34,8 @@ else:
 
 
 def visualize(display_list):
-    if not os.path.isdir("./on_train/batch"):
-        os.makedirs("./on_train/batch")
+    if not os.path.isdir("./on_train_exp2/batch"):
+        os.makedirs("./on_train_exp2/batch")
 
     fig = plt.figure(figsize=(8, 5))
     rows, cols = 1, 2
@@ -50,7 +49,7 @@ def visualize(display_list):
         ax.set_xlabel(x_labels[idx])
         ax.set_xticks([]), ax.set_yticks([])
     
-    plt.savefig(f"./on_train/batch/sample_{idx}.png")
+    plt.savefig(f"./on_train_exp2/batch/sample_{idx}.png")
     # plt.show()
     plt.close()
 
@@ -134,8 +133,8 @@ def get_overlay(image, colored_mask):
 
 
 def plot_samples_matplotlib(display_list, idx, figsize=(5, 3)):
-    if not os.path.isdir("./on_train/epoch"):
-        os.makedirs("./on_train/epoch")
+    if not os.path.isdir("./on_train_exp2/epoch"):
+        os.makedirs("./on_train_exp2/epoch")
 
     _, axes = plt.subplots(nrows=1, ncols=len(display_list), figsize=figsize)
     for i in range(len(display_list)):
@@ -144,7 +143,7 @@ def plot_samples_matplotlib(display_list, idx, figsize=(5, 3)):
         else:
             axes[i].imshow(display_list[i])
 
-    plt.savefig(f"./on_train/epoch/result_{idx}.png")
+    plt.savefig(f"./on_train_exp2/epoch/result_{idx}.png")
     # plt.show()
     plt.close()
 
@@ -168,6 +167,45 @@ def lrfn(epoch):
     return lr
 
 
+def categorical_focal_loss(gamma=2., alpha=.25):
+    def categorical_focal_loss_fixed(y_true, y_pred):
+        y_pred /= K.sum(y_pred, axis=-1, keepdims=True)
+
+        epsilon = K.epsilon()
+        y_pred = K.clip(y_pred, epsilon, 1. - epsilon)
+
+        cross_entropy = -y_true * K.log(y_pred)
+
+        loss = alpha * K.pow(1 - y_pred, gamma) * cross_entropy
+
+        return K.sum(loss, axis=1)
+
+    return categorical_focal_loss_fixed
+
+
+def dice_loss(y_true, y_pred):
+    y_true = tf.cast(y_true, tf.float32)
+    y_pred = tf.math.sigmoid(y_pred)
+    numerator = 2 * tf.reduce_sum(y_true * y_pred)
+    denominator = tf.reduce_sum(y_true + y_pred)
+        
+    return 1 - numerator / denominator
+
+
+def combined_loss(y_true, y_pred):
+    def dice_loss(y_true, y_pred):
+      y_pred = tf.math.sigmoid(y_pred)
+      numerator = 2 * tf.reduce_sum(y_true * y_pred)
+      denominator = tf.reduce_sum(y_true + y_pred)
+
+      return 1 - numerator / denominator
+
+    y_true = tf.cast(y_true, tf.float32)
+    # o = tf.nn.sigmoid_cross_entropy_with_logits(y_true, y_pred) + dice_loss(y_true, y_pred)
+    o = tf.nn.softmax_cross_entropy_with_logits(y_true, y_pred) + dice_loss(y_true, y_pred)
+    return tf.reduce_mean(o)
+
+
 class DisplayCallback(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         clear_output(wait=True)
@@ -182,10 +220,10 @@ def get_model():
     with strategy.scope():
     
         if CATEGORICAL:
-            # loss = tf.keras.losses.CategoricalCrossentropy()
-            dice_loss = advisor.losses.DiceLoss()
-            categorical_focal_loss = advisor.losses.CategoricalFocalLoss()
-            loss = dice_loss + (1 * categorical_focal_loss)
+            loss = tf.keras.losses.CategoricalCrossentropy()
+            # loss = categorical_focal_loss()
+            # loss = dice_loss
+            # loss = combined_loss
 
         else:
             loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
@@ -201,19 +239,19 @@ def get_model():
 
 
 if __name__ == "__main__":
-    ROOT = "/data/Datasets/VOCdevkit/VOC2012"
+    ROOT = "/home/ubuntu/Datasets/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
-    SAVE_PATH = "/data/Models/segmentation"    
-    FOLDER = "SAMPLE00"
+    SAVE_PATH = "/home/ubuntu/Models/segmentation"    
+    FOLDER = "SAMPLE02"
 
     VIS_SAMPLE = False
     CATEGORICAL = True
     BACKBONE_TRAINABLE = True
-    BACKBONE_NAME = "ResNet50" # Xception, ResNet50, ResNet101
+    BACKBONE_NAME = "Xception" # Xception, ResNet50, ResNet101
     FINAL_ACTIVATION = "softmax" # None, softmax
-    SAVE_NAME = f"{ROOT.split('/')[-1]}-{BACKBONE_NAME}-{FOLDER}-CEF_TEST"
+    SAVE_NAME = f"{ROOT.split('/')[-1]}-{BACKBONE_NAME}-{FOLDER}-CE"
 
-    BATCH_SIZE = 16
+    BATCH_SIZE = 32
     EPOCHS = 300
     IMG_SIZE = 320
     ES_PATIENT = 10

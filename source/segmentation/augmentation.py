@@ -241,11 +241,11 @@ if __name__ == "__main__":
     root = "/data/Datasets/VOCdevkit/VOC2012"
     image_path = f"{root}/JPEGImages"
     mask_path = f"{root}/SegmentationRaw" # SegmentationClass
-    output_path = f"{root}/SAMPLE02"
+    output_path = f"{root}/SAMPLE00"
 
-    ITER = 10
+    ITER = 3
     IMG_SIZE = 320
-    VISUAL = False
+    VISUAL = True
     images, masks = voc_get_files(mask_path)
     print(len(images), len(masks))
     train_images, valid_images, train_masks, valid_masks = train_test_split(images, masks, test_size=0.1, shuffle=True)
