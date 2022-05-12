@@ -241,7 +241,7 @@ if __name__ == "__main__":
     root = "/data/Datasets/VOCdevkit/VOC2012"
     image_path = f"{root}/JPEGImages"
     mask_path = f"{root}/SegmentationRaw" # SegmentationClass
-    output_path = f"{root}/SAMPLE01"
+    output_path = f"{root}/SAMPLE02"
 
     ITER = 10
     IMG_SIZE = 320
