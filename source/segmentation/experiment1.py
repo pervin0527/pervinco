@@ -34,8 +34,8 @@ else:
 
 
 def visualize(display_list):
-    if not os.path.isdir("./images/train_exp1"):
-        os.makedirs("./images/train_exp1")
+    if not os.path.isdir("./images/experiment1"):
+        os.makedirs("./images/experiment1")
 
     fig = plt.figure(figsize=(8, 5))
     rows, cols = 1, 2
@@ -49,7 +49,7 @@ def visualize(display_list):
         ax.set_xlabel(x_labels[idx])
         ax.set_xticks([]), ax.set_yticks([])
     
-    plt.savefig(f"./images/train_exp1/sample_{idx}.png")
+    plt.savefig(f"./images/experiment1/sample_{idx}.png")
     # plt.show()
     plt.close()
 
@@ -133,8 +133,8 @@ def get_overlay(image, colored_mask):
 
 
 def plot_samples_matplotlib(display_list, idx, figsize=(5, 3)):
-    if not os.path.isdir("./images/train_exp1"):
-        os.makedirs("./images/train_exp1")
+    if not os.path.isdir("./images/experiment1"):
+        os.makedirs("./images/experiment1")
 
     _, axes = plt.subplots(nrows=1, ncols=len(display_list), figsize=figsize)
     for i in range(len(display_list)):
@@ -143,7 +143,7 @@ def plot_samples_matplotlib(display_list, idx, figsize=(5, 3)):
         else:
             axes[i].imshow(display_list[i])
 
-    plt.savefig(f"./images/train_exp1/train_result_{idx}.png")
+    plt.savefig(f"./images/experiment1/train_result_{idx}.png")
     # plt.show()
     plt.close()
 

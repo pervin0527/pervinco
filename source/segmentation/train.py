@@ -1,15 +1,17 @@
 import os, sys
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import cv2
+import advisor
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import tensorflow_addons as tfa
-import advisor
 
 from glob import glob
 from model import DeepLabV3Plus
+from advisor.tf_backbones import create_base_model
+from advisor.DeepLabV3plus import DeepLabV3plus
 from IPython.display import clear_output
 from tensorflow.keras import backend as K
 from tensorflow.keras import losses
@@ -192,8 +194,12 @@ def get_model():
 
         optimizer = tf.keras.optimizers.Adam(learning_rate=LR_START)
         metric = tf.keras.metrics.OneHotMeanIoU(num_classes=len(CLASSES))
-        model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(CLASSES), backbone_name=BACKBONE_NAME, backbone_trainable=BACKBONE_TRAINABLE, final_activation=FINAL_ACTIVATION)
+        # model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(CLASSES), backbone_name=BACKBONE_NAME, backbone_trainable=BACKBONE_TRAINABLE, final_activation=FINAL_ACTIVATION)
+
+        base_model, layers, layer_names = create_base_model(name="Xception", weights="imagenet", height=IMG_SIZE, width=IMG_SIZE, include_top=False)
+        model = DeepLabV3plus(len(CLASSES), base_model, output_layers=layers, backbone_trainable=True, output_stride=8, final_activation="softmax")
     
+        model.build(input_shape=(BATCH_SIZE, IMG_SIZE, IMG_SIZE, 3))
         model.summary()
         model.compile(optimizer=optimizer, loss=loss, metrics=[metric])
 
