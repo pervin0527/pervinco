@@ -35,8 +35,8 @@ else:
 
 
 def visualize(display_list):
-    if not os.path.isdir("./on_train/batch"):
-        os.makedirs("./on_train/batch")
+    if not os.path.isdir("./images/train"):
+        os.makedirs("./images/train")
 
     fig = plt.figure(figsize=(8, 5))
     rows, cols = 1, 2
@@ -50,7 +50,7 @@ def visualize(display_list):
         ax.set_xlabel(x_labels[idx])
         ax.set_xticks([]), ax.set_yticks([])
     
-    plt.savefig(f"./on_train/batch/sample_{idx}.png")
+    plt.savefig(f"./images/train/batch_sample_{idx}.png")
     # plt.show()
     plt.close()
 
@@ -134,8 +134,8 @@ def get_overlay(image, colored_mask):
 
 
 def plot_samples_matplotlib(display_list, idx, figsize=(5, 3)):
-    if not os.path.isdir("./on_train/epoch"):
-        os.makedirs("./on_train/epoch")
+    if not os.path.isdir("./images/train"):
+        os.makedirs("./images/train")
 
     _, axes = plt.subplots(nrows=1, ncols=len(display_list), figsize=figsize)
     for i in range(len(display_list)):
@@ -144,7 +144,7 @@ def plot_samples_matplotlib(display_list, idx, figsize=(5, 3)):
         else:
             axes[i].imshow(display_list[i])
 
-    plt.savefig(f"./on_train/epoch/result_{idx}.png")
+    plt.savefig(f"./images/train/train_result_{idx}.png")
     # plt.show()
     plt.close()
 
