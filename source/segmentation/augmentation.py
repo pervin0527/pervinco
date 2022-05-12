@@ -195,8 +195,8 @@ def augmentation(images, masks, is_train):
             mask = cv2.imread(mask, cv2.IMREAD_GRAYSCALE)
         
             for idx in range(ITER):
-                # number = randint(0, 2)
-                number = 0
+                number = randint(0, 1)
+                # number = 0
                 # print(number)
 
                 if number == 0:
@@ -204,10 +204,10 @@ def augmentation(images, masks, is_train):
                     result_image, result_mask = transformed['image'], transformed['mask']
 
                 elif number == 1:
-                    result_image, result_mask = cutmix(image, mask)
-
-                elif number == 2:
                     result_image, result_mask = mosaic(image, mask)
+
+                # elif number == 2:
+                #     result_image, result_mask = cutmix(image, mask)
 
                 if not VISUAL:
                     cv2.imwrite(f"{save_path}/images/{file_name}_{idx}.jpg", result_image)
