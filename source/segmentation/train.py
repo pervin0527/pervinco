@@ -34,6 +34,9 @@ else:
 
 
 def visualize(display_list):
+    if not os.path.isdir("./on_train/batch"):
+        os.makedirs("./on_train/batch")
+
     fig = plt.figure(figsize=(8, 5))
     rows, cols = 1, 2
 
@@ -46,7 +49,9 @@ def visualize(display_list):
         ax.set_xlabel(x_labels[idx])
         ax.set_xticks([]), ax.set_yticks([])
     
-    plt.show()
+    plt.savefig(f"./on_train/batch/sample_{idx}.png")
+    # plt.show()
+    plt.close()
 
 
 def get_file_list(path):
@@ -128,8 +133,8 @@ def get_overlay(image, colored_mask):
 
 
 def plot_samples_matplotlib(display_list, idx, figsize=(5, 3)):
-    if not os.path.isdir("./on_train"):
-        os.makedirs("./on_train")
+    if not os.path.isdir("./on_train/epoch"):
+        os.makedirs("./on_train/epoch")
 
     _, axes = plt.subplots(nrows=1, ncols=len(display_list), figsize=figsize)
     for i in range(len(display_list)):
@@ -138,7 +143,7 @@ def plot_samples_matplotlib(display_list, idx, figsize=(5, 3)):
         else:
             axes[i].imshow(display_list[i])
 
-    plt.savefig(f"./on_train/result_{idx}.png")
+    plt.savefig(f"./on_train/epoch/result_{idx}.png")
     # plt.show()
     plt.close()
 
@@ -237,14 +242,14 @@ if __name__ == "__main__":
     ROOT = "/data/Datasets/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
     SAVE_PATH = "/data/Models/segmentation"    
-    FOLDER = "SAMPLE05"
+    FOLDER = "SAMPLE01"
 
     VIS_SAMPLE = False
     CATEGORICAL = True
     BACKBONE_TRAINABLE = True
     BACKBONE_NAME = "ResNet50" # Xception, ResNet50, ResNet101
     FINAL_ACTIVATION = "softmax" # None, softmax
-    SAVE_NAME = f"{ROOT.split('/')[-1]}-{BACKBONE_NAME}-{FOLDER}-combined"
+    SAVE_NAME = f"{ROOT.split('/')[-1]}-{BACKBONE_NAME}-{FOLDER}"
 
     BATCH_SIZE = 16
     EPOCHS = 300

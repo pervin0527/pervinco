@@ -241,7 +241,7 @@ if __name__ == "__main__":
     root = "/data/Datasets/VOCdevkit/VOC2012"
     image_path = f"{root}/JPEGImages"
     mask_path = f"{root}/SegmentationRaw" # SegmentationClass
-    output_path = f"{root}/SAMPLE05"
+    output_path = f"{root}/SAMPLE01"
 
     ITER = 10
     IMG_SIZE = 320
@@ -285,8 +285,8 @@ if __name__ == "__main__":
             ], p=0.5),
 
             A.OneOf([
-                A.ShiftScaleRotate(p=0.25, border_mode=0),
-                A.RandomRotate90(p=0.25),
+                A.ShiftScaleRotate(p=0.5, border_mode=0),
+                A.RandomRotate90(p=0.5),
                 # A.OpticalDistortion(p=0.25, distort_limit=0.85, shift_limit=0.85, mask_value=0, border_mode=0),
                 # A.GridDistortion(p=0.25, distort_limit=0.85, mask_value=0, border_mode=0)
             ], p=1),
@@ -303,7 +303,7 @@ if __name__ == "__main__":
                                 max_height=160, max_width=160,
                                 fill_value=0, mask_fill_value=0,
                                 p=0.5),
-            ], p=0.3),
+            ], p=0.2),
 
     ])
 
