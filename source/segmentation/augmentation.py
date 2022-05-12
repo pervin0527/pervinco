@@ -276,7 +276,7 @@ if __name__ == "__main__":
     train_transform = A.Compose([
             # A.PadIfNeeded(min_height=IMG_SIZE, min_width=IMG_SIZE, border_model=0, p=0.1),
             A.Resize(IMG_SIZE, IMG_SIZE, p=1, always_apply=True),
-            A.RandomSizedCrop(min_max_height=(IMG_SIZE/2, IMG_SIZE), height=IMG_SIZE, width=IMG_SIZE, p=0.5),
+            # A.RandomSizedCrop(min_max_height=(IMG_SIZE/2, IMG_SIZE), height=IMG_SIZE, width=IMG_SIZE, p=0.5),
 
             A.OneOf([
                 A.VerticalFlip(p=0.3),
@@ -303,7 +303,7 @@ if __name__ == "__main__":
                                 max_height=160, max_width=160,
                                 fill_value=0, mask_fill_value=0,
                                 p=0.5),
-            ], p=0.6),
+            ], p=0.3),
 
     ])
 

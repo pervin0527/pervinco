@@ -149,7 +149,7 @@ def plot_predictions(images_list, colormap, model):
         prediction_mask = infer(image_tensor=image_tensor, model=model)
         prediction_colormap = decode_segmentation_masks(prediction_mask, colormap, len(CLASSES))
         overlay = get_overlay(image_tensor, prediction_colormap)
-        plot_samples_matplotlib([image_tensor, overlay, prediction_colormap], idx, figsize=(18, 14))
+        plot_samples_matplotlib([image_tensor, overlay, prediction_colormap], idx, figsize=(14, 12))
 
 
 def lrfn(epoch):
@@ -179,12 +179,12 @@ def categorical_focal_loss(gamma=2., alpha=.25):
 
 
 def dice_loss(y_true, y_pred):
-  y_true = tf.cast(y_true, tf.float32)
-  y_pred = tf.math.sigmoid(y_pred)
-  numerator = 2 * tf.reduce_sum(y_true * y_pred)
-  denominator = tf.reduce_sum(y_true + y_pred)
-
-  return 1 - numerator / denominator
+    y_true = tf.cast(y_true, tf.float32)
+    y_pred = tf.math.sigmoid(y_pred)
+    numerator = 2 * tf.reduce_sum(y_true * y_pred)
+    denominator = tf.reduce_sum(y_true + y_pred)
+        
+    return 1 - numerator / denominator
 
 
 def combined_loss(y_true, y_pred):
@@ -196,7 +196,8 @@ def combined_loss(y_true, y_pred):
       return 1 - numerator / denominator
 
     y_true = tf.cast(y_true, tf.float32)
-    o = tf.nn.sigmoid_cross_entropy_with_logits(y_true, y_pred) + dice_loss(y_true, y_pred)
+    # o = tf.nn.sigmoid_cross_entropy_with_logits(y_true, y_pred) + dice_loss(y_true, y_pred)
+    o = tf.nn.softmax_cross_entropy_with_logits(y_true, y_pred) + dice_loss(y_true, y_pred)
     return tf.reduce_mean(o)
 
 
@@ -214,10 +215,10 @@ def get_model():
     with strategy.scope():
     
         if CATEGORICAL:
-            # loss = tf.keras.losses.CategoricalCrossentropy()
+            loss = tf.keras.losses.CategoricalCrossentropy()
             # loss = categorical_focal_loss()
             # loss = dice_loss
-            loss = combined_loss
+            # loss = combined_loss
 
         else:
             loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
