@@ -139,7 +139,7 @@ def plot_samples_matplotlib(display_list, idx, figsize=(5, 3)):
 
 def plot_predictions(images_list, colormap, model):
     for idx, image in enumerate(images_list):
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         prediction_mask = infer(image_tensor=image, model=model)
         prediction_colormap = decode_segmentation_masks(prediction_mask, colormap, len(CLASSES))
         overlay = get_overlay(image, prediction_colormap)
@@ -186,7 +186,7 @@ if __name__ == "__main__":
     x_train_dir, y_train_dir = f"{ROOT}/{FOLDER}/train/images", f"{ROOT}/{FOLDER}/train/masks"
     x_valid_dir, y_valid_dir = f"{ROOT}/{FOLDER}/valid/images", f"{ROOT}/{FOLDER}/valid/masks"
 
-    LR = 0.02
+    LR = 0.0001
     EPOCHS = 1000
     BATCH_SIZE = 16
     ES_PATIENT = 10
@@ -249,7 +249,7 @@ if __name__ == "__main__":
 
     valid_images = []
     for _ in range(5):
-        valid_image = valid_dataset[np.random.randint(100)]["image"]
+        valid_image = valid_dataset[np.random.randint(10)]["image"]
         valid_images.append(valid_image)
 
     TrainSet = TFDataGenerator(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
