@@ -139,6 +139,7 @@ def plot_samples_matplotlib(display_list, idx, figsize=(5, 3)):
 
 def plot_predictions(images_list, colormap, model):
     for idx, image in enumerate(images_list):
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         prediction_mask = infer(image_tensor=image, model=model)
         prediction_colormap = decode_segmentation_masks(prediction_mask, colormap, len(CLASSES))
         overlay = get_overlay(image, prediction_colormap)
