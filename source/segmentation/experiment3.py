@@ -151,7 +151,6 @@ class DisplayCallback(tf.keras.callbacks.Callback):
         
         # idx = np.random.randint(len(valid_images))
         # plot_predictions([valid_images[idx]], colormap, model=model)
-        
         plot_predictions(valid_images, COLORMAP, model=model)
 
 
@@ -246,7 +245,7 @@ if __name__ == "__main__":
     valid_dataset = aw.OneHot(valid_dataset, ['mask'], list(range(len(CLASSES))))
     valid_dataset = aw.Augmentation(valid_dataset, get_validation_augmentation(HEIGHT, WIDTH))
     # valid_dataset = aw.NormalizeImage(valid_dataset, ['image'], (0, 1))
-    
+
     valid_images = []
     for _ in range(5):
         valid_image = valid_dataset[np.random.randint(100)]["image"]
@@ -255,9 +254,10 @@ if __name__ == "__main__":
     TrainSet = TFDataGenerator(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
     ValidationSet = TFDataGenerator(valid_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
-    callbacks = [#  tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=True),
+    callbacks = [DisplayCallback(),
+                 tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=True),
                  tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=ES_PATIENT, verbose=1),
-                 tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_loss', verbose=1, mode="min", save_best_only=True, save_weights_only=True)]
+                 tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_iou_score', verbose=1, mode="min", save_best_only=True, save_weights_only=True)]
 
     model = get_model()
     model.fit(TrainSet,
