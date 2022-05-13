@@ -188,20 +188,23 @@ def get_model():
             dice_loss = advisor.losses.DiceLoss()
             categorical_focal_loss = advisor.losses.CategoricalFocalLoss()
             loss = dice_loss + (1 * categorical_focal_loss)
+            
+            # metrics = tf.keras.metrics.OneHotMeanIoU(num_classes=len(CLASSES))
+            metrics = [advisor.metrics.IOUScore(threshold=0.5), advisor.metrics.FScore(threshold=0.5)]
 
         else:
-            loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+            loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False)
+            metrics = ["accuracy"]
 
         optimizer = tf.keras.optimizers.Adam(learning_rate=LR_START)
-        metric = tf.keras.metrics.OneHotMeanIoU(num_classes=len(CLASSES))
-        # model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(CLASSES), backbone_name=BACKBONE_NAME, backbone_trainable=BACKBONE_TRAINABLE, final_activation=FINAL_ACTIVATION)
+        model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(CLASSES), backbone_name=BACKBONE_NAME, backbone_trainable=BACKBONE_TRAINABLE, final_activation=FINAL_ACTIVATION)
+        
+        # base_model, layers, layer_names = create_base_model(name=BACKBONE_NAME, weights="imagenet", height=IMG_SIZE, width=IMG_SIZE, include_top=False)
+        # model = DeepLabV3plus(len(CLASSES), base_model, output_layers=layers, backbone_trainable=True, output_stride=8, final_activation=FINAL_ACTIVATION)
+        # model.build(input_shape=(BATCH_SIZE, IMG_SIZE, IMG_SIZE, 3))
 
-        base_model, layers, layer_names = create_base_model(name=BACKBONE_NAME, weights="imagenet", height=IMG_SIZE, width=IMG_SIZE, include_top=False)
-        model = DeepLabV3plus(len(CLASSES), base_model, output_layers=layers, backbone_trainable=True, output_stride=8, final_activation=FINAL_ACTIVATION)
-    
-        model.build(input_shape=(BATCH_SIZE, IMG_SIZE, IMG_SIZE, 3))
         model.summary()
-        model.compile(optimizer=optimizer, loss=loss, metrics=[metric])
+        model.compile(optimizer=optimizer, loss=loss, metrics=[metrics])
 
     return model
 
@@ -213,20 +216,20 @@ if __name__ == "__main__":
     FOLDER = "SAMPLE00"
 
     VIS_SAMPLE = False
-    CATEGORICAL = True
+    CATEGORICAL = False
     BACKBONE_TRAINABLE = True
-    BACKBONE_NAME = "Xception" # Xception, ResNet50, ResNet101
+    BACKBONE_NAME = "ResNet101" # Xception, ResNet50, ResNet101
     FINAL_ACTIVATION = "softmax" # None, softmax
-    SAVE_NAME = f"{ROOT.split('/')[-1]}-{BACKBONE_NAME}-{FOLDER}"
+    SAVE_NAME = f"{ROOT.split('/')[-1]}-{BACKBONE_NAME}-{FOLDER}-TEST"
 
     BATCH_SIZE = 16
-    EPOCHS = 300
+    EPOCHS = 10
     IMG_SIZE = 320
     ES_PATIENT = 10
     
-    LR_START = 0.00001
-    LR_MAX = 0.00005
-    LR_MIN = 0.00001
+    LR_START = 0.0001
+    LR_MAX = 0.0005
+    LR_MIN = 0.0001
     LR_RAMPUP_EPOCHS = 4
     LR_SUSTAIN_EPOCHS = 4
     LR_EXP_DECAY = .8
@@ -287,7 +290,7 @@ if __name__ == "__main__":
     callbacks = [DisplayCallback(),
                 #  tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=True),
                  tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=ES_PATIENT, verbose=1),
-                 tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_loss', verbose=0, mode="min", save_best_only=True, save_weights_only=True)]
+                 tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_loss', verbose=1, mode="min", save_best_only=True, save_weights_only=True)]
 
     model = get_model()
     history = model.fit(train_dataset,

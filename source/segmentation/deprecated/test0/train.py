@@ -53,13 +53,13 @@ def DilatedSpatialPyramidPooling(dspp_input):
     return output
 
 
-def DeeplabV3Plus(image_size, num_classes):
+def DeeplabV3Plus(image_size, num_classes, activation=None):
     model_input = tf.keras.Input(shape=(image_size, image_size, 3))
-    # resnet50 = tf.keras.applications.ResNet50(weights="imagenet", include_top=False, input_tensor=model_input)
+    resnet50 = tf.keras.applications.ResNet50(weights="imagenet", include_top=False, input_tensor=model_input)
     
     # rescale = tf.keras.layers.experimental.preprocessing.Rescaling(1.0 / 255)(model_input)
-    rescale = tf.keras.layers.experimental.preprocessing.Rescaling((1.0 / 127.5) - 1)(model_input)
-    resnet50 = tf.keras.applications.ResNet50(weights="imagenet", include_top=False, input_tensor=rescale)
+    # rescale = tf.keras.layers.experimental.preprocessing.Rescaling((1.0 / 127.5) - 1)(model_input)
+    # resnet50 = tf.keras.applications.ResNet50(weights="imagenet", include_top=False, input_tensor=rescale)
 
     x = resnet50.get_layer("conv4_block6_2_relu").output
     x = DilatedSpatialPyramidPooling(x)
@@ -74,7 +74,11 @@ def DeeplabV3Plus(image_size, num_classes):
     x = convolution_block(x)
     x = convolution_block(x)
     x = tf.keras.layers.UpSampling2D(size=(image_size // x.shape[1], image_size // x.shape[2]), interpolation="bilinear",)(x)
+    
     model_output = tf.keras.layers.Conv2D(num_classes, kernel_size=(1, 1), padding="same")(x)
+    
+    if activation == "softmax":
+        model_output = tf.keras.layers.Activation("softmax")(model_output)
 
     return tf.keras.Model(inputs=model_input, outputs=model_output)
 
@@ -224,17 +228,17 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 
 if __name__ == "__main__":
-    ROOT = "/home/ubuntu/Datasets/VOCdevkit/VOC2012"
+    ROOT = "/data/Datasets/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
-    SAVE_PATH = "/home/ubuntu/Models/segmentation"
-    IS_SPLIT = False
-    FOLDER = "SAMPLE02"
+    SAVE_PATH = "/data/Models/segmentation"
+    IS_SPLIT = True
+    FOLDER = "SAMPLE00"
 
-    BATCH_SIZE = 32
-    EPOCHS = 100
-    IMG_SIZE = 320
-    LEARNING_RATE = 0.0001
-    SAVE_NAME = f"ResNet50-basic-{EPOCHS}-ver2"
+    BATCH_SIZE = 8
+    EPOCHS = 30
+    IMG_SIZE = 512
+    LEARNING_RATE = 0.00001
+    SAVE_NAME = f"custom-softmax"
 
     label_df = pd.read_csv(LABEL_PATH, lineterminator='\n', header=None, index_col=False)
     CLASSES = label_df[0].to_list()
@@ -291,7 +295,7 @@ if __name__ == "__main__":
     print("Train Dataset:", train_dataset)
     print("Val Dataset:", valid_dataset)
 
-    model = DeeplabV3Plus(image_size=IMG_SIZE, num_classes=NUM_CLASSES)
+    model = DeeplabV3Plus(image_size=IMG_SIZE, num_classes=NUM_CLASSES, activation="softmax")
     model.summary()
 
     loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)

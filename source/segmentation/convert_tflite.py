@@ -37,18 +37,19 @@ def representative_data_gen():
 
 if __name__ == "__main__":
     int8 = False
-    image_size = 320
-    saved_model_path = "/data/Models/segmentation/sample/saved_model"
+    image_size = 512
+    saved_model_path = "/data/Models/segmentation"
+    folder = "custom-softmax"
     label_file_path = "/data/Datasets/VOCdevkit/VOC2012/Labels/class_labels.txt"
     representative_data_path = "/data/Datasets/VOCdevkit/VOC2012/Segmentation/valid/images"
 
     lite_name = None
     if not int8:
-        lite_name = "model_fp32"
+        lite_name = "fp32"
     else:
-        lite_name = "model_int8"
+        lite_name = "int8"
 
-    converter = tf.lite.TFLiteConverter.from_saved_model(saved_model_path)
+    converter = tf.lite.TFLiteConverter.from_saved_model(f"{saved_model_path}/{folder}/saved_model")
     # model = tf.keras.models.load_model(saved_model_path)
     # model.input.set_shape((1, 512, 512, 3))
     # converter = tf.lite.TFLiteConverter.from_saved_model(model)
@@ -66,7 +67,7 @@ if __name__ == "__main__":
 
     tflite_model = converter.convert()
 
-    with tf.io.gfile.GFile(f"{saved_model_path}/{lite_name}.tflite", "wb") as f:
+    with tf.io.gfile.GFile(f"{saved_model_path}/{folder}/{folder}_{lite_name}.tflite", "wb") as f:
         f.write(tflite_model)
 
     print("saved model converted tflite")
@@ -75,10 +76,9 @@ if __name__ == "__main__":
     _INPUT_NORM_MEAN = 127.5
     _INPUT_NORM_STD = 127.5
 
-    writer = ImageSegmenterWriter.create_for_inference(
-        writer_utils.load_file(f"{saved_model_path}/{lite_name}.tflite"), [_INPUT_NORM_MEAN], [_INPUT_NORM_STD], [label_file_path])
+    writer = ImageSegmenterWriter.create_for_inference(writer_utils.load_file(f"{saved_model_path}/{folder}/{folder}_{lite_name}.tflite"), [_INPUT_NORM_MEAN], [_INPUT_NORM_STD], [label_file_path])
 
     print(writer.get_metadata_json())
-    writer_utils.save_file(writer.populate(), f"{saved_model_path}/{lite_name}_meta.tflite")
+    writer_utils.save_file(writer.populate(), f"{saved_model_path}/{folder}/{folder}_m{lite_name}.tflite")
 
     print("tflite with metadata")
