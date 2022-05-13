@@ -69,7 +69,7 @@ def split_ds(train_list, valid_list):
 
 if __name__ == "__main__":
     root = "/data/Datasets/VOCdevkit/VOC2012"
-    save_path = f"{root}/SAMPLE00"
+    save_path = f"{root}/BASIC"
 
     annotation_dir = f"{root}/SegmentationClass"
     image_dir = f"{root}/JPEGImages"
