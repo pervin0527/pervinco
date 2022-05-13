@@ -129,8 +129,8 @@ def crop(image, mask, xmin, ymin, xmax, ymax):
 
         A.OneOf([
             A.ShiftScaleRotate(p=0.25, border_mode=0),
-            A.OpticalDistortion(p=0.25, distort_limit=0.85, shift_limit=0.85, mask_value=0, border_mode=0),
-            A.GridDistortion(p=0.25, distort_limit=0.85, mask_value=0, border_mode=0)
+            # A.OpticalDistortion(p=0.25, distort_limit=0.85, shift_limit=0.85, mask_value=0, border_mode=0),
+            # A.GridDistortion(p=0.25, distort_limit=0.85, mask_value=0, border_mode=0)
         ], p=1),
         
         A.OneOf([
@@ -241,14 +241,15 @@ if __name__ == "__main__":
     root = "/data/Datasets/VOCdevkit/VOC2012"
     image_path = f"{root}/JPEGImages"
     mask_path = f"{root}/SegmentationRaw" # SegmentationClass
-    output_path = f"{root}/SAMPLE00"
+    output_path = f"{root}/SAMPLE03"
 
-    ITER = 3
+    ITER = 20
     IMG_SIZE = 320
-    VISUAL = True
+    VISUAL = False
     images, masks = voc_get_files(mask_path)
     print(len(images), len(masks))
     train_images, valid_images, train_masks, valid_masks = train_test_split(images, masks, test_size=0.1, shuffle=True)
+    print(len(train_images), len(valid_images))
 
     colormap = [[0, 0, 0],
                 [128, 0, 0],
@@ -297,13 +298,13 @@ if __name__ == "__main__":
             ], p=1),
 
             A.OneOf([
-                A.GridDropout(fill_value=0, mask_fill_value=0, random_offset=True, p=0.5),
+                # A.GridDropout(fill_value=0, mask_fill_value=0, random_offset=True, p=0.5),
                 A.CoarseDropout(min_holes=1, max_holes=1,
                                 min_height=80, min_width=80,
                                 max_height=160, max_width=160,
                                 fill_value=0, mask_fill_value=0,
-                                p=0.5),
-            ], p=0.2),
+                                p=0.5,),
+            ], p=1),
 
     ])
 

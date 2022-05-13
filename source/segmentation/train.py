@@ -8,6 +8,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import tensorflow_addons as tfa
 
+from class_weight_helper import get_balancing_class_weights
 from glob import glob
 from model import DeepLabV3Plus
 from advisor.tf_backbones import create_base_model
@@ -185,7 +186,7 @@ def get_model():
     
         if CATEGORICAL:
             # loss = tf.keras.losses.CategoricalCrossentropy()
-            dice_loss = advisor.losses.DiceLoss()
+            dice_loss = advisor.losses.DiceLoss(class_weights=np.array(class_weights))
             categorical_focal_loss = advisor.losses.CategoricalFocalLoss()
             loss = dice_loss + (1 * categorical_focal_loss)
             
@@ -213,10 +214,10 @@ if __name__ == "__main__":
     ROOT = "/data/Datasets/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
     SAVE_PATH = "/data/Models/segmentation"    
-    FOLDER = "SAMPLE00"
+    FOLDER = "SAMPLE03"
 
     VIS_SAMPLE = False
-    CATEGORICAL = False
+    CATEGORICAL = True
     BACKBONE_TRAINABLE = True
     BACKBONE_NAME = "ResNet101" # Xception, ResNet50, ResNet101
     FINAL_ACTIVATION = "softmax" # None, softmax
@@ -262,6 +263,14 @@ if __name__ == "__main__":
     ]
     COLORMAP = np.array(COLORMAP, dtype=np.uint8)
 
+    CLASSES_PIXEL_COUNT_DICT = {'background': 361560627, 'aeroplane': 3704393, 'bicycle': 1571148, 'bird': 4384132,
+                                'boat': 2862913, 'bottle': 3438963, 'bus': 8696374, 'car': 7088203, 'cat': 12473466,
+                                'chair': 4975284, 'cow': 5027769, 'diningtable': 6246382, 'dog': 9379340, 'horse': 4925676,
+                                'motorbike': 5476081, 'person': 24995476, 'potted plant': 2904902, 'sheep': 4187268, 'sofa': 7091464, 'train': 7903243, 'tv/monitor': 4120989}
+    
+    class_weights = get_balancing_class_weights(CLASSES, CLASSES_PIXEL_COUNT_DICT)
+    print(class_weights)
+    
     root = f"{ROOT}/{FOLDER}"
     train_dir = f"{root}/train"
     valid_dir = f"{root}/valid"
