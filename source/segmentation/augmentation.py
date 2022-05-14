@@ -195,9 +195,7 @@ def augmentation(images, masks, is_train):
             mask = cv2.imread(mask, cv2.IMREAD_GRAYSCALE)
         
             for idx in range(ITER):
-                number = randint(0, 1)
-                # number = 0
-                # print(number)
+                number = randint(0, 2)
 
                 if number == 0:
                     transformed = train_transform(image=image, mask=mask)
@@ -206,8 +204,8 @@ def augmentation(images, masks, is_train):
                 elif number == 1:
                     result_image, result_mask = mosaic(image, mask)
 
-                # elif number == 2:
-                #     result_image, result_mask = cutmix(image, mask)
+                elif number == 2:
+                    result_image, result_mask = cutmix(image, mask)
 
                 if not VISUAL:
                     cv2.imwrite(f"{save_path}/images/{file_name}_{idx}.jpg", result_image)
@@ -238,12 +236,12 @@ def augmentation(images, masks, is_train):
 
 
 if __name__ == "__main__":
-    root = "/data/Datasets/VOCdevkit/VOC2012"
+    root = "/home/ubuntu/Datasets/VOCdevkit/VOC2012"
     image_path = f"{root}/JPEGImages"
     mask_path = f"{root}/SegmentationRaw" # SegmentationClass
     output_path = f"{root}/SAMPLE03"
 
-    ITER = 20
+    ITER = 100
     IMG_SIZE = 320
     VISUAL = False
     images, masks = voc_get_files(mask_path)
@@ -288,8 +286,8 @@ if __name__ == "__main__":
             A.OneOf([
                 A.ShiftScaleRotate(p=0.5, border_mode=0),
                 A.RandomRotate90(p=0.5),
-                # A.OpticalDistortion(p=0.25, distort_limit=0.85, shift_limit=0.85, mask_value=0, border_mode=0),
-                # A.GridDistortion(p=0.25, distort_limit=0.85, mask_value=0, border_mode=0)
+                A.OpticalDistortion(p=0.25, distort_limit=0.85, shift_limit=0.85, mask_value=0, border_mode=0),
+                A.GridDistortion(p=0.25, distort_limit=0.85, mask_value=0, border_mode=0)
             ], p=1),
             
             A.OneOf([
@@ -298,13 +296,13 @@ if __name__ == "__main__":
             ], p=1),
 
             A.OneOf([
-                # A.GridDropout(fill_value=0, mask_fill_value=0, random_offset=True, p=0.5),
+                A.GridDropout(fill_value=0, mask_fill_value=0, random_offset=True, p=0.5),
                 A.CoarseDropout(min_holes=1, max_holes=1,
                                 min_height=80, min_width=80,
                                 max_height=160, max_width=160,
                                 fill_value=0, mask_fill_value=0,
                                 p=0.5,),
-            ], p=1),
+            ], p=0.4),
 
     ])
 

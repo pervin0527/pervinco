@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 
 from generator import TFDataGenerator
 from glob import glob
-from model import DeepLabV3Plus
 from augwrap.src import nightly as aw
 from IPython.display import clear_output
 from augwrap.src.nightly.augmentations import CutMix
@@ -171,23 +170,88 @@ class DisplayCallback(tf.keras.callbacks.Callback):
         plot_predictions(valid_images, COLORMAP, model=model)
 
 
+def AtrousSpatialPyramidPooling(model_input):
+    dims = tf.keras.backend.int_shape(model_input)
+
+    layer = tf.keras.layers.AveragePooling2D(pool_size=(dims[-3], dims[-2]))(model_input)
+    layer = tf.keras.layers.Conv2D(256, kernel_size=1, padding='same', kernel_initializer = 'he_normal')(layer)
+    layer = tf.keras.layers.BatchNormalization()(layer)
+    layer = tf.keras.layers.ReLU()(layer)
+    out_pool = tf.keras.layers.UpSampling2D(size = (dims[-3] // layer.shape[1], dims[-2] // layer.shape[2]), interpolation = 'bilinear')(layer)
+  
+    layer = tf.keras.layers.Conv2D(256, kernel_size = 1, dilation_rate = 1, padding = 'same', kernel_initializer = 'he_normal', use_bias = False)(model_input)
+    layer = tf.keras.layers.BatchNormalization()(layer)
+    out_1 = tf.keras.layers.ReLU()(layer)
+
+    layer = tf.keras.layers.Conv2D(256, kernel_size = 3, dilation_rate = 6, padding = 'same', kernel_initializer = 'he_normal', use_bias = False)(model_input)
+    layer = tf.keras.layers.BatchNormalization()(layer)
+    out_6 = tf.keras.layers.ReLU()(layer)
+
+    layer = tf.keras.layers.Conv2D(256, kernel_size = 3, dilation_rate = 12, padding = 'same', kernel_initializer = 'he_normal', use_bias = False)(model_input)
+    layer = tf.keras.layers.BatchNormalization()(layer)
+    out_12 = tf.keras.layers.ReLU()(layer)
+
+    layer = tf.keras.layers.Conv2D(256, kernel_size = 3, dilation_rate = 18, padding = 'same', kernel_initializer = 'he_normal', use_bias = False)(model_input)
+    layer = tf.keras.layers.BatchNormalization()(layer)
+    out_18 = tf.keras.layers.ReLU()(layer)
+
+    layer = tf.keras.layers.Concatenate(axis = -1)([out_pool, out_1, out_6, out_12, out_18])
+
+    layer = tf.keras.layers.Conv2D(256, kernel_size = 1,  dilation_rate = 1, padding = 'same', kernel_initializer = 'he_normal', use_bias = False)(layer)
+    layer = tf.keras.layers.BatchNormalization()(layer)
+    model_output = tf.keras.layers.ReLU()(layer)
+    return model_output
+
+
+def DeeplabV3Plus(nclasses = 20):
+    # layer_name = ['block7b_expand_activation', 'block3a_expand_activation']
+    layer_name = ['block7b_expand_activation', 'block2a_activation']
+
+    model_input = tf.keras.Input(shape=(HEIGHT,WIDTH,3))
+    model_input = tf.keras.layers.experimental.preprocessing.Rescaling(1.0 / 255.0)(model_input)
+    
+    effnet = tf.keras.applications.EfficientNetB3(weights = 'imagenet', include_top = False, input_tensor = model_input)
+    layer = effnet.get_layer(layer_name[0]).output
+    layer = AtrousSpatialPyramidPooling(layer)
+    input_a = tf.keras.layers.UpSampling2D(size = (HEIGHT // 4 // layer.shape[1], WIDTH // 4 // layer.shape[2]), interpolation = 'bilinear')(layer)
+
+    input_b = effnet.get_layer(layer_name[1]).output
+    input_b = tf.keras.layers.Conv2D(48, kernel_size = (1,1), padding = 'same', kernel_initializer = tf.keras.initializers.he_normal(), use_bias = False)(input_b)
+    input_b = tf.keras.layers.BatchNormalization()(input_b)
+    input_b = tf.keras.layers.ReLU()(input_b)
+
+    print(input_a.shape, input_b.shape)
+    layer = tf.keras.layers.Concatenate(axis = -1)([input_a, input_b])
+
+    layer = tf.keras.layers.Conv2D(256, kernel_size = 3, padding = 'same', activation = 'relu', kernel_initializer = tf.keras.initializers.he_normal(), use_bias = False)(layer)
+    layer = tf.keras.layers.BatchNormalization()(layer)
+    layer = tf.keras.layers.ReLU()(layer)
+    layer = tf.keras.layers.Conv2D(256, kernel_size =3, padding = 'same', activation = 'relu', kernel_initializer = tf.keras.initializers.he_normal(), use_bias = False)(layer)
+    layer = tf.keras.layers.BatchNormalization()(layer)
+    layer = tf.keras.layers.ReLU()(layer)
+    layer = tf.keras.layers.UpSampling2D(size = (HEIGHT // layer.shape[1], WIDTH // layer.shape[2]), interpolation = 'bilinear')(layer)
+    model_output = tf.keras.layers.Conv2D(len(CLASSES), kernel_size = (1,1), padding = 'same')(layer)
+    model_output = tf.keras.layers.Activation("softmax")(model_output)
+    return tf.keras.Model(inputs = model_input, outputs = model_output)
+
+
 def get_model():
-    with strategy.scope():    
-        # metrics = tf.keras.metrics.OneHotMeanIoU(num_classes=len(CLASSES))
-        dice_loss = advisor.losses.DiceLoss(class_weights=np.array(class_weights))
-        categorical_focal_loss = advisor.losses.CategoricalFocalLoss()
-        loss = dice_loss + (1 * categorical_focal_loss)            
+    with strategy.scope(): 
+        # dice_loss = advisor.losses.DiceLoss(class_weights=None)
+        # categorical_focal_loss = advisor.losses.CategoricalFocalLoss()
+        # loss = dice_loss + (1 * categorical_focal_loss)
+
         # metrics = [advisor.metrics.FScore(threshold=0.5), advisor.metrics.IOUScore(threshold=0.5)]
-        metrics = [advisor.metrics.IOUScore()]
+        # metrics = [advisor.metrics.IOUScore()]
+
+        # loss = tf.losses.SparseCategoricalCrossentropy(from_logits=False)
+        loss  = tf.keras.losses.CategoricalCrossentropy()
+        metrics = tf.keras.metrics.CategoricalAccuracy()
 
         optimizer = tf.keras.optimizers.Adam(learning_rate=LR)
-        model = DeepLabV3Plus(HEIGHT, WIDTH, len(CLASSES), backbone_name=BACKBONE_NAME, backbone_trainable=BACKBONE_TRAINABLE, final_activation=FINAL_ACTIVATION)
-        
-        # base_model, layers, layer_names = create_base_model(name=BACKBONE_NAME, weights="imagenet", height=IMG_SIZE, width=IMG_SIZE, include_top=False)
-        # model = DeepLabV3plus(len(CLASSES), base_model, output_layers=layers, backbone_trainable=True, output_stride=8, final_activation=FINAL_ACTIVATION)
-        # model.build(input_shape=(BATCH_SIZE, IMG_SIZE, IMG_SIZE, 3))
+        model = DeeplabV3Plus(len(CLASSES))
 
-        model.summary()
+        # model.summary()
         model.compile(optimizer=optimizer, loss=loss, metrics=[metrics])
 
     return model
@@ -202,7 +266,7 @@ if __name__ == "__main__":
     x_train_dir, y_train_dir = f"{ROOT}/{FOLDER}/train/images", f"{ROOT}/{FOLDER}/train/masks"
     x_valid_dir, y_valid_dir = f"{ROOT}/{FOLDER}/valid/images", f"{ROOT}/{FOLDER}/valid/masks"
 
-    LR = 0.0001
+    LR = 0.001
     EPOCHS = 3000
     BATCH_SIZE = 16
     ES_PATIENT = 10
@@ -274,7 +338,7 @@ if __name__ == "__main__":
     callbacks = [DisplayCallback(),
                 #  tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=True),
                 #  tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=ES_PATIENT, verbose=1),
-                 tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_iou_score', verbose=1, mode="max", save_best_only=True, save_weights_only=True)]
+                 tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_loss', verbose=1, mode="max", save_best_only=True, save_weights_only=True)]
 
     model = get_model()
     model.fit(TrainSet,
