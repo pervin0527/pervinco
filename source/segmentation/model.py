@@ -79,6 +79,13 @@ def DeepLabV3Plus(img_height, img_width, nclasses=66, backbone_name="resnet50", 
         
         upsample_scale = [(img_height // 4) - 1, (img_width // 4) - 1]
 
+    elif backbone_name.lower() == "efficientnetb3":
+        base_model = tf.keras.applications.EfficientNetB3(input_tensor=rescale, weights="imagenet", include_top=False)
+
+        # ["block2a_expand_activation", "block3a_expand_activation", "block4a_expand_activation", "block6a_expand_activation", "top_activation"]
+        layer_names = ["block7a_expand_activation", "block3a_expand_activation"]
+        upsample_scale = [(img_height // 4), (img_width // 4)]
+
     base_model.trainable = backbone_trainable
     
     image_features = base_model.get_layer(layer_names[0]).output
@@ -86,7 +93,6 @@ def DeepLabV3Plus(img_height, img_width, nclasses=66, backbone_name="resnet50", 
     x_a = Upsample(tensor=x_a, size=[upsample_scale[0], upsample_scale[1]])
 
     x_b = base_model.get_layer(layer_names[1]).output
-    # x_b = tf.image.resize(x_b, size=[img_height // 4, img_width // 4])
     x_b = Conv2D(filters=48, kernel_size=1, padding='same', kernel_initializer='he_normal', name='low_level_projection', use_bias=False)(x_b)
     x_b = BatchNormalization(name=f'bn_low_level_projection')(x_b)
     x_b = Activation('relu', name='low_level_activation')(x_b)

@@ -1,17 +1,21 @@
 import os, sys
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import cv2
+import advisor
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import tensorflow_addons as tfa
 
-from model import DeepLabV3Plus
+from class_weight_helper import get_balancing_class_weights
 from glob import glob
+from model import DeepLabV3Plus
+from advisor.tf_backbones import create_base_model
+from advisor.DeepLabV3plus import DeepLabV3plus
 from IPython.display import clear_output
-from sklearn.model_selection import train_test_split
 from tensorflow.keras import backend as K
+from tensorflow.keras import losses
 
 # GPU setup
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -34,8 +38,8 @@ else:
 
 
 def visualize(display_list):
-    if not os.path.isdir("./images/experiment1"):
-        os.makedirs("./images/experiment1")
+    if not os.path.isdir("./images/train"):
+        os.makedirs("./images/train")
 
     fig = plt.figure(figsize=(8, 5))
     rows, cols = 1, 2
@@ -49,7 +53,7 @@ def visualize(display_list):
         ax.set_xlabel(x_labels[idx])
         ax.set_xticks([]), ax.set_yticks([])
     
-    plt.savefig(f"./images/experiment1/sample_{idx}.png")
+    plt.savefig(f"./images/train/batch_sample_{idx}.png")
     # plt.show()
     plt.close()
 
@@ -68,19 +72,18 @@ def read_image(image_path, mask=False):
 
     if mask:
         image = tf.image.decode_png(image, channels=1)
+        image = tf.image.resize(images=image, size=[IMG_SIZE, IMG_SIZE])
         image.set_shape([IMG_SIZE, IMG_SIZE, 1])
-        # image.set_shape([None, None, 1])
-        # image = tf.image.resize(images=image, size=[IMG_SIZE, IMG_SIZE])
 
         if CATEGORICAL:
+            image = tf.cast(image, tf.uint8)
             image = tf.squeeze(image, axis=-1)
             image = tf.one_hot(image, len(CLASSES))
 
     else:
         image = tf.image.decode_png(image, channels=3)
+        image = tf.image.resize(images=image, size=[IMG_SIZE, IMG_SIZE])
         image.set_shape([IMG_SIZE, IMG_SIZE, 3])
-        # image.set_shape([None, None, 3])
-        # image = tf.image.resize(images=image, size=[IMG_SIZE, IMG_SIZE])
 
     return image
 
@@ -133,8 +136,8 @@ def get_overlay(image, colored_mask):
 
 
 def plot_samples_matplotlib(display_list, idx, figsize=(5, 3)):
-    if not os.path.isdir("./images/experiment1"):
-        os.makedirs("./images/experiment1")
+    if not os.path.isdir("./images/train"):
+        os.makedirs("./images/train")
 
     _, axes = plt.subplots(nrows=1, ncols=len(display_list), figsize=figsize)
     for i in range(len(display_list)):
@@ -143,7 +146,7 @@ def plot_samples_matplotlib(display_list, idx, figsize=(5, 3)):
         else:
             axes[i].imshow(display_list[i])
 
-    plt.savefig(f"./images/experiment1/train_result_{idx}.png")
+    plt.savefig(f"./images/train/train_result_{idx}.png")
     # plt.show()
     plt.close()
 
@@ -167,51 +170,9 @@ def lrfn(epoch):
     return lr
 
 
-def categorical_focal_loss(gamma=2., alpha=.25):
-    def categorical_focal_loss_fixed(y_true, y_pred):
-        y_pred /= K.sum(y_pred, axis=-1, keepdims=True)
-
-        epsilon = K.epsilon()
-        y_pred = K.clip(y_pred, epsilon, 1. - epsilon)
-
-        cross_entropy = -y_true * K.log(y_pred)
-
-        loss = alpha * K.pow(1 - y_pred, gamma) * cross_entropy
-
-        return K.sum(loss, axis=1)
-
-    return categorical_focal_loss_fixed
-
-
-def dice_loss(y_true, y_pred):
-    y_true = tf.cast(y_true, tf.float32)
-    y_pred = tf.math.sigmoid(y_pred)
-    numerator = 2 * tf.reduce_sum(y_true * y_pred)
-    denominator = tf.reduce_sum(y_true + y_pred)
-        
-    return 1 - numerator / denominator
-
-
-def combined_loss(y_true, y_pred):
-    def dice_loss(y_true, y_pred):
-      y_pred = tf.math.sigmoid(y_pred)
-      numerator = 2 * tf.reduce_sum(y_true * y_pred)
-      denominator = tf.reduce_sum(y_true + y_pred)
-
-      return 1 - numerator / denominator
-
-    y_true = tf.cast(y_true, tf.float32)
-    # o = tf.nn.sigmoid_cross_entropy_with_logits(y_true, y_pred) + dice_loss(y_true, y_pred)
-    o = tf.nn.softmax_cross_entropy_with_logits(y_true, y_pred) + dice_loss(y_true, y_pred)
-    return tf.reduce_mean(o)
-
-
 class DisplayCallback(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         clear_output(wait=True)
-        
-        # idx = np.random.randint(len(valid_images))
-        # plot_predictions([valid_images[idx]], colormap, model=model)
         
         plot_predictions(valid_images[:4], COLORMAP, model=model)
 
@@ -220,20 +181,25 @@ def get_model():
     with strategy.scope():
     
         if CATEGORICAL:
-            loss = tf.keras.losses.CategoricalCrossentropy()
-            # loss = categorical_focal_loss()
-            # loss = dice_loss
-            # loss = combined_loss
+            dice_loss = advisor.losses.DiceLoss(class_weights=class_weights)
+            categorical_focal_loss = advisor.losses.CategoricalFocalLoss()
+            loss = dice_loss + (1 * categorical_focal_loss)
+            
+            metrics = tf.keras.metrics.OneHotMeanIoU(num_classes=len(CLASSES))
 
         else:
-            loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+            loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False)
+            metrics = ["accuracy"]
 
         optimizer = tf.keras.optimizers.Adam(learning_rate=LR_START)
-        metric = tf.keras.metrics.OneHotMeanIoU(num_classes=len(CLASSES))
         model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(CLASSES), backbone_name=BACKBONE_NAME, backbone_trainable=BACKBONE_TRAINABLE, final_activation=FINAL_ACTIVATION)
-    
+        
+        # base_model, layers, layer_names = create_base_model(name=BACKBONE_NAME, weights="imagenet", height=IMG_SIZE, width=IMG_SIZE, include_top=False)
+        # model = DeepLabV3plus(len(CLASSES), base_model, output_layers=layers, backbone_trainable=True, output_stride=8, final_activation=FINAL_ACTIVATION)
+        # model.build(input_shape=(BATCH_SIZE, IMG_SIZE, IMG_SIZE, 3))
+
         model.summary()
-        model.compile(optimizer=optimizer, loss=loss, metrics=[metric])
+        model.compile(optimizer=optimizer, loss=loss, metrics=[metrics])
 
     return model
 
@@ -242,23 +208,23 @@ if __name__ == "__main__":
     ROOT = "/home/ubuntu/Datasets/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
     SAVE_PATH = "/home/ubuntu/Models/segmentation"    
-    FOLDER = "SAMPLE01"
+    FOLDER = "AUGMENT_10"
 
     VIS_SAMPLE = False
     CATEGORICAL = True
     BACKBONE_TRAINABLE = True
-    BACKBONE_NAME = "Xception" # Xception, ResNet50, ResNet101
+    BACKBONE_NAME = "ResNet101" # Xception, ResNet50, ResNet101
     FINAL_ACTIVATION = "softmax" # None, softmax
-    SAVE_NAME = f"{ROOT.split('/')[-1]}-{BACKBONE_NAME}-{FOLDER}-CE"
+    SAVE_NAME = f"{ROOT.split('/')[-1]}-{BACKBONE_NAME}-{FOLDER}"
 
-    BATCH_SIZE = 32
+    BATCH_SIZE = 96
     EPOCHS = 300
     IMG_SIZE = 320
     ES_PATIENT = 10
     
-    LR_START = 0.00001
-    LR_MAX = 0.00005
-    LR_MIN = 0.00001
+    LR_START = 0.0001
+    LR_MAX = 0.0005
+    LR_MIN = 0.0001
     LR_RAMPUP_EPOCHS = 4
     LR_SUSTAIN_EPOCHS = 4
     LR_EXP_DECAY = .8
@@ -291,6 +257,13 @@ if __name__ == "__main__":
     ]
     COLORMAP = np.array(COLORMAP, dtype=np.uint8)
 
+    class_weights = [1.0,
+                     3.0928856077473434, 3.989459511902593, 2.9647828706347368, 3.3095694873607187, 3.189072921744534,
+                     2.24084926386883, 2.4449860533927863, 1.9145742494005062, 2.8574594296620424, 2.8089038362431995,
+                     2.6410152216029785, 2.192095861391789, 2.81077041984355, 2.6762684940481876, 1.2192066520660536,
+                     3.383614310927662, 3.0507838471948086, 2.5110867961879415, 2.375844657733547, 3.0285050732271204]
+    class_weights = np.array(class_weights)
+    
     root = f"{ROOT}/{FOLDER}"
     train_dir = f"{root}/train"
     valid_dir = f"{root}/valid"
@@ -318,8 +291,8 @@ if __name__ == "__main__":
 
     callbacks = [DisplayCallback(),
                 #  tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=True),
-                 tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=ES_PATIENT, verbose=1),
-                 tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_loss', verbose=1, mode="min", save_best_only=True, save_weights_only=True)]
+                #  tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=ES_PATIENT, verbose=1),
+                 tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_one_hot_mean_io_u', verbose=1, mode="max", save_best_only=True, save_weights_only=True)]
 
     model = get_model()
     history = model.fit(train_dataset,
