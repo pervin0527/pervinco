@@ -182,7 +182,7 @@ def get_model():
     
         if CATEGORICAL:
             # loss = tf.keras.losses.CategoricalCrossentropy()
-            dice_loss = advisor.losses.DiceLoss(class_weights=class_weights)
+            dice_loss = advisor.losses.DiceLoss(class_weights=CLASS_WEIGHTS)
             categorical_focal_loss = advisor.losses.CategoricalFocalLoss()
             loss = dice_loss + (1 * categorical_focal_loss)
             
@@ -211,7 +211,7 @@ if __name__ == "__main__":
     ROOT = "/data/Datasets/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
     SAVE_PATH = "/data/Models/segmentation"    
-    FOLDER = "BASIC"
+    FOLDER = "AUGMENT_10"
 
     VIS_SAMPLE = False
     CATEGORICAL = True
@@ -260,11 +260,12 @@ if __name__ == "__main__":
     ]
     COLORMAP = np.array(COLORMAP, dtype=np.uint8)
 
-    class_weights = [1.0,
-                     2.796261453157771, 3.6634652790169735, 2.807923613071907, 3.1686019949696553, 3.0245148161442517,
-                     2.129719937227624, 2.3460060363019926, 1.8368311622252027, 2.75041373434277, 2.6991581077398514,
-                     2.5252761072804097, 2.1865852225115634, 2.7175921567167665, 2.638879414112434, 1.1715466926672464,
-                     3.3140532245951047, 2.9561174595693243, 2.4272346166140117, 2.301221219827498, 2.9848812618374625]
+    CLASS_WEIGHTS = [1.0,
+                     3.0308328496471995, 3.981002064508786, 2.94798169508112, 3.3567029372081345, 3.1572197588097044,
+                     2.22639061465114, 2.4488439310077585, 1.9268033216074325, 2.8317716917970888, 2.7859480213739727,
+                     2.7316711199284027, 2.2241983143927926, 2.782535972212537, 2.7599791425849367, 1.208547548919435,
+                     3.4745044422587745, 2.9474906672899728, 2.52840507045592, 2.3301965918449197, 3.0619420896327414]
+    CLASS_WEIGHTS = np.array(CLASS_WEIGHTS)
     
     root = f"{ROOT}/{FOLDER}"
     train_dir = f"{root}/train"

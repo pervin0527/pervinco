@@ -47,7 +47,7 @@ def analyze_dataset(masks):
 
 if __name__ == "__main__":
     root_dir = "/data/Datasets/VOCdevkit/VOC2012"
-    dataset_dir = f"{root_dir}/BASIC"
+    dataset_dir = f"{root_dir}/AUGMENT_10"
     label_dir = f"{root_dir}/Labels/class_labels.txt"
     height, width = 320, 320
 

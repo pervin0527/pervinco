@@ -468,19 +468,18 @@ if __name__ == "__main__":
     ROOT = "/home/ubuntu/Datasets/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
     SAVE_PATH = "/home/ubuntu/Models/segmentation"
-    FOLDER = "BASIC"
+    FOLDER = "AUGMENT_5"
 
-    LR = 0.001
+    LR = 0.0001
     EPOCHS = 300
-    BATCH_SIZE = 128
+    BATCH_SIZE = 96
     ES_PATIENT = 10
     IMG_SIZE = 320
     CATEGORICAL = True
     BACKBONE_NAME = "Xception"
     BACKBONE_TRAINABLE = True
     FINAL_ACTIVATION = "softmax"
-    # SAVE_NAME = f"{ROOT.split('/')[-1]}-{BACKBONE_NAME}-{FOLDER}-{EPOCHS}"
-    SAVE_NAME = "TEST"
+    SAVE_NAME = f"{ROOT.split('/')[-1]}-{BACKBONE_NAME}-{FOLDER}-{EPOCHS}"
 
     label_df = pd.read_csv(LABEL_PATH, lineterminator='\n', header=None, index_col=False)
     CLASSES = label_df[0].to_list()
@@ -510,11 +509,11 @@ if __name__ == "__main__":
     ]
     COLORMAP = np.array(COLORMAP, dtype=np.uint8)
 
-    class_weights = [1.0, 
-                     2.7957303696952476, 3.663783922986489, 2.7974075981334137, 3.1681564067803816, 2.9907727908352064,
-                     2.1297567360960143, 2.343932614430008, 1.8283285176308957, 2.7528923271624666, 2.6991605163531904,
-                     2.5345915829226997, 2.177534967381174, 2.6988075443320185, 2.6387067589624844, 1.1780182348091115,
-                     3.302416325189537, 2.95100660364173, 2.427651020302946, 2.307093515053897, 3.0536249767527797]
+    class_weights = [1.0,
+                     3.0928856077473434, 3.989459511902593, 2.9647828706347368, 3.3095694873607187, 3.189072921744534,
+                     2.24084926386883, 2.4449860533927863, 1.9145742494005062, 2.8574594296620424, 2.8089038362431995,
+                     2.6410152216029785, 2.192095861391789, 2.81077041984355, 2.6762684940481876, 1.2192066520660536,
+                     3.383614310927662, 3.0507838471948086, 2.5110867961879415, 2.375844657733547, 3.0285050732271204]
 
     root = f"{ROOT}/{FOLDER}"
     train_dir = f"{root}/train"
@@ -535,7 +534,7 @@ if __name__ == "__main__":
     callbacks = [DisplayCallback(),
                 #  tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=True),
                 #  tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=ES_PATIENT, verbose=1),
-                 tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_iou_score', verbose=1, mode="max", save_best_only=True, save_weights_only=True)]
+                 tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_one_hot_mean_io_u', verbose=1, mode="max", save_best_only=True, save_weights_only=True)]
 
     model = get_model()
     history = model.fit(train_dataset,
