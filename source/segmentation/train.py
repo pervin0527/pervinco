@@ -72,19 +72,18 @@ def read_image(image_path, mask=False):
 
     if mask:
         image = tf.image.decode_png(image, channels=1)
+        image = tf.image.resize(images=image, size=[IMG_SIZE, IMG_SIZE])
         image.set_shape([IMG_SIZE, IMG_SIZE, 1])
-        # image.set_shape([None, None, 1])
-        # image = tf.image.resize(images=image, size=[IMG_SIZE, IMG_SIZE])
 
         if CATEGORICAL:
+            image = tf.cast(image, tf.uint8)
             image = tf.squeeze(image, axis=-1)
             image = tf.one_hot(image, len(CLASSES))
 
     else:
         image = tf.image.decode_png(image, channels=3)
+        image = tf.image.resize(images=image, size=[IMG_SIZE, IMG_SIZE])
         image.set_shape([IMG_SIZE, IMG_SIZE, 3])
-        # image.set_shape([None, None, 3])
-        # image = tf.image.resize(images=image, size=[IMG_SIZE, IMG_SIZE])
 
     return image
 
@@ -212,15 +211,14 @@ if __name__ == "__main__":
     ROOT = "/data/Datasets/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
     SAVE_PATH = "/data/Models/segmentation"    
-    FOLDER = "SAMPLE02"
+    FOLDER = "BASIC"
 
     VIS_SAMPLE = False
     CATEGORICAL = True
     BACKBONE_TRAINABLE = True
     BACKBONE_NAME = "ResNet101" # Xception, ResNet50, ResNet101
     FINAL_ACTIVATION = "softmax" # None, softmax
-    # SAVE_NAME = f"{ROOT.split('/')[-1]}-{BACKBONE_NAME}-{FOLDER}"
-    SAVE_NAME = "TEST-class_weights"
+    SAVE_NAME = f"{ROOT.split('/')[-1]}-{BACKBONE_NAME}-{FOLDER}"
 
     BATCH_SIZE = 16
     EPOCHS = 300
@@ -262,35 +260,11 @@ if __name__ == "__main__":
     ]
     COLORMAP = np.array(COLORMAP, dtype=np.uint8)
 
-    # CLASSES_PIXEL_COUNT_DICT = {'background': 361560627, 'aeroplane': 3704393, 'bicycle': 1571148, 'bird': 4384132,
-    #                             'boat': 2862913, 'bottle': 3438963, 'bus': 8696374, 'car': 7088203, 'cat': 12473466,
-    #                             'chair': 4975284, 'cow': 5027769, 'diningtable': 6246382, 'dog': 9379340, 'horse': 4925676,
-    #                             'motorbike': 5476081, 'person': 24995476, 'potted plant': 2904902, 'sheep': 4187268, 'sofa': 7091464, 'train': 7903243, 'tv/monitor': 4120989}
-    
-    # class_weights = get_balancing_class_weights(CLASSES, CLASSES_PIXEL_COUNT_DICT)
-    # print(class_weights)
-
-    class_weights = [1.0, 
-                     2.7957303696952476,
-                     3.663783922986489,
-                     2.7974075981334137,
-                     3.1681564067803816,
-                     2.9907727908352064,
-                     2.1297567360960143,
-                     2.343932614430008,
-                     1.8283285176308957,
-                     2.7528923271624666,
-                     2.6991605163531904,
-                     2.5345915829226997,
-                     2.177534967381174,
-                     2.6988075443320185,
-                     2.6387067589624844,
-                     1.1780182348091115,
-                     3.302416325189537,
-                     2.95100660364173,
-                     2.427651020302946,
-                     2.307093515053897,
-                     3.0536249767527797]
+    class_weights = [1.0,
+                     2.796261453157771, 3.6634652790169735, 2.807923613071907, 3.1686019949696553, 3.0245148161442517,
+                     2.129719937227624, 2.3460060363019926, 1.8368311622252027, 2.75041373434277, 2.6991581077398514,
+                     2.5252761072804097, 2.1865852225115634, 2.7175921567167665, 2.638879414112434, 1.1715466926672464,
+                     3.3140532245951047, 2.9561174595693243, 2.4272346166140117, 2.301221219827498, 2.9848812618374625]
     
     root = f"{ROOT}/{FOLDER}"
     train_dir = f"{root}/train"

@@ -28,6 +28,23 @@ def create_class_weight(labels_dict,mu=0.15):
     return class_weight
 
 
+def analyze_dataset(masks):
+    labels_check = set()
+    class_per_pixels = {key : 0 for key in range(len(classes))}
+
+    for idx in tqdm(range(len(masks))):
+        mask = cv2.imread(masks[idx], cv2.IMREAD_GRAYSCALE)
+        mask = cv2.resize(mask, (height, width))
+        label, counts = np.unique(mask, return_counts=True)
+        # print(label, counts)
+
+        for i in range(len(label)):
+            labels_check.add(label[i])
+            class_per_pixels[label[i]] += counts[i]
+
+    return class_per_pixels
+
+
 if __name__ == "__main__":
     root_dir = "/data/Datasets/VOCdevkit/VOC2012"
     dataset_dir = f"{root_dir}/BASIC"
@@ -40,22 +57,9 @@ if __name__ == "__main__":
 
     train_mask_files, total_train = get_files(f"{dataset_dir}/train")
 
-    total_labels = set()
-    pixels = [0] * len(classes)
-    for idx in tqdm(range(len(train_mask_files))):
-        mask = cv2.imread(train_mask_files[idx], cv2.IMREAD_GRAYSCALE)
-        mask = cv2.resize(mask, (height, width))
-        label, counts = np.unique(mask, return_counts=True)
-
-        for idx, value in enumerate(counts):
-            pixels[idx] += value
-            total_labels.add(idx)
-
-    print(total_labels)
-    print(pixels)
-    result = {}
-    for key, value in zip(total_labels, pixels):
-        result.update({key:value})
-
-    class_weight = create_class_weight(result)
-    print(class_weight)
+    class_per_pixels = analyze_dataset(train_mask_files)
+    print(class_per_pixels)
+    print()
+    
+    class_weights = create_class_weight(class_per_pixels)
+    print(list(class_weights.values()))

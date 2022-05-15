@@ -236,12 +236,12 @@ def augmentation(images, masks, is_train):
 
 
 if __name__ == "__main__":
-    root = "/home/ubuntu/Datasets/VOCdevkit/VOC2012"
+    root = "/data/Datasets/VOCdevkit/VOC2012"
     image_path = f"{root}/JPEGImages"
     mask_path = f"{root}/SegmentationRaw" # SegmentationClass
-    output_path = f"{root}/SAMPLE03"
+    output_path = f"{root}/AUGMENT_10"
 
-    ITER = 100
+    ITER = 10
     IMG_SIZE = 320
     VISUAL = False
     images, masks = voc_get_files(mask_path)

@@ -9,11 +9,8 @@ import tensorflow as tf
 import albumentations as A
 import matplotlib.pyplot as plt
 
-from generator import TFDataGenerator
 from glob import glob
-from augwrap.src import nightly as aw
 from IPython.display import clear_output
-from augwrap.src.nightly.augmentations import CutMix
 from class_weight_helper import get_balancing_class_weights
 
 from tensorflow.keras.models import Model
@@ -334,73 +331,52 @@ def preprocess_input(x):
     return preprocess_input(x, mode='tf')
 
 
-def get_training_augmentation(height, width, dataset):
-    train_transform = [
-        A.Resize(height, width, always_apply=True),
-        A.OneOf([
-            A.HorizontalFlip(p=0.5),
-            A.VerticalFlip(p=0.5),
-            # A.Transpose(p=0.5),
-        ], p=0.7),
 
-        A.OneOf([
-            A.GridDropout(fill_value=0, mask_fill_value=0, random_offset=True, p=0.5),
-            A.CoarseDropout(min_holes=1, max_holes=1,
-                            min_height=80, min_width=80,
-                            max_height=160, max_width=160,
-                            fill_value=0, mask_fill_value=0,
-                            p=0.5,),
-        ], p=0.5), 
-
-        A.ShiftScaleRotate(scale_limit=0.6, rotate_limit=0, shift_limit=0.1, p=1, border_mode=0),
-    #    A.PadIfNeeded(min_height=height, min_width=width, always_apply=True, border_mode=0),
-    #    A.RandomCrop(height=height, width=width, always_apply=True),
-
-        A.GaussNoise(p=0.2),
-        A.Perspective(p=0.5),
-
-        CutMix(dataset, p=0.5),
-
-        A.OneOf(
-            [
-                A.CLAHE(p=1),
-                A.RandomBrightnessContrast(p=1),
-                A.RandomGamma(p=1),
-            ],
-            p=0.9,
-        ),
-
-        A.OneOf(
-            [
-                A.Sharpen(p=1),
-                A.Blur(blur_limit=3, p=1),
-                A.MotionBlur(blur_limit=3, p=1),
-            ],
-            p=0.9,
-        ),
-
-        A.OneOf(
-            [
-                A.RandomBrightnessContrast(p=1),
-                A.HueSaturationValue(p=1),
-            ],
-            p=0.9,
-        ),
-    ]
-    return A.Compose(train_transform)
+def get_file_list(path):
+    images = sorted(glob(f"{path}/images/*.jpg"))
+    masks = sorted(glob(f"{path}/masks/*.png"))
+    
+    n_images, n_masks = len(images), len(masks)
+    
+    return images, masks, n_images, n_masks
 
 
-def get_validation_augmentation(height, width):
-    test_transform = [
-        # A.PadIfNeeded(height, width),
-        A.Resize(height, width, always_apply=True)
-    ]
-    return A.Compose(test_transform)
+def read_image(image_path, mask=False):
+    image = tf.io.read_file(image_path)
+
+    if mask:
+        image = tf.image.decode_png(image, channels=1)
+        image = tf.image.resize(images=image, size=[IMG_SIZE, IMG_SIZE])
+        image.set_shape([IMG_SIZE, IMG_SIZE, 1])
+
+        if CATEGORICAL:
+            image = tf.cast(image, tf.uint8)
+            image = tf.squeeze(image, axis=-1)
+            image = tf.one_hot(image, len(CLASSES))
+
+    else:
+        image = tf.image.decode_png(image, channels=3)
+        image = tf.image.resize(images=image, size=[IMG_SIZE, IMG_SIZE])
+        image.set_shape([IMG_SIZE, IMG_SIZE, 3])
+
+    return image
 
 
-def data_get_preprocessing(preprocessing_fn):
-    _transform = [A.Lambda(image=preprocessing_fn),]
-    return A.Compose(_transform)
+def load_data(image_list, mask_list):
+    image = read_image(image_list)
+    mask = read_image(mask_list, mask=True)
+
+    return image, mask
+
+
+def data_generator(image_list, mask_list):
+    dataset = tf.data.Dataset.from_tensor_slices((image_list, mask_list))
+    dataset = dataset.map(load_data, num_parallel_calls=tf.data.AUTOTUNE)
+    dataset = dataset.repeat()
+    dataset = dataset.batch(BATCH_SIZE, drop_remainder=True)
+    dataset = dataset.prefetch(tf.data.AUTOTUNE)
+
+    return dataset
 
 
 def infer(model, image_tensor):
@@ -450,55 +426,61 @@ def plot_samples_matplotlib(display_list, idx, figsize=(5, 3)):
 
 
 def plot_predictions(images_list, colormap, model):
-    for idx, image in enumerate(images_list):
-        # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        prediction_mask = infer(image_tensor=image, model=model)
+    for idx, image_file in enumerate(images_list):
+        image_tensor = read_image(image_file)
+        prediction_mask = infer(image_tensor=image_tensor, model=model)
         prediction_colormap = decode_segmentation_masks(prediction_mask, colormap, len(CLASSES))
-        overlay = get_overlay(image, prediction_colormap)
-        plot_samples_matplotlib([image, overlay, prediction_colormap], idx, figsize=(14, 12))
+        overlay = get_overlay(image_tensor, prediction_colormap)
+        plot_samples_matplotlib([image_tensor, overlay, prediction_colormap], idx, figsize=(14, 12))
 
 
 class DisplayCallback(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         clear_output(wait=True)
         
-        # idx = np.random.randint(len(valid_images))
-        # plot_predictions([valid_images[idx]], colormap, model=model)
-        plot_predictions(valid_images, COLORMAP, model=model)
+        plot_predictions(valid_images[:4], COLORMAP, model=model)
+
 
 def get_model():
     with strategy.scope(): 
-        dice_loss = advisor.losses.DiceLoss(class_weights=class_weights)
-        categorical_focal_loss = advisor.losses.CategoricalFocalLoss()
-        loss = dice_loss + (1 * categorical_focal_loss)
-        metrics = [advisor.metrics.FScore(threshold=0.5), advisor.metrics.IOUScore(threshold=0.5)]
-        optimizer = tf.keras.optimizers.Adam(learning_rate=LR)
+        if CATEGORICAL:
+            # loss = tf.keras.losses.CategoricalCrossentropy()
+            dice_loss = advisor.losses.DiceLoss(class_weights=class_weights)
+            categorical_focal_loss = advisor.losses.CategoricalFocalLoss()
+            loss = dice_loss + (1 * categorical_focal_loss)
+            
+            metrics = tf.keras.metrics.OneHotMeanIoU(num_classes=len(CLASSES))
+            # metrics = [advisor.metrics.IOUScore(threshold=0.5), advisor.metrics.FScore(threshold=0.5)]
+            # metrics = [advisor.metrics.IOUScore(threshold=0.5)]
+
+        else:
+            loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False)
+            metrics = ["accuracy"]
         
-        # model = DeeplabV3Plus(len(CLASSES))
-        model = Deeplabv3(weights=None, input_tensor=None, input_shape=(HEIGHT, WIDTH, 3), classes=len(CLASSES), backbone='xception', OS=16, alpha=1., activation="softmax")
+        optimizer = tf.keras.optimizers.Adam(learning_rate=LR)
+        model = Deeplabv3(weights=None, input_tensor=None, input_shape=(IMG_SIZE, IMG_SIZE, 3), classes=len(CLASSES), backbone='xception', OS=16, alpha=1., activation="softmax")
         model.summary()
         model.compile(optimizer=optimizer, loss=loss, metrics=[metrics])
 
     return model
 
 if __name__ == "__main__":
-    ROOT = "/data/Datasets/VOCdevkit/VOC2012"
+    ROOT = "/home/ubuntu/Datasets/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
-    SAVE_PATH = "/data/Models/segmentation"
+    SAVE_PATH = "/home/ubuntu/Models/segmentation"
     FOLDER = "BASIC"
-
-    x_train_dir, y_train_dir = f"{ROOT}/{FOLDER}/train/images", f"{ROOT}/{FOLDER}/train/masks"
-    x_valid_dir, y_valid_dir = f"{ROOT}/{FOLDER}/valid/images", f"{ROOT}/{FOLDER}/valid/masks"
 
     LR = 0.001
     EPOCHS = 300
-    BATCH_SIZE = 8
+    BATCH_SIZE = 128
     ES_PATIENT = 10
-    HEIGHT, WIDTH = 512, 512
+    IMG_SIZE = 320
+    CATEGORICAL = True
     BACKBONE_NAME = "Xception"
     BACKBONE_TRAINABLE = True
     FINAL_ACTIVATION = "softmax"
-    SAVE_NAME = f"{ROOT.split('/')[-1]}-{BACKBONE_NAME}-{FOLDER}-{EPOCHS}"
+    # SAVE_NAME = f"{ROOT.split('/')[-1]}-{BACKBONE_NAME}-{FOLDER}-{EPOCHS}"
+    SAVE_NAME = "TEST"
 
     label_df = pd.read_csv(LABEL_PATH, lineterminator='\n', header=None, index_col=False)
     CLASSES = label_df[0].to_list()
@@ -529,49 +511,26 @@ if __name__ == "__main__":
     COLORMAP = np.array(COLORMAP, dtype=np.uint8)
 
     class_weights = [1.0, 
-                     2.7957303696952476,
-                     3.663783922986489,
-                     2.7974075981334137,
-                     3.1681564067803816,
-                     2.9907727908352064,
-                     2.1297567360960143,
-                     2.343932614430008,
-                     1.8283285176308957,
-                     2.7528923271624666,
-                     2.6991605163531904,
-                     2.5345915829226997,
-                     2.177534967381174,
-                     2.6988075443320185,
-                     2.6387067589624844,
-                     1.1780182348091115,
-                     3.302416325189537,
-                     2.95100660364173,
-                     2.427651020302946,
-                     2.307093515053897,
-                     3.0536249767527797]
+                     2.7957303696952476, 3.663783922986489, 2.7974075981334137, 3.1681564067803816, 2.9907727908352064,
+                     2.1297567360960143, 2.343932614430008, 1.8283285176308957, 2.7528923271624666, 2.6991605163531904,
+                     2.5345915829226997, 2.177534967381174, 2.6988075443320185, 2.6387067589624844, 1.1780182348091115,
+                     3.302416325189537, 2.95100660364173, 2.427651020302946, 2.307093515053897, 3.0536249767527797]
 
-    train_inputs = {'image': sorted(glob(os.path.join(x_train_dir, '*'))), 'mask': sorted(glob(os.path.join(y_train_dir, '*')))}
-    valid_inputs = {'image': sorted(glob(os.path.join(x_valid_dir, '*'))), 'mask': sorted(glob(os.path.join(y_valid_dir, '*')))}
+    root = f"{ROOT}/{FOLDER}"
+    train_dir = f"{root}/train"
+    valid_dir = f"{root}/valid"
 
-    train_dataset = aw.TFBaseDataset(train_inputs)
-    train_dataset = aw.LoadImage(train_dataset, ['image', 'mask'], -1)
-    train_dataset = aw.OneHot(train_dataset, ['mask'], list(range(len(CLASSES))))
-    train_dataset = aw.Augmentation(train_dataset, get_training_augmentation(HEIGHT, WIDTH, train_dataset))
-    # train_dataset = aw.NormalizeImage(train_dataset, ['image'], (0, 1))
+    train_images, train_masks, n_train_images, n_train_masks = get_file_list(train_dir)
+    valid_images, valid_masks, n_valid_images, n_valid_masks = get_file_list(valid_dir)
 
-    valid_dataset = aw.TFBaseDataset(valid_inputs)
-    valid_dataset = aw.LoadImage(valid_dataset, ['image', 'mask'], -1)
-    valid_dataset = aw.OneHot(valid_dataset, ['mask'], list(range(len(CLASSES))))
-    valid_dataset = aw.Augmentation(valid_dataset, get_validation_augmentation(HEIGHT, WIDTH))
-    # valid_dataset = aw.NormalizeImage(valid_dataset, ['image'], (0, 1))
+    train_dataset = data_generator(train_images, train_masks)
+    valid_dataset = data_generator(valid_images, valid_masks)
 
-    valid_images = []
-    for idx in range(5):
-        valid_image = valid_dataset[idx]["image"]
-        valid_images.append(valid_image)
-
-    TrainSet = TFDataGenerator(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
-    ValidationSet = TFDataGenerator(valid_dataset, batch_size=BATCH_SIZE, shuffle=False)
+    print("Train Dataset:", train_dataset)
+    print("Val Dataset:", valid_dataset)
+    
+    TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_images) / BATCH_SIZE).numpy())
+    VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_images) / BATCH_SIZE).numpy())
 
     callbacks = [DisplayCallback(),
                 #  tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=True),
@@ -579,14 +538,17 @@ if __name__ == "__main__":
                  tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_iou_score', verbose=1, mode="max", save_best_only=True, save_weights_only=True)]
 
     model = get_model()
-    model.fit(TrainSet,
-              epochs=EPOCHS,
-              validation_data=ValidationSet,
-              callbacks=callbacks)
+    history = model.fit(train_dataset,
+                        steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
+                        validation_data=valid_dataset,
+                        validation_steps=VALID_STEPS_PER_EPOCH,
+                        callbacks=callbacks,
+                        verbose=1,
+                        epochs=EPOCHS)
 
     plot_predictions(valid_images, COLORMAP, model=model)
     
     run_model = tf.function(lambda x : model(x))
     BATCH_SIZE = 1
-    concrete_func = run_model.get_concrete_function(tf.TensorSpec([BATCH_SIZE, HEIGHT, WIDTH, 3], model.inputs[0].dtype))
+    concrete_func = run_model.get_concrete_function(tf.TensorSpec([BATCH_SIZE, IMG_SIZE, IMG_SIZE, 3], model.inputs[0].dtype))
     tf.saved_model.save(model, f'{SAVE_PATH}/{SAVE_NAME}/saved_model', signatures=concrete_func)
