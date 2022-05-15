@@ -51,6 +51,8 @@ if __name__ == "__main__":
             pixels[idx] += value
             total_labels.add(idx)
 
+    print(total_labels)
+    print(pixels)
     result = {}
     for key, value in zip(total_labels, pixels):
         result.update({key:value})
