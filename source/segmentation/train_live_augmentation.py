@@ -15,7 +15,6 @@ from model import DeepLabV3Plus
 from augwrap.src import nightly as aw
 from IPython.display import clear_output
 from augwrap.src.nightly.augmentations import CutMix
-from class_weight_helper import get_balancing_class_weights
 
 
 # GPU setup

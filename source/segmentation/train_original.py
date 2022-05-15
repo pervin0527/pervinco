@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 
 from glob import glob
 from IPython.display import clear_output
-from class_weight_helper import get_balancing_class_weights
 
 from tensorflow.keras.models import Model
 from tensorflow.keras import layers
