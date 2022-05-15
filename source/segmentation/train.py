@@ -175,9 +175,6 @@ class DisplayCallback(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         clear_output(wait=True)
         
-        # idx = np.random.randint(len(valid_images))
-        # plot_predictions([valid_images[idx]], colormap, model=model)
-        
         plot_predictions(valid_images[:4], COLORMAP, model=model)
 
 
@@ -186,13 +183,13 @@ def get_model():
     
         if CATEGORICAL:
             # loss = tf.keras.losses.CategoricalCrossentropy()
-            dice_loss = advisor.losses.DiceLoss(class_weights=np.array(class_weights))
+            dice_loss = advisor.losses.DiceLoss(class_weights=class_weights)
             categorical_focal_loss = advisor.losses.CategoricalFocalLoss()
             loss = dice_loss + (1 * categorical_focal_loss)
             
-            # metrics = tf.keras.metrics.OneHotMeanIoU(num_classes=len(CLASSES))
+            metrics = tf.keras.metrics.OneHotMeanIoU(num_classes=len(CLASSES))
             # metrics = [advisor.metrics.IOUScore(threshold=0.5), advisor.metrics.FScore(threshold=0.5)]
-            metrics = [advisor.metrics.IOUScore(threshold=0.5)]
+            # metrics = [advisor.metrics.IOUScore(threshold=0.5)]
 
         else:
             loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False)
@@ -215,17 +212,18 @@ if __name__ == "__main__":
     ROOT = "/data/Datasets/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
     SAVE_PATH = "/data/Models/segmentation"    
-    FOLDER = "SAMPLE03"
+    FOLDER = "SAMPLE02"
 
     VIS_SAMPLE = False
     CATEGORICAL = True
     BACKBONE_TRAINABLE = True
     BACKBONE_NAME = "ResNet101" # Xception, ResNet50, ResNet101
     FINAL_ACTIVATION = "softmax" # None, softmax
-    SAVE_NAME = f"{ROOT.split('/')[-1]}-{BACKBONE_NAME}-{FOLDER}-TEST"
+    # SAVE_NAME = f"{ROOT.split('/')[-1]}-{BACKBONE_NAME}-{FOLDER}"
+    SAVE_NAME = "TEST-class_weights"
 
     BATCH_SIZE = 16
-    EPOCHS = 10
+    EPOCHS = 300
     IMG_SIZE = 320
     ES_PATIENT = 10
     
@@ -264,13 +262,35 @@ if __name__ == "__main__":
     ]
     COLORMAP = np.array(COLORMAP, dtype=np.uint8)
 
-    CLASSES_PIXEL_COUNT_DICT = {'background': 361560627, 'aeroplane': 3704393, 'bicycle': 1571148, 'bird': 4384132,
-                                'boat': 2862913, 'bottle': 3438963, 'bus': 8696374, 'car': 7088203, 'cat': 12473466,
-                                'chair': 4975284, 'cow': 5027769, 'diningtable': 6246382, 'dog': 9379340, 'horse': 4925676,
-                                'motorbike': 5476081, 'person': 24995476, 'potted plant': 2904902, 'sheep': 4187268, 'sofa': 7091464, 'train': 7903243, 'tv/monitor': 4120989}
+    # CLASSES_PIXEL_COUNT_DICT = {'background': 361560627, 'aeroplane': 3704393, 'bicycle': 1571148, 'bird': 4384132,
+    #                             'boat': 2862913, 'bottle': 3438963, 'bus': 8696374, 'car': 7088203, 'cat': 12473466,
+    #                             'chair': 4975284, 'cow': 5027769, 'diningtable': 6246382, 'dog': 9379340, 'horse': 4925676,
+    #                             'motorbike': 5476081, 'person': 24995476, 'potted plant': 2904902, 'sheep': 4187268, 'sofa': 7091464, 'train': 7903243, 'tv/monitor': 4120989}
     
-    class_weights = get_balancing_class_weights(CLASSES, CLASSES_PIXEL_COUNT_DICT)
-    print(class_weights)
+    # class_weights = get_balancing_class_weights(CLASSES, CLASSES_PIXEL_COUNT_DICT)
+    # print(class_weights)
+
+    class_weights = [1.0, 
+                     2.7957303696952476,
+                     3.663783922986489,
+                     2.7974075981334137,
+                     3.1681564067803816,
+                     2.9907727908352064,
+                     2.1297567360960143,
+                     2.343932614430008,
+                     1.8283285176308957,
+                     2.7528923271624666,
+                     2.6991605163531904,
+                     2.5345915829226997,
+                     2.177534967381174,
+                     2.6988075443320185,
+                     2.6387067589624844,
+                     1.1780182348091115,
+                     3.302416325189537,
+                     2.95100660364173,
+                     2.427651020302946,
+                     2.307093515053897,
+                     3.0536249767527797]
     
     root = f"{ROOT}/{FOLDER}"
     train_dir = f"{root}/train"
@@ -300,7 +320,7 @@ if __name__ == "__main__":
     callbacks = [DisplayCallback(),
                 #  tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=True),
                 #  tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=ES_PATIENT, verbose=1),
-                 tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_iou_score', verbose=1, mode="max", save_best_only=True, save_weights_only=True)]
+                 tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_one_hot_mean_io_u', verbose=1, mode="max", save_best_only=True, save_weights_only=True)]
 
     model = get_model()
     history = model.fit(train_dataset,

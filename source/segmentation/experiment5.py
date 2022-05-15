@@ -468,7 +468,7 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 def get_model():
     with strategy.scope(): 
-        dice_loss = advisor.losses.DiceLoss(class_weights=None)
+        dice_loss = advisor.losses.DiceLoss(class_weights=class_weights)
         categorical_focal_loss = advisor.losses.CategoricalFocalLoss()
         loss = dice_loss + (1 * categorical_focal_loss)
         metrics = [advisor.metrics.FScore(threshold=0.5), advisor.metrics.IOUScore(threshold=0.5)]
@@ -491,7 +491,7 @@ if __name__ == "__main__":
     x_valid_dir, y_valid_dir = f"{ROOT}/{FOLDER}/valid/images", f"{ROOT}/{FOLDER}/valid/masks"
 
     LR = 0.001
-    EPOCHS = 100
+    EPOCHS = 300
     BATCH_SIZE = 8
     ES_PATIENT = 10
     HEIGHT, WIDTH = 512, 512
@@ -528,13 +528,27 @@ if __name__ == "__main__":
     ]
     COLORMAP = np.array(COLORMAP, dtype=np.uint8)
 
-    CLASSES_PIXEL_COUNT_DICT = {'background': 361560627, 'aeroplane': 3704393, 'bicycle': 1571148, 'bird': 4384132,
-                                'boat': 2862913, 'bottle': 3438963, 'bus': 8696374, 'car': 7088203, 'cat': 12473466,
-                                'chair': 4975284, 'cow': 5027769, 'diningtable': 6246382, 'dog': 9379340, 'horse': 4925676,
-                                'motorbike': 5476081, 'person': 24995476, 'potted plant': 2904902, 'sheep': 4187268, 'sofa': 7091464, 'train': 7903243, 'tv/monitor': 4120989}
-    
-    class_weights = get_balancing_class_weights(CLASSES, CLASSES_PIXEL_COUNT_DICT)
-    print(class_weights)
+    class_weights = [1.0, 
+                     2.7957303696952476,
+                     3.663783922986489,
+                     2.7974075981334137,
+                     3.1681564067803816,
+                     2.9907727908352064,
+                     2.1297567360960143,
+                     2.343932614430008,
+                     1.8283285176308957,
+                     2.7528923271624666,
+                     2.6991605163531904,
+                     2.5345915829226997,
+                     2.177534967381174,
+                     2.6988075443320185,
+                     2.6387067589624844,
+                     1.1780182348091115,
+                     3.302416325189537,
+                     2.95100660364173,
+                     2.427651020302946,
+                     2.307093515053897,
+                     3.0536249767527797]
 
     train_inputs = {'image': sorted(glob(os.path.join(x_train_dir, '*'))), 'mask': sorted(glob(os.path.join(y_train_dir, '*')))}
     valid_inputs = {'image': sorted(glob(os.path.join(x_valid_dir, '*'))), 'mask': sorted(glob(os.path.join(y_valid_dir, '*')))}
