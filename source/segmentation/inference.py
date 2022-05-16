@@ -38,7 +38,7 @@ def get_overlay(image, colored_mask):
 if __name__ == "__main__":
     CKPT_PATH = "/data/Models/segmentation/VOC2012-ResNet101-AUGMENT_50/best.ckpt"
     IMG_PATH = "/data/Datasets/VOCdevkit/VOC2012/BASIC/valid/images"
-    INFERENCE = "images"
+    INFERENCE = "video"
 
     IMG_SIZE = 320
     BACKBONE_NAME = CKPT_PATH.split('/')[-2].split('-')[1]
@@ -46,27 +46,50 @@ if __name__ == "__main__":
     FINAL_ACTIVATION =  "softmax"
 
     COLORMAP = [[0, 0, 0], # background
-                [128, 0, 0], # aeroplane
-                [0, 128, 0], # bicycle
-                [128, 128, 0], # bird
-                [0, 0, 128], # boat
-                [128, 0, 128], # bottle
-                [0, 128, 128], # bus
-                [128, 128, 128], # car
-                [64, 0, 0], # cat
-                [192, 0, 0], # chair
-                [64, 128, 0], # cow
-                [192, 128, 0], # diningtable
-                [64, 0, 128], # dog
-                [192, 0, 128], # horse
-                [64, 128, 128], # motorbike
-                [192, 128, 128], # person
-                [0, 64, 0], # potted plant
-                [128, 64, 0], # sheep
-                [0, 192, 0], # sofa
-                [128, 192, 0], # train
-                [0, 64, 128] # tv/monitor
+                [0, 0, 0], # aeroplane
+                [0, 0, 0], # bicycle
+                [0, 0, 0], # bird
+                [0, 0, 0], # boat
+                [0, 0, 0], # bottle
+                [0, 0, 0], # bus
+                [0, 0, 0], # car
+                [0, 0, 0], # cat
+                [0, 0, 0], # chair
+                [0, 0, 0], # cow
+                [0, 0, 0], # diningtable
+                [0, 0, 0], # dog
+                [0, 0, 0], # horse
+                [0, 0, 0], # motorbike
+                [0, 0, 255], # person
+                [0, 0, 0], # potted plant
+                [0, 0, 0], # sheep
+                [0, 0, 0], # sofa
+                [0, 0, 0], # train
+                [0, 0, 0] # tv/monitor
     ]
+
+    # COLORMAP = [[0, 0, 0], # background
+    #             [128, 0, 0], # aeroplane
+    #             [0, 128, 0], # bicycle
+    #             [128, 128, 0], # bird
+    #             [0, 0, 128], # boat
+    #             [128, 0, 128], # bottle
+    #             [0, 128, 128], # bus
+    #             [128, 128, 128], # car
+    #             [64, 0, 0], # cat
+    #             [192, 0, 0], # chair
+    #             [64, 128, 0], # cow
+    #             [192, 128, 0], # diningtable
+    #             [64, 0, 128], # dog
+    #             [192, 0, 128], # horse
+    #             [64, 128, 128], # motorbike
+    #             [192, 128, 128], # person
+    #             [0, 64, 0], # potted plant
+    #             [128, 64, 0], # sheep
+    #             [0, 192, 0], # sofa
+    #             [128, 192, 0], # train
+    #             [0, 64, 128] # tv/monitor
+    # ]
     COLORMAP = np.array(COLORMAP, dtype=np.uint8)
 
     dice_loss = advisor.losses.DiceLoss()
