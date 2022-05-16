@@ -9,8 +9,9 @@ import matplotlib.pyplot as plt
 
 from glob import glob
 from model import DeepLabV3Plus
-from calculate_class_weights import analyze_dataset, create_class_weight
 from IPython.display import clear_output
+from sklearn.model_selection import KFold
+from calculate_class_weights import analyze_dataset, create_class_weight
 
 # GPU setup
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -155,16 +156,6 @@ def plot_predictions(images_list, colormap, model):
         plot_samples_matplotlib([image_tensor, overlay, prediction_colormap], idx, figsize=(14, 12))
 
 
-def lrfn(epoch):
-    if epoch < LR_RAMPUP_EPOCHS:
-        lr = (LR_MAX - LR_START) / LR_RAMPUP_EPOCHS * epoch + LR_START
-    elif epoch < LR_RAMPUP_EPOCHS + LR_SUSTAIN_EPOCHS:
-        lr = LR_MAX
-    else:
-        lr = (LR_MAX - LR_MIN) * LR_EXP_DECAY**(epoch - LR_RAMPUP_EPOCHS - LR_SUSTAIN_EPOCHS) + LR_MIN
-    return lr
-
-
 class DisplayCallback(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         clear_output(wait=True)
@@ -188,16 +179,16 @@ def get_model():
         optimizer = tf.keras.optimizers.Adam(learning_rate=LR_START)
         model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(CLASSES), backbone_name=BACKBONE_NAME, backbone_trainable=BACKBONE_TRAINABLE, final_activation=FINAL_ACTIVATION)
 
-        model.summary()
+        # model.summary()
         model.compile(optimizer=optimizer, loss=loss, metrics=[metrics])
 
     return model
 
 
 if __name__ == "__main__":
-    ROOT = "/home/ubuntu/Datasets/VOCdevkit/VOC2012"
+    ROOT = "/data/Datasets/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
-    SAVE_PATH = "/home/ubuntu/Models/segmentation"    
+    SAVE_PATH = "/data/Models/segmentation"    
     FOLDER = "AUGMENT_50"
 
     VIS_SAMPLE = False
@@ -208,7 +199,7 @@ if __name__ == "__main__":
     SAVE_NAME = f"{ROOT.split('/')[-1]}-{BACKBONE_NAME}-{FOLDER}"
 
     BATCH_SIZE = 64
-    EPOCHS = 300
+    EPOCHS = 100
     IMG_SIZE = 320
     ES_PATIENT = 10
     
@@ -248,49 +239,68 @@ if __name__ == "__main__":
     COLORMAP = np.array(COLORMAP, dtype=np.uint8)
     
     root = f"{ROOT}/{FOLDER}"
-    train_dir = f"{root}/train"
+    total_dir = f"{root}/train"
     valid_dir = f"{root}/valid"
 
-    train_images, train_masks, n_train_images, n_train_masks = get_file_list(train_dir)
+    total_images, total_masks, n_total_images, n_train_masks = get_file_list(total_dir)
     valid_images, valid_masks, n_valid_images, n_valid_masks = get_file_list(valid_dir)
 
-    train_dataset = data_generator(train_images, train_masks)
-    valid_dataset = data_generator(valid_images, valid_masks)
+    os.system("clear")
+    for number, k in enumerate(range(7)):
+        print(f"FOLD_{number} STARTING")
+        start = k * 20000
+        end = start + 20000
 
-    print("Train Dataset:", train_dataset)
-    print("Val Dataset:", valid_dataset)
+        if number == 6:
+            end = n_total_images
 
-    CLASS_PER_PIXEL = analyze_dataset(train_masks, CLASSES, IMG_SIZE, IMG_SIZE)
-    CLASS_WEIGHTS = create_class_weight(CLASS_PER_PIXEL)
-    CLASS_WEIGHTS = list(CLASS_WEIGHTS.values())
-    CLASS_WEIGHTS = np.array(CLASS_WEIGHTS)
+        # print(number, start, end)
+        train_images, train_masks = total_images[start:end], total_masks[start:end]
+        # print(len(train_images), len(train_masks), train_images[:3], train_masks[:3])
 
-    if VIS_SAMPLE:
-        for item in train_dataset.take(4):
-            image, mask = item[0][0], item[1][0]
-            image = image.numpy()
-            mask = decode_segmentation_masks(mask.numpy(), COLORMAP, len(CLASSES))
-            mask = np.squeeze(mask, axis=-1)
+        train_dataset = data_generator(train_images, train_masks)
+        valid_dataset = data_generator(valid_images, valid_masks)
 
-            visualize([image, mask])
-    
-    TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_images) / BATCH_SIZE).numpy())
-    VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_images) / BATCH_SIZE).numpy())
+        print("Train Dataset:", train_dataset)
+        print("Val Dataset:", valid_dataset)
 
-    callbacks = [DisplayCallback(),
-                #  tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=True),
-                #  tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=ES_PATIENT, verbose=1),
-                 tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_one_hot_mean_io_u', verbose=1, mode="max", save_best_only=True, save_weights_only=True)]
+        CLASS_PER_PIXEL = analyze_dataset(train_masks, CLASSES, IMG_SIZE, IMG_SIZE)
+        CLASS_WEIGHTS = create_class_weight(CLASS_PER_PIXEL)
+        CLASS_WEIGHTS = list(CLASS_WEIGHTS.values())
+        CLASS_WEIGHTS = np.array(CLASS_WEIGHTS)
 
-    model = get_model()
-    history = model.fit(train_dataset,
-                        steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
-                        validation_data=valid_dataset,
-                        validation_steps=VALID_STEPS_PER_EPOCH,
-                        callbacks=callbacks,
-                        verbose=1,
-                        epochs=EPOCHS)
+        if VIS_SAMPLE:
+            for item in train_dataset.take(4):
+                image, mask = item[0][0], item[1][0]
+                image = image.numpy()
+                mask = decode_segmentation_masks(mask.numpy(), COLORMAP, len(CLASSES))
+                mask = np.squeeze(mask, axis=-1)
 
+                visualize([image, mask])
+        
+        TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_images) / BATCH_SIZE).numpy())
+        VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_images) / BATCH_SIZE).numpy())
+
+        callbacks = [DisplayCallback(),
+                    #  tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=True),
+                    #  tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=ES_PATIENT, verbose=1),
+                    tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_one_hot_mean_io_u', verbose=1, mode="max", save_best_only=True, save_weights_only=True)]
+
+        model = get_model()
+        if number != 0:
+            model.load_weights(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt")
+
+        history = model.fit(train_dataset,
+                            steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
+                            validation_data=valid_dataset,
+                            validation_steps=VALID_STEPS_PER_EPOCH,
+                            callbacks=callbacks,
+                            verbose=1,
+                            epochs=EPOCHS)
+
+        print(f"FOLD {number} END")
+
+    print("Train Finished")
     plot_predictions(valid_images[:4], COLORMAP, model=model)
 
     run_model = tf.function(lambda x : model(x))

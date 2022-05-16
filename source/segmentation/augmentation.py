@@ -68,8 +68,8 @@ def rand_bbox(size, lamb):
     W = size[0]
     H = size[1]
     cut_rat = np.sqrt(1. - lamb)
-    cut_w = np.int(W * cut_rat)
-    cut_h = np.int(H * cut_rat)
+    cut_w = np.int64(W * cut_rat)
+    cut_h = np.int64(H * cut_rat)
 
     cx = np.random.randint(W)
     cy = np.random.randint(H)
@@ -239,9 +239,9 @@ if __name__ == "__main__":
     root = "/data/Datasets/VOCdevkit/VOC2012"
     image_path = f"{root}/JPEGImages"
     mask_path = f"{root}/SegmentationRaw" # SegmentationClass
-    output_path = f"{root}/AUGMENT_10"
+    output_path = f"{root}/AUGMENT_50"
 
-    ITER = 10
+    ITER = 50
     IMG_SIZE = 320
     VISUAL = False
     images, masks = voc_get_files(mask_path)
@@ -273,27 +273,29 @@ if __name__ == "__main__":
     colormap = np.array(colormap, dtype=np.uint8)
 
     train_transform = A.Compose([
-            # A.PadIfNeeded(min_height=IMG_SIZE, min_width=IMG_SIZE, border_model=0, p=0.1),
             A.Resize(IMG_SIZE, IMG_SIZE, p=1, always_apply=True),
-            # A.RandomSizedCrop(min_max_height=(IMG_SIZE/2, IMG_SIZE), height=IMG_SIZE, width=IMG_SIZE, p=0.5),
 
             A.OneOf([
                 A.VerticalFlip(p=0.3),
                 A.HorizontalFlip(p=0.3),
                 A.Transpose(p=0.3)
-            ], p=0.5),
+            ], p=0.55),
 
             A.OneOf([
                 A.ShiftScaleRotate(p=0.5, border_mode=0),
                 A.RandomRotate90(p=0.5),
-                A.OpticalDistortion(p=0.25, distort_limit=0.85, shift_limit=0.85, mask_value=0, border_mode=0),
-                A.GridDistortion(p=0.25, distort_limit=0.85, mask_value=0, border_mode=0)
             ], p=1),
+
+            A.OneOf([
+                A.RandomGridShuffle(grid=(3, 3), p=0.3),
+                A.OpticalDistortion(p=0.35, distort_limit=0.85, shift_limit=0.85, mask_value=0, border_mode=0),
+                A.GridDistortion(p=0.35, distort_limit=0.85, mask_value=0, border_mode=0)
+            ], p=0.4),
             
             A.OneOf([
                 A.RandomBrightnessContrast(p=0.5),
                 A.HueSaturationValue(p=0.5),
-            ], p=1),
+            ], p=0.6),
 
             A.OneOf([
                 A.GridDropout(fill_value=0, mask_fill_value=0, random_offset=True, p=0.5),

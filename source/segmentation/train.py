@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 import matplotlib.pyplot as plt
-import tensorflow_addons as tfa
 
 from glob import glob
 from model import DeepLabV3Plus

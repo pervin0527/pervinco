@@ -6,7 +6,6 @@ import advisor
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-import albumentations as A
 import matplotlib.pyplot as plt
 
 from glob import glob

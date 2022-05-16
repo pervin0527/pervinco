@@ -91,6 +91,7 @@ if __name__ == "__main__":
         ret, frame = capture.read()
         
         image = cv2.resize(frame, (IMG_SIZE, IMG_SIZE))
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
         input_tensor = np.expand_dims(image, axis=0)
         
         prediction = model.predict(input_tensor)
