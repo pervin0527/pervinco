@@ -11,24 +11,13 @@ import matplotlib.pyplot as plt
 
 from glob import glob
 from IPython.display import clear_output
+from calculate_class_weights import analyze_dataset, create_class_weight
 
-from tensorflow.keras.models import Model
 from tensorflow.keras import layers
-from tensorflow.keras.layers import Input
-from tensorflow.keras.layers import Reshape
-from tensorflow.keras.layers import Activation
-from tensorflow.keras.layers import Concatenate
-from tensorflow.keras.layers import Add
-from tensorflow.keras.layers import Dropout
-from tensorflow.keras.layers import BatchNormalization
-from tensorflow.keras.layers import Conv2D
-from tensorflow.keras.layers import DepthwiseConv2D
-from tensorflow.keras.layers import ZeroPadding2D
-from tensorflow.keras.layers import GlobalAveragePooling2D
+from tensorflow.keras.models import Model
 from tensorflow.keras.utils import get_source_inputs
-from tensorflow.keras.utils import get_file
-from tensorflow.keras import backend as K
 from tensorflow.keras.applications.imagenet_utils import preprocess_input
+from tensorflow.keras.layers import Input, Reshape, Activation, Concatenate, Add, Dropout, BatchNormalization, Conv2D, DepthwiseConv2D, ZeroPadding2D, GlobalAveragePooling2D
 
 
 # GPU setup
@@ -443,18 +432,15 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 def get_model():
     with strategy.scope(): 
         if CATEGORICAL:
-            # loss = tf.keras.losses.CategoricalCrossentropy()
-            dice_loss = advisor.losses.DiceLoss(class_weights=class_weights)
+            dice_loss = advisor.losses.DiceLoss(class_weights=CLASS_WEIGHTS)
             categorical_focal_loss = advisor.losses.CategoricalFocalLoss()
             loss = dice_loss + (1 * categorical_focal_loss)
             
             metrics = tf.keras.metrics.OneHotMeanIoU(num_classes=len(CLASSES))
-            # metrics = [advisor.metrics.IOUScore(threshold=0.5), advisor.metrics.FScore(threshold=0.5)]
-            # metrics = [advisor.metrics.IOUScore(threshold=0.5)]
 
         else:
             loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False)
-            metrics = ["accuracy"]
+            metrics = "accuracy"
         
         optimizer = tf.keras.optimizers.Adam(learning_rate=LR)
         model = Deeplabv3(weights=None, input_tensor=None, input_shape=(IMG_SIZE, IMG_SIZE, 3), classes=len(CLASSES), backbone='xception', OS=16, alpha=1., activation="softmax")
@@ -464,14 +450,14 @@ def get_model():
     return model
 
 if __name__ == "__main__":
-    ROOT = "/home/ubuntu/Datasets/VOCdevkit/VOC2012"
+    ROOT = "/data/Datasets/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
-    SAVE_PATH = "/home/ubuntu/Models/segmentation"
-    FOLDER = "AUGMENT_5"
+    SAVE_PATH = "/data/Models/segmentation"
+    FOLDER = "AUGMENT_10"
 
     LR = 0.0001
     EPOCHS = 300
-    BATCH_SIZE = 96
+    BATCH_SIZE = 16
     ES_PATIENT = 10
     IMG_SIZE = 320
     CATEGORICAL = True
@@ -508,12 +494,6 @@ if __name__ == "__main__":
     ]
     COLORMAP = np.array(COLORMAP, dtype=np.uint8)
 
-    class_weights = [1.0,
-                     3.0928856077473434, 3.989459511902593, 2.9647828706347368, 3.3095694873607187, 3.189072921744534,
-                     2.24084926386883, 2.4449860533927863, 1.9145742494005062, 2.8574594296620424, 2.8089038362431995,
-                     2.6410152216029785, 2.192095861391789, 2.81077041984355, 2.6762684940481876, 1.2192066520660536,
-                     3.383614310927662, 3.0507838471948086, 2.5110867961879415, 2.375844657733547, 3.0285050732271204]
-
     root = f"{ROOT}/{FOLDER}"
     train_dir = f"{root}/train"
     valid_dir = f"{root}/valid"
@@ -526,6 +506,11 @@ if __name__ == "__main__":
 
     print("Train Dataset:", train_dataset)
     print("Val Dataset:", valid_dataset)
+
+    CLASS_PER_PIXEL = analyze_dataset(train_masks, CLASSES, IMG_SIZE, IMG_SIZE)
+    CLASS_WEIGHTS = create_class_weight(CLASS_PER_PIXEL)
+    CLASS_WEIGHTS = list(CLASS_WEIGHTS.values())
+    CLASS_WEIGHTS = np.array(CLASS_WEIGHTS)
     
     TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_images) / BATCH_SIZE).numpy())
     VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_images) / BATCH_SIZE).numpy())

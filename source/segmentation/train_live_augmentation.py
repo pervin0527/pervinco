@@ -173,7 +173,7 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 def get_model():
     with strategy.scope():    
         # metrics = tf.keras.metrics.OneHotMeanIoU(num_classes=len(CLASSES))
-        dice_loss = advisor.losses.DiceLoss(class_weights=np.array(class_weights))
+        dice_loss = advisor.losses.DiceLoss()
         categorical_focal_loss = advisor.losses.CategoricalFocalLoss()
         loss = dice_loss + (1 * categorical_focal_loss)            
         # metrics = [advisor.metrics.FScore(threshold=0.5), advisor.metrics.IOUScore(threshold=0.5)]
@@ -238,14 +238,6 @@ if __name__ == "__main__":
                 [0, 64, 128] # tv/monitor
     ]
     COLORMAP = np.array(COLORMAP, dtype=np.uint8)
-
-    CLASSES_PIXEL_COUNT_DICT = {'background': 361560627, 'aeroplane': 3704393, 'bicycle': 1571148, 'bird': 4384132,
-                                'boat': 2862913, 'bottle': 3438963, 'bus': 8696374, 'car': 7088203, 'cat': 12473466,
-                                'chair': 4975284, 'cow': 5027769, 'diningtable': 6246382, 'dog': 9379340, 'horse': 4925676,
-                                'motorbike': 5476081, 'person': 24995476, 'potted plant': 2904902, 'sheep': 4187268, 'sofa': 7091464, 'train': 7903243, 'tv/monitor': 4120989}
-    
-    class_weights = get_balancing_class_weights(CLASSES, CLASSES_PIXEL_COUNT_DICT)
-    print(class_weights)
 
     train_inputs = {'image': sorted(glob(os.path.join(x_train_dir, '*'))), 'mask': sorted(glob(os.path.join(y_train_dir, '*')))}
     valid_inputs = {'image': sorted(glob(os.path.join(x_valid_dir, '*'))), 'mask': sorted(glob(os.path.join(y_valid_dir, '*')))}

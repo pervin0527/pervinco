@@ -68,7 +68,7 @@ def create_class_weight(labels_dict,mu=0.15):
     return class_weight
 
 
-def analyze_dataset(masks):
+def analyze_dataset(masks, classes, height, width):
     labels_check = set()
     class_per_pixels = {key : 0 for key in range(len(classes))}
 
@@ -87,7 +87,7 @@ def analyze_dataset(masks):
 
 if __name__ == "__main__":
     root_dir = "/data/Datasets/VOCdevkit/VOC2012"
-    dataset_dir = f"{root_dir}/AUGMENT_10"
+    dataset_dir = f"{root_dir}/BASIC"
     label_dir = f"{root_dir}/Labels/class_labels.txt"
     height, width = 320, 320
 
@@ -97,7 +97,7 @@ if __name__ == "__main__":
 
     train_mask_files, total_train = get_files(f"{dataset_dir}/train")
 
-    class_per_pixels = analyze_dataset(train_mask_files)
+    class_per_pixels = analyze_dataset(train_mask_files, classes, height, width)
     print(class_per_pixels)
     print()
     

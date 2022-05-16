@@ -1,4 +1,4 @@
-import os, sys
+import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import cv2
 import advisor
@@ -10,11 +10,8 @@ import tensorflow_addons as tfa
 
 from glob import glob
 from model import DeepLabV3Plus
-from advisor.tf_backbones import create_base_model
-from advisor.DeepLabV3plus import DeepLabV3plus
+from calculate_class_weights import analyze_dataset, create_class_weight
 from IPython.display import clear_output
-from tensorflow.keras import backend as K
-from tensorflow.keras import losses
 
 # GPU setup
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -180,22 +177,17 @@ def get_model():
     with strategy.scope():
     
         if CATEGORICAL:
-            dice_loss = advisor.losses.DiceLoss(class_weights=class_weights)
+            dice_loss = advisor.losses.DiceLoss(class_weights=CLASS_WEIGHTS)
             categorical_focal_loss = advisor.losses.CategoricalFocalLoss()
             loss = dice_loss + (1 * categorical_focal_loss)
-            
             metrics = tf.keras.metrics.OneHotMeanIoU(num_classes=len(CLASSES))
 
         else:
             loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False)
-            metrics = ["accuracy"]
+            metrics = "accuracy"
 
         optimizer = tf.keras.optimizers.Adam(learning_rate=LR_START)
         model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(CLASSES), backbone_name=BACKBONE_NAME, backbone_trainable=BACKBONE_TRAINABLE, final_activation=FINAL_ACTIVATION)
-        
-        # base_model, layers, layer_names = create_base_model(name=BACKBONE_NAME, weights="imagenet", height=IMG_SIZE, width=IMG_SIZE, include_top=False)
-        # model = DeepLabV3plus(len(CLASSES), base_model, output_layers=layers, backbone_trainable=True, output_stride=8, final_activation=FINAL_ACTIVATION)
-        # model.build(input_shape=(BATCH_SIZE, IMG_SIZE, IMG_SIZE, 3))
 
         model.summary()
         model.compile(optimizer=optimizer, loss=loss, metrics=[metrics])
@@ -255,13 +247,6 @@ if __name__ == "__main__":
                 [0, 64, 128] # tv/monitor
     ]
     COLORMAP = np.array(COLORMAP, dtype=np.uint8)
-
-    class_weights = [1.0,
-                     3.0928856077473434, 3.989459511902593, 2.9647828706347368, 3.3095694873607187, 3.189072921744534,
-                     2.24084926386883, 2.4449860533927863, 1.9145742494005062, 2.8574594296620424, 2.8089038362431995,
-                     2.6410152216029785, 2.192095861391789, 2.81077041984355, 2.6762684940481876, 1.2192066520660536,
-                     3.383614310927662, 3.0507838471948086, 2.5110867961879415, 2.375844657733547, 3.0285050732271204]
-    class_weights = np.array(class_weights)
     
     root = f"{ROOT}/{FOLDER}"
     train_dir = f"{root}/train"
@@ -275,6 +260,11 @@ if __name__ == "__main__":
 
     print("Train Dataset:", train_dataset)
     print("Val Dataset:", valid_dataset)
+
+    CLASS_PER_PIXEL = analyze_dataset(train_masks, CLASSES, IMG_SIZE, IMG_SIZE)
+    CLASS_WEIGHTS = create_class_weight(CLASS_PER_PIXEL)
+    CLASS_WEIGHTS = list(CLASS_WEIGHTS.values())
+    CLASS_WEIGHTS = np.array(CLASS_WEIGHTS)
 
     if VIS_SAMPLE:
         for item in train_dataset.take(4):
