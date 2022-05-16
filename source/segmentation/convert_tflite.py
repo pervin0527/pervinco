@@ -31,14 +31,17 @@ if __name__ == "__main__":
     trained_model.load_weights(CKPT_PATH)
 
     squeeze = tf.keras.layers.Lambda(lambda x : tf.squeeze(x, axis=0))(trained_model.output)
-    argmax = tf.keras.layers.Lambda(lambda x : tf.argmax(x, axis=-1))(squeeze)
+    argmax = tf.keras.layers.Lambda(lambda x : tf.cast(tf.argmax(x, axis=-1, ), dtype=tf.float32))(squeeze)
+    # to_float = tf.keras.layers.Lambda(lambda x : tf.cast(x, dtype=tf.float32))(argmax)
     model = tf.keras.Model(inputs=trained_model.input, outputs=argmax)
     model.compile(optimizer=optimizer, loss=loss, metrics=[metrics])
     model.summary()
+    print("Model Load and Compile Success")
 
     run_model = tf.function(lambda x : model(x))
     concrete_func = run_model.get_concrete_function(tf.TensorSpec([1, IMG_SIZE, IMG_SIZE, 3], model.inputs[0].dtype))
     model.save(SAVE_PATH, overwrite=True, save_format="tf", signatures=concrete_func)
+    print("Export Saved model Finished")
 
     converter = tf.lite.TFLiteConverter.from_saved_model(SAVE_PATH)
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
@@ -47,6 +50,7 @@ if __name__ == "__main__":
 
     with tf.io.gfile.GFile(f"{SAVE_PATH}/{TFLITE_NAME}.tflite", "wb") as f:
         f.write(tflite_model)
+    print("Export tflite Finished")
 
     ImageSegmenterWriter = image_segmenter.MetadataWriter
     _INPUT_NORM_MEAN = 127.5
@@ -55,3 +59,4 @@ if __name__ == "__main__":
     writer = ImageSegmenterWriter.create_for_inference(writer_utils.load_file(f"{SAVE_PATH}/{TFLITE_NAME}.tflite"),
                                                        [_INPUT_NORM_MEAN], [_INPUT_NORM_STD], [LABEL_PATH])
     writer_utils.save_file(writer.populate(), f"{SAVE_PATH}/{TFLITE_NAME}-meta.tflite")
+    print("Export tflite with metadata Finished")
