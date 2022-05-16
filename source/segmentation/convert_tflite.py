@@ -1,84 +1,57 @@
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+import advisor
+import pandas as pd
 import tensorflow as tf
-from glob import glob
+from model import DeepLabV3Plus
 from tflite_support.metadata_writers import image_segmenter, writer_utils
 
-gpus = tf.config.experimental.list_physical_devices('GPU')
-if len(gpus) > 1:
-    try:
-        print("Activate Multi GPU")
-        for gpu in gpus:
-            tf.config.experimental.set_memory_growth(gpu, True)
-        strategy = tf.distribute.MirroredStrategy(cross_device_ops=tf.distribute.HierarchicalCopyAllReduce())
-    except RuntimeError as e:
-        print(e)
-
-else:
-    try:
-        print("Activate Sigle GPU")
-        tf.config.experimental.set_memory_growth(gpus[0], True)
-        strategy = tf.distribute.experimental.CentralStorageStrategy()
-    except RuntimeError as e:
-        print(e)
-
-def preprocess_image(images):
-    image = tf.io.read_file(images)
-    image = tf.image.decode_jpeg(image, channels=3)
-    image = tf.image.resize(image, [image_size, image_size])
-
-    return image
-
-def representative_data_gen():
-    images = sorted(glob(f"{representative_data_path}/*"))
-    idx = 0
-    for input_value in tf.data.Dataset.from_tensor_slices(images).map(preprocess_image).batch(1).take(100):
-        idx += 1
-        
-        yield [input_value]
-
 if __name__ == "__main__":
-    int8 = False
-    image_size = 512
-    saved_model_path = "/data/Models/segmentation"
-    folder = "custom-softmax"
-    label_file_path = "/data/Datasets/VOCdevkit/VOC2012/Labels/class_labels.txt"
-    representative_data_path = "/data/Datasets/VOCdevkit/VOC2012/Segmentation/valid/images"
-
-    lite_name = None
-    if not int8:
-        lite_name = "fp32"
-    else:
-        lite_name = "int8"
-
-    converter = tf.lite.TFLiteConverter.from_saved_model(f"{saved_model_path}/{folder}/saved_model")
-    # model = tf.keras.models.load_model(saved_model_path)
-    # model.input.set_shape((1, 512, 512, 3))
-    # converter = tf.lite.TFLiteConverter.from_saved_model(model)
+    CKPT_PATH = "/data/Models/segmentation/VOC2012-ResNet50-AUGMENT_10/best.ckpt"
+    LABEL_PATH = "/data/Datasets/VOCdevkit/VOC2012/Labels/class_labels.txt"
+    SAVE_PATH = f"{'/'.join(CKPT_PATH.split('/')[:-1])}/saved_model"
+    TFLITE_NAME = "unity-test"
     
+    IMG_SIZE = 320
+    BACKBONE_NAME = CKPT_PATH.split('/')[-2].split('-')[1]
+    BACKBONE_TRAINABLE = False
+    FINAL_ACTIVATION =  "softmax"
+    
+    label_df = pd.read_csv(LABEL_PATH, lineterminator='\n', header=None, index_col=False)
+    CLASSES = label_df[0].to_list()
+    print(CLASSES)
+
+    dice_loss = advisor.losses.DiceLoss()
+    categorical_focal_loss = advisor.losses.CategoricalFocalLoss()
+    loss = dice_loss + (1 * categorical_focal_loss)
+    metrics = tf.keras.metrics.OneHotMeanIoU(num_classes=len(CLASSES))
+    optimizer = tf.keras.optimizers.Adam()
+
+    trained_model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(CLASSES), backbone_name=BACKBONE_NAME, backbone_trainable=BACKBONE_TRAINABLE, final_activation=FINAL_ACTIVATION)
+    trained_model.load_weights(CKPT_PATH)
+
+    squeeze = tf.keras.layers.Lambda(lambda x : tf.squeeze(x, axis=0))(trained_model.output)
+    argmax = tf.keras.layers.Lambda(lambda x : tf.argmax(x, axis=-1))(squeeze)
+    model = tf.keras.Model(inputs=trained_model.input, outputs=argmax)
+    model.compile(optimizer=optimizer, loss=loss, metrics=[metrics])
+    model.summary()
+
+    run_model = tf.function(lambda x : model(x))
+    concrete_func = run_model.get_concrete_function(tf.TensorSpec([1, IMG_SIZE, IMG_SIZE, 3], model.inputs[0].dtype))
+    model.save(SAVE_PATH, overwrite=True, save_format="tf", signatures=concrete_func)
+
+    converter = tf.lite.TFLiteConverter.from_saved_model(SAVE_PATH)
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
-
-    if int8:
-        converter.representative_dataset = representative_data_gen
-        converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
-        converter.inference_input_type = tf.uint8
-        converter.inference_output_type = tf.uint8
-
-    else:
-        converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS]
-
+    converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS]
     tflite_model = converter.convert()
 
-    with tf.io.gfile.GFile(f"{saved_model_path}/{folder}/{folder}_{lite_name}.tflite", "wb") as f:
+    with tf.io.gfile.GFile(f"{SAVE_PATH}/{TFLITE_NAME}.tflite", "wb") as f:
         f.write(tflite_model)
-
-    print("saved model converted tflite")
 
     ImageSegmenterWriter = image_segmenter.MetadataWriter
     _INPUT_NORM_MEAN = 127.5
     _INPUT_NORM_STD = 127.5
 
-    writer = ImageSegmenterWriter.create_for_inference(writer_utils.load_file(f"{saved_model_path}/{folder}/{folder}_{lite_name}.tflite"), [_INPUT_NORM_MEAN], [_INPUT_NORM_STD], [label_file_path])
-
-    print(writer.get_metadata_json())
-    writer_utils.save_file(writer.populate(), f"{saved_model_path}/{folder}/{folder}_m{lite_name}.tflite")
-
-    print("tflite with metadata")
+    writer = ImageSegmenterWriter.create_for_inference(writer_utils.load_file(f"{SAVE_PATH}/{TFLITE_NAME}.tflite"),
+                                                       [_INPUT_NORM_MEAN], [_INPUT_NORM_STD], [LABEL_PATH])
+    writer_utils.save_file(writer.populate(), f"{SAVE_PATH}/{TFLITE_NAME}-meta.tflite")
