@@ -38,6 +38,7 @@ def get_overlay(image, colored_mask):
 if __name__ == "__main__":
     CKPT_PATH = "/data/Models/segmentation/VOC2012-ResNet101-AUGMENT_50/best.ckpt"
     IMG_PATH = "/data/Datasets/VOCdevkit/VOC2012/BASIC/valid/images"
+    INFERENCE = "images"
 
     IMG_SIZE = 320
     BACKBONE_NAME = CKPT_PATH.split('/')[-2].split('-')[1]
@@ -59,7 +60,7 @@ if __name__ == "__main__":
                 [64, 0, 128], # dog
                 [192, 0, 128], # horse
                 [64, 128, 128], # motorbike
-                [0, 0, 255], # person [192, 128, 128]
+                [192, 128, 128], # person
                 [0, 64, 0], # potted plant
                 [128, 64, 0], # sheep
                 [0, 192, 0], # sofa
@@ -87,18 +88,34 @@ if __name__ == "__main__":
     capture.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
     capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
-    while cv2.waitKey(33) != ord('q'):
-        ret, frame = capture.read()
-        
-        image = cv2.resize(frame, (IMG_SIZE, IMG_SIZE))
-        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-        input_tensor = np.expand_dims(image, axis=0)
-        
-        prediction = model.predict(input_tensor)
-        decoded_mask = decode_segmentation_masks(prediction)
-        overlay_image = get_overlay(decoded_mask, cv2.resize(frame, (IMG_SIZE, IMG_SIZE)))
+    
+    if INFERENCE.lower() == "video":
+        while cv2.waitKey(33) != ord('q'):
+            ret, frame = capture.read()
+            
+            image = cv2.resize(frame, (IMG_SIZE, IMG_SIZE))
+            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+            input_tensor = np.expand_dims(image, axis=0)
+            
+            prediction = model.predict(input_tensor)
+            decoded_mask = decode_segmentation_masks(prediction)
+            overlay_image = get_overlay(decoded_mask, cv2.resize(frame, (IMG_SIZE, IMG_SIZE)))
 
-        cv2.imshow("PREDICTION", cv2.resize(overlay_image, (640, 480)))
+            cv2.imshow("PREDICTION", cv2.resize(overlay_image, (640, 480)))
 
-    capture.release()
-    cv2.destroyAllWindows()
+        capture.release()
+        cv2.destroyAllWindows()
+
+    else:
+        image_files = sorted(glob(f"{IMG_PATH}/*.jpg"))
+        for image_file in image_files:
+            image = cv2.imread(image_file)
+            image = cv2.resize(image, (IMG_SIZE, IMG_SIZE))
+            input_tensor = np.expand_dims(image, axis=0)
+
+            prediction = model.predict(input_tensor)
+            decoded_mask = decode_segmentation_masks(prediction)
+            overlay_image = get_overlay(decoded_mask, image)
+
+            cv2.imshow("PREDICTION", overlay_image)
+            cv2.waitKey(0)

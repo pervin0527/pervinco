@@ -7,7 +7,7 @@ from model import DeepLabV3Plus
 from tflite_support.metadata_writers import image_segmenter, writer_utils
 
 if __name__ == "__main__":
-    CKPT_PATH = "/data/Models/segmentation/VOC2012-ResNet50-AUGMENT_10/best.ckpt"
+    CKPT_PATH = "/data/Models/segmentation/VOC2012-ResNet101-AUGMENT_50/best.ckpt"
     LABEL_PATH = "/data/Datasets/VOCdevkit/VOC2012/Labels/class_labels.txt"
     SAVE_PATH = f"{'/'.join(CKPT_PATH.split('/')[:-1])}/saved_model"
     TFLITE_NAME = "unity-test"
