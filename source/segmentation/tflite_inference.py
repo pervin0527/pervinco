@@ -44,7 +44,7 @@ def get_overlay(image, colored_mask):
 
 
 if __name__ == "__main__":
-    model_path = "/data/Models/segmentation/VOC2012-ResNet101-AUGMENT_50/saved_model/unity-test-meta.tflite"
+    model_path = "/data/Models/segmentation/VOC2012-ResNet101-AUGMENT_50-BEST/saved_model/model-meta.tflite"
     image_path = "./images/sample/dog2.jpg"
 
     COLORMAP = [[0, 0, 0], # background
@@ -90,10 +90,16 @@ if __name__ == "__main__":
     interpreter.set_tensor(input_details[0]['index'], input_tensor.astype(np.float32))
     interpreter.invoke()
 
-    prediticons = interpreter.get_tensor(output_details[0]['index'])
-    print(prediticons.shape)
-    
-    decode_pred = decode_segmentation_masks(prediticons)
+    predictions = interpreter.get_tensor(output_details[0]['index'])
+    print(predictions.shape)
+
+    if predictions[0].shape[-1] == len(COLORMAP):
+        predictions = np.argmax(predictions[0], axis=-1)
+        decode_pred = decode_segmentation_masks(predictions)
+
+    else:
+        decode_pred = decode_segmentation_masks(predictions)
+
     overlay_image = get_overlay(image, decode_pred)
     cv2.imshow("result", overlay_image)
     cv2.waitKey(0)

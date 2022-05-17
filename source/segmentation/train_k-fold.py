@@ -188,9 +188,9 @@ def get_model():
 
 
 if __name__ == "__main__":
-    ROOT = "/data/Datasets/VOCdevkit/VOC2012"
+    ROOT = "/home/ubuntu/Datasets/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
-    SAVE_PATH = "/data/Models/segmentation"    
+    SAVE_PATH = "/home/ubuntu/Models/segmentation"    
     FOLDER = "AUGMENT_50"
 
     VIS_SAMPLE = False
@@ -198,14 +198,14 @@ if __name__ == "__main__":
     BACKBONE_TRAINABLE = True
     BACKBONE_NAME = "ResNet101" # Xception, ResNet50, ResNet101
     FINAL_ACTIVATION = "softmax" # None, softmax
-    SAVE_NAME = f"{ROOT.split('/')[-1]}-{BACKBONE_NAME}-{FOLDER}"
+    SAVE_NAME = f"{ROOT.split('/')[-1]}-{BACKBONE_NAME}-{FOLDER}-KF"
 
-    BATCH_SIZE = 16
+    BATCH_SIZE = 64
     EPOCHS = 100
     IMG_SIZE = 320
     ES_PATIENT = 10
     
-    LR_START = 0.00001
+    LR_START = 0.0001
     LR_MAX = 0.0005
     LR_MIN = 0.0001
     LR_RAMPUP_EPOCHS = 4

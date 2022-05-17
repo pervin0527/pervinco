@@ -35,13 +35,14 @@ if __name__ == "__main__":
     CKPT_PATH = "/data/Models/segmentation/VOC2012-ResNet101-AUGMENT_50-BEST/best.ckpt"
     LABEL_PATH = "/data/Datasets/VOCdevkit/VOC2012/Labels/class_labels.txt"
     SAVE_PATH = f"{'/'.join(CKPT_PATH.split('/')[:-1])}/saved_model"
-    TFLITE_NAME = "model"
     
     IMG_SIZE = 320
     BACKBONE_NAME = CKPT_PATH.split('/')[-2].split('-')[1]
     BACKBONE_TRAINABLE = False
     FINAL_ACTIVATION =  "softmax"
+    
     INCLUDE_INFER = False
+    TFLITE_NAME = "model-normal"
     
     label_df = pd.read_csv(LABEL_PATH, lineterminator='\n', header=None, index_col=False)
     CLASSES = label_df[0].to_list()
