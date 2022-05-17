@@ -6,10 +6,77 @@ import advisor
 import numpy as np
 np.set_printoptions(threshold=sys.maxsize)
 import tensorflow as tf
-import matplotlib.pyplot as plt
 
 from glob import glob
 from model import DeepLabV3Plus
+
+
+def live_stream_inference(height, width):
+    capture = cv2.VideoCapture(-1)  
+    capture.set(cv2.CAP_PROP_FRAME_WIDTH, height)
+    capture.set(cv2.CAP_PROP_FRAME_HEIGHT, width)
+    
+    while cv2.waitKey(33) != ord('q'):
+        ret, frame = capture.read()
+        
+        image = cv2.resize(frame, (IMG_SIZE, IMG_SIZE))
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        input_tensor = np.expand_dims(image, axis=0)
+        
+        prediction = model.predict(input_tensor)
+        
+        if prediction.shape[:-1] != IMG_SIZE:
+            prediction = np.argmax(prediction[0], axis=-1)
+
+        decoded_mask = decode_segmentation_masks(prediction)
+        overlay_image = get_overlay(decoded_mask, cv2.resize(frame, (IMG_SIZE, IMG_SIZE)))
+
+        cv2.imshow("PREDICTION", cv2.resize(overlay_image, (height, width)))
+
+    capture.release()
+    cv2.destroyAllWindows()
+
+
+def image_file_inference(height, width):
+    image_files = sorted(glob(f"{IMG_PATH}/*"))
+    for image_file in image_files:
+        image = cv2.imread(image_file)
+        image = cv2.resize(image, (IMG_SIZE, IMG_SIZE))
+        input_tensor = np.expand_dims(image, axis=0)
+
+        prediction = model.predict(input_tensor)
+
+        if prediction.shape[:-1] != IMG_SIZE:
+            prediction = np.argmax(prediction[0], axis=-1)
+
+        decoded_mask = decode_segmentation_masks(prediction)
+        overlay_image = get_overlay(decoded_mask, image)
+
+        result_image = cv2.resize(overlay_image, (height, width))
+        cv2.imshow("PREDICTION", result_image)
+        cv2.waitKey(0)
+
+
+def load_model_with_ckpt(ckpt_path, include_infer=False):
+    dice_loss = advisor.losses.DiceLoss()
+    categorical_focal_loss = advisor.losses.CategoricalFocalLoss()
+    loss = dice_loss + (1 * categorical_focal_loss)
+    metrics = tf.keras.metrics.OneHotMeanIoU(num_classes=len(COLORMAP))
+    optimizer = tf.keras.optimizers.Adam()
+
+    trained_model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(COLORMAP), backbone_name=BACKBONE_NAME, backbone_trainable=BACKBONE_TRAINABLE, final_activation=FINAL_ACTIVATION)
+    trained_model.load_weights(ckpt_path)
+
+    if include_infer:
+        inference = tf.keras.layers.Lambda(lambda x : tf.argmax(tf.squeeze(x, axis=0), axis=-1))(trained_model.output)
+        model = tf.keras.Model(inputs=trained_model.input, outputs=inference)
+    
+        model.compile(optimizer=optimizer, loss=loss, metrics=[metrics])
+        return model
+
+    else:
+        trained_model.compile(optimizer=optimizer, loss=loss, metrics=[metrics])
+        return trained_model
 
 
 def decode_segmentation_masks(mask):
@@ -43,6 +110,8 @@ if __name__ == "__main__":
     BACKBONE_NAME = CKPT_PATH.split('/')[-2].split('-')[1]
     BACKBONE_TRAINABLE = False
     FINAL_ACTIVATION =  "softmax"
+    INCLUDE_INFER = False
+    OUTPUT_SIZE = 320, 320
 
     COLORMAP = [[0, 0, 0], # background
                 [128, 0, 0], # aeroplane
@@ -68,52 +137,12 @@ if __name__ == "__main__":
     ]
     COLORMAP = np.array(COLORMAP, dtype=np.uint8)
 
-    dice_loss = advisor.losses.DiceLoss()
-    categorical_focal_loss = advisor.losses.CategoricalFocalLoss()
-    loss = dice_loss + (1 * categorical_focal_loss)
-    metrics = tf.keras.metrics.OneHotMeanIoU(num_classes=len(COLORMAP))
-    optimizer = tf.keras.optimizers.Adam()
-
-    trained_model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(COLORMAP), backbone_name=BACKBONE_NAME, backbone_trainable=BACKBONE_TRAINABLE, final_activation=FINAL_ACTIVATION)
-    trained_model.load_weights(CKPT_PATH)
-
-    inference = tf.keras.layers.Lambda(lambda x : tf.argmax(tf.squeeze(x, axis=0), axis=-1))(trained_model.output)
-    model = tf.keras.Model(inputs=trained_model.input, outputs=inference)
-    model.compile(optimizer=optimizer, loss=loss, metrics=[metrics])
+    model = load_model_with_ckpt(CKPT_PATH, INCLUDE_INFER)
     model.summary()
-
-    capture = cv2.VideoCapture(-1)
-    capture.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-    capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-
     
     if INFERENCE.lower() == "video":
-        while cv2.waitKey(33) != ord('q'):
-            ret, frame = capture.read()
-            
-            image = cv2.resize(frame, (IMG_SIZE, IMG_SIZE))
-            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-            input_tensor = np.expand_dims(image, axis=0)
-            
-            prediction = model.predict(input_tensor)
-            decoded_mask = decode_segmentation_masks(prediction)
-            overlay_image = get_overlay(decoded_mask, cv2.resize(frame, (IMG_SIZE, IMG_SIZE)))
-
-            cv2.imshow("PREDICTION", cv2.resize(overlay_image, (640, 480)))
-
-        capture.release()
-        cv2.destroyAllWindows()
+        live_stream_inference(OUTPUT_SIZE[0], OUTPUT_SIZE[1])
 
     else:
-        image_files = sorted(glob(f"{IMG_PATH}/*.jpg"))
-        for image_file in image_files:
-            image = cv2.imread(image_file)
-            image = cv2.resize(image, (IMG_SIZE, IMG_SIZE))
-            input_tensor = np.expand_dims(image, axis=0)
+        image_file_inference(OUTPUT_SIZE[0], OUTPUT_SIZE[1])
 
-            prediction = model.predict(input_tensor)
-            decoded_mask = decode_segmentation_masks(prediction)
-            overlay_image = get_overlay(decoded_mask, image)
-
-            cv2.imshow("PREDICTION", overlay_image)
-            cv2.waitKey(0)
