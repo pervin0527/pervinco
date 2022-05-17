@@ -5,6 +5,8 @@ import advisor
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from glob import glob
@@ -198,12 +200,12 @@ if __name__ == "__main__":
     FINAL_ACTIVATION = "softmax" # None, softmax
     SAVE_NAME = f"{ROOT.split('/')[-1]}-{BACKBONE_NAME}-{FOLDER}"
 
-    BATCH_SIZE = 64
-    EPOCHS = 1
+    BATCH_SIZE = 16
+    EPOCHS = 100
     IMG_SIZE = 320
     ES_PATIENT = 10
     
-    LR_START = 0.0001
+    LR_START = 0.00001
     LR_MAX = 0.0005
     LR_MIN = 0.0001
     LR_RAMPUP_EPOCHS = 4
@@ -301,9 +303,10 @@ if __name__ == "__main__":
                             verbose=1,
                             epochs=EPOCHS)
 
-        print(f"FOLD {number} END")
+        print(f"FOLD {number} END \n")
+        tf.keras.backend.clear_session()
 
-    print("Train Finished")
+    print("Train Finished \n")
     plot_predictions(valid_images[:4], COLORMAP, model=model)
 
     run_model = tf.function(lambda x : model(x))

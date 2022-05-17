@@ -1,6 +1,5 @@
 import os
 import sys
-
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import cv2
 import advisor
@@ -36,7 +35,7 @@ def get_overlay(image, colored_mask):
 
 
 if __name__ == "__main__":
-    CKPT_PATH = "/data/Models/segmentation/VOC2012-ResNet101-AUGMENT_50/best.ckpt"
+    CKPT_PATH = "/data/Models/segmentation/VOC2012-ResNet101-AUGMENT_50-BEST/best.ckpt"
     IMG_PATH = "/data/Datasets/VOCdevkit/VOC2012/BASIC/valid/images"
     INFERENCE = "video"
 
@@ -45,74 +44,28 @@ if __name__ == "__main__":
     BACKBONE_TRAINABLE = False
     FINAL_ACTIVATION =  "softmax"
 
-    # COLORMAP = [[0, 0, 0], # background
-    #             [128, 0, 0], # aeroplane
-    #             [0, 128, 0], # bicycle
-    #             [128, 128, 0], # bird
-    #             [0, 0, 128], # boat
-    #             [128, 0, 128], # bottle
-    #             [0, 128, 128], # bus
-    #             [128, 128, 128], # car
-    #             [64, 0, 0], # cat
-    #             [192, 0, 0], # chair
-    #             [64, 128, 0], # cow
-    #             [192, 128, 0], # diningtable
-    #             [64, 0, 128], # dog
-    #             [192, 0, 128], # horse
-    #             [64, 128, 128], # motorbike
-    #             [192, 128, 128], # person
-    #             [0, 64, 0], # potted plant
-    #             [128, 64, 0], # sheep
-    #             [0, 192, 0], # sofa
-    #             [128, 192, 0], # train
-    #             [0, 64, 128] # tv/monitor
-    # ]
-
     COLORMAP = [[0, 0, 0], # background
-                [0, 0, 0], # aeroplane
-                [0, 0, 0], # bicycle
-                [0, 0, 0], # bird
-                [0, 0, 0], # boat
-                [0, 0, 0], # bottle
-                [0, 0, 0], # bus
-                [0, 0, 0], # car
-                [0, 0, 0], # cat
-                [0, 0, 0], # chair
-                [0, 0, 0], # cow
-                [0, 0, 0], # diningtable
-                [0, 0, 0], # dog
-                [0, 0, 0], # horse
-                [0, 0, 0], # motorbike
-                [0, 0, 255], # person
-                [0, 0, 0], # potted plant
-                [0, 0, 0], # sheep
-                [0, 0, 0], # sofa
-                [0, 0, 0], # train
-                [0, 0, 0] # tv/monitor
+                [128, 0, 0], # aeroplane
+                [0, 128, 0], # bicycle
+                [128, 128, 0], # bird
+                [0, 0, 128], # boat
+                [128, 0, 128], # bottle
+                [0, 128, 128], # bus
+                [128, 128, 128], # car
+                [64, 0, 0], # cat
+                [192, 0, 0], # chair
+                [64, 128, 0], # cow
+                [192, 128, 0], # diningtable
+                [64, 0, 128], # dog
+                [192, 0, 128], # horse
+                [64, 128, 128], # motorbike
+                [192, 128, 128], # person
+                [0, 64, 0], # potted plant
+                [128, 64, 0], # sheep
+                [0, 192, 0], # sofa
+                [128, 192, 0], # train
+                [0, 64, 128] # tv/monitor
     ]
-
-    # COLORMAP = [[0, 0, 0], # background
-    #             [128, 0, 0], # aeroplane
-    #             [0, 128, 0], # bicycle
-    #             [128, 128, 0], # bird
-    #             [0, 0, 128], # boat
-    #             [128, 0, 128], # bottle
-    #             [0, 128, 128], # bus
-    #             [128, 128, 128], # car
-    #             [64, 0, 0], # cat
-    #             [192, 0, 0], # chair
-    #             [64, 128, 0], # cow
-    #             [192, 128, 0], # diningtable
-    #             [64, 0, 128], # dog
-    #             [192, 0, 128], # horse
-    #             [64, 128, 128], # motorbike
-    #             [192, 128, 128], # person
-    #             [0, 64, 0], # potted plant
-    #             [128, 64, 0], # sheep
-    #             [0, 192, 0], # sofa
-    #             [128, 192, 0], # train
-    #             [0, 64, 128] # tv/monitor
-    # ]
     COLORMAP = np.array(COLORMAP, dtype=np.uint8)
 
     dice_loss = advisor.losses.DiceLoss()
@@ -124,9 +77,8 @@ if __name__ == "__main__":
     trained_model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(COLORMAP), backbone_name=BACKBONE_NAME, backbone_trainable=BACKBONE_TRAINABLE, final_activation=FINAL_ACTIVATION)
     trained_model.load_weights(CKPT_PATH)
 
-    squeeze = tf.keras.layers.Lambda(lambda x : tf.squeeze(x, axis=0))(trained_model.output)
-    argmax = tf.keras.layers.Lambda(lambda x : tf.argmax(x, axis=-1))(squeeze)
-    model = tf.keras.Model(inputs=trained_model.input, outputs=argmax)
+    inference = tf.keras.layers.Lambda(lambda x : tf.argmax(tf.squeeze(x, axis=0), axis=-1))(trained_model.output)
+    model = tf.keras.Model(inputs=trained_model.input, outputs=inference)
     model.compile(optimizer=optimizer, loss=loss, metrics=[metrics])
     model.summary()
 

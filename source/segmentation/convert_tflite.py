@@ -7,10 +7,10 @@ from model import DeepLabV3Plus
 from tflite_support.metadata_writers import image_segmenter, writer_utils
 
 if __name__ == "__main__":
-    CKPT_PATH = "/data/Models/segmentation/VOC2012-ResNet101-AUGMENT_50/best.ckpt"
+    CKPT_PATH = "/data/Models/segmentation/VOC2012-ResNet101-AUGMENT_50-BEST/best.ckpt"
     LABEL_PATH = "/data/Datasets/VOCdevkit/VOC2012/Labels/class_labels.txt"
     SAVE_PATH = f"{'/'.join(CKPT_PATH.split('/')[:-1])}/saved_model"
-    TFLITE_NAME = "unity-test"
+    TFLITE_NAME = "model"
     
     IMG_SIZE = 320
     BACKBONE_NAME = CKPT_PATH.split('/')[-2].split('-')[1]
@@ -30,10 +30,8 @@ if __name__ == "__main__":
     trained_model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(CLASSES), backbone_name=BACKBONE_NAME, backbone_trainable=BACKBONE_TRAINABLE, final_activation=FINAL_ACTIVATION)
     trained_model.load_weights(CKPT_PATH)
 
-    squeeze = tf.keras.layers.Lambda(lambda x : tf.squeeze(x, axis=0))(trained_model.output)
-    argmax = tf.keras.layers.Lambda(lambda x : tf.cast(tf.argmax(x, axis=-1, ), dtype=tf.float32))(squeeze)
-    # to_float = tf.keras.layers.Lambda(lambda x : tf.cast(x, dtype=tf.float32))(argmax)
-    model = tf.keras.Model(inputs=trained_model.input, outputs=argmax)
+    inference = tf.keras.layers.Lambda(lambda x : tf.argmax(tf.squeeze(x, axis=0), axis=-1))(trained_model.output)
+    model = tf.keras.Model(inputs=trained_model.input, outputs=inference)
     model.compile(optimizer=optimizer, loss=loss, metrics=[metrics])
     model.summary()
     print("Model Load and Compile Success")
