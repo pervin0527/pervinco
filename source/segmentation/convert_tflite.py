@@ -32,7 +32,7 @@ def load_model_with_ckpt(ckpt_path, include_infer=False):
 
 
 if __name__ == "__main__":
-    CKPT_PATH = "/data/Models/segmentation/VOC2012-ResNet101-AUGMENT_50-BEST/best.ckpt"
+    CKPT_PATH = "/data/Models/segmentation/VOC2012-ResNet50-BASIC/best.ckpt"
     LABEL_PATH = "/data/Datasets/VOCdevkit/VOC2012/Labels/class_labels.txt"
     SAVE_PATH = f"{'/'.join(CKPT_PATH.split('/')[:-1])}/saved_model"
     
@@ -42,7 +42,7 @@ if __name__ == "__main__":
     FINAL_ACTIVATION =  "softmax"
     
     INCLUDE_INFER = False
-    TFLITE_NAME = "model-normal"
+    TFLITE_NAME = CKPT_PATH.split('/')[-2]
     
     label_df = pd.read_csv(LABEL_PATH, lineterminator='\n', header=None, index_col=False)
     CLASSES = label_df[0].to_list()

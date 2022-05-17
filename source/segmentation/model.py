@@ -55,23 +55,23 @@ def DeepLabV3Plus(img_height, img_width, nclasses=66, backbone_name="resnet50", 
     print('*** Building DeepLabv3Plus Network ***')
 
     model_input = tf.keras.Input(shape=(img_width, img_height, 3))
-    rescale = tf.keras.layers.experimental.preprocessing.Rescaling(1.0 / 255.0)(model_input)
-    # rescale = tf.keras.layers.experimental.preprocessing.Rescaling((1.0 / 127.5) - 1)(model_input)
+    # model_input = tf.keras.layers.experimental.preprocessing.Rescaling(1.0 / 255.0)(model_input)
+    # model_input = tf.keras.layers.experimental.preprocessing.Rescaling((1.0 / 127.5) - 1)(model_input)
     
     if backbone_name.lower() == "resnet50":
-        base_model = tf.keras.applications.ResNet50(input_tensor=rescale, weights='imagenet', include_top=False)
+        base_model = tf.keras.applications.ResNet50(input_tensor=model_input, weights='imagenet', include_top=False)
                 
         layer_names = ["conv4_block6_2_relu", "conv2_block3_2_relu"]
         upsample_scale = [(img_height // 4), (img_width // 4)]
 
     elif backbone_name.lower() == "resnet101":
-        base_model = tf.keras.applications.ResNet101(input_tensor=rescale, weights='imagenet', include_top=False)
+        base_model = tf.keras.applications.ResNet101(input_tensor=model_input, weights='imagenet', include_top=False)
 
         layer_names = ["conv4_block23_1_relu", "conv2_block3_2_relu"]
         upsample_scale = [(img_height // 4), (img_width // 4)]
 
     elif backbone_name.lower() == "xception":
-        base_model = tf.keras.applications.Xception(input_tensor=rescale, weights='imagenet', include_top=False)
+        base_model = tf.keras.applications.Xception(input_tensor=model_input, weights='imagenet', include_top=False)
         
         # layer_names = ["block14_sepconv2_act", "block3_sepconv2_act"]
         # layer_names = ["block4_sepconv2_act", "block3_sepconv2_act"]
@@ -80,7 +80,7 @@ def DeepLabV3Plus(img_height, img_width, nclasses=66, backbone_name="resnet50", 
         upsample_scale = [(img_height // 4) - 1, (img_width // 4) - 1]
 
     elif backbone_name.lower() == "efficientnetb3":
-        base_model = tf.keras.applications.EfficientNetB3(input_tensor=rescale, weights="imagenet", include_top=False)
+        base_model = tf.keras.applications.EfficientNetB3(input_tensor=model_input, weights="imagenet", include_top=False)
 
         # ["block2a_expand_activation", "block3a_expand_activation", "block4a_expand_activation", "block6a_expand_activation", "top_activation"]
         layer_names = ["block7a_expand_activation", "block3a_expand_activation"]

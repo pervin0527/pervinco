@@ -198,17 +198,18 @@ if __name__ == "__main__":
     ROOT = "/data/Datasets/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
     SAVE_PATH = "/data/Models/segmentation"    
-    FOLDER = "AUGMENT_10"
+    FOLDER = "AUGMENT_50"
 
     VIS_SAMPLE = False
     CATEGORICAL = True
     BACKBONE_TRAINABLE = True
-    BACKBONE_NAME = "ResNet101" # Xception, ResNet50, ResNet101
-    FINAL_ACTIVATION = "softmax" # None, softmax
+    BACKBONE_NAME = "ResNet50" # Xception, ResNet50, ResNet101
+    FINAL_ACTIVATION = None # None, softmax
     SAVE_NAME = f"{ROOT.split('/')[-1]}-{BACKBONE_NAME}-{FOLDER}"
+    CKPT_PATH = "/data/Models/segmentation/VOC2012-ResNet50-BASIC-UNITY/best.ckpt"
 
     BATCH_SIZE = 16
-    EPOCHS = 300
+    EPOCHS = 100
     IMG_SIZE = 320
     ES_PATIENT = 10
     
@@ -283,6 +284,8 @@ if __name__ == "__main__":
                  tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_one_hot_mean_io_u', verbose=1, mode="max", save_best_only=True, save_weights_only=True)]
 
     model = get_model()
+    if CKPT_PATH != None:
+        model.load_weights(CKPT_PATH)
     history = model.fit(train_dataset,
                         steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
                         validation_data=valid_dataset,
