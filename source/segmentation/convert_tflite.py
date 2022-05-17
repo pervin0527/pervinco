@@ -48,6 +48,7 @@ if __name__ == "__main__":
     print(CLASSES)
 
     model = load_model_with_ckpt(CKPT_PATH, INCLUDE_INFER)
+    model.summary()
 
     run_model = tf.function(lambda x : model(x))
     concrete_func = run_model.get_concrete_function(tf.TensorSpec([1, IMG_SIZE, IMG_SIZE, 3], model.inputs[0].dtype))
