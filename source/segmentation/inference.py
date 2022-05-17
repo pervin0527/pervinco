@@ -102,7 +102,7 @@ def get_overlay(image, colored_mask):
 
 
 if __name__ == "__main__":
-    CKPT_PATH = "/data/Models/segmentation/VOC2012-ResNet50-BASIC-UNITY/best.ckpt"
+    CKPT_PATH = "/data/Models/segmentation/VOC2012-ResNet50-BASIC/best.ckpt"
     IMG_PATH = "/data/Datasets/VOCdevkit/VOC2012/BASIC/valid/images"
     INFERENCE = "video"
 

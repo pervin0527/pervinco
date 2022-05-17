@@ -1,5 +1,7 @@
+import sys
 import cv2
 import numpy as np
+np.set_printoptions(threshold=sys.maxsize)
 import tensorflow as tf
 
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -94,6 +96,9 @@ if __name__ == "__main__":
     print(predictions.shape)
 
     if predictions[0].shape[-1] == len(COLORMAP):
+        matrix = predictions[0]
+        print(matrix)
+        
         predictions = np.argmax(predictions[0], axis=-1)
         decode_pred = decode_segmentation_masks(predictions)
 

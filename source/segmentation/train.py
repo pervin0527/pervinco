@@ -198,7 +198,7 @@ if __name__ == "__main__":
     ROOT = "/data/Datasets/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
     SAVE_PATH = "/data/Models/segmentation"    
-    FOLDER = "AUGMENT_50"
+    FOLDER = "AUGMENT_10"
 
     VIS_SAMPLE = False
     CATEGORICAL = True

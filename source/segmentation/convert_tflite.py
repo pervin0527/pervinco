@@ -32,14 +32,14 @@ def load_model_with_ckpt(ckpt_path, include_infer=False):
 
 
 if __name__ == "__main__":
-    CKPT_PATH = "/data/Models/segmentation/VOC2012-ResNet50-BASIC/best.ckpt"
+    CKPT_PATH = "/data/Models/segmentation/test/VOC2012-ResNet50-AUGMENT_10/best.ckpt"
     LABEL_PATH = "/data/Datasets/VOCdevkit/VOC2012/Labels/class_labels.txt"
     SAVE_PATH = f"{'/'.join(CKPT_PATH.split('/')[:-1])}/saved_model"
     
     IMG_SIZE = 320
     BACKBONE_NAME = CKPT_PATH.split('/')[-2].split('-')[1]
     BACKBONE_TRAINABLE = False
-    FINAL_ACTIVATION =  "softmax"
+    FINAL_ACTIVATION =  None
     
     INCLUDE_INFER = False
     TFLITE_NAME = CKPT_PATH.split('/')[-2]
