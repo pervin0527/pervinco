@@ -24,6 +24,8 @@ def live_stream_inference(height, width):
         input_tensor = np.expand_dims(image, axis=0)
         
         prediction = model.predict(input_tensor)
+        # print(prediction[0])
+        # break
         
         if prediction.shape[:-1] != IMG_SIZE:
             prediction = np.argmax(prediction[0], axis=-1)
@@ -58,9 +60,11 @@ def image_file_inference(height, width):
 
 
 def load_model_with_ckpt(ckpt_path, include_infer=False):
-    dice_loss = advisor.losses.DiceLoss()
-    categorical_focal_loss = advisor.losses.CategoricalFocalLoss()
-    loss = dice_loss + (1 * categorical_focal_loss)
+    # dice_loss = advisor.losses.DiceLoss()
+    # categorical_focal_loss = advisor.losses.CategoricalFocalLoss()
+    # loss = dice_loss + (1 * categorical_focal_loss)
+    
+    loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
     metrics = tf.keras.metrics.OneHotMeanIoU(num_classes=len(COLORMAP))
     optimizer = tf.keras.optimizers.Adam()
 
@@ -102,12 +106,13 @@ def get_overlay(image, colored_mask):
 
 
 if __name__ == "__main__":
-    CKPT_PATH = "/data/Models/segmentation/VOC2012-ResNet50-BASIC/best.ckpt"
+    CKPT_PATH = "/data/Models/segmentation/UNITY-ResNet101-BASIC/best.ckpt"
     IMG_PATH = "/data/Datasets/VOCdevkit/VOC2012/BASIC/valid/images"
     INFERENCE = "video"
 
     IMG_SIZE = 320
     BACKBONE_NAME = CKPT_PATH.split('/')[-2].split('-')[1]
+    print(BACKBONE_NAME)
     BACKBONE_TRAINABLE = False
     FINAL_ACTIVATION =  None
     INCLUDE_INFER = False
