@@ -46,11 +46,12 @@ def get_overlay(image, colored_mask):
 
 
 if __name__ == "__main__":
-    model_path = "/data/Models/segmentation/VOC2012-ResNet101-AUGMENT_50-BEST/saved_model/model-meta.tflite"
-    image_path = "./images/sample/dog2.jpg"
+    model_path = "/data/Models/segmentation/UNITY-ResNet101-AUGMENT_50/saved_model/UNITY-ResNet101-AUGMENT_50.tflite"
+    # model_path = "/data/Models/segmentation/BACKUP/deeplabv3_257_mv_gpu.tflite"
+    image_path = "./images/sample/airplane.jpg"
 
     COLORMAP = [[0, 0, 0], # background
-                [128, 0, 0], # aeroplane
+                [0, 255, 255], # aeroplane
                 [0, 128, 0], # bicycle
                 [128, 128, 0], # bird
                 [0, 0, 128], # boat
@@ -95,10 +96,13 @@ if __name__ == "__main__":
     predictions = interpreter.get_tensor(output_details[0]['index'])
     print(predictions.shape)
 
-    if predictions[0].shape[-1] == len(COLORMAP):
-        matrix = predictions[0]
-        print(matrix)
-        
+    whole_matrix = predictions[0]
+    for channel in range(len(COLORMAP)):
+        matrix = whole_matrix[:,:,channel]
+        print(matrix.shape)
+        np.savetxt(f'./images/matrix/{channel}.txt', matrix, delimiter=',')
+
+    if predictions[0].shape[-1] == len(COLORMAP):        
         predictions = np.argmax(predictions[0], axis=-1)
         decode_pred = decode_segmentation_masks(predictions)
 
@@ -106,5 +110,8 @@ if __name__ == "__main__":
         decode_pred = decode_segmentation_masks(predictions)
 
     overlay_image = get_overlay(image, decode_pred)
-    cv2.imshow("result", overlay_image)
-    cv2.waitKey(0)
+
+    cv2.imwrite("./images/sample/prediction.jpg", decode_pred)
+    cv2.imwrite("./images/sample/overlay.jpg", overlay_image)
+    # cv2.imshow("result", overlay_image)
+    # cv2.waitKey(0)

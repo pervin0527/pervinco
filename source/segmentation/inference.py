@@ -24,8 +24,8 @@ def live_stream_inference(height, width):
         input_tensor = np.expand_dims(image, axis=0)
         
         prediction = model.predict(input_tensor)
-        # print(prediction[0])
-        # break
+        print(prediction[0])
+        break
         
         if prediction.shape[:-1] != IMG_SIZE:
             prediction = np.argmax(prediction[0], axis=-1)
@@ -106,7 +106,7 @@ def get_overlay(image, colored_mask):
 
 
 if __name__ == "__main__":
-    CKPT_PATH = "/data/Models/segmentation/UNITY-ResNet101-BASIC/best.ckpt"
+    CKPT_PATH = "/data/Models/segmentation/UNITY-ResNet101-AUGMENT_50/best.ckpt"
     IMG_PATH = "/data/Datasets/VOCdevkit/VOC2012/BASIC/valid/images"
     INFERENCE = "video"
 

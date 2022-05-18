@@ -20,7 +20,8 @@ def load_model_with_ckpt(ckpt_path, include_infer=False):
     trained_model.load_weights(ckpt_path)
 
     if include_infer:
-        inference = tf.keras.layers.Lambda(lambda x : tf.argmax(tf.squeeze(x, axis=0), axis=-1))(trained_model.output)
+        inference = tf.keras.layers.Lambda(lambda x : tf.cast(tf.argmax(tf.squeeze(x, axis=0), axis=-1), dtype=tf.float32))(trained_model.output)
+        # inference = tf.keras.layers.Activation("relu")(trained_model.output)
         model = tf.keras.Model(inputs=trained_model.input, outputs=inference)
     
         model.compile(optimizer=optimizer, loss=loss, metrics=[metrics])
@@ -32,7 +33,7 @@ def load_model_with_ckpt(ckpt_path, include_infer=False):
 
 
 if __name__ == "__main__":
-    CKPT_PATH = "/data/Models/segmentation/test/VOC2012-ResNet50-AUGMENT_10/best.ckpt"
+    CKPT_PATH = "/data/Models/segmentation/UNITY-ResNet101-AUGMENT_50/best.ckpt"
     LABEL_PATH = "/data/Datasets/VOCdevkit/VOC2012/Labels/class_labels.txt"
     SAVE_PATH = f"{'/'.join(CKPT_PATH.split('/')[:-1])}/saved_model"
     
@@ -41,8 +42,8 @@ if __name__ == "__main__":
     BACKBONE_TRAINABLE = False
     FINAL_ACTIVATION =  None
     
-    INCLUDE_INFER = False
-    TFLITE_NAME = CKPT_PATH.split('/')[-2]
+    INCLUDE_INFER = True
+    TFLITE_NAME = f"{CKPT_PATH.split('/')[-2]}_inference"
     
     label_df = pd.read_csv(LABEL_PATH, lineterminator='\n', header=None, index_col=False)
     CLASSES = label_df[0].to_list()
@@ -58,6 +59,7 @@ if __name__ == "__main__":
 
     converter = tf.lite.TFLiteConverter.from_saved_model(SAVE_PATH)
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
+    # converter.target_spec.supported_types = [tf.float16]
     converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS]
     tflite_model = converter.convert()
 
@@ -69,7 +71,6 @@ if __name__ == "__main__":
     _INPUT_NORM_MEAN = 127.5
     _INPUT_NORM_STD = 127.5
 
-    writer = ImageSegmenterWriter.create_for_inference(writer_utils.load_file(f"{SAVE_PATH}/{TFLITE_NAME}.tflite"),
-                                                       [_INPUT_NORM_MEAN], [_INPUT_NORM_STD], [LABEL_PATH])
+    writer = ImageSegmenterWriter.create_for_inference(writer_utils.load_file(f"{SAVE_PATH}/{TFLITE_NAME}.tflite"), [_INPUT_NORM_MEAN], [_INPUT_NORM_STD], [LABEL_PATH])
     writer_utils.save_file(writer.populate(), f"{SAVE_PATH}/{TFLITE_NAME}-meta.tflite")
     print("Export tflite with metadata Finished")
