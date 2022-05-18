@@ -46,8 +46,9 @@ def get_overlay(image, colored_mask):
 
 
 if __name__ == "__main__":
-    model_path = "/data/Models/segmentation/UNITY-ResNet101-AUGMENT_50/saved_model/UNITY-ResNet101-AUGMENT_50.tflite"
+    model_path = "/data/Models/segmentation/UNITY-ResNet101-AUGMENT_50/saved_model/model.tflite"
     # model_path = "/data/Models/segmentation/BACKUP/deeplabv3_257_mv_gpu.tflite"
+    # model_path = "/data/Models/segmentation/BACKUP/model_fp32_meta.tflite"
     image_path = "./images/sample/airplane.jpg"
 
     COLORMAP = [[0, 0, 0], # background
@@ -95,6 +96,7 @@ if __name__ == "__main__":
 
     predictions = interpreter.get_tensor(output_details[0]['index'])
     print(predictions.shape)
+    print(predictions[0])
 
     # whole_matrix = predictions[0]
     # for channel in range(len(COLORMAP)):
