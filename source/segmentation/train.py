@@ -1,7 +1,6 @@
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import cv2
-import advisor
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -163,6 +162,20 @@ class DisplayCallback(tf.keras.callbacks.Callback):
         plot_predictions(valid_images[:4], COLORMAP, model=model)
 
 
+class Sparse_MeanIoU(tf.keras.metrics.MeanIoU):
+  def __init__(self,
+               y_true=None,
+               y_pred=None,
+               num_classes=None,
+               name=None,
+               dtype=None):
+    super(Sparse_MeanIoU, self).__init__(num_classes = num_classes,name=name, dtype=dtype)
+
+  def update_state(self, y_true, y_pred, sample_weight=None):
+    y_pred = tf.math.argmax(y_pred, axis=-1)
+    return super().update_state(y_true, y_pred, sample_weight)
+
+
 def get_model():
     with strategy.scope():
     
@@ -175,7 +188,8 @@ def get_model():
 
         else:
             loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-            metrics = "accuracy"
+            # metrics = "accuracy"
+            metrics = Sparse_MeanIoU(num_classes=len(CLASSES))
 
         optimizer = tf.keras.optimizers.Adam(learning_rate=LR_START)
         model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(CLASSES), backbone_name=BACKBONE_NAME, backbone_trainable=BACKBONE_TRAINABLE, final_activation=FINAL_ACTIVATION)
@@ -271,10 +285,11 @@ if __name__ == "__main__":
     VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_images) / BATCH_SIZE).numpy())
 
     callbacks = [DisplayCallback(),
-                #  tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=True),
-                #  tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=ES_PATIENT, verbose=1),
-                #  tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_one_hot_mean_io_u', verbose=1, mode="max", save_best_only=True, save_weights_only=True)
-                tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_loss', verbose=1, mode="min", save_best_only=True, save_weights_only=True)
+                # tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=True),
+                # tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=ES_PATIENT, verbose=1),
+                # tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_one_hot_mean_io_u', verbose=1, mode="max", save_best_only=True, save_weights_only=True)
+                # tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_loss', verbose=1, mode="min", save_best_only=True, save_weights_only=True)
+                tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_sparse__mean_io_u', verbose=1, mode="max", save_best_only=True, save_weights_only=True)
                  ]
 
     model = get_model()
