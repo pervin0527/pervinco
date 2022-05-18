@@ -79,6 +79,7 @@ def read_image(image_path, mask=False):
         image = tf.image.decode_png(image, channels=3)
         image = tf.image.resize(images=image, size=[IMG_SIZE, IMG_SIZE])
         image.set_shape([IMG_SIZE, IMG_SIZE, 3])
+        image = image / 127.5 - 1
 
     return image
 
@@ -155,16 +156,6 @@ def plot_predictions(images_list, colormap, model):
         plot_samples_matplotlib([image_tensor, overlay, prediction_colormap], idx, figsize=(14, 12))
 
 
-def lrfn(epoch):
-    if epoch < LR_RAMPUP_EPOCHS:
-        lr = (LR_MAX - LR_START) / LR_RAMPUP_EPOCHS * epoch + LR_START
-    elif epoch < LR_RAMPUP_EPOCHS + LR_SUSTAIN_EPOCHS:
-        lr = LR_MAX
-    else:
-        lr = (LR_MAX - LR_MIN) * LR_EXP_DECAY**(epoch - LR_RAMPUP_EPOCHS - LR_SUSTAIN_EPOCHS) + LR_MIN
-    return lr
-
-
 class DisplayCallback(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         clear_output(wait=True)
@@ -176,13 +167,14 @@ def get_model():
     with strategy.scope():
     
         if CATEGORICAL:
-            dice_loss = advisor.losses.DiceLoss(class_weights=CLASS_WEIGHTS)
-            categorical_focal_loss = advisor.losses.CategoricalFocalLoss()
-            loss = dice_loss + (1 * categorical_focal_loss)
+            # dice_loss = advisor.losses.DiceLoss(class_weights=CLASS_WEIGHTS)
+            # categorical_focal_loss = advisor.losses.CategoricalFocalLoss()
+            # loss = dice_loss + (1 * categorical_focal_loss)
+            loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
             metrics = tf.keras.metrics.OneHotMeanIoU(num_classes=len(CLASSES))
 
         else:
-            loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False)
+            loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
             metrics = "accuracy"
 
         optimizer = tf.keras.optimizers.Adam(learning_rate=LR_START)
@@ -198,18 +190,18 @@ if __name__ == "__main__":
     ROOT = "/data/Datasets/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
     SAVE_PATH = "/data/Models/segmentation"    
-    FOLDER = "AUGMENT_10"
+    FOLDER = "AUGMENT_50"
 
     VIS_SAMPLE = False
-    CATEGORICAL = True
+    CATEGORICAL = False
     BACKBONE_TRAINABLE = True
-    BACKBONE_NAME = "ResNet50" # Xception, ResNet50, ResNet101
+    BACKBONE_NAME = "ResNet101" # Xception, ResNet50, ResNet101
     FINAL_ACTIVATION = None # None, softmax
     SAVE_NAME = f"{ROOT.split('/')[-1]}-{BACKBONE_NAME}-{FOLDER}"
-    CKPT_PATH = "/data/Models/segmentation/VOC2012-ResNet50-BASIC-UNITY/best.ckpt"
+    CKPT_PATH = f"{SAVE_PATH}/VOC2012-ResNet101-BASIC/best.ckpt"
 
     BATCH_SIZE = 16
-    EPOCHS = 100
+    EPOCHS = 300
     IMG_SIZE = 320
     ES_PATIENT = 10
     
@@ -261,10 +253,10 @@ if __name__ == "__main__":
     print("Train Dataset:", train_dataset)
     print("Val Dataset:", valid_dataset)
 
-    CLASS_PER_PIXEL = analyze_dataset(train_masks, CLASSES, IMG_SIZE, IMG_SIZE)
-    CLASS_WEIGHTS = create_class_weight(CLASS_PER_PIXEL)
-    CLASS_WEIGHTS = list(CLASS_WEIGHTS.values())
-    CLASS_WEIGHTS = np.array(CLASS_WEIGHTS)
+    # CLASS_PER_PIXEL = analyze_dataset(train_masks, CLASSES, IMG_SIZE, IMG_SIZE)
+    # CLASS_WEIGHTS = create_class_weight(CLASS_PER_PIXEL)
+    # CLASS_WEIGHTS = list(CLASS_WEIGHTS.values())
+    # CLASS_WEIGHTS = np.array(CLASS_WEIGHTS)
 
     if VIS_SAMPLE:
         for item in train_dataset.take(4):
@@ -281,7 +273,9 @@ if __name__ == "__main__":
     callbacks = [DisplayCallback(),
                 #  tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=True),
                 #  tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=ES_PATIENT, verbose=1),
-                 tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_one_hot_mean_io_u', verbose=1, mode="max", save_best_only=True, save_weights_only=True)]
+                #  tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_one_hot_mean_io_u', verbose=1, mode="max", save_best_only=True, save_weights_only=True)
+                tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_loss', verbose=1, mode="min", save_best_only=True, save_weights_only=True)
+                 ]
 
     model = get_model()
     if CKPT_PATH != None:

@@ -2,7 +2,7 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import pandas as pd
 import tensorflow as tf
-from model import DeepLabV3Plus
+from train import DeeplabV3Plus
 from tflite_support.metadata_writers import image_segmenter, writer_utils
 
 
@@ -11,7 +11,7 @@ def load_model_with_ckpt(ckpt_path, include_infer=False):
     loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
     metrics=["accuracy"]
 
-    trained_model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(CLASSES), backbone_name=BACKBONE_NAME, backbone_trainable=BACKBONE_TRAINABLE, final_activation=FINAL_ACTIVATION)
+    trained_model = DeeplabV3Plus(IMG_SIZE, len(CLASSES))
     trained_model.load_weights(ckpt_path)
 
     if include_infer:
@@ -28,16 +28,17 @@ def load_model_with_ckpt(ckpt_path, include_infer=False):
 
 
 if __name__ == "__main__":
-    CKPT_PATH = "/data/Models/segmentation/VOC2012-ResNet101-AUGMENT_50/best.ckpt"
+    CKPT_PATH = "/data/Models/segmentation/V100/best.ckpt"
     LABEL_PATH = "/data/Datasets/VOCdevkit/VOC2012/Labels/class_labels.txt"
     SAVE_PATH = f"{'/'.join(CKPT_PATH.split('/')[:-1])}/saved_model"
     
     IMG_SIZE = 320
-    BACKBONE_NAME = CKPT_PATH.split('/')[-2].split('-')[1]
+    # BACKBONE_NAME = CKPT_PATH.split('/')[-2].split('-')[1]
+    BACKBONE_NAME = "ResNet101"
     BACKBONE_TRAINABLE = False
-    FINAL_ACTIVATION =  None
+    FINAL_ACTIVATION =  "softmax"
     
-    TFLITE_NAME = f"{CKPT_PATH.split('/')[-2]}"
+    TFLITE_NAME = f"model"
     INCLUDE_INFER = False
     
     label_df = pd.read_csv(LABEL_PATH, lineterminator='\n', header=None, index_col=False)

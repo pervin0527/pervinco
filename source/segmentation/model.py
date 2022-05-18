@@ -6,7 +6,6 @@ from tensorflow.keras.layers import AveragePooling2D, Lambda, Conv2D, Conv2DTran
 
 
 def Upsample(tensor, size):
-    '''bilinear upsampling'''
     name = tensor.name.split('/')[0] + '_upsample'
 
     def bilinear_upsample(x, size):
@@ -17,7 +16,6 @@ def Upsample(tensor, size):
 
 
 def ASPP(tensor):
-    '''atrous spatial pyramid pooling'''
     dims = K.int_shape(tensor)
 
     y_pool = AveragePooling2D(pool_size=(dims[1], dims[2]), name='average_pooling')(tensor)
@@ -52,8 +50,6 @@ def ASPP(tensor):
 
 
 def DeepLabV3Plus(img_height, img_width, nclasses=66, backbone_name="resnet50", backbone_trainable=False, final_activation=None):
-    print('*** Building DeepLabv3Plus Network ***')
-
     model_input = tf.keras.Input(shape=(img_width, img_height, 3))
     # model_input = tf.keras.layers.experimental.preprocessing.Rescaling(1.0 / 255.0)(model_input)
     # model_input = tf.keras.layers.experimental.preprocessing.Rescaling((1.0 / 127.5) - 1)(model_input)
@@ -116,5 +112,4 @@ def DeepLabV3Plus(img_height, img_width, nclasses=66, backbone_name="resnet50", 
         x = Activation(final_activation)(x)
 
     model = Model(inputs=base_model.input, outputs=x, name='DeepLabV3_Plus')
-    print(f'*** Output_Shape => {model.output_shape} ***')
     return model

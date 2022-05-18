@@ -53,19 +53,15 @@ def DilatedSpatialPyramidPooling(dspp_input):
     return output
 
 
-def DeeplabV3Plus(image_size, num_classes, activation=None):
+def DeeplabV3Plus(image_size, num_classes):
     model_input = tf.keras.Input(shape=(image_size, image_size, 3))
-    resnet50 = tf.keras.applications.ResNet50(weights="imagenet", include_top=False, input_tensor=model_input)
-    
-    # rescale = tf.keras.layers.experimental.preprocessing.Rescaling(1.0 / 255)(model_input)
-    # rescale = tf.keras.layers.experimental.preprocessing.Rescaling((1.0 / 127.5) - 1)(model_input)
-    # resnet50 = tf.keras.applications.ResNet50(weights="imagenet", include_top=False, input_tensor=rescale)
 
-    x = resnet50.get_layer("conv4_block6_2_relu").output
+    resnet101 = tf.keras.applications.ResNet101(weights="imagenet", include_top=False, input_tensor=model_input)
+    x = resnet101.get_layer("conv4_block23_1_relu").output
     x = DilatedSpatialPyramidPooling(x)
 
     input_a = tf.keras.layers.UpSampling2D(size=(image_size // 4 // x.shape[1], image_size // 4 // x.shape[2]), interpolation="bilinear",)(x)
-    input_b = resnet50.get_layer("conv2_block3_2_relu").output
+    input_b = resnet101.get_layer("conv2_block3_2_relu").output
     input_b = convolution_block(input_b, num_filters=48, kernel_size=1)
 
     print(input_a.shape, input_b.shape)
@@ -76,9 +72,6 @@ def DeeplabV3Plus(image_size, num_classes, activation=None):
     x = tf.keras.layers.UpSampling2D(size=(image_size // x.shape[1], image_size // x.shape[2]), interpolation="bilinear",)(x)
     
     model_output = tf.keras.layers.Conv2D(num_classes, kernel_size=(1, 1), padding="same")(x)
-    
-    if activation == "softmax":
-        model_output = tf.keras.layers.Activation("softmax")(model_output)
 
     return tf.keras.Model(inputs=model_input, outputs=model_output)
 
@@ -104,6 +97,7 @@ def read_image(image_path, mask=False):
         image = tf.image.decode_png(image, channels=3)
         image.set_shape([None, None, 3])
         image = tf.image.resize(images=image, size=[IMG_SIZE, IMG_SIZE])
+        image = image / 127.5 - 1
 
     return image
 
@@ -180,33 +174,6 @@ def plot_predictions(images_list, colormap, model):
         plot_samples_matplotlib([image_tensor, overlay, prediction_colormap], idx, figsize=(18, 14))
 
 
-def display_training_curves(history):
-    acc = history.history['accuracy']
-    val_acc = history.history['val_accuracy']
-
-    loss = history.history['loss']
-    val_loss = history.history['val_loss']
-
-    epochs_range = range(len(history.history['loss']))
-
-    plt.figure(figsize=(8, 8))
-    plt.subplot(1, 2, 1)
-    plt.plot(epochs_range, acc, label='Training Accuracy')
-    plt.plot(epochs_range, val_acc, label='Validation Accuracy')
-    plt.legend(loc='lower right')
-    plt.title('Training and Validation Accuracy')
-
-    plt.subplot(1, 2, 2)
-    plt.plot(epochs_range, loss, label='Training Loss')
-    plt.plot(epochs_range, val_loss, label='Validation Loss')
-    plt.legend(loc='upper right')
-    plt.title('Training and Validation Loss')
-    
-    plt.savefig(f"./train_result/train_history.png")
-    # plt.show()
-    plt.close()
-
-
 def get_images(masks):
     image_files = []
     for mask in masks:
@@ -220,10 +187,7 @@ def get_images(masks):
 class DisplayCallback(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         clear_output(wait=True)
-        
-        # idx = np.random.randint(len(valid_images))
-        # plot_predictions([valid_images[idx]], colormap, model=model)
-        
+                
         plot_predictions(valid_images[:4], COLORMAP, model=model)
 
 
@@ -231,14 +195,14 @@ if __name__ == "__main__":
     ROOT = "/data/Datasets/VOCdevkit/VOC2012"
     LABEL_PATH = f"{ROOT}/Labels/class_labels.txt"
     SAVE_PATH = "/data/Models/segmentation"
-    IS_SPLIT = True
-    FOLDER = "SAMPLE00"
+    IS_SPLIT = False
+    FOLDER = "BASIC"
 
-    BATCH_SIZE = 8
-    EPOCHS = 30
-    IMG_SIZE = 512
-    LEARNING_RATE = 0.00001
-    SAVE_NAME = f"custom-softmax"
+    BATCH_SIZE = 16
+    EPOCHS = 50
+    IMG_SIZE = 320
+    LEARNING_RATE = 0.0001
+    SAVE_NAME = f"LOCAL"
 
     label_df = pd.read_csv(LABEL_PATH, lineterminator='\n', header=None, index_col=False)
     CLASSES = label_df[0].to_list()
@@ -295,11 +259,13 @@ if __name__ == "__main__":
     print("Train Dataset:", train_dataset)
     print("Val Dataset:", valid_dataset)
 
-    model = DeeplabV3Plus(image_size=IMG_SIZE, num_classes=NUM_CLASSES, activation="softmax")
+    model = DeeplabV3Plus(image_size=IMG_SIZE, num_classes=NUM_CLASSES)
     model.summary()
 
+    optimizer = tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE)
     loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE), loss=loss, metrics=["accuracy"])
+    metrics=["accuracy"]
+    model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
 
     TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_images) / BATCH_SIZE).numpy())
     VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_images) / BATCH_SIZE).numpy())
@@ -316,7 +282,6 @@ if __name__ == "__main__":
                         verbose=1,
                         epochs=EPOCHS)
 
-    display_training_curves(history)
     plot_predictions(valid_images[:4], COLORMAP, model=model)
 
     run_model = tf.function(lambda x : model(x))

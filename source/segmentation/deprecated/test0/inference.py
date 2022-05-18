@@ -2,13 +2,11 @@ import os
 import sys
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import cv2
-import advisor
 import numpy as np
 np.set_printoptions(threshold=sys.maxsize)
 import tensorflow as tf
-
 from glob import glob
-from model import DeepLabV3Plus
+from train import DeeplabV3Plus
 
 
 def live_stream_inference(height, width):
@@ -21,12 +19,14 @@ def live_stream_inference(height, width):
         
         image = cv2.resize(frame, (IMG_SIZE, IMG_SIZE))
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        image = image / 127.5 - 1
         input_tensor = np.expand_dims(image, axis=0)
         
         prediction = model.predict(input_tensor)
         
         if prediction.shape[:-1] != IMG_SIZE:
             prediction = np.argmax(prediction[0], axis=-1)
+            print(prediction.shape)
 
         decoded_mask = decode_segmentation_masks(prediction)
         overlay_image = get_overlay(decoded_mask, cv2.resize(frame, (IMG_SIZE, IMG_SIZE)))
@@ -66,7 +66,7 @@ def load_model_with_ckpt(ckpt_path, include_infer=False):
     metrics = tf.keras.metrics.OneHotMeanIoU(num_classes=len(COLORMAP))
     optimizer = tf.keras.optimizers.Adam()
 
-    trained_model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(COLORMAP), backbone_name=BACKBONE_NAME, backbone_trainable=BACKBONE_TRAINABLE, final_activation=FINAL_ACTIVATION)
+    trained_model = DeeplabV3Plus(IMG_SIZE, len(COLORMAP))
     trained_model.load_weights(ckpt_path)
 
     if include_infer:
@@ -104,13 +104,13 @@ def get_overlay(image, colored_mask):
 
 
 if __name__ == "__main__":
-    CKPT_PATH = "/data/Models/segmentation/UNITY-ResNet101-AUGMENT_50/best.ckpt"
+    CKPT_PATH = "/data/Models/segmentation/LOCAL/best.ckpt"
     IMG_PATH = "/data/Datasets/VOCdevkit/VOC2012/BASIC/valid/images"
     INFERENCE = "video"
 
     IMG_SIZE = 320
-    BACKBONE_NAME = CKPT_PATH.split('/')[-2].split('-')[1]
-    print(BACKBONE_NAME)
+    # BACKBONE_NAME = CKPT_PATH.split('/')[-2].split('-')[1]
+    BACKBONE_NAME = "ResNet101"
     BACKBONE_TRAINABLE = False
     FINAL_ACTIVATION =  None
     INCLUDE_INFER = False
