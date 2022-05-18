@@ -51,7 +51,7 @@ if __name__ == "__main__":
     image_path = "./images/sample/airplane.jpg"
 
     COLORMAP = [[0, 0, 0], # background
-                [0, 255, 255], # aeroplane
+                [128, 0, 0], # aeroplane
                 [0, 128, 0], # bicycle
                 [128, 128, 0], # bird
                 [0, 0, 128], # boat
@@ -96,11 +96,11 @@ if __name__ == "__main__":
     predictions = interpreter.get_tensor(output_details[0]['index'])
     print(predictions.shape)
 
-    whole_matrix = predictions[0]
-    for channel in range(len(COLORMAP)):
-        matrix = whole_matrix[:,:,channel]
-        print(matrix.shape)
-        np.savetxt(f'./images/matrix/{channel}.txt', matrix, delimiter=',')
+    # whole_matrix = predictions[0]
+    # for channel in range(len(COLORMAP)):
+    #     matrix = whole_matrix[:,:,channel]
+    #     print(matrix.shape)
+    #     np.savetxt(f'./images/matrix/{channel}.txt', matrix, delimiter=',')
 
     if predictions[0].shape[-1] == len(COLORMAP):        
         predictions = np.argmax(predictions[0], axis=-1)

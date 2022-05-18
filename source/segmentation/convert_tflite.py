@@ -42,8 +42,8 @@ if __name__ == "__main__":
     BACKBONE_TRAINABLE = False
     FINAL_ACTIVATION =  None
     
-    INCLUDE_INFER = True
-    TFLITE_NAME = f"{CKPT_PATH.split('/')[-2]}_inference"
+    TFLITE_NAME = f"model"
+    INCLUDE_INFER = False
     
     label_df = pd.read_csv(LABEL_PATH, lineterminator='\n', header=None, index_col=False)
     CLASSES = label_df[0].to_list()

@@ -24,8 +24,6 @@ def live_stream_inference(height, width):
         input_tensor = np.expand_dims(image, axis=0)
         
         prediction = model.predict(input_tensor)
-        print(prediction[0])
-        break
         
         if prediction.shape[:-1] != IMG_SIZE:
             prediction = np.argmax(prediction[0], axis=-1)
