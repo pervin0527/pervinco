@@ -47,6 +47,7 @@ def get_overlay(image, colored_mask):
 
 if __name__ == "__main__":
     model_path = "/data/Models/segmentation/UNITY-ResNet101-AUGMENT_50/saved_model/model.tflite"
+    # model_path = "/data/Models/segmentation/UNITY-ResNet101-AUGMENT_50/saved_model/model-include_infer.tflite"
     # model_path = "/data/Models/segmentation/BACKUP/deeplabv3_257_mv_gpu.tflite"
     # model_path = "/data/Models/segmentation/BACKUP/model_fp32_meta.tflite"
     image_path = "./images/sample/airplane.jpg"
@@ -88,6 +89,7 @@ if __name__ == "__main__":
 
     image = cv2.imread(image_path)
     image = cv2.resize(image, (height, width))
+    # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     input_tensor = np.expand_dims(image, axis=0)
 
     # interpreter.set_tensor(input_details[0]['index'], input_tensor.astype(np.uint8))
