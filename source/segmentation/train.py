@@ -163,12 +163,7 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 
 class Sparse_MeanIoU(tf.keras.metrics.MeanIoU):
-  def __init__(self,
-               y_true=None,
-               y_pred=None,
-               num_classes=None,
-               name=None,
-               dtype=None):
+  def __init__(self, y_true=None, y_pred=None, num_classes=None, name=None, dtype=None):
     super(Sparse_MeanIoU, self).__init__(num_classes = num_classes,name=name, dtype=dtype)
 
   def update_state(self, y_true, y_pred, sample_weight=None):
@@ -212,7 +207,7 @@ if __name__ == "__main__":
     BACKBONE_NAME = "ResNet101" # Xception, ResNet50, ResNet101
     FINAL_ACTIVATION = None # None, softmax
     SAVE_NAME = f"{ROOT.split('/')[-1]}-{BACKBONE_NAME}-{FOLDER}"
-    CKPT_PATH = f"{SAVE_PATH}/VOC2012-ResNet101-BASIC/best.ckpt"
+    CKPT_PATH = f"{SAVE_PATH}/VOC2012-ResNet101-AUGMENT_50/best.ckpt"
 
     BATCH_SIZE = 16
     EPOCHS = 300
@@ -230,27 +225,28 @@ if __name__ == "__main__":
     CLASSES = label_df[0].to_list()
     print(CLASSES)
 
-    COLORMAP = [[0, 0, 0], # background
-                [128, 0, 0], # aeroplane
-                [0, 128, 0], # bicycle
-                [128, 128, 0], # bird
-                [0, 0, 128], # boat
-                [128, 0, 128], # bottle
-                [0, 128, 128], # bus
-                [128, 128, 128], # car
-                [64, 0, 0], # cat
-                [192, 0, 0], # chair
-                [64, 128, 0], # cow
-                [192, 128, 0], # diningtable
-                [64, 0, 128], # dog
-                [192, 0, 128], # horse
-                [64, 128, 128], # motorbike
-                [192, 128, 128], # person
-                [0, 64, 0], # potted plant
-                [128, 64, 0], # sheep
-                [0, 192, 0], # sofa
-                [128, 192, 0], # train
-                [0, 64, 128] # tv/monitor
+    COLORMAP = [
+        [0, 0, 0], # background
+        [128, 0, 0], # aeroplane
+        [0, 128, 0], # bicycle
+        [128, 128, 0], # bird
+        [0, 0, 128], # boat
+        [128, 0, 128], # bottle
+        [0, 128, 128], # bus
+        [128, 128, 128], # car
+        [64, 0, 0], # cat
+        [192, 0, 0], # chair
+        [64, 128, 0], # cow
+        [192, 128, 0], # diningtable
+        [64, 0, 128], # dog
+        [192, 0, 128], # horse
+        [64, 128, 128], # motorbike
+        [192, 128, 128], # person
+        [0, 64, 0], # potted plant
+        [128, 64, 0], # sheep
+        [0, 192, 0], # sofa
+        [128, 192, 0], # train
+        [0, 64, 128] # tv/monitor
     ]
     COLORMAP = np.array(COLORMAP, dtype=np.uint8)
 
@@ -284,24 +280,28 @@ if __name__ == "__main__":
     TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_images) / BATCH_SIZE).numpy())
     VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_images) / BATCH_SIZE).numpy())
 
-    callbacks = [DisplayCallback(),
-                # tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=True),
-                # tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=ES_PATIENT, verbose=1),
-                # tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_one_hot_mean_io_u', verbose=1, mode="max", save_best_only=True, save_weights_only=True)
-                # tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_loss', verbose=1, mode="min", save_best_only=True, save_weights_only=True)
-                tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_sparse__mean_io_u', verbose=1, mode="max", save_best_only=True, save_weights_only=True)
-                 ]
+    callbacks = [
+        DisplayCallback(),
+        # tf.keras.callbacks.LearningRateScheduler(lrfn, verbose=True),
+        # tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=ES_PATIENT, verbose=1),
+        # tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_one_hot_mean_io_u', verbose=1, mode="max", save_best_only=True, save_weights_only=True)
+        # tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_loss', verbose=1, mode="min", save_best_only=True, save_weights_only=True)
+        tf.keras.callbacks.ModelCheckpoint(f"{SAVE_PATH}/{SAVE_NAME}/best.ckpt", monitor='val_sparse__mean_io_u', verbose=1, mode="max", save_best_only=True, save_weights_only=True)
+    ]
 
     model = get_model()
     if CKPT_PATH != None:
         model.load_weights(CKPT_PATH)
-    history = model.fit(train_dataset,
-                        steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
-                        validation_data=valid_dataset,
-                        validation_steps=VALID_STEPS_PER_EPOCH,
-                        callbacks=callbacks,
-                        verbose=1,
-                        epochs=EPOCHS)
+        
+    history = model.fit(
+        train_dataset,
+        steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
+        validation_data=valid_dataset,
+        validation_steps=VALID_STEPS_PER_EPOCH,
+        callbacks=callbacks,
+        verbose=1,
+        epochs=EPOCHS
+    )
 
     plot_predictions(valid_images[:4], COLORMAP, model=model)
 
