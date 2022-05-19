@@ -46,10 +46,7 @@ def get_overlay(image, colored_mask):
 
 
 if __name__ == "__main__":
-    model_path = "/data/Models/segmentation/UNITY-ResNet101-AUGMENT_50/saved_model/model.tflite"
-    # model_path = "/data/Models/segmentation/UNITY-ResNet101-AUGMENT_50/saved_model/model-include_infer.tflite"
-    # model_path = "/data/Models/segmentation/BACKUP/deeplabv3_257_mv_gpu.tflite"
-    # model_path = "/data/Models/segmentation/BACKUP/model_fp32_meta.tflite"
+    model_path = "/data/Models/segmentation/VOC2012-ResNet101-AUGMENT_50-server/saved_model/VOC2012-ResNet101-AUGMENT_50-server-meta.tflite"
     image_path = "./images/sample/airplane.jpg"
 
     COLORMAP = [[0, 0, 0], # background
@@ -83,13 +80,12 @@ if __name__ == "__main__":
     output_details = interpreter.get_output_details()
 
     print(input_details)
-    height, width = input_details[0]['shape'][1], input_details[0]['shape'][2]
-    print()
     print(output_details)
+    height, width = input_details[0]['shape'][1], input_details[0]['shape'][2]
 
     image = cv2.imread(image_path)
     image = cv2.resize(image, (height, width))
-    # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    image = image / 127.5 - 1
     input_tensor = np.expand_dims(image, axis=0)
 
     # interpreter.set_tensor(input_details[0]['index'], input_tensor.astype(np.uint8))
@@ -97,8 +93,6 @@ if __name__ == "__main__":
     interpreter.invoke()
 
     predictions = interpreter.get_tensor(output_details[0]['index'])
-    print(predictions.shape)
-    print(predictions[0])
 
     # whole_matrix = predictions[0]
     # for channel in range(len(COLORMAP)):

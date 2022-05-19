@@ -1,7 +1,7 @@
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import cv2
-import advisor
+# import advisor
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -12,7 +12,6 @@ import matplotlib.pyplot as plt
 from glob import glob
 from model import DeepLabV3Plus
 from IPython.display import clear_output
-from sklearn.model_selection import KFold
 from calculate_class_weights import analyze_dataset, create_class_weight
 
 # GPU setup
@@ -165,17 +164,28 @@ class DisplayCallback(tf.keras.callbacks.Callback):
         plot_predictions(valid_images[:4], COLORMAP, model=model)
 
 
+class Sparse_MeanIoU(tf.keras.metrics.MeanIoU):
+  def __init__(self, y_true=None, y_pred=None, num_classes=None, name=None, dtype=None):
+    super(Sparse_MeanIoU, self).__init__(num_classes = num_classes,name=name, dtype=dtype)
+
+  def update_state(self, y_true, y_pred, sample_weight=None):
+    y_pred = tf.math.argmax(y_pred, axis=-1)
+    return super().update_state(y_true, y_pred, sample_weight)
+
+
 def get_model():
     with strategy.scope():
     
         if CATEGORICAL:
-            dice_loss = advisor.losses.DiceLoss(class_weights=CLASS_WEIGHTS)
-            categorical_focal_loss = advisor.losses.CategoricalFocalLoss()
-            loss = dice_loss + (1 * categorical_focal_loss)
-            metrics = tf.keras.metrics.OneHotMeanIoU(num_classes=len(CLASSES))
+            # dice_loss = advisor.losses.DiceLoss(class_weights=CLASS_WEIGHTS)
+            # categorical_focal_loss = advisor.losses.CategoricalFocalLoss()
+            # loss = dice_loss + (1 * categorical_focal_loss)
+            # metrics = tf.keras.metrics.OneHotMeanIoU(num_classes=len(CLASSES))
+            loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
+            metrics = Sparse_MeanIoU(num_classes=len(CLASSES))
 
         else:
-            loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False)
+            loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
             metrics = "accuracy"
 
         optimizer = tf.keras.optimizers.Adam(learning_rate=LR_START)

@@ -26,10 +26,10 @@ def save_params():
 
 param = dict(
     ## PATH
-    DATASET_PATH = "/data/Datasets/VOCdevkit/VOC2012/BASIC",
+    DATASET_PATH = "/data/Datasets/VOCdevkit/VOC2012/AUGMENT_50",
     LABEL_PATH = "/data/Datasets/VOCdevkit/VOC2012/Labels/labels.txt",
-    SAVE_PATH = "/data/Models/segmentation/TEST-BASIC",
-    CKPT = None,
+    SAVE_PATH = "/data/Models/segmentation/TEST-AUGMENT_50",
+    CKPT = "/data/Models/segmentation/TEST-BASIC/best.ckpt",
 
     ## PARAMETERS
     BATCH_SIZE = 16,

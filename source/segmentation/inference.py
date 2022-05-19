@@ -68,7 +68,7 @@ def load_model_with_ckpt(ckpt_path, include_infer=False):
     metrics = tf.keras.metrics.OneHotMeanIoU(num_classes=len(COLORMAP))
     optimizer = tf.keras.optimizers.Adam()
 
-    trained_model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(COLORMAP), backbone_name=BACKBONE_NAME, backbone_trainable=BACKBONE_TRAINABLE, final_activation=FINAL_ACTIVATION)
+    trained_model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(COLORMAP), backbone_name=BACKBONE_NAME, backbone_trainable=False, final_activation=None)
     trained_model.load_weights(ckpt_path)
 
     if include_infer:
@@ -112,10 +112,8 @@ if __name__ == "__main__":
 
     IMG_SIZE = 320
     BACKBONE_NAME = CKPT_PATH.split('/')[-2].split('-')[1]
-    BACKBONE_TRAINABLE = False
-    FINAL_ACTIVATION =  None
     INCLUDE_INFER = False
-    OUTPUT_SIZE = 320, 320
+    OUTPUT_SIZE = 960, 720
 
     COLORMAP = [[0, 0, 0], # background
                 [128, 0, 0], # aeroplane
