@@ -2,7 +2,7 @@ import os
 import sys
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import cv2
-import advisor
+import timeit
 import numpy as np
 np.set_printoptions(threshold=sys.maxsize)
 import tensorflow as tf
@@ -18,9 +18,12 @@ def live_stream_inference(height, width):
     
     while cv2.waitKey(33) != ord('q'):
         ret, frame = capture.read()
+
+        start_time = timeit.default_timer()
         
         image = cv2.resize(frame, (IMG_SIZE, IMG_SIZE))
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        image = image / 127.5 - 1
         input_tensor = np.expand_dims(image, axis=0)
         
         prediction = model.predict(input_tensor)
@@ -31,7 +34,10 @@ def live_stream_inference(height, width):
         decoded_mask = decode_segmentation_masks(prediction)
         overlay_image = get_overlay(decoded_mask, cv2.resize(frame, (IMG_SIZE, IMG_SIZE)))
 
+        end_time = timeit.default_timer()
+        fps = int(1./(end_time - start_time))
         cv2.imshow("PREDICTION", cv2.resize(overlay_image, (height, width)))
+        print(fps)
 
     capture.release()
     cv2.destroyAllWindows()
@@ -57,11 +63,7 @@ def image_file_inference(height, width):
         cv2.waitKey(0)
 
 
-def load_model_with_ckpt(ckpt_path, include_infer=False):
-    # dice_loss = advisor.losses.DiceLoss()
-    # categorical_focal_loss = advisor.losses.CategoricalFocalLoss()
-    # loss = dice_loss + (1 * categorical_focal_loss)
-    
+def load_model_with_ckpt(ckpt_path, include_infer=False):  
     loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
     metrics = tf.keras.metrics.OneHotMeanIoU(num_classes=len(COLORMAP))
     optimizer = tf.keras.optimizers.Adam()
@@ -104,17 +106,16 @@ def get_overlay(image, colored_mask):
 
 
 if __name__ == "__main__":
-    CKPT_PATH = "/data/Models/segmentation/UNITY-ResNet101-AUGMENT_50/best.ckpt"
+    CKPT_PATH = "/data/Models/segmentation/VOC2012-ResNet101-AUGMENT_50-server/best.ckpt"
     IMG_PATH = "/data/Datasets/VOCdevkit/VOC2012/BASIC/valid/images"
     INFERENCE = "video"
 
     IMG_SIZE = 320
     BACKBONE_NAME = CKPT_PATH.split('/')[-2].split('-')[1]
-    print(BACKBONE_NAME)
     BACKBONE_TRAINABLE = False
     FINAL_ACTIVATION =  None
     INCLUDE_INFER = False
-    OUTPUT_SIZE = 960, 720
+    OUTPUT_SIZE = 320, 320
 
     COLORMAP = [[0, 0, 0], # background
                 [128, 0, 0], # aeroplane

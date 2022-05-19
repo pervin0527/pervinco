@@ -61,7 +61,7 @@ if __name__ == "__main__":
     save_ckpt = params["SAVE_PATH"]
     callbacks = [
         DisplayCallback(),
-        tf.keras.callbacks.ModelCheckpoint(f"{save_ckpt}/best,ckpt", monitor="val_sparse__mean_io_u", verbose=1, mode="max", save_best_only=True, save_weights_only=True)
+        tf.keras.callbacks.ModelCheckpoint(f"{save_ckpt}/best.ckpt", monitor="val_sparse__mean_io_u", verbose=1, mode="max", save_best_only=True, save_weights_only=True)
     ]
 
     data_dir = params["DATASET_PATH"]

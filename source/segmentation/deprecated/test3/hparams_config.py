@@ -28,7 +28,8 @@ param = dict(
     ## PATH
     DATASET_PATH = "/data/Datasets/VOCdevkit/VOC2012/BASIC",
     LABEL_PATH = "/data/Datasets/VOCdevkit/VOC2012/Labels/labels.txt",
-    SAVE_PATH = "/data/Models/segmentation/TEST/",
+    SAVE_PATH = "/data/Models/segmentation/TEST-BASIC",
+    CKPT = None,
 
     ## PARAMETERS
     BATCH_SIZE = 16,
@@ -47,7 +48,6 @@ param = dict(
     BACKBONE_NAME = "EfficientNetB3",
     BACKBONE_TRAINABLE = True,
     FINAL_ACTIVATION = None,
-    CKPT = None,
 
     COLORMAP = [
         [0, 0, 0], # background
