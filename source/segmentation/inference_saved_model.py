@@ -1,17 +1,12 @@
-import os
-import sys
-
 import yaml
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import cv2
 import timeit
 import numpy as np
-np.set_printoptions(threshold=sys.maxsize)
 import tensorflow as tf
 
 from glob import glob
 from model import DeepLabV3Plus
-
+from metrics import Sparse_MeanIoU
 
 def live_stream_inference(height, width):
     capture = cv2.VideoCapture(-1)  
@@ -51,6 +46,7 @@ def image_file_inference(height, width):
         image = cv2.imread(image_file)
         image = cv2.resize(image, (IMG_SIZE, IMG_SIZE))
         input_tensor = np.expand_dims(image, axis=0)
+        input_tensor = input_tensor / 127.5 - 1
 
         prediction = model.predict(input_tensor)
         prediction = np.argmax(prediction[0], axis=-1)
@@ -63,10 +59,14 @@ def image_file_inference(height, width):
 
 
 def load_model_with_ckpt(ckpt_path, include_infer=False):  
-    loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
-    metrics = tf.keras.metrics.OneHotMeanIoU(num_classes=len(COLORMAP))
-    optimizer = tf.keras.optimizers.Adam()
+    if config["ONE_HOT"]:
+        loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
+        metrics = tf.keras.metrics.OneHotMeanIoU(num_classes=len(config["CLASSES"]))
+    else:
+        loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+        metrics = Sparse_MeanIoU(num_classes=len(config["CLASSES"]))
 
+    optimizer = tf.keras.optimizers.Adam(learning_rate=config["LR_START"])
     trained_model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(COLORMAP), backbone_name=BACKBONE_NAME, backbone_trainable=False, final_activation=None)
     trained_model.load_weights(ckpt_path)
 
@@ -105,12 +105,12 @@ def get_overlay(image, colored_mask):
 
 
 if __name__ == "__main__":
-    model_dir = "/data/Models/segmentation/TEST-BASIC"
+    model_dir = "/data/Models/segmentation/VOC2012-ResNet101-AUGMENT_50"
     ckpt = f"{model_dir}/best.ckpt"
     inference_layer = False
     output_shape = 960, 720
 
-    inference_type = "images"
+    inference_type = "video" # video, images
     img_dir = "/data/Datasets/VOCdevkit/VOC2012/BASIC/valid/images"
 
     with open(f"{model_dir}/config.yaml") as f:
@@ -148,6 +148,6 @@ if __name__ == "__main__":
     if inference_type.lower() == "video":
         live_stream_inference(output_shape[0], output_shape[1])
 
-    else:
+    elif inference_type.lower() == "images":
         image_file_inference(output_shape[0], output_shape[1])
 

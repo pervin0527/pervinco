@@ -1,12 +1,12 @@
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow as tf
+from IPython.display import clear_output
+from hparams_config import send_params, save_params
 from model import DeepLabV3Plus
 from utils import plot_predictions
 from metrics import Sparse_MeanIoU
-from hparams_config import send_params, save_params
 from data import get_file_list, data_generator
-from IPython.display import clear_output
 
 # GPU setup
 gpus = tf.config.experimental.list_physical_devices('GPU')

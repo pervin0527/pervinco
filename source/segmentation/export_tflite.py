@@ -1,21 +1,20 @@
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-import pandas as pd
+import yaml
 import tensorflow as tf
 from model import DeepLabV3Plus
 from metrics import Sparse_MeanIoU
-from hparams_config import send_params
 from tflite_support.metadata_writers import image_segmenter, writer_utils
 
 
 def load_model_with_ckpt(ckpt_path, include_infer=False):
-    if params["ONE_HOT"]:
+    if config["ONE_HOT"]:
         loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
-        metrics = tf.keras.metrics.OneHotMeanIoU(num_classes=len(params["CLASSES"]))
+        metrics = tf.keras.metrics.OneHotMeanIoU(num_classes=len(config["CLASSES"]))
     else:
         loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-        metrics = Sparse_MeanIoU(num_classes=len(params["CLASSES"]))
-    optimizer = tf.keras.optimizers.Adam(learning_rate=params["LR_START"])
+        metrics = Sparse_MeanIoU(num_classes=len(config["CLASSES"]))
+    optimizer = tf.keras.optimizers.Adam(learning_rate=config["LR_START"])
 
     model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(CLASSES),
                           backbone_name=BACKBONE_NAME, backbone_trainable=BACKBONE_TRAINABLE,
@@ -32,21 +31,23 @@ def load_model_with_ckpt(ckpt_path, include_infer=False):
 
 
 if __name__ == "__main__":
-    CKPT_PATH = "/data/Models/segmentation/TEST-BASIC/best.ckpt"
-
-    params = send_params(show_contents=False)
-    SAVE_PATH = params["SAVE_PATH"] + "/saved_model"
-    IMG_SIZE = params["IMG_SIZE"]
-    BACKBONE_NAME = params["BACKBONE_NAME"]
-    BACKBONE_TRAINABLE = False
-    FINAL_ACTIVATION =  params["FINAL_ACTIVATION"]
-    TFLITE_NAME = f"{CKPT_PATH.split('/')[-2]}"
-    INCLUDE_INFER = False
+    model_dir = "/data/Models/segmentation/VOC2012-ResNet101-AUGMENT_50"
+    ckpt = f"{model_dir}/best.ckpt"
     
-    CLASSES = params["CLASSES"]
+    with open(f"{model_dir}/config.yaml") as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
+    
+    SAVE_PATH = config["SAVE_PATH"] + "/saved_model"
+    IMG_SIZE = config["IMG_SIZE"]
+    BACKBONE_NAME = config["BACKBONE_NAME"]
+    BACKBONE_TRAINABLE = False
+    FINAL_ACTIVATION =  config["FINAL_ACTIVATION"]
+    TFLITE_NAME = f"{ckpt.split('/')[-2]}"
+    INCLUDE_INFER = False
+    CLASSES = config["CLASSES"]
     print(CLASSES)
 
-    model = load_model_with_ckpt(CKPT_PATH, INCLUDE_INFER)
+    model = load_model_with_ckpt(ckpt, INCLUDE_INFER)
     model.summary()
 
     run_model = tf.function(lambda x : model(x))
@@ -69,6 +70,6 @@ if __name__ == "__main__":
     _INPUT_NORM_STD = 127.5
 
     writer = ImageSegmenterWriter.create_for_inference(writer_utils.load_file(f"{SAVE_PATH}/{TFLITE_NAME}.tflite"),
-                                                      [_INPUT_NORM_MEAN], [_INPUT_NORM_STD], [params["LABEL_PATH"]])
+                                                      [_INPUT_NORM_MEAN], [_INPUT_NORM_STD], [config["LABEL_PATH"]])
     writer_utils.save_file(writer.populate(), f"{SAVE_PATH}/{TFLITE_NAME}-meta.tflite")
     print("Export tflite with metadata Finished")

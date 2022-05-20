@@ -1,7 +1,5 @@
-import sys
 import cv2
 import numpy as np
-np.set_printoptions(threshold=sys.maxsize)
 import tensorflow as tf
 
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -46,7 +44,7 @@ def get_overlay(image, colored_mask):
 
 
 if __name__ == "__main__":
-    model_path = "/data/Models/segmentation/VOC2012-ResNet101-AUGMENT_50-server/saved_model/VOC2012-ResNet101-AUGMENT_50-server-meta.tflite"
+    model_path = "/data/Models/segmentation/VOC2012-ResNet101-AUGMENT_50/saved_model/VOC2012-ResNet101-AUGMENT_50.tflite"
     image_path = "./images/sample/airplane.jpg"
 
     COLORMAP = [[0, 0, 0], # background
@@ -111,5 +109,5 @@ if __name__ == "__main__":
 
     cv2.imwrite("./images/sample/prediction.jpg", decode_pred)
     cv2.imwrite("./images/sample/overlay.jpg", overlay_image)
-    # cv2.imshow("result", overlay_image)
-    # cv2.waitKey(0)
+    cv2.imshow("result", overlay_image)
+    cv2.waitKey(0)
