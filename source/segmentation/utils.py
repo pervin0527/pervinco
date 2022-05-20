@@ -64,4 +64,4 @@ def plot_predictions(images_list, colormap, model):
         prediction_mask = infer(image_tensor=image_tensor, model=model)
         prediction_colormap = decode_segmentation_masks(prediction_mask, colormap, len(colormap))
         overlay = get_overlay(image_tensor, prediction_colormap)
-        plot_samples_matplotlib([image_tensor, overlay, prediction_colormap], idx, figsize=(8, 8))
+        plot_samples_matplotlib([image_tensor, overlay, prediction_colormap], idx, figsize=(7, 5))

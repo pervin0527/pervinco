@@ -103,4 +103,3 @@ if __name__ == "__main__":
     )
 
     plot_predictions(valid_images[:5], params["COLORMAP"], model=model)
-    save_params()

@@ -13,32 +13,32 @@ def send_params(show_contents):
     param.update({"CLASSES":read_label_file(param["LABEL_PATH"])})
     if show_contents:
         print(param)
-
+    
+    save_params()
     return param
     
 def save_params():
     if not os.path.isdir(param["SAVE_PATH"]):
         os.makedirs(param["SAVE_PATH"])
 
-    del param["COLORMAP"]
     with open(param["SAVE_PATH"] + "/config.yaml", "w") as f:
         yaml.dump(param, f)
 
 param = dict(
     ## PATH
-    DATASET_PATH = "/data/Datasets/VOCdevkit/VOC2012/AUGMENT_50",
+    DATASET_PATH = "/data/Datasets/VOCdevkit/VOC2012/BASIC",
     LABEL_PATH = "/data/Datasets/VOCdevkit/VOC2012/Labels/labels.txt",
-    SAVE_PATH = "/data/Models/segmentation/TEST-AUGMENT_50",
-    CKPT = "/data/Models/segmentation/TEST-BASIC/best.ckpt",
+    SAVE_PATH = "/data/Models/segmentation/VOC2012-RestNet50-BASIC",
+    CKPT = None,
 
     ## PARAMETERS
     BATCH_SIZE = 16,
-    EPOCHS = 50,
+    EPOCHS = 100,
     IMG_SIZE = 320,
     ES_PATIENT = 10,
     ONE_HOT = False,
     FINAL_ACTIVATION = None,
-    BACKBONE_NAME = "EfficientNetB3",
+    BACKBONE_NAME = "ResNet50",
     BACKBONE_TRAINABLE = True,
 
     LR_START = 0.0001,
