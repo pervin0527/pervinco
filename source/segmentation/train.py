@@ -92,6 +92,7 @@ if __name__ == "__main__":
     VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_images) / params["BATCH_SIZE"]).numpy())
 
     model = build_model(params["CKPT"])
+    save_params()
     history = model.fit(
         train_dataset,
         steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
