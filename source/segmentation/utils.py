@@ -57,33 +57,11 @@ def plot_samples_matplotlib(display_list, idx, figsize=(5, 3)):
     # plt.show()
     plt.close()
 
-    COLORMAP = [
-        [0, 0, 0], # background
-        [128, 0, 0], # aeroplane
-        [0, 128, 0], # bicycle
-        [128, 128, 0], # bird
-        [0, 0, 128], # boat
-        [128, 0, 128], # bottle
-        [0, 128, 128], # bus
-        [128, 128, 128], # car
-        [64, 0, 0], # cat
-        [192, 0, 0], # chair
-        [64, 128, 0], # cow
-        [192, 128, 0], # diningtable
-        [64, 0, 128], # dog
-        [192, 0, 128], # horse
-        [64, 128, 128], # motorbike
-        [192, 128, 128], # person
-        [0, 64, 0], # potted plant
-        [128, 64, 0], # sheep
-        [0, 192, 0], # sofa
-        [128, 192, 0], # train
-        [0, 64, 128] # tv/monitor
-    ]
+
 def plot_predictions(images_list, colormap, model):
     for idx, image_file in enumerate(images_list):
         image_tensor = read_image(image_file, num_classes, img_size, one_hot)
         prediction_mask = infer(image_tensor=image_tensor, model=model)
         prediction_colormap = decode_segmentation_masks(prediction_mask, colormap, len(colormap))
         overlay = get_overlay(image_tensor, prediction_colormap)
-        plot_samples_matplotlib([image_tensor, overlay, prediction_colormap], idx, figsize=(14, 12))
+        plot_samples_matplotlib([image_tensor, overlay, prediction_colormap], idx, figsize=(8, 8))
