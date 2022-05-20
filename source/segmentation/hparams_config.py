@@ -4,16 +4,17 @@ import numpy as np
 import pandas as pd
 
 data_dir = "/data/Datasets/VOCdevkit/VOC2012"
+save_dir = "/data/Models/segmentation"
 folder = "BASIC"
 backbone_name = "ResNet50"
-backbone_trainable = True
 checkpoint_dir = None
 
 batch_size = 16
-epochs = 300
+epochs = 50
 image_size = 320
 early_stopping_patient = 10
 
+backbone_trainable = True
 one_hot_encoding = False
 final_activation = None
 
@@ -55,7 +56,7 @@ param = dict(
 
     DATASET_PATH = f"{data_dir}/{folder}",
     LABEL_PATH = f"{data_dir}/Labels/labels.txt",
-    SAVE_PATH = f"/data/Models/segmentation/{data_dir.split('/')[-1]}-{folder}-{backbone_name}",
+    SAVE_PATH = f"{save_dir}/{data_dir.split('/')[-1]}-{folder}-{backbone_name}",
     CKPT = checkpoint_dir,
 
     LR_START = learning_rate,

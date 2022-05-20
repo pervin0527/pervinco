@@ -31,7 +31,7 @@ def load_model_with_ckpt(ckpt_path, include_infer=False):
 
 
 if __name__ == "__main__":
-    model_dir = "/data/Models/segmentation/VOC2012-ResNet101-AUGMENT_50"
+    model_dir = "/data/Models/segmentation/VOC2012-BASIC-ResNet50"
     ckpt = f"{model_dir}/best.ckpt"
     
     with open(f"{model_dir}/config.yaml") as f:
