@@ -39,14 +39,18 @@ def build_model(checkpoint):
     with strategy.scope():
         if params["ONE_HOT"]:
             loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
-            metrics = tf.keras.losses.OneHotMeanIoU(num_classes=len(params["CLASSES"]))
+            metrics = tf.keras.metrics.OneHotMeanIoU(num_classes=len(params["CLASSES"]))
         else:
             loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
             metrics = Sparse_MeanIoU(num_classes=len(params["CLASSES"]))
 
         optimizer = tf.keras.optimizers.Adam(learning_rate=params["LR_START"])
         
-        model = DeepLabV3Plus(params["IMG_SIZE"], params["IMG_SIZE"], len(params["CLASSES"]), backbone_name=params["BACKBONE_NAME"], backbone_trainable=params["BACKBONE_TRAINABLE"], final_activation=params["FINAL_ACTIVATION"])
+        model = DeepLabV3Plus(params["IMG_SIZE"], params["IMG_SIZE"],
+                              len(params["CLASSES"]),
+                              backbone_name=params["BACKBONE_NAME"],
+                              backbone_trainable=params["BACKBONE_TRAINABLE"],
+                              final_activation=params["FINAL_ACTIVATION"])
         model.compile(optimizer=optimizer, loss=loss, metrics=[metrics])
         model.summary()
 
@@ -59,9 +63,16 @@ def build_model(checkpoint):
 if __name__ == "__main__":
     params = send_params(show_contents=False)
     save_ckpt = params["SAVE_PATH"]
+    one_hot = params["ONE_HOT"]
+    monitor = None
+    if one_hot: 
+        monitor = "val_one_hot_mean_io_u"
+    else: 
+        monitor = "val_sparse__mean_io_u"
     callbacks = [
         DisplayCallback(),
-        tf.keras.callbacks.ModelCheckpoint(f"{save_ckpt}/best.ckpt", monitor="val_sparse__mean_io_u", verbose=1, mode="max", save_best_only=True, save_weights_only=True)
+        tf.keras.callbacks.ModelCheckpoint(f"{save_ckpt}/best.ckpt", monitor=monitor,
+                                           verbose=1, mode="max", save_best_only=True, save_weights_only=True)
     ]
 
     data_dir = params["DATASET_PATH"]

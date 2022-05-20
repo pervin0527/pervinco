@@ -34,6 +34,7 @@ def read_image(image_path, num_classes, img_size, one_hot_encoding, mask=False):
         image = tf.image.resize(images=image, size=[img_size, img_size])
         image.set_shape([img_size, img_size, 3])
         image = image / 127.5 - 1
+        # image = image / 255.0
 
     return image
 

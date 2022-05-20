@@ -33,10 +33,13 @@ param = dict(
 
     ## PARAMETERS
     BATCH_SIZE = 16,
-    EPOCHS = 300,
+    EPOCHS = 50,
     IMG_SIZE = 320,
     ES_PATIENT = 10,
     ONE_HOT = False,
+    FINAL_ACTIVATION = None,
+    BACKBONE_NAME = "EfficientNetB3",
+    BACKBONE_TRAINABLE = True,
 
     LR_START = 0.0001,
     LR_MAX = 0.0005,
@@ -45,10 +48,6 @@ param = dict(
     LR_SUSTAIN_EPOCHS = 4,
     LR_EXP_DECAY = .8,
     
-    BACKBONE_NAME = "EfficientNetB3",
-    BACKBONE_TRAINABLE = True,
-    FINAL_ACTIVATION = None,
-
     COLORMAP = [
         [0, 0, 0], # background
         [128, 0, 0], # aeroplane

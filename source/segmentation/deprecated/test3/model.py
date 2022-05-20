@@ -1,4 +1,5 @@
 import sys
+from xml.etree.ElementInclude import include
 import tensorflow as tf
 from tensorflow.keras import backend as K
 from tensorflow.keras.models import Model
@@ -75,11 +76,17 @@ def DeepLabV3Plus(img_height, img_width, nclasses=66, backbone_name="resnet50", 
         
         upsample_scale = [(img_height // 4) - 1, (img_width // 4) - 1]
 
+    elif backbone_name.lower() == "efficientnetb0":
+        base_model = tf.keras.applications.EfficientNetB0(input_tensor=model_input, weights="imagenet", include_top=False)
+        # ["block2b_activation", "block6d_activation"]
+        layer_names = ["block6a_expand_activation", "block3a_expand_activation"]
+        upsample_scale = [(img_height // 4), (img_width // 4)]
+
     elif backbone_name.lower() == "efficientnetb3":
         base_model = tf.keras.applications.EfficientNetB3(input_tensor=model_input, weights="imagenet", include_top=False)
 
         # ["block2a_expand_activation", "block3a_expand_activation", "block4a_expand_activation", "block6a_expand_activation", "top_activation"]
-        layer_names = ["block7a_expand_activation", "block3a_expand_activation"]
+        layer_names = ["block6a_expand_activation", "block3a_expand_activation"]
         upsample_scale = [(img_height // 4), (img_width // 4)]
 
     base_model.trainable = backbone_trainable
@@ -104,9 +111,10 @@ def DeepLabV3Plus(img_height, img_width, nclasses=66, backbone_name="resnet50", 
     x = Conv2D(filters=256, kernel_size=3, padding='same', activation='relu', kernel_initializer='he_normal', name='decoder_conv2d_2', use_bias=False)(x)
     x = BatchNormalization(name=f'bn_decoder_2')(x)
     x = Activation('relu', name='activation_decoder_2')(x)
-    x = Upsample(x, [img_height, img_width])
 
     x = Conv2D(nclasses, (1, 1), name='output_layer')(x)
+    x = Upsample(x, [x.shape[1], x.shape[2]])
+    x = Upsample(x, [img_height, img_width])
 
     if final_activation != None:
         x = Activation(final_activation)(x)
