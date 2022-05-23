@@ -67,7 +67,7 @@ def load_model_with_ckpt(ckpt_path, include_infer=False):
         metrics = Sparse_MeanIoU(num_classes=len(config["CLASSES"]))
 
     optimizer = tf.keras.optimizers.Adam(learning_rate=config["LR_START"])
-    trained_model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(COLORMAP), backbone_name=BACKBONE_NAME, backbone_trainable=False, final_activation=None)
+    trained_model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(COLORMAP), backbone_name=BACKBONE_NAME, backbone_trainable=False, final_activation=None, original_output=ORIGINAL_OUTPUT)
     trained_model.load_weights(ckpt_path)
 
     if include_infer:
@@ -105,7 +105,7 @@ def get_overlay(image, colored_mask):
 
 
 if __name__ == "__main__":
-    model_dir = "/data/Models/segmentation/VOC2012-AUGMENT_50-ResNet101"
+    model_dir = "/data/Models/segmentation/focal_loss_test/VOC2012-AUGMENT_10-ResNet50"
     ckpt = f"{model_dir}/best.ckpt"
     inference_layer = False
     output_shape = 960, 720
@@ -118,6 +118,7 @@ if __name__ == "__main__":
 
     IMG_SIZE = config["IMG_SIZE"]
     BACKBONE_NAME = config["BACKBONE_NAME"]
+    ORIGINAL_OUTPUT = config["ORIGINAL_OUTPUT"]
     COLORMAP = [[0, 0, 0], # background
                 [128, 0, 0], # aeroplane
                 [0, 128, 0], # bicycle
