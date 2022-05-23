@@ -31,13 +31,14 @@ def load_model_with_ckpt(ckpt_path, include_infer=False):
 
 
 if __name__ == "__main__":
-    model_dir = "/data/Models/segmentation/VOC2012-BASIC-ResNet50"
+    model_dir = "/data/Models/segmentation/VOC2012-AUGMENT_50-ResNet101"
+    label_dir = "/data/Datasets/VOCdevkit/VOC2012/Labels/labels.txt"
     ckpt = f"{model_dir}/best.ckpt"
     
     with open(f"{model_dir}/config.yaml") as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
     
-    SAVE_PATH = config["SAVE_PATH"] + "/saved_model"
+    SAVE_PATH = f"{model_dir}/saved_model"
     IMG_SIZE = config["IMG_SIZE"]
     BACKBONE_NAME = config["BACKBONE_NAME"]
     BACKBONE_TRAINABLE = False
@@ -70,6 +71,6 @@ if __name__ == "__main__":
     _INPUT_NORM_STD = 127.5
 
     writer = ImageSegmenterWriter.create_for_inference(writer_utils.load_file(f"{SAVE_PATH}/{TFLITE_NAME}.tflite"),
-                                                      [_INPUT_NORM_MEAN], [_INPUT_NORM_STD], [config["LABEL_PATH"]])
+                                                      [_INPUT_NORM_MEAN], [_INPUT_NORM_STD], [label_dir])
     writer_utils.save_file(writer.populate(), f"{SAVE_PATH}/{TFLITE_NAME}-meta.tflite")
     print("Export tflite with metadata Finished")

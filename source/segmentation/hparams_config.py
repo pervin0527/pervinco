@@ -5,12 +5,12 @@ import pandas as pd
 
 data_dir = "/data/Datasets/VOCdevkit/VOC2012"
 save_dir = "/data/Models/segmentation"
-folder = "BASIC"
+folder = "AUGMENT_50"
 backbone_name = "ResNet50"
-checkpoint_dir = None
+checkpoint_dir = f"{save_dir}/VOC2012-BASIC-ResNet50/best.ckpt"
 
 batch_size = 16
-epochs = 50
+epochs = 500
 image_size = 320
 early_stopping_patient = 10
 

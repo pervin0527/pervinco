@@ -105,7 +105,7 @@ def get_overlay(image, colored_mask):
 
 
 if __name__ == "__main__":
-    model_dir = "/data/Models/segmentation/VOC2012-ResNet101-AUGMENT_50"
+    model_dir = "/data/Models/segmentation/VOC2012-AUGMENT_50-ResNet101"
     ckpt = f"{model_dir}/best.ckpt"
     inference_layer = False
     output_shape = 960, 720
