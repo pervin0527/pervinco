@@ -112,9 +112,12 @@ def DeepLabV3Plus(img_height, img_width, nclasses=66, backbone_name="resnet50", 
     x = BatchNormalization(name=f'bn_decoder_2')(x)
     x = Activation('relu', name='activation_decoder_2')(x)
 
-    x = Conv2D(nclasses, (1, 1), name='output_layer')(x)
-    x = Upsample(x, [x.shape[1], x.shape[2]])
     x = Upsample(x, [img_height, img_width])
+    x = Conv2D(nclasses, (1, 1), name="output_layer")(x)
+
+    # x = Conv2D(nclasses, (1, 1), name='output_layer')(x)
+    # x = Upsample(x, [x.shape[1], x.shape[2]])
+    # x = Upsample(x, [img_height, img_width])
 
     if final_activation != None:
         x = Activation(final_activation)(x)
