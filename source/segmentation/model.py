@@ -1,5 +1,3 @@
-import sys
-from xml.etree.ElementInclude import include
 import tensorflow as tf
 from tensorflow.keras import backend as K
 from tensorflow.keras.models import Model
@@ -50,7 +48,7 @@ def ASPP(tensor):
     return y
 
 
-def DeepLabV3Plus(img_height, img_width, nclasses=66, backbone_name="resnet50", backbone_trainable=False, final_activation=None):
+def DeepLabV3Plus(img_height, img_width, nclasses=66, backbone_name="resnet50", backbone_trainable=False, final_activation=None, original_output=True):
     model_input = tf.keras.Input(shape=(img_width, img_height, 3))
     # model_input = tf.keras.layers.experimental.preprocessing.Rescaling(1.0 / 255.0)(model_input)
     # model_input = tf.keras.layers.experimental.preprocessing.Rescaling((1.0 / 127.5) - 1)(model_input)
@@ -112,12 +110,14 @@ def DeepLabV3Plus(img_height, img_width, nclasses=66, backbone_name="resnet50", 
     x = BatchNormalization(name=f'bn_decoder_2')(x)
     x = Activation('relu', name='activation_decoder_2')(x)
 
-    x = Upsample(x, [img_height, img_width])
-    x = Conv2D(nclasses, (1, 1), name="output_layer")(x)
+    if original_output:
+        x = Upsample(x, [img_height, img_width])
+        x = Conv2D(nclasses, (1, 1), name="output_layer")(x)
 
-    # x = Conv2D(nclasses, (1, 1), name='output_layer')(x)
-    # x = Upsample(x, [x.shape[1], x.shape[2]])
-    # x = Upsample(x, [img_height, img_width])
+    else:
+        x = Conv2D(nclasses, (1, 1), name='output_layer')(x)
+        x = Upsample(x, [x.shape[1], x.shape[2]])
+        x = Upsample(x, [img_height, img_width])
 
     if final_activation != None:
         x = Activation(final_activation)(x)

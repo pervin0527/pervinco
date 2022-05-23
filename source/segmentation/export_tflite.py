@@ -18,7 +18,8 @@ def load_model_with_ckpt(ckpt_path, include_infer=False):
 
     model = DeepLabV3Plus(IMG_SIZE, IMG_SIZE, len(CLASSES),
                           backbone_name=BACKBONE_NAME, backbone_trainable=BACKBONE_TRAINABLE,
-                          final_activation=FINAL_ACTIVATION)
+                          final_activation=FINAL_ACTIVATION,
+                          original_output=ORIGINAL_OUTPUT)
     model.load_weights(ckpt_path)
 
     if include_infer:
@@ -31,7 +32,7 @@ def load_model_with_ckpt(ckpt_path, include_infer=False):
 
 
 if __name__ == "__main__":
-    model_dir = "/data/Models/segmentation/VOC2012-AUGMENT_50-ResNet101"
+    model_dir = "/data/Models/segmentation/focal_loss_test/VOC2012-AUGMENT_10-ResNet50"
     label_dir = "/data/Datasets/VOCdevkit/VOC2012/Labels/labels.txt"
     ckpt = f"{model_dir}/best.ckpt"
     
@@ -43,6 +44,7 @@ if __name__ == "__main__":
     BACKBONE_NAME = config["BACKBONE_NAME"]
     BACKBONE_TRAINABLE = False
     FINAL_ACTIVATION =  config["FINAL_ACTIVATION"]
+    ORIGINAL_OUTPUT = config["ORIGINAL_OUTPUT"]
     TFLITE_NAME = f"{ckpt.split('/')[-2]}"
     INCLUDE_INFER = False
     CLASSES = config["CLASSES"]

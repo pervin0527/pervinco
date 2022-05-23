@@ -5,20 +5,22 @@ import pandas as pd
 
 data_dir = "/data/Datasets/VOCdevkit/VOC2012"
 save_dir = "/data/Models/segmentation/focal_loss_test"
-folder = "BASIC"
+folder = "AUGMENT_10"
 backbone_name = "ResNet50"
-# checkpoint_dir = f"{save_dir}/VOC2012-BASIC-ResNet50/best.ckpt"
-checkpoint_dir = None
+checkpoint_dir = f"{save_dir}/VOC2012-BASIC-ResNet50/best.ckpt"
+# checkpoint_dir = None
 
 batch_size = 16
 epochs = 50
 image_size = 320
 early_stopping_patient = 10
 
+original_output = True
 backbone_trainable = True
 one_hot_encoding = True
 final_activation = "softmax"
 
+include_class_weight = False
 learning_rate = 0.0001
 
 colormap = [
@@ -54,6 +56,7 @@ param = dict(
     FINAL_ACTIVATION = final_activation,
     BACKBONE_NAME = backbone_name,
     BACKBONE_TRAINABLE = backbone_trainable,
+    ORIGINAL_OUTPUT = original_output,
 
     DATASET_PATH = f"{data_dir}/{folder}",
     LABEL_PATH = f"{data_dir}/Labels/labels.txt",
@@ -67,6 +70,7 @@ param = dict(
     LR_SUSTAIN_EPOCHS = 4,
     LR_EXP_DECAY = .8,
     
+    INCLUDE_CLASS_WEIGHT = include_class_weight,
     COLORMAP = colormap
 )
 

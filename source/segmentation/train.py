@@ -55,7 +55,8 @@ def build_model(checkpoint):
                               len(params["CLASSES"]),
                               backbone_name=params["BACKBONE_NAME"],
                               backbone_trainable=params["BACKBONE_TRAINABLE"],
-                              final_activation=params["FINAL_ACTIVATION"])
+                              final_activation=params["FINAL_ACTIVATION"],
+                              original_output=params["ORIGINAL_OUTPUT"])
         model.compile(optimizer=optimizer, loss=loss, metrics=[metrics])
         model.summary()
 
@@ -88,9 +89,10 @@ if __name__ == "__main__":
     train_images, train_masks, n_train_images, n_train_masks = get_file_list(train_dir)
     valid_images, valid_masks, n_valid_images, n_valid_masks = get_file_list(valid_dir)
 
-    class_per_pixels = analyze_dataset(train_masks, params["CLASSES"], height=params["IMG_SIZE"], width=params["IMG_SIZE"])
-    class_weights = create_class_weight(class_per_pixels)
-    class_weights = list(class_weights.values())
+    if params["INCLUDE_CLASS_WEIGHT"]:
+        class_per_pixels = analyze_dataset(train_masks, params["CLASSES"], height=params["IMG_SIZE"], width=params["IMG_SIZE"])
+        class_weights = create_class_weight(class_per_pixels)
+        class_weights = list(class_weights.values())
 
     train_dataset = data_generator(train_images, train_masks, params["BATCH_SIZE"])
     valid_dataset = data_generator(valid_images, valid_masks, params["BATCH_SIZE"])
