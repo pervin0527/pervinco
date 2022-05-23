@@ -4,19 +4,20 @@ import numpy as np
 import pandas as pd
 
 data_dir = "/data/Datasets/VOCdevkit/VOC2012"
-save_dir = "/data/Models/segmentation"
-folder = "AUGMENT_50"
+save_dir = "/data/Models/segmentation/focal_loss_test"
+folder = "BASIC"
 backbone_name = "ResNet50"
-checkpoint_dir = f"{save_dir}/VOC2012-BASIC-ResNet50/best.ckpt"
+# checkpoint_dir = f"{save_dir}/VOC2012-BASIC-ResNet50/best.ckpt"
+checkpoint_dir = None
 
 batch_size = 16
-epochs = 500
+epochs = 50
 image_size = 320
 early_stopping_patient = 10
 
 backbone_trainable = True
-one_hot_encoding = False
-final_activation = None
+one_hot_encoding = True
+final_activation = "softmax"
 
 learning_rate = 0.0001
 
