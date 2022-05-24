@@ -41,9 +41,9 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 def build_model(checkpoint):
     with strategy.scope():
         if params["ONE_HOT"]:
-            # loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
             # loss = categorical_focal_loss(gamma=2, alpha=0.25)
-            loss = dice_score_loss_with_smooth(smooth=1e-6)
+            # loss = dice_score_loss_with_smooth(smooth=1e-6)
+            loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
             metrics = tf.keras.metrics.OneHotMeanIoU(num_classes=len(params["CLASSES"]))
         else:
             # loss = SparseCategoricalFocalLoss(gamma=2, class_weight=class_weights, from_logits=True)

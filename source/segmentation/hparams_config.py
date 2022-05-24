@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 data_dir = "/data/Datasets/VOCdevkit/VOC2012"
-save_dir = "/data/Models/segmentation/DICE_LOSS"
+save_dir = "/data/Models/segmentation"
 folder = "BASIC"
 backbone_name = "ResNet101"
 # checkpoint_dir = f"{save_dir}/VOC2012-BASIC-ResNet50/best.ckpt"
