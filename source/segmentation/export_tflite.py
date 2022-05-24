@@ -32,7 +32,7 @@ def load_model_with_ckpt(ckpt_path, include_infer=False):
 
 
 if __name__ == "__main__":
-    model_dir = "/data/Models/segmentation/DICE_LOSS/VOC2012-AUGMENT_10-ResNet50"
+    model_dir = "/data/Models/segmentation/ONE_HOT_ORIGINAL/VOC2012-BASIC-ResNet101"
     label_dir = "/data/Datasets/VOCdevkit/VOC2012/Labels/labels.txt"
     ckpt = f"{model_dir}/best.ckpt"
     
