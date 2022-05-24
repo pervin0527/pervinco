@@ -105,7 +105,7 @@ def get_overlay(image, colored_mask):
 
 
 if __name__ == "__main__":
-    model_dir = "/data/Models/segmentation/focal_loss_test/VOC2012-AUGMENT_10-ResNet50"
+    model_dir = "/data/Models/segmentation/FC_LOSS/VOC2012-BASIC-ResNet101"
     ckpt = f"{model_dir}/best.ckpt"
     inference_layer = False
     output_shape = 960, 720
