@@ -90,4 +90,15 @@ def categorical_focal_loss(gamma=2.0, alpha=0.25):
         loss = tf.keras.backend.sum(loss, axis=1)
         return loss
     
-    return focal_loss                                            
+    return focal_loss
+
+
+def dice_score_loss_with_smooth(smooth=1e-6):
+  def loss(y_true, y_pred):
+    numerator = 2. * tf.reduce_sum(y_true * y_pred)
+    denominator = tf.reduce_sum(y_true + y_pred)
+    return tf.reduce_mean(1 - numerator / denominator)
+
+  return loss
+
+
