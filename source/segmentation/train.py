@@ -46,8 +46,8 @@ def build_model(checkpoint):
             loss = dice_score_loss_with_smooth(smooth=1e-6)
             metrics = tf.keras.metrics.OneHotMeanIoU(num_classes=len(params["CLASSES"]))
         else:
-            # loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-            loss = SparseCategoricalFocalLoss(gamma=2, class_weight=class_weights, from_logits=True)
+            # loss = SparseCategoricalFocalLoss(gamma=2, class_weight=class_weights, from_logits=True)
+            loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
             metrics = Sparse_MeanIoU(num_classes=len(params["CLASSES"]))
 
         optimizer = tf.keras.optimizers.Adam(learning_rate=params["LR_START"])

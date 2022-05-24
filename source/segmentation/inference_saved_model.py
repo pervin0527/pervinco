@@ -33,8 +33,10 @@ def live_stream_inference(height, width):
 
         end_time = timeit.default_timer()
         fps = int(1./(end_time - start_time))
-        cv2.imshow("PREDICTION", cv2.resize(overlay_image, (height, width)))
-        print(fps)
+
+        result_image = cv2.resize(overlay_image, (height, width))
+        cv2.putText(result_image, text=f"FPS : {fps}", org=(10, 100), fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=3, color=(255, 255, 255), thickness=3)
+        cv2.imshow("PREDICTION", result_image)
 
     capture.release()
     cv2.destroyAllWindows()
@@ -105,7 +107,7 @@ def get_overlay(image, colored_mask):
 
 
 if __name__ == "__main__":
-    model_dir = "/data/Models/segmentation/FC_LOSS/VOC2012-BASIC-ResNet101"
+    model_dir = "/data/Models/segmentation/VOC2012-AUGMENT_50-ResNet101-JUN"
     ckpt = f"{model_dir}/best.ckpt"
     inference_layer = False
     output_shape = 960, 720
