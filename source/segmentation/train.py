@@ -3,6 +3,7 @@ from venv import create
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow as tf
 from IPython.display import clear_output
+from advisor import losses
 from calculate_class_weights import analyze_dataset, create_class_weight
 from hparams_config import send_params, save_params
 from model import DeepLabV3Plus
@@ -43,8 +44,13 @@ def build_model(checkpoint):
         if params["ONE_HOT"]:
             # loss = categorical_focal_loss(gamma=2, alpha=0.25)
             # loss = dice_score_loss_with_smooth(smooth=1e-6)
-            loss = tf.keras.losses.CategoricalCrossentropy(from_logits=False)
+            # loss = tf.keras.losses.CategoricalCrossentropy(from_logits=False)
+
+            dice = losses.dice_loss
+            categorical_cross_entropy = losses.categorical_crossentropy
+            loss = dice + categorical_cross_entropy
             metrics = tf.keras.metrics.OneHotMeanIoU(num_classes=len(params["CLASSES"]))
+
         else:
             # loss = SparseCategoricalFocalLoss(gamma=2, class_weight=class_weights, from_logits=True)
             loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
