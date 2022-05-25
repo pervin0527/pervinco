@@ -93,11 +93,16 @@ def categorical_focal_loss(gamma=2.0, alpha=0.25):
     return focal_loss
 
 
-def dice_score_loss_with_smooth(smooth=1e-6):
+def dice_coefficient_loss(smooth=1e-6):
   def loss(y_true, y_pred):
     numerator = 2. * tf.reduce_sum(y_true * y_pred)
     denominator = tf.reduce_sum(y_true + y_pred)
-    return tf.reduce_mean(1 - numerator / denominator)
+    # return tf.reduce_mean(1 - numerator / denominator)
+
+    dsc = (numerator + smooth) / (denominator + smooth)
+    av_class_dsc = tf.reduce_mean(dsc)
+    cost = 1. - av_class_dsc
+    return cost
 
   return loss
 

@@ -107,13 +107,13 @@ def get_overlay(image, colored_mask):
 
 
 if __name__ == "__main__":
-    model_dir = "/data/Models/segmentation/VOC2012-AUGMENT_50-ResNet101-JUN"
+    model_dir = "/data/Models/segmentation/ORIGINAL_OUTPUT/VOC2012-AUGMENT_50-ResNet101"
     ckpt = f"{model_dir}/best.ckpt"
     inference_layer = False
     output_shape = 960, 720
 
     inference_type = "video" # video, images
-    img_dir = "/data/Datasets/VOCdevkit/VOC2012/BASIC/valid/images"
+    img_dir = "/data/test_image"
 
     with open(f"{model_dir}/config.yaml") as f:
         config = yaml.load(f, Loader=yaml.FullLoader)

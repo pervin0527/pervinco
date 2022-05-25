@@ -9,7 +9,7 @@ from hparams_config import send_params, save_params
 from model import DeepLabV3Plus
 from utils import plot_predictions
 from metrics import Sparse_MeanIoU
-from loss import SparseCategoricalFocalLoss, categorical_focal_loss, dice_score_loss_with_smooth
+from loss import SparseCategoricalFocalLoss, categorical_focal_loss, dice_coefficient_loss
 from data import get_file_list, data_generator
 
 # GPU setup
@@ -43,7 +43,7 @@ def build_model(checkpoint):
     with strategy.scope():
         if params["ONE_HOT"]:
             # loss = categorical_focal_loss(gamma=2, alpha=0.25)
-            # loss = dice_score_loss_with_smooth(smooth=1e-6)
+            # loss = dice_coefficient_loss(smooth=1e-6)
             # loss = tf.keras.losses.CategoricalCrossentropy(from_logits=False)
 
             dice = losses.dice_loss
