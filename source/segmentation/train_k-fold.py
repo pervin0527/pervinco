@@ -1,16 +1,17 @@
 import os
-from venv import create
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+import numpy as np
 import tensorflow as tf
+
 from IPython.display import clear_output
 from advisor import losses
-from calculate_class_weights import analyze_dataset, create_class_weight
-from hparams_config import send_params, save_params
 from model import DeepLabV3Plus
 from utils import plot_predictions
 from metrics import Sparse_MeanIoU
-from loss import SparseCategoricalFocalLoss, categorical_focal_loss, dice_coefficient_loss
 from data import get_file_list, data_generator
+from hparams_config import send_params, save_params
+from calculate_class_weights import analyze_dataset, create_class_weight
+from loss import SparseCategoricalFocalLoss, categorical_focal_loss, dice_coefficient_loss
 
 # GPU setup
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -39,12 +40,12 @@ class DisplayCallback(tf.keras.callbacks.Callback):
         plot_predictions(valid_images[:5], params["COLORMAP"], model=model)
 
 
-def build_model(checkpoint):
+def build_model():
     with strategy.scope():
         if params["ONE_HOT"]:
-            # loss = categorical_focal_loss(gamma=2, alpha=0.25)
-            # loss = dice_coefficient_loss(smooth=1e-6)
-            loss = tf.keras.losses.CategoricalCrossentropy(from_logits=False)
+            # loss = dice_coefficient_loss(smooth=1)
+            # loss = tf.keras.losses.CategoricalCrossentropy(from_logits=False)
+            loss = categorical_focal_loss(gamma=2, alpha=0.25)
             metrics = tf.keras.metrics.OneHotMeanIoU(num_classes=len(params["CLASSES"]))
 
         else:
@@ -63,9 +64,6 @@ def build_model(checkpoint):
         model.compile(optimizer=optimizer, loss=loss, metrics=[metrics])
         model.summary()
 
-    if checkpoint != None:
-        model.load_weights(checkpoint)
-
     return model
 
 
@@ -78,6 +76,7 @@ if __name__ == "__main__":
         monitor = "val_one_hot_mean_io_u"
     else: 
         monitor = "val_sparse__mean_io_u"
+
     callbacks = [
         DisplayCallback(),
         tf.keras.callbacks.ModelCheckpoint(f"{save_ckpt}/best.ckpt", monitor=monitor,
@@ -89,33 +88,47 @@ if __name__ == "__main__":
     train_dir = f"{data_dir}/train"
     valid_dir = f"{data_dir}/valid"
 
-    train_images, train_masks, n_train_images, n_train_masks = get_file_list(train_dir)
+    total_images, total_masks, n_total_images, n_total_masks = get_file_list(train_dir)
     valid_images, valid_masks, n_valid_images, n_valid_masks = get_file_list(valid_dir)
 
-    if params["INCLUDE_CLASS_WEIGHT"]:
-        class_per_pixels = analyze_dataset(train_masks, params["CLASSES"], height=params["IMG_SIZE"], width=params["IMG_SIZE"])
-        class_weights = create_class_weight(class_per_pixels)
-        class_weights = list(class_weights.values())
+    for number, k in enumerate(range(7)):
+        start = k * 20000
+        end = start + 20000
 
-    train_dataset = data_generator(train_images, train_masks, params["BATCH_SIZE"])
-    valid_dataset = data_generator(valid_images, valid_masks, params["BATCH_SIZE"])
+        if number == 6:
+            end = n_total_images
 
-    print("Train Dataset : ", train_dataset)
-    print("Valid Dataset : ", train_dataset)
+        train_images, train_masks = total_images[start:end], total_masks[start:end]
+        if params["INCLUDE_CLASS_WEIGHT"]:
+            class_per_pixels = analyze_dataset(train_masks, params["CLASSES"], height=params["IMG_SIZE"], width=params["IMG_SIZE"])
+            class_weights = create_class_weight(class_per_pixels)
+            class_weights = list(class_weights.values())
 
-    TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_images) / params["BATCH_SIZE"]).numpy())
-    VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_images) / params["BATCH_SIZE"]).numpy())
+        train_dataset = data_generator(train_images, train_masks, params["BATCH_SIZE"])
+        valid_dataset = data_generator(valid_images, valid_masks, params["BATCH_SIZE"])
 
-    model = build_model(params["CKPT"])
-    save_params()
-    history = model.fit(
-        train_dataset,
-        steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
-        validation_data=valid_dataset,
-        validation_steps=VALID_STEPS_PER_EPOCH,
-        callbacks=callbacks,
-        verbose=1,
-        epochs=params["EPOCHS"]
-    )
+        print("Train Dataset:", train_dataset)
+        print("Val Dataset:", valid_dataset)
+        
+        TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(len(train_images) / params["BATCH_SIZE"]).numpy())
+        VALID_STEPS_PER_EPOCH = int(tf.math.ceil(len(valid_images) / params["BATCH_SIZE"]).numpy())
 
+        model = build_model()
+        if number != 0:
+            ckpt_path = params["SAVE_PATH"]
+            model.load_weights(f"{ckpt_path}/best.ckpt")
+
+        print(f"FOLD_{number} STARTING")
+        history = model.fit(train_dataset,
+                            steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
+                            validation_data=valid_dataset,
+                            validation_steps=VALID_STEPS_PER_EPOCH,
+                            callbacks=callbacks,
+                            verbose=1,
+                            epochs=params["EPOCHS"])
+
+        print(f"FOLD {number} END \n")
+        tf.keras.backend.clear_session()
+
+    print("Train Finished \n")
     plot_predictions(valid_images[:5], params["COLORMAP"], model=model)

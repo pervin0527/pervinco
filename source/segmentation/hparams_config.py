@@ -4,14 +4,14 @@ import numpy as np
 import pandas as pd
 
 data_dir = "/data/Datasets/VOCdevkit/VOC2012"
-save_dir = "/data/Models/segmentation/DICE_CE_ORIGINAL"
+save_dir = "/data/Models/segmentation/K_FOLD_ORIGINAL"
 folder = "AUGMENT_50"
 backbone_name = "ResNet101"
-checkpoint_dir = f"{save_dir}/VOC2012-BASIC-ResNet101/best.ckpt"
-# checkpoint_dir = None
+# checkpoint_dir = f"{save_dir}/VOC2012-AUGMENT_50-ResNet101/best.ckpt"
+checkpoint_dir = None
 
 batch_size = 16
-epochs = 300
+epochs = 100
 image_size = 320
 early_stopping_patient = 10
 

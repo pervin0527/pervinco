@@ -112,7 +112,7 @@ if __name__ == "__main__":
     inference_layer = False
     output_shape = 960, 720
 
-    inference_type = "video" # video, images
+    inference_type = "images" # video, images
     img_dir = "/data/test_image"
 
     with open(f"{model_dir}/config.yaml") as f:
