@@ -118,7 +118,7 @@ def show_predictions(image_list, model):
     for idx, image_file in enumerate(image_list):
         result_image = cv2.imread(image_file)
         image_tensor = read_image(image_file)
-        predictions = model.predict(np.expand_dims(image_tensor, axis=0))
+        predictions = model.predict(np.expand_dims(image_tensor, axis=0), verbose=0)
         predictions = predictions.reshape(-1, 98, 2) * IMG_SIZE
 
         for (x, y) in predictions[0]:
