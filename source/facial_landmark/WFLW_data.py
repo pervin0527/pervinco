@@ -155,13 +155,13 @@ def read_data(annotations, save_dir=None, is_train=False):
 if __name__ == "__main__":
     IMG_SIZE = 256
     VISUALIZE = False
-    image_dir = "/data/Datasets/WFLW/WFLW_images"
+    image_dir = "/home/ubuntu/Datasets/WFLW/WFLW_images"
     
-    train_annotation_dir = "/data/Datasets/WFLW/WFLW_annotations/list_98pt_rect_attr_train_test/list_98pt_rect_attr_train.txt"
-    test_annotation_dir = "/data/Datasets/WFLW/WFLW_annotations/list_98pt_rect_attr_train_test/list_98pt_rect_attr_test.txt"
+    train_annotation_dir = "/home/ubuntu/Datasets/WFLW/WFLW_annotations/list_98pt_rect_attr_train_test/list_98pt_rect_attr_train.txt"
+    test_annotation_dir = "/home/ubuntu/Datasets/WFLW/WFLW_annotations/list_98pt_rect_attr_train_test/list_98pt_rect_attr_test.txt"
 
     train_annotation = read_annotations(train_annotation_dir)
-    read_data(train_annotation, save_dir="/data/Datasets/WFLW/train", is_train=True)
+    read_data(train_annotation, save_dir="/home/ubuntu/Datasets/WFLW/train", is_train=True)
 
     test_annotation = read_annotations(test_annotation_dir)
-    read_data(test_annotation, save_dir="/data/Datasets/WFLW/test", is_train=False)
+    read_data(test_annotation, save_dir="/home/ubuntu/Datasets/WFLW/test", is_train=False)

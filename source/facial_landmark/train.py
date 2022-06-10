@@ -7,7 +7,6 @@ import tensorflow as tf
 
 from glob import glob
 from IPython.display import clear_output
-
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -87,20 +86,21 @@ def custom_wing_loss(w=10.0, epsilon=2.0):
 
 
 def build_model():
-    base_model = tf.keras.applications.MobileNetV2(input_shape=(IMG_SIZE, IMG_SIZE, 3), include_top=False, weights="imagenet")    
-    base_model.trainable = True
+    with strategy.scope():
+        base_model = tf.keras.applications.ResNet50(input_shape=(IMG_SIZE, IMG_SIZE, 3), include_top=False, weights="imagenet")    
+        base_model.trainable = True
 
-    input_layer = tf.keras.Input(shape=(IMG_SIZE, IMG_SIZE, 3))
-    x = tf.keras.applications.mobilenet.preprocess_input(input_layer)
-    x = base_model(x)
-    x = tf.keras.layers.Dropout(0.3)(x)
-    x = tf.keras.layers.SeparableConv2D(KEYPOINTS, kernel_size=5, strides=1, activation="relu")(x)
-    output_layer = tf.keras.layers.SeparableConv2D(KEYPOINTS, kernel_size=3, strides=1, activation="sigmoid")(x)
+        input_layer = tf.keras.Input(shape=(IMG_SIZE, IMG_SIZE, 3))
+        x = tf.keras.applications.resnet50.preprocess_input(input_layer)
+        x = base_model(x)
+        x = tf.keras.layers.Dropout(0.3)(x)
+        x = tf.keras.layers.SeparableConv2D(KEYPOINTS, kernel_size=5, strides=1, activation="relu")(x)
+        output_layer = tf.keras.layers.SeparableConv2D(KEYPOINTS, kernel_size=3, strides=1, activation="sigmoid")(x)
 
-    model = tf.keras.Model(inputs=input_layer, outputs=output_layer)
-    model.summary()
+        model = tf.keras.Model(inputs=input_layer, outputs=output_layer)
+        model.summary()
 
-    return model
+        return model
 
 
 def read_image(path):
@@ -134,14 +134,14 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 
 if __name__ == "__main__":
-    train_dir = "/data/Datasets/WFLW/train"
-    test_dir = "/data/Datasets/WFLW/test"
+    train_dir = "/home/ubuntu/Datasets/WFLW/train"
+    test_dir = "/home/ubuntu/Datasets/WFLW/test"
 
     EPOCHS = 300
-    BATCH_SIZE = 64
-    IMG_SIZE = 224
+    BATCH_SIZE = 256
+    IMG_SIZE = 256
     KEYPOINTS = 98 * 2
-    SAVE_DIR = "/data/Models/facial_landmark"
+    SAVE_DIR = "/home/ubuntu/Models/facial_landmark"
 
     train_image_files, train_keypoint_files = get_files(train_dir)
     test_image_files, test_keypoint_files = get_files(test_dir)
