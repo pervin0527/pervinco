@@ -1,5 +1,6 @@
 import os
 import cv2
+import math
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -62,14 +63,27 @@ def load_keypoints(keypoint_files):
     return np.array(total_keypoints)
 
 
-def get_tf_data(images, keypoints):
+def get_tf_data(images, keypoints, is_train):
     dataset = tf.data.Dataset.from_tensor_slices((images, keypoints))
     dataset = dataset.map(data_process, num_parallel_calls=tf.data.AUTOTUNE)
     dataset = dataset.repeat()
+    if is_train:
+        dataset = dataset.shuffle(buffer_size=len(train_image_files))
     dataset = dataset.batch(BATCH_SIZE)
     dataset = dataset.prefetch(tf.data.AUTOTUNE)
 
     return dataset
+
+def custom_wing_loss(w=10.0, epsilon=2.0):
+    def wing_loss(y_true, y_pred):
+        x = y_true - y_pred
+        c = w * (1.0 - tf.math.log(1.0 + w / epsilon))
+        absolute_x = tf.abs(x)
+        losses = tf.where(tf.greater(w, absolute_x), w * tf.math.log(1.0 + absolute_x / epsilon), absolute_x - c)
+        loss = tf.reduce_mean(tf.reduce_sum(losses, axis=[1, 2]), axis=0)
+
+        return loss
+    return wing_loss
 
 
 def build_model():
@@ -136,8 +150,8 @@ if __name__ == "__main__":
     test_keypoints = load_keypoints(test_keypoint_files)
     print(train_keypoints.shape, test_keypoints.shape)
 
-    train_dataset = get_tf_data(train_image_files, train_keypoints)
-    test_dataset = get_tf_data(test_image_files, test_keypoints)
+    train_dataset = get_tf_data(train_image_files, train_keypoints, is_train=True)
+    test_dataset = get_tf_data(test_image_files, test_keypoints, is_train=False)
     print(train_dataset)
     print(test_dataset)
 
@@ -148,7 +162,7 @@ if __name__ == "__main__":
                  tf.keras.callbacks.ModelCheckpoint(f"{SAVE_DIR}/best.ckpt", monitor="val_loss", verbose=1, mode="min", save_weights_only=True)]
 
     model = build_model()
-    model.compile(optimizer = tf.keras.optimizers.Adam(learning_rate=0.00001), loss = tf.keras.losses.MeanSquaredError())
+    model.compile(optimizer = tf.keras.optimizers.Adam(learning_rate=0.001), loss = custom_wing_loss()) # tf.keras.losses.MeanSquaredError()
 
     history = model.fit(
         train_dataset,
