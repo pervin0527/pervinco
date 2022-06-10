@@ -3,22 +3,22 @@ import yaml
 import numpy as np
 import pandas as pd
 
-data_dir = "/data/Datasets/VOCdevkit/VOC2012"
-save_dir = "/data/Models/segmentation/K_FOLD_ORIGINAL"
+data_dir = "/home/ubuntu/Datasets/VOCdevkit/VOC2012"
+save_dir = "/home/ubuntu/Models/segmentation/NEW_OUTPUT"
 folder = "AUGMENT_50"
 backbone_name = "ResNet101"
-# checkpoint_dir = f"{save_dir}/VOC2012-AUGMENT_50-ResNet101/best.ckpt"
-checkpoint_dir = None
+checkpoint_dir = f"{save_dir}/VOC2012-AUGMENT_50-ResNet101/best.ckpt"
+# checkpoint_dir = None
 
-batch_size = 16
-epochs = 100
+batch_size = 64
+epochs = 500
 image_size = 320
 early_stopping_patient = 10
 
-original_output = True
+original_output = False
 backbone_trainable = True
-one_hot_encoding = True
-final_activation = "softmax"
+one_hot_encoding = False
+final_activation = None
 
 include_class_weight = False
 learning_rate = 0.0001
