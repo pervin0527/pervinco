@@ -1,9 +1,11 @@
 import os
+import cv2
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 
 from glob import glob
+from IPython.display import clear_output
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
@@ -39,7 +41,9 @@ def data_process(images, keypoints):
     images = tf.image.decode_jpeg(images, channels=3)
     images.set_shape([IMG_SIZE, IMG_SIZE, 3])
 
-    keypoints.set_shape([KEYPOINTS])
+    keypoints = tf.reshape(keypoints, (1, 1, 98 * 2))
+    keypoints = keypoints / IMG_SIZE
+    keypoints.set_shape([1, 1, KEYPOINTS])
   
     return images, keypoints
 
@@ -69,14 +73,15 @@ def get_tf_data(images, keypoints):
 
 
 def build_model():
-    base_model = tf.keras.applications.ResNet50(input_shape=(IMG_SIZE, IMG_SIZE, 3), include_top=False, weights="imagenet")    
+    base_model = tf.keras.applications.MobileNetV2(input_shape=(IMG_SIZE, IMG_SIZE, 3), include_top=False, weights="imagenet")    
     base_model.trainable = True
 
     input_layer = tf.keras.Input(shape=(IMG_SIZE, IMG_SIZE, 3))
-    x = base_model(input_layer)
-    x = tf.keras.layers.GlobalAveragePooling2D()(x)
-    x = tf.keras.layers.Dropout(0.1)(x)
-    output_layer = tf.keras.layers.Dense(KEYPOINTS)(x)
+    x = tf.keras.applications.mobilenet.preprocess_input(input_layer)
+    x = base_model(x)
+    x = tf.keras.layers.Dropout(0.3)(x)
+    x = tf.keras.layers.SeparableConv2D(KEYPOINTS, kernel_size=5, strides=1, activation="relu")(x)
+    output_layer = tf.keras.layers.SeparableConv2D(KEYPOINTS, kernel_size=3, strides=1, activation="sigmoid")(x)
 
     model = tf.keras.Model(inputs=input_layer, outputs=output_layer)
     model.summary()
@@ -84,14 +89,45 @@ def build_model():
     return model
 
 
+def read_image(path):
+    image = tf.io.read_file(path)
+    image = tf.image.decode_jpeg(image, channels=3)
+    image = tf.image.resize(image, size=[IMG_SIZE, IMG_SIZE])
+
+    return image
+
+
+def show_predictions(image_list, model):
+    if not os.path.isdir("./Display_callback"):
+        os.makedirs("./Display_callback")
+        
+    for idx, image_file in enumerate(image_list):
+        result_image = cv2.imread(image_file)
+        image_tensor = read_image(image_file)
+        predictions = model.predict(np.expand_dims(image_tensor, axis=0))
+        predictions = predictions.reshape(-1, 98, 2) * IMG_SIZE
+
+        for (x, y) in predictions[0]:
+            cv2.circle(result_image, (int(x), int(y)), radius=1, color=(0, 0, 255), thickness=3)
+
+        cv2.imwrite(f"./Display_callback/{idx}.jpg", result_image)
+
+
+class DisplayCallback(tf.keras.callbacks.Callback):
+    def on_epoch_end(self, epoch, logs=None):
+        clear_output(wait=True)
+        show_predictions(test_image_files[:5], model=model)
+
+
 if __name__ == "__main__":
     train_dir = "/data/Datasets/WFLW/train"
     test_dir = "/data/Datasets/WFLW/test"
 
-    EPOCHS = 100
+    EPOCHS = 300
     BATCH_SIZE = 64
-    IMG_SIZE = 112
+    IMG_SIZE = 224
     KEYPOINTS = 98 * 2
+    SAVE_DIR = "/data/Models/facial_landmark"
 
     train_image_files, train_keypoint_files = get_files(train_dir)
     test_image_files, test_keypoint_files = get_files(test_dir)
@@ -108,8 +144,11 @@ if __name__ == "__main__":
     train_steps_per_epoch = int(tf.math.ceil(len(train_image_files) / BATCH_SIZE).numpy())
     test_steps_per_epoch = int(tf.math.ceil(len(test_image_files) / BATCH_SIZE).numpy())
 
+    callbacks = [DisplayCallback(),
+                 tf.keras.callbacks.ModelCheckpoint(f"{SAVE_DIR}/best.ckpt", monitor="val_loss", verbose=1, mode="min", save_weights_only=True)]
+
     model = build_model()
-    model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
+    model.compile(optimizer = tf.keras.optimizers.Adam(learning_rate=0.00001), loss = tf.keras.losses.MeanSquaredError())
 
     history = model.fit(
         train_dataset,
@@ -117,5 +156,6 @@ if __name__ == "__main__":
         validation_data=test_dataset,
         validation_steps=test_steps_per_epoch,
         verbose=1,
-        epochs=EPOCHS
+        epochs=EPOCHS,
+        callbacks=callbacks
     )

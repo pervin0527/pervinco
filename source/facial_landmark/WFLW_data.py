@@ -153,7 +153,7 @@ def read_data(annotations, save_dir=None, is_train=False):
 
 
 if __name__ == "__main__":
-    IMG_SIZE = 112
+    IMG_SIZE = 224
     VISUALIZE = False
     image_dir = "/data/Datasets/WFLW/WFLW_images"
     
