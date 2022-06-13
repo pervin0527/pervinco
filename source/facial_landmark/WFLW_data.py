@@ -145,7 +145,7 @@ def read_data(annotations, save_dir=None, is_train=False):
         image = cv2.imread(f"{image_dir}/{tmp[206]}")
         
         if is_train:
-            for step in range(5):
+            for step in range(30):
                 make_train_data(image, bboxes, keypoints, idx, step, save_dir)
 
         else:
@@ -153,7 +153,7 @@ def read_data(annotations, save_dir=None, is_train=False):
 
 
 if __name__ == "__main__":
-    IMG_SIZE = 256
+    IMG_SIZE = 224
     VISUALIZE = False
     image_dir = "/home/ubuntu/Datasets/WFLW/WFLW_images"
     
@@ -161,7 +161,7 @@ if __name__ == "__main__":
     test_annotation_dir = "/home/ubuntu/Datasets/WFLW/WFLW_annotations/list_98pt_rect_attr_train_test/list_98pt_rect_attr_test.txt"
 
     train_annotation = read_annotations(train_annotation_dir)
-    read_data(train_annotation, save_dir="/home/ubuntu/Datasets/WFLW/train", is_train=True)
+    read_data(train_annotation, save_dir="/home/ubuntu/Datasets/WFLW/train", is_train=False)
 
     test_annotation = read_annotations(test_annotation_dir)
     read_data(test_annotation, save_dir="/home/ubuntu/Datasets/WFLW/test", is_train=False)

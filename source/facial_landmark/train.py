@@ -73,13 +73,11 @@ def get_tf_data(images, keypoints, is_train):
 
     return dataset
 
-def custom_wing_loss(w=10.0, epsilon=2.0):
+def custom_wing_loss(w=15.0, epsilon=3.0):
     def wing_loss(y_true, y_pred):
-        x = y_true - y_pred
-        c = w * (1.0 - tf.math.log(1.0 + w / epsilon))
-        absolute_x = tf.abs(x)
-        losses = tf.where(tf.greater(w, absolute_x), w * tf.math.log(1.0 + absolute_x / epsilon), absolute_x - c)
-        loss = tf.reduce_mean(tf.reduce_sum(losses, axis=[1, 2]), axis=0)
+        t = tf.abs(y_true - y_pred)
+        c = w - w * tf.math.log(1 + w / epsilon)
+        loss = tf.reduce_mean(tf.where(t < w, w * tf.math.log(1 + t / epsilon), t - c))
 
         return loss
     return wing_loss
@@ -139,7 +137,7 @@ if __name__ == "__main__":
 
     EPOCHS = 300
     BATCH_SIZE = 256
-    IMG_SIZE = 256
+    IMG_SIZE = 224
     KEYPOINTS = 98 * 2
     SAVE_DIR = "/home/ubuntu/Models/facial_landmark"
 
@@ -159,10 +157,11 @@ if __name__ == "__main__":
     test_steps_per_epoch = int(tf.math.ceil(len(test_image_files) / BATCH_SIZE).numpy())
 
     callbacks = [DisplayCallback(),
-                 tf.keras.callbacks.ModelCheckpoint(f"{SAVE_DIR}/best.ckpt", monitor="val_loss", verbose=1, mode="min", save_weights_only=True)]
+                 tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=10, verbose=1),
+                 tf.keras.callbacks.ModelCheckpoint(f"{SAVE_DIR}/best.ckpt", monitor="val_loss", verbose=1, mode="min", save_best_only=True, save_weights_only=True)]
 
     model = build_model()
-    model.compile(optimizer = tf.keras.optimizers.Adam(learning_rate=0.001), loss = custom_wing_loss()) # tf.keras.losses.MeanSquaredError()
+    model.compile(optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001), loss = custom_wing_loss()) # tf.keras.losses.MeanSquaredError(), custom_wing_loss()
 
     history = model.fit(
         train_dataset,
