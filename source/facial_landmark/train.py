@@ -132,14 +132,14 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 
 if __name__ == "__main__":
-    train_dir = "/home/ubuntu/Datasets/WFLW/train"
-    test_dir = "/home/ubuntu/Datasets/WFLW/test"
+    train_dir = "/data/Datasets/WFLW/train"
+    test_dir = "/data/Datasets/WFLW/test"
 
     EPOCHS = 300
     BATCH_SIZE = 256
     IMG_SIZE = 224
     KEYPOINTS = 98 * 2
-    SAVE_DIR = "/home/ubuntu/Models/facial_landmark"
+    SAVE_DIR = "/data/Models/facial_landmark"
 
     train_image_files, train_keypoint_files = get_files(train_dir)
     test_image_files, test_keypoint_files = get_files(test_dir)
@@ -157,7 +157,7 @@ if __name__ == "__main__":
     test_steps_per_epoch = int(tf.math.ceil(len(test_image_files) / BATCH_SIZE).numpy())
 
     callbacks = [DisplayCallback(),
-                 tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=10, verbose=1),
+                #  tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=10, verbose=1),
                  tf.keras.callbacks.ModelCheckpoint(f"{SAVE_DIR}/best.ckpt", monitor="val_loss", verbose=1, mode="min", save_best_only=True, save_weights_only=True)]
 
     model = build_model()
