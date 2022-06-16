@@ -1,14 +1,8 @@
 import os
-import cv2
-import math
-import numpy as np
-import pandas as pd
 import tensorflow as tf
+from PFLD import PFLD
 
-from glob import glob
-from IPython.display import clear_output
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if len(gpus) > 1:
     try:
@@ -28,147 +22,68 @@ else:
         print(e)
 
 
-def get_files(dir):
-    image_files = sorted(glob(f"{dir}/images/*.jpg"))
-    keypoint_files = sorted(glob(f"{dir}/keypoints/*.txt"))
+def data_process(data):
+    splits = tf.strings.split(data, sep=' ')
+    image_path = splits[0]
+    image_file = tf.io.read_file(image_path)
+    image = tf.io.decode_jpeg(image_file, channels=3)
+    image.set_shape([IMG_SIZE, IMG_SIZE, 3])
 
-    print(len(image_files), len(keypoint_files))
-    return image_files, keypoint_files
+    landmarks = splits[1:197]
+    landmarks = tf.strings.to_number(landmarks, out_type=tf.float32)
+    landmarks.set_shape([N_LANDMARKS])
+    
+    attribute = splits[197:203]
+    attribute = tf.strings.to_number(attribute, out_type=tf.float32)
+    attribute.set_shape([6])
+    
+    euler_angle = splits[203:206]
+    euler_angle = tf.strings.to_number(euler_angle, out_type=tf.float32)
+    euler_angle.set_shape([3])
 
+    return image, attribute, landmarks, euler_angle
 
-def data_process(images, keypoints):
-    images = tf.io.read_file(images)
-    images = tf.image.decode_jpeg(images, channels=3)
-    images.set_shape([IMG_SIZE, IMG_SIZE, 3])
-
-    keypoints = tf.reshape(keypoints, (1, 1, 98 * 2))
-    keypoints = keypoints / IMG_SIZE
-    keypoints.set_shape([1, 1, KEYPOINTS])
-  
-    return images, keypoints
-
-
-def load_keypoints(keypoint_files):
-    total_keypoints = []
-
-    for file in keypoint_files:
-        f = open(file, "r")
-        keypoints = f.readline()
-        keypoints = keypoints.split(',')
-        keypoints = list(map(float, keypoints))
-
-        total_keypoints.append(keypoints)
-
-    return np.array(total_keypoints)
+    # feature_description = {"image":image, "attribute":attribute, "landmark":landmarks, "euler_angle":euler_angle}
+    # return feature_description
 
 
-def get_tf_data(images, keypoints, is_train):
-    dataset = tf.data.Dataset.from_tensor_slices((images, keypoints))
+def make_tf_data(txt_file):
+    dataset = tf.data.TextLineDataset(txt_file)
     dataset = dataset.map(data_process, num_parallel_calls=tf.data.AUTOTUNE)
-    dataset = dataset.repeat()
-    if is_train:
-        dataset = dataset.shuffle(buffer_size=len(train_image_files))
-    dataset = dataset.batch(BATCH_SIZE)
-    dataset = dataset.prefetch(tf.data.AUTOTUNE)
+    dataset = dataset.batch(batch_size=BATCH_SIZE)
+    # dataset = dataset.repeat()
+    dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
 
     return dataset
 
-def custom_wing_loss(w=15.0, epsilon=3.0):
-    def wing_loss(y_true, y_pred):
-        t = tf.abs(y_true - y_pred)
-        c = w - w * tf.math.log(1 + w / epsilon)
-        loss = tf.reduce_mean(tf.where(t < w, w * tf.math.log(1 + t / epsilon), t - c))
-
-        return loss
-    return wing_loss
-
-
-def build_model():
-    with strategy.scope():
-        base_model = tf.keras.applications.ResNet50(input_shape=(IMG_SIZE, IMG_SIZE, 3), include_top=False, weights="imagenet")    
-        base_model.trainable = True
-
-        input_layer = tf.keras.Input(shape=(IMG_SIZE, IMG_SIZE, 3))
-        x = tf.keras.applications.resnet50.preprocess_input(input_layer)
-        x = base_model(x)
-        x = tf.keras.layers.Dropout(0.3)(x)
-        x = tf.keras.layers.SeparableConv2D(KEYPOINTS, kernel_size=5, strides=1, activation="relu")(x)
-        output_layer = tf.keras.layers.SeparableConv2D(KEYPOINTS, kernel_size=3, strides=1, activation="sigmoid")(x)
-
-        model = tf.keras.Model(inputs=input_layer, outputs=output_layer)
-        model.summary()
-
-        return model
-
-
-def read_image(path):
-    image = tf.io.read_file(path)
-    image = tf.image.decode_jpeg(image, channels=3)
-    image = tf.image.resize(image, size=[IMG_SIZE, IMG_SIZE])
-
-    return image
-
-
-def show_predictions(image_list, model):
-    if not os.path.isdir("./Display_callback"):
-        os.makedirs("./Display_callback")
-        
-    for idx, image_file in enumerate(image_list):
-        result_image = cv2.imread(image_file)
-        image_tensor = read_image(image_file)
-        predictions = model.predict(np.expand_dims(image_tensor, axis=0), verbose=0)
-        predictions = predictions.reshape(-1, 98, 2) * IMG_SIZE
-
-        for (x, y) in predictions[0]:
-            cv2.circle(result_image, (int(x), int(y)), radius=1, color=(0, 0, 255), thickness=3)
-
-        cv2.imwrite(f"./Display_callback/{idx}.jpg", result_image)
-
-
-class DisplayCallback(tf.keras.callbacks.Callback):
-    def on_epoch_end(self, epoch, logs=None):
-        clear_output(wait=True)
-        show_predictions(test_image_files[:5], model=model)
-
-
 if __name__ == "__main__":
-    train_dir = "/data/Datasets/WFLW/train"
-    test_dir = "/data/Datasets/WFLW/test"
+    EPOCHS = 10
+    IMG_SIZE = 112
+    BATCH_SIZE = 64
+    N_LANDMARKS = 98 * 2
+    LR = 0.00001
 
-    EPOCHS = 300
-    BATCH_SIZE = 256
-    IMG_SIZE = 224
-    KEYPOINTS = 98 * 2
-    SAVE_DIR = "/data/Models/facial_landmark"
+    train_file_list = "/data/Source/PFLD-pytorch/data/train_data/list.txt"
+    test_file_list = "/data/Source/PFLD-pytorch/data/test_data/list.txt"
+    
+    train_dataset = make_tf_data(train_file_list)
+    test_dataset = make_tf_data(test_file_list)
 
-    train_image_files, train_keypoint_files = get_files(train_dir)
-    test_image_files, test_keypoint_files = get_files(test_dir)
-
-    train_keypoints = load_keypoints(train_keypoint_files)
-    test_keypoints = load_keypoints(test_keypoint_files)
-    print(train_keypoints.shape, test_keypoints.shape)
-
-    train_dataset = get_tf_data(train_image_files, train_keypoints, is_train=True)
-    test_dataset = get_tf_data(test_image_files, test_keypoints, is_train=False)
     print(train_dataset)
     print(test_dataset)
 
-    train_steps_per_epoch = int(tf.math.ceil(len(train_image_files) / BATCH_SIZE).numpy())
-    test_steps_per_epoch = int(tf.math.ceil(len(test_image_files) / BATCH_SIZE).numpy())
+    optimizer = tf.keras.optimizers.Adam(learning_rate=LR)
+    model = PFLD(input_size=IMG_SIZE, n_landmarks=N_LANDMARKS, summary=True)
+    model.compile(optimizer=optimizer)
 
-    callbacks = [DisplayCallback(),
-                #  tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=10, verbose=1),
-                 tf.keras.callbacks.ModelCheckpoint(f"{SAVE_DIR}/best.ckpt", monitor="val_loss", verbose=1, mode="min", save_best_only=True, save_weights_only=True)]
-
-    model = build_model()
-    model.compile(optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001), loss = custom_wing_loss()) # tf.keras.losses.MeanSquaredError(), custom_wing_loss()
+    TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(75000 / BATCH_SIZE).numpy())
+    TEST_STEPS_PER_EPOCH = int(tf.math.ceil(2500 / BATCH_SIZE).numpy())
 
     history = model.fit(
         train_dataset,
-        steps_per_epoch=train_steps_per_epoch,
+        # steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
         validation_data=test_dataset,
-        validation_steps=test_steps_per_epoch,
+        # validation_steps=TEST_STEPS_PER_EPOCH,
         verbose=1,
-        epochs=EPOCHS,
-        callbacks=callbacks
+        epochs=EPOCHS
     )
