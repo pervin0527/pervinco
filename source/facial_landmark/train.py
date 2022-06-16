@@ -1,6 +1,12 @@
 import os
+import cv2
+import numpy as np
+import hparams as param
 import tensorflow as tf
+
 from PFLD import PFLD
+from matplotlib import pyplot as plt
+from IPython.display import clear_output
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -21,17 +27,42 @@ else:
     except RuntimeError as e:
         print(e)
 
+def get_overlay(image, landmarks):
+    image = np.array(image).astype(np.uint8)
+    for (x, y) in landmarks:
+        cv2.circle(image, (int(x), int(y)), radius=1, color=(0, 0, 255), thickness=1)
+
+    return image
+
+
+def plot_predictions(dataset, model):
+    for item in dataset.take(1):
+        image = item[0][5].numpy()
+        image_tensor = tf.expand_dims(image, axis=0)
+        prediction = model.predict(image_tensor, verbose=0)
+        landmarks = prediction[0].reshape(98, 2)
+        result_image = get_overlay(image, landmarks)
+        plt.imshow(result_image)
+        # plt.show()
+        plt.imsave("train_epoch.png", result_image)
+
+
+class DisplayCallback(tf.keras.callbacks.Callback):
+    def on_epoch_end(self, epoch, logs=None):
+        clear_output(wait=True)
+        plot_predictions(test_dataset, model=model)
+
 
 def data_process(data):
     splits = tf.strings.split(data, sep=' ')
     image_path = splits[0]
     image_file = tf.io.read_file(image_path)
     image = tf.io.decode_jpeg(image_file, channels=3)
-    image.set_shape([IMG_SIZE, IMG_SIZE, 3])
+    image.set_shape([param.IMG_SIZE, param.IMG_SIZE, 3])
 
     landmarks = splits[1:197]
     landmarks = tf.strings.to_number(landmarks, out_type=tf.float32)
-    landmarks.set_shape([N_LANDMARKS])
+    landmarks.set_shape([param.N_LANDMARKS])
     
     attribute = splits[197:203]
     attribute = tf.strings.to_number(attribute, out_type=tf.float32)
@@ -43,47 +74,38 @@ def data_process(data):
 
     return image, attribute, landmarks, euler_angle
 
-    # feature_description = {"image":image, "attribute":attribute, "landmark":landmarks, "euler_angle":euler_angle}
-    # return feature_description
-
 
 def make_tf_data(txt_file):
     dataset = tf.data.TextLineDataset(txt_file)
     dataset = dataset.map(data_process, num_parallel_calls=tf.data.AUTOTUNE)
-    dataset = dataset.batch(batch_size=BATCH_SIZE)
-    # dataset = dataset.repeat()
+    dataset = dataset.batch(batch_size=param.BATCH_SIZE)
+    dataset = dataset.repeat()
     dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
 
     return dataset
 
 if __name__ == "__main__":
-    EPOCHS = 10
-    IMG_SIZE = 112
-    BATCH_SIZE = 64
-    N_LANDMARKS = 98 * 2
-    LR = 0.00001
-
-    train_file_list = "/data/Source/PFLD-pytorch/data/train_data/list.txt"
-    test_file_list = "/data/Source/PFLD-pytorch/data/test_data/list.txt"
-    
-    train_dataset = make_tf_data(train_file_list)
-    test_dataset = make_tf_data(test_file_list)
+    train_dataset = make_tf_data(param.train_file_list)
+    test_dataset = make_tf_data(param.test_file_list)
 
     print(train_dataset)
     print(test_dataset)
 
-    optimizer = tf.keras.optimizers.Adam(learning_rate=LR)
-    model = PFLD(input_size=IMG_SIZE, n_landmarks=N_LANDMARKS, summary=True)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=param.LR)
+    model = PFLD(input_size=param.IMG_SIZE, summary=True)
     model.compile(optimizer=optimizer)
 
-    TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(75000 / BATCH_SIZE).numpy())
-    TEST_STEPS_PER_EPOCH = int(tf.math.ceil(2500 / BATCH_SIZE).numpy())
+    TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(75000 / param.BATCH_SIZE).numpy())
+    TEST_STEPS_PER_EPOCH = int(tf.math.ceil(2500 / param.BATCH_SIZE).numpy())
+
+    callbacks = [DisplayCallback()]
 
     history = model.fit(
         train_dataset,
-        # steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
+        steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
         validation_data=test_dataset,
-        # validation_steps=TEST_STEPS_PER_EPOCH,
+        validation_steps=TEST_STEPS_PER_EPOCH,
         verbose=1,
-        epochs=EPOCHS
+        callbacks=callbacks,
+        epochs=param.EPOCHS
     )
