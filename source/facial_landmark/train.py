@@ -4,7 +4,7 @@ import numpy as np
 import hparams as param
 import tensorflow as tf
 
-from PFLD import PFLD
+from PFLD import PFLD, PFLD_wing_loss_fn
 from matplotlib import pyplot as plt
 from IPython.display import clear_output
 
@@ -30,17 +30,26 @@ else:
 def get_overlay(image, landmarks):
     image = np.array(image).astype(np.uint8)
     for (x, y) in landmarks:
-        cv2.circle(image, (int(x), int(y)), radius=1, color=(0, 0, 255), thickness=1)
+        cv2.circle(image, (int(x), int(y)), radius=1, color=(255, 0, 0), thickness=-1)
 
     return image
 
 
 def plot_predictions(dataset, model):
     for item in dataset.take(1):
-        image = item[0][5].numpy()
+        image = item[0][6].numpy()
+        
+        image *= 256.0
+        # image *= 128.0
+        # image += 128.0
+        
         image_tensor = tf.expand_dims(image, axis=0)
+        
         prediction = model.predict(image_tensor, verbose=0)
-        landmarks = prediction[0].reshape(98, 2)
+        # landmarks = prediction[0].reshape(98, 2)
+        landmarks = prediction.reshape(-1, 2)
+        # landmarks = landmarks * [param.IMG_SIZE, param.IMG_SIZE]
+
         result_image = get_overlay(image, landmarks)
         plt.imshow(result_image)
         # plt.show()
@@ -58,6 +67,12 @@ def data_process(data):
     image_path = splits[0]
     image_file = tf.io.read_file(image_path)
     image = tf.io.decode_jpeg(image_file, channels=3)
+    
+    image = tf.cast(image, dtype=tf.float32)
+    image /= 256.0
+    # image -= 128.0
+    # image /= 128.0
+    
     image.set_shape([param.IMG_SIZE, param.IMG_SIZE, 3])
 
     landmarks = splits[1:197]
@@ -91,9 +106,11 @@ if __name__ == "__main__":
     print(train_dataset)
     print(test_dataset)
 
-    optimizer = tf.keras.optimizers.Adam(learning_rate=param.LR)
-    model = PFLD(input_size=param.IMG_SIZE, summary=True)
-    model.compile(optimizer=optimizer)
+    with strategy.scope():
+        optimizer = tf.keras.optimizers.Adam(learning_rate=param.LR)
+        # model = PFLD(input_size=param.IMG_SIZE, summary=False)
+        model = PFLD_wing_loss_fn(input_size=param.IMG_SIZE, summary=False)
+        model.compile(optimizer=optimizer)
 
     TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(75000 / param.BATCH_SIZE).numpy())
     TEST_STEPS_PER_EPOCH = int(tf.math.ceil(2500 / param.BATCH_SIZE).numpy())

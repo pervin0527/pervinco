@@ -187,7 +187,8 @@ class PFLD_wing_loss_fn(tf.keras.Model):
         with tf.GradientTape() as tape:
             landmarks = self(img_tensor, training=True)
 
-            loss = losses.wing_loss(landmark_gt, landmarks)
+            # loss = losses.wing_loss(landmark_gt, landmarks)
+            loss = losses.WingLoss(landmark_gt, landmarks, 4.0, 0.50)
 
         trainable_vars = self.trainable_variables
         gradients = tape.gradient(loss, trainable_vars)

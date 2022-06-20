@@ -30,3 +30,12 @@ def wing_loss(y_true, y_pred, w=10.0, epsilon=2.0, N_LANDMARK=98):
                       absolute_x - c)
     loss = tf.reduce_mean(tf.reduce_sum(losses, axis=[1, 2]), axis=0)
     return loss
+
+
+def WingLoss(landmark_batch, landmarks_pre, wing_w=10.0, wing_epsilon=2.0):
+    abs_error = tf.abs(landmark_batch - landmarks_pre)
+    wing_c = wing_w * (1.0 - tf.math.log(1.0 + wing_w / wing_epsilon))
+    loss = tf.where(tf.greater(wing_w, abs_error), wing_w * tf.math.log(1.0 + abs_error / wing_epsilon), abs_error - wing_c)
+    loss_sum = tf.reduce_sum(loss, axis=1)
+
+    return loss_sum
