@@ -39,12 +39,7 @@ def plot_predictions(dataset, model):
     for item in dataset.take(1):
         image = item[0][6].numpy()
         
-        image *= 256.0
-        # image *= 128.0
-        # image += 128.0
-        
-        image_tensor = tf.expand_dims(image, axis=0)
-        
+        image_tensor = tf.expand_dims(image, axis=0)      
         prediction = model.predict(image_tensor, verbose=0)
         # landmarks = prediction[0].reshape(98, 2)
         landmarks = prediction.reshape(-1, 2)
@@ -69,9 +64,8 @@ def data_process(data):
     image = tf.io.decode_jpeg(image_file, channels=3)
     
     image = tf.cast(image, dtype=tf.float32)
-    image /= 256.0
-    # image -= 128.0
-    # image /= 128.0
+    image -= 128.0
+    image /= 128.0
     
     image.set_shape([param.IMG_SIZE, param.IMG_SIZE, 3])
 
@@ -108,8 +102,8 @@ if __name__ == "__main__":
 
     with strategy.scope():
         optimizer = tf.keras.optimizers.Adam(learning_rate=param.LR)
-        # model = PFLD(input_size=param.IMG_SIZE, summary=False)
-        model = PFLD_wing_loss_fn(input_size=param.IMG_SIZE, summary=False)
+        model = PFLD(input_size=param.IMG_SIZE, summary=False)
+        # model = PFLD_wing_loss_fn(input_size=param.IMG_SIZE, summary=False)
         model.compile(optimizer=optimizer)
 
     TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(75000 / param.BATCH_SIZE).numpy())
