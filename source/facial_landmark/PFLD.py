@@ -32,8 +32,8 @@ def create_pfld_inference(input_size):
     x = tf.keras.layers.ReLU(name='conv1_relu')(x)
 
     ## 56, 56, 64 ----> 56, 56, 64
-    x = tf.keras.layers.DepthwiseConv2D(kernel_size=3, strides=1, padding="same")(x)
-    # x = tf.keras.layers.Conv2D(64, kernel_size=3, strides=1, padding='same', use_bias=False, name='conv2')(x)
+    # x = tf.keras.layers.DepthwiseConv2D(kernel_size=3, strides=1, padding="same")(x)
+    x = tf.keras.layers.Conv2D(64, kernel_size=3, strides=1, padding='same', use_bias=False, name='conv2')(x)
     x = tf.keras.layers.BatchNormalization(name='conv2_bn')(x)
     x = tf.keras.layers.ReLU(name='conv2_relu')(x)
     
