@@ -38,11 +38,15 @@ def get_overlay(image, landmarks):
 def plot_predictions(dataset, model):
     for item in dataset.take(1):
         image = item[0][6].numpy()
+
+        image *= 128.0
+        image += 128.0
         
         image_tensor = tf.expand_dims(image, axis=0)      
         prediction = model.predict(image_tensor, verbose=0)
         # landmarks = prediction[0].reshape(98, 2)
         landmarks = prediction.reshape(-1, 2)
+        print(landmarks.shape)
         # landmarks = landmarks * [param.IMG_SIZE, param.IMG_SIZE]
 
         result_image = get_overlay(image, landmarks)
