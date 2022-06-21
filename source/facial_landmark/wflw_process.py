@@ -7,53 +7,6 @@ import numpy as np
 debug = False
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "..")))
 
-def calculate_pitch_yaw_roll(landmarks_2D, cam_w=256, cam_h=256, radians=False):
-
-    assert landmarks_2D is not None, 'landmarks_2D is None'
-    c_x = cam_w / 2
-    c_y = cam_h / 2
-    f_x = c_x / np.tan(60 / 2 * np.pi / 180)
-    f_y = f_x
-    camera_matrix = np.float32([[f_x, 0.0, c_x], [0.0, f_y, c_y], [0.0, 0.0, 1.0]])
-    camera_distortion = np.float32([0.0, 0.0, 0.0, 0.0, 0.0])
-
-    landmarks_3D = np.float32([
-        [6.825897, 6.760612, 4.402142],  
-        [1.330353, 7.122144, 6.903745],  
-        [-1.330353, 7.122144, 6.903745], 
-        [-6.825897, 6.760612, 4.402142], 
-        [5.311432, 5.485328, 3.987654],  
-        [1.789930, 5.393625, 4.413414],  
-        [-1.789930, 5.393625, 4.413414], 
-        [-5.311432, 5.485328, 3.987654], 
-        [-2.005628, 1.409845, 6.165652], 
-        [-2.005628, 1.409845, 6.165652], 
-        [2.774015, -2.080775, 5.048531], 
-        [-2.774015, -2.080775, 5.048531],
-        [0.000000, -3.116408, 6.097667], 
-        [0.000000, -7.415691, 4.070434], 
-    ])
-    landmarks_2D = np.asarray(landmarks_2D, dtype=np.float32).reshape(-1, 2)
-    _, rvec, tvec = cv2.solvePnP(landmarks_3D, landmarks_2D, camera_matrix, camera_distortion)
-    rmat, _ = cv2.Rodrigues(rvec)
-    pose_mat = cv2.hconcat((rmat, tvec))
-    _, _, _, _, _, _, euler_angles = cv2.decomposeProjectionMatrix(pose_mat)
-    return map(lambda k: k[0], euler_angles)
-
-def rotate(angle, center, landmark):
-    rad = angle * np.pi / 180.0
-    alpha = np.cos(rad)
-    beta = np.sin(rad)
-    M = np.zeros((2,3), dtype=np.float32)
-    M[0, 0] = alpha
-    M[0, 1] = beta
-    M[0, 2] = (1-alpha)*center[0] - beta*center[1]
-    M[1, 0] = -beta
-    M[1, 1] = alpha
-    M[1, 2] = beta*center[0] + (1-alpha)*center[1]
-
-    landmark_ = np.asarray([(M[0,0]*x+M[0,1]*y+M[0,2], M[1,0]*x+M[1,1]*y+M[1,2]) for (x,y) in landmark])
-    return M, landmark_
 
 class ImageDate():
     def __init__(self, line, imgDir, image_size=112):
@@ -133,7 +86,6 @@ class ImageDate():
 
                 imgT = cv2.warpAffine(img, M, (int(img.shape[1]*1.1), int(img.shape[0]*1.1)))
 
-                
                 wh = np.ptp(landmark, axis=0).astype(np.int32) + 1
                 size = np.random.randint(int(np.min(wh)), np.ceil(np.max(wh) * 1.25))
                 xy = np.asarray((cx - size // 2, cy - size//2), dtype=np.int32)
@@ -167,6 +119,7 @@ class ImageDate():
                 self.imgs.append(imgT)
                 self.landmarks.append(landmark)
 
+
     def save_data(self, path, prefix):
         attributes = [self.pose, self.expression, self.illumination, self.make_up, self.occlusion, self.blur]
         attributes = np.asarray(attributes, dtype=np.int32)
@@ -193,6 +146,58 @@ class ImageDate():
 
             labels.append(label)
         return labels
+
+
+def calculate_pitch_yaw_roll(landmarks_2D, cam_w=256, cam_h=256, radians=False):
+
+    assert landmarks_2D is not None, 'landmarks_2D is None'
+    c_x = cam_w / 2
+    c_y = cam_h / 2
+    f_x = c_x / np.tan(60 / 2 * np.pi / 180)
+    f_y = f_x
+    camera_matrix = np.float32([[f_x, 0.0, c_x], [0.0, f_y, c_y], [0.0, 0.0, 1.0]])
+    camera_distortion = np.float32([0.0, 0.0, 0.0, 0.0, 0.0])
+
+    landmarks_3D = np.float32([
+        [6.825897, 6.760612, 4.402142],  
+        [1.330353, 7.122144, 6.903745],  
+        [-1.330353, 7.122144, 6.903745], 
+        [-6.825897, 6.760612, 4.402142], 
+        [5.311432, 5.485328, 3.987654],  
+        [1.789930, 5.393625, 4.413414],  
+        [-1.789930, 5.393625, 4.413414], 
+        [-5.311432, 5.485328, 3.987654], 
+        [-2.005628, 1.409845, 6.165652], 
+        [-2.005628, 1.409845, 6.165652], 
+        [2.774015, -2.080775, 5.048531], 
+        [-2.774015, -2.080775, 5.048531],
+        [0.000000, -3.116408, 6.097667], 
+        [0.000000, -7.415691, 4.070434], 
+    ])
+    landmarks_2D = np.asarray(landmarks_2D, dtype=np.float32).reshape(-1, 2)
+    _, rvec, tvec = cv2.solvePnP(landmarks_3D, landmarks_2D, camera_matrix, camera_distortion)
+    rmat, _ = cv2.Rodrigues(rvec)
+    pose_mat = cv2.hconcat((rmat, tvec))
+    _, _, _, _, _, _, euler_angles = cv2.decomposeProjectionMatrix(pose_mat)
+    return map(lambda k: k[0], euler_angles)
+
+
+def rotate(angle, center, landmark):
+    rad = angle * np.pi / 180.0
+    alpha = np.cos(rad)
+    beta = np.sin(rad)
+    M = np.zeros((2,3), dtype=np.float32)
+    M[0, 0] = alpha
+    M[0, 1] = beta
+    M[0, 2] = (1-alpha)*center[0] - beta*center[1]
+    M[1, 0] = -beta
+    M[1, 1] = alpha
+    M[1, 2] = beta*center[0] + (1-alpha)*center[1]
+
+    landmark_ = np.asarray([(M[0,0]*x+M[0,1]*y+M[0,2], M[1,0]*x+M[1,1]*y+M[1,2]) for (x,y) in landmark])
+    return M, landmark_
+
+
 def get_dataset_list(imgDir, outDir, landmarkDir, is_train):
     with open(landmarkDir,'r') as f:
         lines = f.readlines()
@@ -217,6 +222,7 @@ def get_dataset_list(imgDir, outDir, landmarkDir, is_train):
     with open(os.path.join(outDir, 'list.txt'),'w') as f:
         for label in labels:
             f.writelines(label)
+
 
 if __name__ == '__main__':
     root_dir = "/data/Datasets/WFLW"
