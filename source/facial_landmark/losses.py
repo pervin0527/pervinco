@@ -1,41 +1,39 @@
-import hparams as param
 import tensorflow as tf
+import tensorflow.keras.backend as K
 
-def loss_fn(attribute_gt, landmark_gt, euler_angle_gt, angle, landmarks):
-    weight_angle = tf.reduce_sum(1 - tf.cos(angle - euler_angle_gt), axis=1)
-    attributes_w_n = attribute_gt[:, 1:6]
-    # attributes_w_n = tf.where(attributes_w_n > 0, attributes_w_n, 0.1 / cfg.BATCH_SIZE)
+def PFLDLoss():
+    def _PFLDLoss(y_true, y_pred):
+        ## y_pred: N 199
+        ## y_true: N 205
+        train_batchsize = tf.cast(K.shape(y_pred)[0], tf.float32)
+        landmarks, angle = y_pred[:, :196], y_pred[:, 196:]
 
-    mat_ratio = tf.reduce_mean(attributes_w_n, axis=0)
-    mat_ratio = tf.where(mat_ratio > 0, 1.0 / mat_ratio, param.BATCH_SIZE)
+        landmark_gt, attribute_gt, euler_angle_gt = tf.cast(y_true[:,:196], tf.float32),tf.cast(y_true[:,196:202], tf.float32),tf.cast(y_true[:,202:],tf.float32)
+        weight_angle = K.sum(1 - tf.cos(angle - euler_angle_gt), axis=1) # [8,]
 
-    weight_attribute = tf.reduce_sum(tf.multiply(attributes_w_n, mat_ratio), axis=1)
-    l2_distance = tf.reduce_sum((landmark_gt - landmarks) * (landmark_gt - landmarks), axis=1)
+        ## landmark_gt: N, 196
+        ## landmarks: N, 196
+        ## attribute_gt: N 6
+        ## euler_angle_gt: N 3
+        ## angle: N 3
+        attributes_w_n = tf.cast(attribute_gt[:, 1:6], tf.float32)
+        mat_ratio = K.mean(attributes_w_n, axis=0)
+        N = K.shape(mat_ratio)[0]
+        mat_ratio = tf.where(mat_ratio>0, 1.0/mat_ratio, train_batchsize)
+        weight_attribute = K.sum(tf.matmul(attributes_w_n, K.reshape(mat_ratio, (N,1))), axis=1) # [8,1]
+        l2_distant = K.sum((landmark_gt - landmarks) * (landmark_gt - landmarks), axis=1)
+        
+        return K.mean(weight_angle * weight_attribute * l2_distant)
+    
+    return _PFLDLoss
 
-    weighted_loss = tf.reduce_mean(weight_angle * weight_attribute * l2_distance)
-    loss = tf.reduce_mean(l2_distance)
+def L2Loss():
+    def _L2Loss(y_true, y_pred):
+        landmarks= y_pred
+        landmark_gt, _, _ = tf.cast(y_true[:,:196], tf.float32),tf.cast(y_true[:,196:202], tf.float32),tf.cast(y_true[:,202:],tf.float32)
+        l2_distant = tf.reduce_sum((landmark_gt - landmarks) * (landmark_gt - landmarks), axis=1)
+        
+        return tf.reduce_mean(l2_distant)
 
-    return weighted_loss, loss
+    return _L2Loss
 
-
-def wing_loss(y_true, y_pred, w=10.0, epsilon=2.0, N_LANDMARK=98):
-    y_pred = tf.reshape(y_pred, (-1, N_LANDMARK, 2))
-    y_true = tf.reshape(y_true, (-1, N_LANDMARK, 2))
-
-    x = y_true - y_pred
-    c = w * (1.0 - tf.math.log(1.0 + w / epsilon))
-    absolute_x = tf.abs(x)
-    losses = tf.where(w > absolute_x,
-                      w * tf.math.log(1.0 + absolute_x / epsilon),
-                      absolute_x - c)
-    loss = tf.reduce_mean(tf.reduce_sum(losses, axis=[1, 2]), axis=0)
-    return loss
-
-
-def WingLoss(landmark_batch, landmarks_pre, wing_w=10.0, wing_epsilon=2.0):
-    abs_error = tf.abs(landmark_batch - landmarks_pre)
-    wing_c = wing_w * (1.0 - tf.math.log(1.0 + wing_w / wing_epsilon))
-    loss = tf.where(tf.greater(wing_w, abs_error), wing_w * tf.math.log(1.0 + abs_error / wing_epsilon), abs_error - wing_c)
-    loss_sum = tf.reduce_sum(loss, axis=1)
-
-    return loss_sum

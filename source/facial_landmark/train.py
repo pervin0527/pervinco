@@ -1,11 +1,11 @@
 import os
 import cv2
 import numpy as np
-import hparams as param
 import tensorflow as tf
 
-from PFLD import PFLD, PFLD_wing_loss_fn
-from matplotlib import pyplot as plt
+from losses import PFLDLoss
+from data import PFLDDatasets
+from model import PFLDInference
 from IPython.display import clear_output
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -27,100 +27,78 @@ else:
     except RuntimeError as e:
         print(e)
 
+
 def get_overlay(image, landmarks):
     image = np.array(image).astype(np.uint8)
     for (x, y) in landmarks:
-        cv2.circle(image, (int(x), int(y)), radius=1, color=(255, 0, 0), thickness=-1)
+        cv2.circle(image, (int(x), int(y)), radius=3, color=(255, 0, 0), thickness=-1)
 
-    return image
+    image = cv2.resize(image, (320, 320))
+    cv2.imwrite("./epoch_sample.png", image)
 
 
-def plot_predictions(dataset, model):
-    for item in dataset.take(1):
-        image = item[0][6].numpy()
+def plot_predictions(model):
+    image_file = "/data/Source/PFLD-pytorch/data/test_data/imgs/196_29_Students_Schoolkids_Students_Schoolkids_29_559_0.png"
+    image = tf.io.read_file(image_file)
+    image_tensor = tf.image.decode_jpeg(image, channels=3)
+    image_tensor = tf.image.resize(image_tensor, (input_shape[0], input_shape[1]))
+    image_tensor = image_tensor / 255.0
+    image_tensor = tf.expand_dims(image_tensor, axis=0)
 
-        image *= 128.0
-        image += 128.0
-        
-        image_tensor = tf.expand_dims(image, axis=0)      
-        prediction = model.predict(image_tensor, verbose=0)
-        # landmarks = prediction[0].reshape(98, 2)
-        landmarks = prediction.reshape(-1, 2)
-        print(landmarks.shape)
-        # landmarks = landmarks * [param.IMG_SIZE, param.IMG_SIZE]
+    prediction = model.predict(image_tensor, verbose=0)
+    pred1, pred2 = prediction[0], prediction[1]
+    # print(pred1.shape, pred2.shape) # 199, 196
 
-        result_image = get_overlay(image, landmarks)
-        plt.imshow(result_image)
-        # plt.show()
-        plt.imsave("train_epoch.png", result_image)
+    rgb_image = cv2.imread(image_file)
+    height, width = rgb_image.shape[:2]
+    
+    landmark = pred2 * input_shape[0]
+    landmark[0::2] = landmark[0::2] * width / input_shape[0]
+    landmark[1::2] = landmark[1::2] * height / input_shape[0]
+    landmark = landmark.reshape(-1, 2)
+
+    get_overlay(rgb_image, landmark)
 
 
 class DisplayCallback(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         clear_output(wait=True)
-        plot_predictions(test_dataset, model=model)
+        plot_predictions(model=model)
+
+def adjust_lr(epoch, lr):
+    print("Seting to %s" % (lr))
+    if epoch < 3:
+        return lr
+    else:
+        return lr * 0.93
 
 
-def data_process(data):
-    splits = tf.strings.split(data, sep=' ')
-    image_path = splits[0]
-    image_file = tf.io.read_file(image_path)
-    image = tf.io.decode_jpeg(image_file, channels=3)
+if __name__ == "__main__":   
+    batch_size = 64
+    epochs = 1000
+    model_path = ''
+    input_shape = [112,112,3]
+    lr=1e-3
     
-    image = tf.cast(image, dtype=tf.float32)
-    image -= 128.0
-    image /= 128.0
+    train_datasets = PFLDDatasets('/data/Source/PFLD-pytorch/data/train_data/list.txt', batch_size)
+    valid_datasets = PFLDDatasets('/data/Source/PFLD-pytorch/data/test_data/list.txt', batch_size)
+
     
-    image.set_shape([param.IMG_SIZE, param.IMG_SIZE, 3])
-
-    landmarks = splits[1:197]
-    landmarks = tf.strings.to_number(landmarks, out_type=tf.float32)
-    landmarks.set_shape([param.N_LANDMARKS])
+    model = PFLDInference(input_shape, is_train=True)
+    if model_path != '':
+        model.load_weights(model_path, by_name=True, skip_mismatch=True)
     
-    attribute = splits[197:203]
-    attribute = tf.strings.to_number(attribute, out_type=tf.float32)
-    attribute.set_shape([6])
+    callback = [DisplayCallback()]
+    optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
+    model.compile(loss={'train_out': PFLDLoss()}, optimizer=optimizer)
+    history = model.fit(x = train_datasets,
+                        validation_data = valid_datasets,
+                        workers = 1,
+                        epochs = epochs,
+                        callbacks = callback,
+                        steps_per_epoch = len(train_datasets),
+                        validation_steps = len(valid_datasets),
+                        verbose=1)
     
-    euler_angle = splits[203:206]
-    euler_angle = tf.strings.to_number(euler_angle, out_type=tf.float32)
-    euler_angle.set_shape([3])
-
-    return image, attribute, landmarks, euler_angle
-
-
-def make_tf_data(txt_file):
-    dataset = tf.data.TextLineDataset(txt_file)
-    dataset = dataset.map(data_process, num_parallel_calls=tf.data.AUTOTUNE)
-    dataset = dataset.batch(batch_size=param.BATCH_SIZE)
-    dataset = dataset.repeat()
-    dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
-
-    return dataset
-
-if __name__ == "__main__":
-    train_dataset = make_tf_data(param.train_file_list)
-    test_dataset = make_tf_data(param.test_file_list)
-
-    print(train_dataset)
-    print(test_dataset)
-
-    with strategy.scope():
-        optimizer = tf.keras.optimizers.Adam(learning_rate=param.LR)
-        model = PFLD(input_size=param.IMG_SIZE, summary=False)
-        # model = PFLD_wing_loss_fn(input_size=param.IMG_SIZE, summary=False)
-        model.compile(optimizer=optimizer)
-
-    TRAIN_STEPS_PER_EPOCH = int(tf.math.ceil(75000 / param.BATCH_SIZE).numpy())
-    TEST_STEPS_PER_EPOCH = int(tf.math.ceil(2500 / param.BATCH_SIZE).numpy())
-
-    callbacks = [DisplayCallback()]
-
-    history = model.fit(
-        train_dataset,
-        steps_per_epoch=TRAIN_STEPS_PER_EPOCH,
-        validation_data=test_dataset,
-        validation_steps=TEST_STEPS_PER_EPOCH,
-        verbose=1,
-        callbacks=callbacks,
-        epochs=param.EPOCHS
-    )
+    
+    
