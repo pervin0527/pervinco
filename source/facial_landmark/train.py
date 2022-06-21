@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import tensorflow as tf
 
+from glob import glob
 from losses import PFLDLoss
 from data import PFLDDatasets
 from model import PFLDInference
@@ -28,41 +29,44 @@ else:
         print(e)
 
 
-def get_overlay(image, landmarks):
+def get_overlay(index, image, landmarks):
     image = np.array(image).astype(np.uint8)
     for (x, y) in landmarks:
-        cv2.circle(image, (int(x), int(y)), radius=3, color=(255, 0, 0), thickness=-1)
+        cv2.circle(image, (int(x), int(y)), radius=1, color=(0, 0, 255), thickness=-1)
 
     image = cv2.resize(image, (320, 320))
-    cv2.imwrite("./epoch_sample.png", image)
+    cv2.imwrite(f"epochs/epoch_{index}.png", image)
 
 
 def plot_predictions(model):
-    image_file = "/data/Source/PFLD-pytorch/data/test_data/imgs/196_29_Students_Schoolkids_Students_Schoolkids_29_559_0.png"
-    image = tf.io.read_file(image_file)
-    image_tensor = tf.image.decode_jpeg(image, channels=3)
-    image_tensor = tf.image.resize(image_tensor, (input_shape[0], input_shape[1]))
-    image_tensor = image_tensor / 255.0
-    image_tensor = tf.expand_dims(image_tensor, axis=0)
+    for idx, file in enumerate(sorted(glob("./samples/*.png"))):
+        image = tf.io.read_file(file)
+        image_tensor = tf.image.decode_jpeg(image, channels=3)
+        image_tensor = tf.image.resize(image_tensor, (input_shape[0], input_shape[1]))
+        image_tensor = image_tensor / 255.0
+        image_tensor = tf.expand_dims(image_tensor, axis=0)
 
-    prediction = model.predict(image_tensor, verbose=0)
-    pred1, pred2 = prediction[0], prediction[1]
-    # print(pred1.shape, pred2.shape) # 199, 196
+        prediction = model.predict(image_tensor, verbose=0)
+        pred1, pred2 = prediction[0], prediction[1]
+        # print(pred1.shape, pred2.shape) # 199, 196
 
-    rgb_image = cv2.imread(image_file)
-    height, width = rgb_image.shape[:2]
-    
-    landmark = pred2 * input_shape[0]
-    landmark[0::2] = landmark[0::2] * width / input_shape[0]
-    landmark[1::2] = landmark[1::2] * height / input_shape[0]
-    landmark = landmark.reshape(-1, 2)
+        rgb_image = cv2.imread(file)
+        height, width = rgb_image.shape[:2]
+        
+        landmark = pred2 * input_shape[0]
+        landmark[0::2] = landmark[0::2] * width / input_shape[0]
+        landmark[1::2] = landmark[1::2] * height / input_shape[0]
+        landmark = landmark.reshape(-1, 2)
 
-    get_overlay(rgb_image, landmark)
+        get_overlay(idx, rgb_image, landmark)
 
 
 class DisplayCallback(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         clear_output(wait=True)
+
+        if not os.path.isdir("./epochs"):
+            os.makedirs("./epochs")
         plot_predictions(model=model)
 
 def adjust_lr(epoch, lr):
@@ -80,17 +84,19 @@ if __name__ == "__main__":
     input_shape = [112,112,3]
     lr=1e-3
     
-    train_datasets = PFLDDatasets('/data/Source/PFLD-pytorch/data/train_data/list.txt', batch_size)
-    valid_datasets = PFLDDatasets('/data/Source/PFLD-pytorch/data/test_data/list.txt', batch_size)
+    train_datasets = PFLDDatasets('/data/Datasets/WFLW/train_data/list.txt', batch_size)
+    valid_datasets = PFLDDatasets('/data/Datasets/WFLW/test_data/list.txt', batch_size)
+    
+    callback = [DisplayCallback(),
+                tf.keras.callbacks.ModelCheckpoint("/data/Models/facial_landmark/best.ckpt", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
+    with strategy.scope():
+        model = PFLDInference(input_shape, is_train=True)
+        if model_path != '':
+            model.load_weights(model_path, by_name=True, skip_mismatch=True)
+        optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
+        model.compile(loss={'train_out': PFLDLoss()}, optimizer=optimizer)
     
-    model = PFLDInference(input_shape, is_train=True)
-    if model_path != '':
-        model.load_weights(model_path, by_name=True, skip_mismatch=True)
-    
-    callback = [DisplayCallback()]
-    optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
-    model.compile(loss={'train_out': PFLDLoss()}, optimizer=optimizer)
     history = model.fit(x = train_datasets,
                         validation_data = valid_datasets,
                         workers = 1,
@@ -99,6 +105,3 @@ if __name__ == "__main__":
                         steps_per_epoch = len(train_datasets),
                         validation_steps = len(valid_datasets),
                         verbose=1)
-    
-    
-    
