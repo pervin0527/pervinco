@@ -81,14 +81,14 @@ if __name__ == "__main__":
     batch_size = 256
     epochs = 1000
     model_path = ''
-    input_shape = [112,112,3]
+    input_shape = [112, 112, 3]
     lr=1e-3
     
     train_datasets = PFLDDatasets('/data/Datasets/WFLW/train_data/list.txt', batch_size)
     valid_datasets = PFLDDatasets('/data/Datasets/WFLW/test_data/list.txt', batch_size)
     
     callback = [DisplayCallback(),
-                tf.keras.callbacks.ModelCheckpoint("/data/Models/facial_landmark/best.ckpt", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
+                tf.keras.callbacks.ModelCheckpoint("/data/Models/facial_landmark/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
     with strategy.scope():
         model = PFLDInference(input_shape, is_train=True)
