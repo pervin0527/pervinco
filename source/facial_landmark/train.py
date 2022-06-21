@@ -78,7 +78,7 @@ def adjust_lr(epoch, lr):
 
 
 if __name__ == "__main__":   
-    batch_size = 64
+    batch_size = 256
     epochs = 1000
     model_path = ''
     input_shape = [112,112,3]
