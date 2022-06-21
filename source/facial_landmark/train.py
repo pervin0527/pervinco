@@ -69,6 +69,7 @@ class DisplayCallback(tf.keras.callbacks.Callback):
             os.makedirs("./epochs")
         plot_predictions(model=model)
 
+
 def adjust_lr(epoch, lr):
     print("Seting to %s" % (lr))
     if epoch < 3:
@@ -87,21 +88,23 @@ if __name__ == "__main__":
     train_datasets = PFLDDatasets('/data/Datasets/WFLW/train_data/list.txt', batch_size)
     valid_datasets = PFLDDatasets('/data/Datasets/WFLW/test_data/list.txt', batch_size)
     
+    optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
     callback = [DisplayCallback(),
                 tf.keras.callbacks.ModelCheckpoint("/data/Models/facial_landmark/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
     with strategy.scope():
         model = PFLDInference(input_shape, is_train=True)
+
         if model_path != '':
             model.load_weights(model_path, by_name=True, skip_mismatch=True)
-        optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
+
         model.compile(loss={'train_out': PFLDLoss()}, optimizer=optimizer)
     
-    history = model.fit(x = train_datasets,
-                        validation_data = valid_datasets,
-                        workers = 1,
-                        epochs = epochs,
-                        callbacks = callback,
-                        steps_per_epoch = len(train_datasets),
-                        validation_steps = len(valid_datasets),
+    history = model.fit(x=train_datasets,
+                        validation_data=valid_datasets,
+                        workers=1,
+                        epochs=epochs,
+                        callbacks=callback,
+                        steps_per_epoch=len(train_datasets),
+                        validation_steps=len(valid_datasets),
                         verbose=1)
