@@ -34,7 +34,6 @@ def get_overlay(index, image, landmarks):
     for (x, y) in landmarks:
         cv2.circle(image, (int(x), int(y)), radius=1, color=(0, 0, 255), thickness=-1)
 
-    image = cv2.resize(image, (320, 320))
     cv2.imwrite(f"epochs/epoch_{index}.png", image)
 
 
@@ -44,6 +43,7 @@ def plot_predictions(model):
         image_tensor = tf.image.decode_jpeg(image, channels=3)
         image_tensor = tf.image.resize(image_tensor, (input_shape[0], input_shape[1]))
         image_tensor = image_tensor / 255.0
+        # image_tensor = (image_tensor + 1) * 127.5
         image_tensor = tf.expand_dims(image_tensor, axis=0)
 
         prediction = model.predict(image_tensor, verbose=0)
@@ -53,10 +53,13 @@ def plot_predictions(model):
         rgb_image = cv2.imread(file)
         height, width = rgb_image.shape[:2]
         
-        landmark = pred2 * input_shape[0]
-        landmark[0::2] = landmark[0::2] * width / input_shape[0]
-        landmark[1::2] = landmark[1::2] * height / input_shape[0]
-        landmark = landmark.reshape(-1, 2)
+        # landmark = pred2 * input_shape[0]
+        # landmark[0::2] = landmark[0::2] * width / input_shape[0]
+        # landmark[1::2] = landmark[1::2] * height / input_shape[0]
+        # landmark = landmark.reshape(-1, 2)
+        
+        landmark = pred2.reshape(-1, 2)
+        landmark = landmark * input_shape[0]
 
         get_overlay(idx, rgb_image, landmark)
 
@@ -89,7 +92,7 @@ if __name__ == "__main__":
     
     optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
     callback = [DisplayCallback(),
-                # tf.keras.callbacks.LearningRateScheduler(adjust_lr),
+                tf.keras.callbacks.LearningRateScheduler(adjust_lr),
                 tf.keras.callbacks.ModelCheckpoint("/data/Models/facial_landmark/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
     with strategy.scope():
