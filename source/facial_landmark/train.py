@@ -53,14 +53,11 @@ def plot_predictions(model):
         rgb_image = cv2.imread(file)
         height, width = rgb_image.shape[:2]
         
-        # landmark = pred2 * input_shape[0]
-        # landmark[0::2] = landmark[0::2] * width / input_shape[0]
-        # landmark[1::2] = landmark[1::2] * height / input_shape[0]
-        # landmark = landmark.reshape(-1, 2)
+        landmark = pred2 * input_shape[0]
+        landmark[0::2] = landmark[0::2] * width / input_shape[0]
+        landmark[1::2] = landmark[1::2] * height / input_shape[0]
+        landmark = landmark.reshape(-1, 2)
         
-        landmark = pred2.reshape(-1, 2)
-        landmark = landmark * input_shape[0]
-
         get_overlay(idx, rgb_image, landmark)
 
 
@@ -74,10 +71,10 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 
 def adjust_lr(epoch, lr):
-    if epoch < 3:
+    if epoch < 50:
         return lr
     else:
-        return lr * 0.93
+        return lr * 0.1
 
 
 if __name__ == "__main__":   
@@ -93,6 +90,7 @@ if __name__ == "__main__":
     optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
     callback = [DisplayCallback(),
                 tf.keras.callbacks.LearningRateScheduler(adjust_lr),
+                tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=10),
                 tf.keras.callbacks.ModelCheckpoint("/data/Models/facial_landmark/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
     with strategy.scope():
