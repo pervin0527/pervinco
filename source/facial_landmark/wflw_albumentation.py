@@ -80,11 +80,28 @@ def refine_bbox(image_file, landmark, augmentation):
     y2 = min(height, y2)
 
     if not augmentation:
-        imgT = image[y1:y2, x1:x2]
-        imgT = cv2.resize(imgT, (IMG_SIZE, IMG_SIZE))
-        landmark = (landmark - xy) / boxsize
+        # imgT = image[y1:y2, x1:x2]
+        # imgT = cv2.resize(imgT, (IMG_SIZE, IMG_SIZE))
+        # landmark = (landmark - xy) / boxsize
         # visualize_sample(imgT, [0, 0, 0, 0], landmark * IMG_SIZE)
-        return imgT, landmark
+        # return imgT, landmark
+
+        normal_transform = A.Compose([
+            A.Crop(x_min=x1, y_min=y1, x_max=x2, y_max=y2, always_apply=True),
+            A.Resize(IMG_SIZE, IMG_SIZE, always_apply=True),
+        ], keypoint_params=A.KeypointParams(format="xy", remove_invisible=False))
+
+        normal_transformed = normal_transform(image=image, keypoints=landmark)
+        normal_transformed_image, normal_transformed_landmark = normal_transformed['image'], normal_transformed['keypoints']
+        
+        refine_shape = []
+        for (x, y) in normal_transformed_landmark:
+            refine_shape.append([x, y])
+
+        refine_shape = np.array(refine_shape, dtype=np.float32).reshape(-1, 2)
+        normal_transformed_landmark = refine_shape / IMG_SIZE
+
+        return normal_transformed_image, normal_transformed_landmark
 
     else:
         image, landmark = augment_data(image, landmark, x1, y1, x2, y2)
