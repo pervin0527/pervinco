@@ -39,7 +39,7 @@ def get_overlay(index, image, landmarks):
 
 
 def plot_predictions(model):
-    for idx, file in enumerate(sorted(glob("./samples/*.png"))):
+    for idx, file in enumerate(sorted(glob("./samples/*"))):
         image = tf.io.read_file(file)
         image_tensor = tf.image.decode_jpeg(image, channels=3)
         image_tensor = tf.image.resize(image_tensor, (input_shape[0], input_shape[1]))
@@ -71,7 +71,6 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 
 def adjust_lr(epoch, lr):
-    print("Seting to %s" % (lr))
     if epoch < 3:
         return lr
     else:
@@ -83,13 +82,14 @@ if __name__ == "__main__":
     epochs = 1000
     model_path = ''
     input_shape = [112, 112, 3]
-    lr=1e-3
+    lr = 0.001
     
-    train_datasets = PFLDDatasets('/data/Datasets/WFLW/train_data/list.txt', batch_size)
-    valid_datasets = PFLDDatasets('/data/Datasets/WFLW/test_data/list.txt', batch_size)
+    train_datasets = PFLDDatasets('/data/Datasets/CUSTOM_WFLW/train_data/list.txt', batch_size)
+    valid_datasets = PFLDDatasets('/data/Datasets/CUSTOM_WFLW/test_data/list.txt', batch_size)
     
     optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
     callback = [DisplayCallback(),
+                tf.keras.callbacks.LearningRateScheduler(adjust_lr),
                 tf.keras.callbacks.ModelCheckpoint("/data/Models/facial_landmark/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
     with strategy.scope():
