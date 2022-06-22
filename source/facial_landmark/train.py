@@ -77,6 +77,24 @@ def adjust_lr(epoch, lr):
         return lr * 0.93
 
 
+def build_lrfn(lr_start=0.001, lr_max=0.007, 
+               lr_min=0.0001, lr_rampup_epochs=5, 
+               lr_sustain_epochs=0, lr_exp_decay=.8):
+    lr_max = lr_max * strategy.num_replicas_in_sync
+
+    def lrfn(epoch):
+        if epoch < lr_rampup_epochs:
+            lr = (lr_max - lr_start) / lr_rampup_epochs * epoch + lr_start
+        elif epoch < lr_rampup_epochs + lr_sustain_epochs:
+            lr = lr_max
+        else:
+            lr = (lr_max - lr_min) *\
+                 lr_exp_decay**(epoch - lr_rampup_epochs\
+                                - lr_sustain_epochs) + lr_min
+        return lr
+    return lrfn
+
+
 if __name__ == "__main__":   
     batch_size = 256
     epochs = 1000
@@ -87,9 +105,10 @@ if __name__ == "__main__":
     train_datasets = PFLDDatasets('/data/Datasets/CUSTOM_WFLW/train_data/list.txt', batch_size)
     valid_datasets = PFLDDatasets('/data/Datasets/CUSTOM_WFLW/test_data/list.txt', batch_size)
     
+    lrfn = build_lrfn()
     optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
     callback = [DisplayCallback(),
-                tf.keras.callbacks.LearningRateScheduler(adjust_lr),
+                tf.keras.callbacks.LearningRateScheduler(lrfn),
                 tf.keras.callbacks.ModelCheckpoint("/data/Models/facial_landmark/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
     with strategy.scope():
