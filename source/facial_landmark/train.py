@@ -71,10 +71,13 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 
 def adjust_lr(epoch, lr):
-    if epoch < 50:
+    if epoch < 10:
         return lr
-    else:
+    elif 10 < epoch and lr > 0.00001:
         return lr * 0.1
+    else:
+        lr = 0.00001
+        return lr
 
 
 if __name__ == "__main__":   
