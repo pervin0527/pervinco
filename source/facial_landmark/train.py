@@ -72,31 +72,26 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 
 def adjust_lr(epoch, lr):
-    if epoch < 5:
+    if epoch < 3:
         return lr
     else:
-        return lr * 0.5
+        return lr * 0.93
 
 
 if __name__ == "__main__":   
     batch_size = 256
-    epochs = 1000
+    epochs = 100
     model_path = ''
     input_shape = [112, 112, 3]
-    lr = 0.001
+    lr = 1e-3 ## 0.001
     
-    train_datasets = PFLDDatasets('/data/Datasets/WFLW/train_data/list.txt', batch_size)
-    valid_datasets = PFLDDatasets('/data/Datasets/WFLW/test_data/list.txt', batch_size)
+    train_datasets = PFLDDatasets('/data/Datasets/WFLW/WFLW/train_data/list.txt', batch_size)
+    valid_datasets = PFLDDatasets('/data/Datasets/WFLW/WFLW/test_data/list.txt', batch_size)
     
-    # optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
-    # optimizer = tfa.optimizers.AdamW(weight_decay=1e-6, learning_rate=1e-4)
-
-    scheduler = tf.keras.optimizers.schedules.CosineDecay(initial_learning_rate=lr, decay_steps=50, alpha=0.01)
-    optimizer = tf.keras.optimizers.SGD(scheduler)
-
+    optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
     callback = [DisplayCallback(),
-                # tf.keras.callbacks.LearningRateScheduler(adjust_lr),
-                # tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=10),
+                tf.keras.callbacks.LearningRateScheduler(adjust_lr),
+                tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=10, verbose=1),
                 tf.keras.callbacks.ModelCheckpoint("/data/Models/facial_landmark/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
     with strategy.scope():
@@ -104,6 +99,7 @@ if __name__ == "__main__":
 
         if model_path != '':
             model.load_weights(model_path, by_name=True, skip_mismatch=True)
+            print("WEIGHT LOADED")
 
         model.compile(loss={'train_out': PFLDLoss()}, optimizer=optimizer)
     
