@@ -1,5 +1,6 @@
 import cv2
 import math
+import random
 import numpy as np
 import tensorflow as tf
 
@@ -8,6 +9,7 @@ class PFLDDatasets(tf.keras.utils.Sequence):
         self.batch_size = batch_size
         with open(data_flie, 'r', encoding='utf-8') as f:
             self.lines = f.readlines()
+            random.shuffle(self.lines)
         self.length = len(self.lines)
         
     def __getitem__(self, index):
@@ -26,7 +28,7 @@ class PFLDDatasets(tf.keras.utils.Sequence):
         images_list = np.array(images_list)
         label_list = np.array(label_list)
 
-        return images_list,label_list
+        return images_list, label_list
 
     def __len__(self):
         return math.ceil(self.length / float(self.batch_size))

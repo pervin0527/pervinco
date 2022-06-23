@@ -2,6 +2,7 @@ import os
 import cv2
 import numpy as np
 import tensorflow as tf
+import tensorflow_addons as tfa
 
 from glob import glob
 from losses import PFLDLoss
@@ -71,13 +72,10 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 
 def adjust_lr(epoch, lr):
-    if epoch < 10:
+    if epoch < 5:
         return lr
-    elif 10 < epoch and lr > 0.00001:
-        return lr * 0.1
     else:
-        lr = 0.00001
-        return lr
+        return lr * 0.5
 
 
 if __name__ == "__main__":   
@@ -87,13 +85,18 @@ if __name__ == "__main__":
     input_shape = [112, 112, 3]
     lr = 0.001
     
-    train_datasets = PFLDDatasets('/data/Datasets/CUSTOM_WFLW/train_data/list.txt', batch_size)
-    valid_datasets = PFLDDatasets('/data/Datasets/CUSTOM_WFLW/test_data/list.txt', batch_size)
+    train_datasets = PFLDDatasets('/data/Datasets/WFLW/train_data/list.txt', batch_size)
+    valid_datasets = PFLDDatasets('/data/Datasets/WFLW/test_data/list.txt', batch_size)
     
-    optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
+    # optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
+    # optimizer = tfa.optimizers.AdamW(weight_decay=1e-6, learning_rate=1e-4)
+
+    scheduler = tf.keras.optimizers.schedules.CosineDecay(initial_learning_rate=lr, decay_steps=50, alpha=0.01)
+    optimizer = tf.keras.optimizers.SGD(scheduler)
+
     callback = [DisplayCallback(),
-                tf.keras.callbacks.LearningRateScheduler(adjust_lr),
-                tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=10),
+                # tf.keras.callbacks.LearningRateScheduler(adjust_lr),
+                # tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=10),
                 tf.keras.callbacks.ModelCheckpoint("/data/Models/facial_landmark/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
     with strategy.scope():
