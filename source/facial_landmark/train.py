@@ -85,8 +85,8 @@ if __name__ == "__main__":
     input_shape = [112, 112, 3]
     lr = 1e-3 ## 0.001
     
-    train_datasets = PFLDDatasets('/data/Datasets/WFLW/WFLW/train_data/list.txt', batch_size)
-    valid_datasets = PFLDDatasets('/data/Datasets/WFLW/WFLW/test_data/list.txt', batch_size)
+    train_datasets = PFLDDatasets('/data/Datasets/WFLW/train_data/list.txt', batch_size)
+    valid_datasets = PFLDDatasets('/data/Datasets/WFLW/test_data/list.txt', batch_size)
     
     optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
     callback = [DisplayCallback(),
