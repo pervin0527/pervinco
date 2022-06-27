@@ -89,6 +89,7 @@ if __name__ == "__main__":
     valid_datasets = PFLDDatasets('/data/Datasets/WFLW/test_data/list.txt', batch_size)
     
     optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
+    # optimizer = tfa.optimizers.AdamW(learning_rate=lr, weight_decay=1e-6)
     callback = [DisplayCallback(),
                 tf.keras.callbacks.LearningRateScheduler(adjust_lr, verbose=1),
                 # tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=10, verbose=1),
