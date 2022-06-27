@@ -20,7 +20,6 @@ class PFLDDatasets(tf.keras.utils.Sequence):
             line = self.lines[i].strip().split()
             img = cv2.imread(line[0])
             img = img / 255.0
-            # img = (img / 127.5) - 1
             label = np.array(line[1:206], dtype=np.float32)
             images_list.append(np.array(img, dtype=np.float32))
             label_list.append(label)
