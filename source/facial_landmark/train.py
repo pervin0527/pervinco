@@ -79,8 +79,8 @@ def adjust_lr(epoch, lr):
 
 
 if __name__ == "__main__":   
-    batch_size = 256
-    epochs = 100
+    batch_size = 64
+    epochs = 1000
     model_path = ''
     input_shape = [112, 112, 3]
     lr = 1e-3 ## 0.001
@@ -90,8 +90,8 @@ if __name__ == "__main__":
     
     optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
     callback = [DisplayCallback(),
-                tf.keras.callbacks.LearningRateScheduler(adjust_lr),
-                tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=10, verbose=1),
+                tf.keras.callbacks.LearningRateScheduler(adjust_lr, verbose=1),
+                # tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=10, verbose=1),
                 tf.keras.callbacks.ModelCheckpoint("/data/Models/facial_landmark/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
     with strategy.scope():
