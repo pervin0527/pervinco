@@ -94,7 +94,7 @@ if __name__ == "__main__":
     callback = [DisplayCallback(),
                 tf.keras.callbacks.LearningRateScheduler(adjust_lr),
                 # tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=10, verbose=1),
-                tf.keras.callbacks.ModelCheckpoint("/data/Models/facial_landmark/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
+                tf.keras.callbacks.ModelCheckpoint("/data/Models/face_landmark_98pts/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
     with strategy.scope():
         model = PFLDInference(input_shape, is_train=True)
@@ -107,7 +107,6 @@ if __name__ == "__main__":
     
     history = model.fit(x=train_datasets,
                         validation_data=valid_datasets,
-                        workers=1,
                         epochs=epochs,
                         callbacks=callback,
                         steps_per_epoch=len(train_datasets),
