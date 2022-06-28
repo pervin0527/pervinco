@@ -79,8 +79,8 @@ def adjust_lr(epoch, lr):
 
 
 if __name__ == "__main__":
-    train_dir = '/data/Datasets/TOTAL_FACE/train_data_68pts/list.txt'
-    test_dir = '/data/Datasets/TOTAL_FACE/test_data_68pts/list.txt'
+    train_dir = '/data/Datasets/WFLW/train_data_68pts/list.txt'
+    test_dir = '/data/Datasets/WFLW/test_data_68pts/list.txt'
     save_dir = "/data/Models/face_landmark_68pts"
 
     batch_size = 256
@@ -103,7 +103,7 @@ if __name__ == "__main__":
                 tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
     with strategy.scope():
-        model = PFLDInference(input_shape, is_train=True)
+        model = PFLDInference(input_shape, is_train=True, keypoints=68*2)
 
         if model_path != '':
             model.load_weights(model_path, by_name=True, skip_mismatch=True)
