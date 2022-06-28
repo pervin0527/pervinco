@@ -79,12 +79,12 @@ def adjust_lr(epoch, lr):
 
 
 if __name__ == "__main__":   
-    batch_size = 256
+    batch_size = 512
     epochs = 1000
     model_path = ''
     input_shape = [112, 112, 3]
     # lr = 1e-3 ## 0.001
-    lr = 1e-4
+    lr = 1e-3
     
     train_datasets = PFLDDatasets('/data/Datasets/TOTAL_FACE/train_data/list.txt', batch_size)
     valid_datasets = PFLDDatasets('/data/Datasets/TOTAL_FACE/test_data/list.txt', batch_size)

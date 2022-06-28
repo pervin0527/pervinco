@@ -9,6 +9,7 @@ def PFLDLoss():
         # landmarks, angle = y_pred[:, :196], y_pred[:, 196:]
         landmarks, angle = y_pred[:, :136], y_pred[:, 136:]
 
+        # print(y_pred[:,:136].shape, y_pred[:,136:142].shape, y_pred[:,142:].shape)
         # landmark_gt, attribute_gt, euler_angle_gt = tf.cast(y_true[:,:196], tf.float32),tf.cast(y_true[:,196:202], tf.float32),tf.cast(y_true[:,202:],tf.float32)
         landmark_gt, attribute_gt, euler_angle_gt = tf.cast(y_true[:,:136], tf.float32),tf.cast(y_true[:,136:142], tf.float32),tf.cast(y_true[:,142:],tf.float32)
         weight_angle = K.sum(1 - tf.cos(angle - euler_angle_gt), axis=1) # [8,]
