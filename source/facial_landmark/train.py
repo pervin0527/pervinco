@@ -85,14 +85,14 @@ if __name__ == "__main__":
     model_path = ''
     input_shape = [112, 112, 3]
     # lr = 1e-3 ## 0.001
-    lr = 1e-4
+    lr = 1e-3
     
     train_datasets = PFLDDatasets('/data/Datasets/WFLW/train_data_98pts/list.txt', batch_size)
     valid_datasets = PFLDDatasets('/data/Datasets/WFLW/test_data_98pts/list.txt', batch_size)
     
     optimizer = tf.keras.optimizers.Adam(learning_rate=lr)   
     callback = [DisplayCallback(),
-                # tf.keras.callbacks.LearningRateScheduler(adjust_lr, verbose=1),
+                tf.keras.callbacks.LearningRateScheduler(adjust_lr),
                 # tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=10, verbose=1),
                 tf.keras.callbacks.ModelCheckpoint("/data/Models/facial_landmark/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
