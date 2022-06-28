@@ -78,7 +78,11 @@ def adjust_lr(epoch, lr):
         return lr * 0.5
 
 
-if __name__ == "__main__":   
+if __name__ == "__main__":
+    train_dir = '/data/Datasets/TOTAL_FACE/train_data_68pts/list.txt'
+    test_dir = '/data/Datasets/TOTAL_FACE/test_data_68pts/list.txt'
+    save_dir = "/data/Models/face_landmark_68pts"
+
     batch_size = 256
     epochs = 1000
     model_path = ''
@@ -86,17 +90,20 @@ if __name__ == "__main__":
     # lr = 1e-3 ## 0.001
     lr = 1e-3
     
-    train_datasets = PFLDDatasets('/data/Datasets/TOTAL_FACE/train_data/list.txt', batch_size)
-    valid_datasets = PFLDDatasets('/data/Datasets/TOTAL_FACE/test_data/list.txt', batch_size)
+    train_datasets = PFLDDatasets(train_dir, batch_size)
+    valid_datasets = PFLDDatasets(test_dir, batch_size)
+
+    if not os.path.isdir(save_dir):
+        os.makedirs(save_dir)
     
-    optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=lr)   
     callback = [DisplayCallback(),
                 tf.keras.callbacks.LearningRateScheduler(adjust_lr),
                 # tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=10, verbose=1),
-                tf.keras.callbacks.ModelCheckpoint("/data/Models/face_landmark_68pts/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
+                tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
-    with strategy.scope():    
-        model = PFLDInference(input_shape, is_train=True, keypoints=68*2)
+    with strategy.scope():
+        model = PFLDInference(input_shape, is_train=True)
 
         if model_path != '':
             model.load_weights(model_path, by_name=True, skip_mismatch=True)
