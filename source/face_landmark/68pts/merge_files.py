@@ -6,8 +6,8 @@ import shutil
 
 
 def main(root_dir):
-    files = ['WFLW/train_data/list.txt', '300VW_Dataset_2015_12_14/train_data/list.txt']
-    dst_dir = os.path.join(root_dir, 'TOTAL_FACE/train_data')
+    files = ['WFLW/train_data_68pts/list.txt', '300VW_Dataset_2015_12_14/train_data_68pts/list.txt']
+    dst_dir = os.path.join(root_dir, 'TOTAL_FACE/train_data_68pts')
     if not os.path.exists(dst_dir):
         os.makedirs(dst_dir)
     dst_path = os.path.join(dst_dir, 'list.txt')
@@ -21,8 +21,8 @@ def main(root_dir):
                     for index, line in enumerate(lines):
                         fw.write(line)
     
-    test_files = ['WFLW/test_data/list.txt']
-    test_dst_dir = os.path.join(root_dir, 'TOTAL_FACE/test_data')
+    test_files = ['WFLW/test_data_68pts/list.txt']
+    test_dst_dir = os.path.join(root_dir, 'TOTAL_FACE/test_data_68pts')
     if not os.path.exists(test_dst_dir):
         os.makedirs(test_dst_dir)
     test_dst_path = os.path.join(test_dst_dir, 'list.txt')
