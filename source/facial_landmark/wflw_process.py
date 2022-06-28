@@ -316,7 +316,7 @@ if __name__ == '__main__':
     landmarkDirs = [f'{root_dir}/WFLW_annotations/list_98pt_rect_attr_train_test/list_98pt_rect_attr_test.txt',
                     f'{root_dir}/WFLW_annotations/list_98pt_rect_attr_train_test/list_98pt_rect_attr_train.txt']
 
-    outDirs = ['test_data', 'train_data']
+    outDirs = ['test_data_98pts', 'train_data_98pts']
     for landmarkDir, outDir in zip(landmarkDirs, outDirs):
         outDir = os.path.join(root_dir, outDir)
         print(outDir)

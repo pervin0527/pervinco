@@ -19,14 +19,13 @@ class PFLDDatasets(tf.keras.utils.Sequence):
         for i in range(index * self.batch_size, (index + 1) * self.batch_size):
             i = i % self.length
             line = self.lines[i].strip().split()
-            # print(line)
-            # filename = line[0].split('/')[-1]
-            # print(filename)
+
             img = cv2.imread(line[0])
             img = img / 255.0
+
             # label = np.array(line[1:206], dtype=np.float32)
             label = np.array(line[1:146], dtype=np.float32)
-            # print(label)
+
             images_list.append(np.array(img, dtype=np.float32))
             label_list.append(label)
 

@@ -11,7 +11,7 @@ def conv_bn(filters, kernel_size, strides, padding='same'):
     def _conv_bn(x):
         x = Conv2D(filters=filters, kernel_size=kernel_size, strides=strides, padding=padding, use_bias=False, kernel_regularizer=L2(5e-5), kernel_initializer=TruncatedNormal(stddev=0.01), bias_initializer=Zeros)(x)
         x = BatchNormalization(epsilon=0.001, momentum=0.995)(x)
-        x = Activation('relu')(x)
+        x = relu6(x)
         return x
     
     return _conv_bn
@@ -21,10 +21,10 @@ def InvertedResidual(filters, strides, use_res_connect, expand_ratio=6,name=''):
     def _InvertedResidual(inputs):
         x = Conv2D(filters=filters*expand_ratio, kernel_size=1, strides=1, padding='valid', use_bias=False, kernel_regularizer=L2(5e-5), kernel_initializer=TruncatedNormal(stddev=0.01), bias_initializer=Zeros)(inputs)
         x = BatchNormalization(epsilon=0.001, momentum=0.995)(x)
-        x = Activation('relu')(x)
+        x = relu6(x)
         x = DepthwiseConv2D(kernel_size=3, strides=strides, padding='same', use_bias=False, kernel_regularizer=L2(5e-5), kernel_initializer=TruncatedNormal(stddev=0.01), bias_initializer=Zeros)(x)
         x = BatchNormalization(epsilon=0.001, momentum=0.995)(x)
-        x = Activation('relu')(x)
+        x = relu6(x)
         x = Conv2D(filters=filters, kernel_size=1, strides=1, padding='valid', use_bias=False, kernel_regularizer=L2(5e-5), kernel_initializer=TruncatedNormal(stddev=0.01), bias_initializer=Zeros)(x)
         x = BatchNormalization(epsilon=0.001, momentum=0.995)(x)
 
@@ -45,11 +45,11 @@ def PFLDInference(inputs, is_train=True, keypoints=196):
     inputs = Input(shape=inputs)
     x = Conv2D(filters=64, kernel_size=3, strides=2, padding='same', use_bias=False, kernel_regularizer=L2(5e-5), kernel_initializer=TruncatedNormal(stddev=0.01), bias_initializer=Zeros)(inputs)
     x = BatchNormalization(epsilon=0.001, momentum=0.995)(x)
-    x = Activation('relu')(x)
+    x = relu6(x)
 
     x = Conv2D(filters=64, kernel_size=3, strides=1, padding='same', use_bias=False, kernel_regularizer=L2(5e-5), kernel_initializer=TruncatedNormal(stddev=0.01), bias_initializer=Zeros)(x)
     x = BatchNormalization(epsilon=0.001, momentum=0.995)(x)
-    x = Activation('relu')(x)
+    x = relu6(x)
 
     x = InvertedResidual(64, 2, False, 2)(x)
 
