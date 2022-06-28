@@ -1,11 +1,7 @@
-from tensorflow.keras import backend as K
 from tensorflow.keras.models import Model
 from tensorflow.keras.regularizers import L2
 from tensorflow.keras.initializers import TruncatedNormal, Zeros
 from tensorflow.keras.layers import  Conv2D, BatchNormalization, Activation, DepthwiseConv2D, Add, AvgPool2D, Concatenate, Dense, Input, Reshape, MaxPool2D, Flatten
-
-def relu6(x):
-    return K.relu(x, max_value=6)
 
 def conv_bn(filters, kernel_size, strides, padding='same'):
     def _conv_bn(x):

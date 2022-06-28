@@ -2,7 +2,6 @@ import os
 import cv2
 import numpy as np
 import tensorflow as tf
-import tensorflow_addons as tfa
 
 from glob import glob
 from losses import PFLDLoss
@@ -80,32 +79,32 @@ def adjust_lr(epoch, lr):
 
 
 if __name__ == "__main__":   
-    batch_size = 1024
+    batch_size = 128
     epochs = 1000
     model_path = ''
     input_shape = [112, 112, 3]
     # lr = 1e-3 ## 0.001
     lr = 1e-4
     
-    train_datasets = PFLDDatasets('/data/Datasets/WFLW/train_data/list.txt', batch_size)
-    valid_datasets = PFLDDatasets('/data/Datasets/WFLW/test_data/list.txt', batch_size)
+    train_datasets = PFLDDatasets('/data/Datasets/TOTAL_FACE/train_data/list.txt', batch_size)
+    valid_datasets = PFLDDatasets('/data/Datasets/TOTAL_FACE/test_data/list.txt', batch_size)
     
-    optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
-    optimizer = tf.keras.optimizers.experimental.AdamW(learning_rate=lr, weight_decay=1e-06, ues_ema=True, ema_momentum=0.9)
+    # optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
+    optimizer = tf.keras.optimizers.experimental.AdamW(learning_rate=lr, weight_decay=1e-06, use_ema=True, ema_momentum=0.9)
     
     callback = [DisplayCallback(),
                 # tf.keras.callbacks.LearningRateScheduler(adjust_lr, verbose=1),
                 # tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=10, verbose=1),
                 tf.keras.callbacks.ModelCheckpoint("/data/Models/facial_landmark/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
-    with strategy.scope():
-        model = PFLDInference(input_shape, is_train=True)
+    
+    model = PFLDInference(input_shape, is_train=True, keypoints=68*2)
 
-        if model_path != '':
-            model.load_weights(model_path, by_name=True, skip_mismatch=True)
-            print("WEIGHT LOADED")
+    if model_path != '':
+        model.load_weights(model_path, by_name=True, skip_mismatch=True)
+        print("WEIGHT LOADED")
 
-        model.compile(loss={'train_out': PFLDLoss()}, optimizer=optimizer)
+    model.compile(loss={'train_out': PFLDLoss()}, optimizer=optimizer)
     
     history = model.fit(x=train_datasets,
                         validation_data=valid_datasets,
