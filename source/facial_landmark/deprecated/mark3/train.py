@@ -32,7 +32,7 @@ else:
 def get_overlay(index, image, landmarks):
     image = np.array(image).astype(np.uint8)
     for (x, y) in landmarks:
-        cv2.circle(image, (int(x), int(y)), radius=1, color=(0, 0, 255), thickness=-1)
+        cv2.circle(image, (int(x), int(y)), radius=1, color=(255, 255, 0), thickness=-1)
 
     cv2.imwrite(f"epochs/epoch_{index}.png", image)
 
@@ -79,7 +79,7 @@ def adjust_lr(epoch, lr):
 
 
 if __name__ == "__main__":   
-    batch_size = 128
+    batch_size = 256
     epochs = 1000
     model_path = ''
     input_shape = [112, 112, 3]
