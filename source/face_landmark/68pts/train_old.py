@@ -43,6 +43,7 @@ def plot_predictions(model):
         image_tensor = tf.image.decode_jpeg(image, channels=3)
         image_tensor = tf.image.resize(image_tensor, (input_shape[0], input_shape[1]))
         image_tensor = image_tensor / 255.0
+        # image_tensor = (image_tensor + 1) * 127.5
         image_tensor = tf.expand_dims(image_tensor, axis=0)
 
         prediction = model.predict(image_tensor, verbose=0)
@@ -69,35 +70,6 @@ class DisplayCallback(tf.keras.callbacks.Callback):
         plot_predictions(model=model)
 
 
-def data_process(data):
-    splits = tf.strings.split(data, sep=' ')
-    image_path = splits[0]
-    image_file = tf.io.read_file(image_path)
-    image = tf.io.decode_jpeg(image_file, channels=3)
-    
-    image = tf.cast(image, dtype=tf.float32)
-    image = image / 255.0
-    image.set_shape((112, 112, 3))
-
-    label = splits[1:146]
-    label = tf.strings.to_number(label, out_type=tf.float32)
-
-    return image, label
-
-
-def build_dataset(txt_file):
-    n_dataset = '/'.join(txt_file.split('/')[:-1])
-    n_dataset = len(glob(f"{n_dataset}/imgs/*"))
-
-    dataset = tf.data.TextLineDataset(txt_file)
-    dataset = dataset.map(data_process, num_parallel_calls=tf.data.AUTOTUNE)
-    dataset = dataset.repeat()
-    dataset = dataset.batch(batch_size)
-    dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
-
-    return dataset, n_dataset
-
-
 def adjust_lr(epoch, lr):
     epoch+=1
     if epoch % 20 != 0:
@@ -118,13 +90,8 @@ if __name__ == "__main__":
     # lr = 1e-3 ## 0.001
     lr = 1e-3
     
-    # train_datasets = PFLDDatasets(train_dir, batch_size)
-    # valid_datasets = PFLDDatasets(test_dir, batch_size)
-    train_datasets, n_train_datasets = build_dataset(train_dir)
-    valid_datasets, n_valid_datasets = build_dataset(test_dir)
-
-    train_steps_per_epoch = int(n_train_datasets / batch_size)
-    valid_steps_per_epoch = int(n_valid_datasets / batch_size)
+    train_datasets = PFLDDatasets(train_dir, batch_size)
+    valid_datasets = PFLDDatasets(test_dir, batch_size)
 
     if not os.path.isdir(save_dir):
         os.makedirs(save_dir)
@@ -148,6 +115,6 @@ if __name__ == "__main__":
                         validation_data=valid_datasets,
                         epochs=epochs,
                         callbacks=callback,
-                        steps_per_epoch=train_steps_per_epoch,
-                        validation_steps=valid_steps_per_epoch,
+                        steps_per_epoch=len(train_datasets),
+                        validation_steps=len(valid_datasets),
                         verbose=1)
