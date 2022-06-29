@@ -11,6 +11,8 @@ from model import PFLDInference
 from IPython.display import clear_output
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if len(gpus) > 1:
     try:
@@ -35,7 +37,7 @@ def get_overlay(index, image, landmarks):
     for (x, y) in landmarks:
         cv2.circle(image, (int(x), int(y)), radius=1, color=(255, 255, 0), thickness=-1)
 
-    cv2.imwrite(f"epochs/epoch_{index}_server2.png", image)
+    cv2.imwrite(f"epochs/server2_{index}.png", image)
 
 
 def plot_predictions(model):
@@ -99,27 +101,17 @@ def build_dataset(txt_file):
     return dataset, n_dataset
 
 
-def adjust_lr(epoch, lr):
-    epoch+=1
-    if epoch % 10 != 0:
-        return lr
-    else:
-        return lr * 0.5
-
-
 if __name__ == "__main__":
     train_dir = '/home/ubuntu/Datasets/WFLW/train_data_68pts/list.txt'
     test_dir = '/home/ubuntu/Datasets/WFLW/test_data_68pts/list.txt'
     save_dir = "/home/ubuntu/Models/face_landmark_68pts"
 
     batch_size = 512
-    epochs = 1000
+    epochs = 5000
     model_path = ''
     input_shape = [112, 112, 3]
     lr = 0.00001
 
-    # train_datasets = PFLDDatasets(train_dir, batch_size)
-    # valid_datasets = PFLDDatasets(test_dir, batch_size)
     train_datasets, n_train_datasets = build_dataset(train_dir)
     valid_datasets, n_valid_datasets = build_dataset(test_dir)
 
@@ -129,21 +121,15 @@ if __name__ == "__main__":
     if not os.path.isdir(save_dir):
         os.makedirs(save_dir)
     
-    # optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
-    # cosine_decay = tf.keras.optimizers.schedules.CosineDecay(initial_learning_rate=lr, decay_steps=50, alpha=0.8)
 
     optimizer = tf.keras.optimizers.SGD()
     clr = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=0.0001,
                                               maximal_learning_rate=0.01,
                                               scale_fn=lambda x: 1.0,
-                                              step_size=2 * train_steps_per_epoch)
+                                              step_size=1000 * train_steps_per_epoch)
     
     callback = [DisplayCallback(),
-                # tf.keras.callbacks.LearningRateScheduler(adjust_lr),
-                # tf.keras.callbacks.LearningRateScheduler(cosine_decay),
-                tf.keras.callbacks.LearningRateScheduler(clr),
-                tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=20, verbose=1),
-                tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
+                tf.keras.callbacks.LearningRateScheduler(clr)]
 
     with strategy.scope():
         model = PFLDInference(input_shape, is_train=True, keypoints=68*2)
