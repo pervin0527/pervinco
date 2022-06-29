@@ -72,7 +72,7 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 def adjust_lr(epoch, lr):
     epoch+=1
-    if epoch % 20 != 0:
+    if epoch % 10 != 0:
         return lr
     else:
         return lr * 0.5
@@ -81,13 +81,12 @@ def adjust_lr(epoch, lr):
 if __name__ == "__main__":
     train_dir = '/data/Datasets/WFLW/train_data_68pts/list.txt'
     test_dir = '/data/Datasets/WFLW/test_data_68pts/list.txt'
-    save_dir = "/data/Models/face_landmark_68pts"
+    save_dir = "/data/Models/face_landmark_68pts_lab"
 
-    batch_size = 256
+    batch_size = 512
     epochs = 1000
     model_path = ''
     input_shape = [112, 112, 3]
-    # lr = 1e-3 ## 0.001
     lr = 1e-3
     
     train_datasets = PFLDDatasets(train_dir, batch_size)

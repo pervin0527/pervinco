@@ -112,7 +112,7 @@ if __name__ == "__main__":
     test_dir = '/data/Datasets/WFLW/test_data_68pts/list.txt'
     save_dir = "/data/Models/face_landmark_68pts"
 
-    batch_size = 256
+    batch_size = 512
     epochs = 1000
     model_path = ''
     input_shape = [112, 112, 3]
@@ -134,17 +134,10 @@ if __name__ == "__main__":
     if not os.path.isdir(save_dir):
         os.makedirs(save_dir)
     
-    # optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
-    
-    # optimizer = tf.keras.optimizers.Adam()
-    # scheduler = tf.keras.optimizers.schedules.CosineDecay(initial_learning_rate=init_lr, decay_steps=decay_steps, alpha=alpha)
-    
-    optimizer = tf.keras.optimizers.SGD()
-    scheduler = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=init_lr, maximal_learning_rate=max_lr, scale_fn=lambda x: 1/(2.**(x-1)), step_size=2*train_steps_per_epoch)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
     
     callback = [DisplayCallback(),
-                # tf.keras.callbacks.LearningRateScheduler(adjust_lr),
-                tf.keras.callbacks.LearningRateScheduler(scheduler),
+                tf.keras.callbacks.LearningRateScheduler(adjust_lr),
                 tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=15, verbose=1),
                 tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
