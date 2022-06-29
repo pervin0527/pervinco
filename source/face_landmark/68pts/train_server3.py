@@ -104,9 +104,9 @@ def build_dataset(txt_file):
 if __name__ == "__main__":
     train_dir = '/home/ubuntu/Datasets/WFLW/train_data_68pts/list.txt'
     test_dir = '/home/ubuntu/Datasets/WFLW/test_data_68pts/list.txt'
-    save_dir = "/home/ubuntu/Models/face_landmark_68pts"
+    save_dir = "/home/ubuntu/Models/face_landmark_68pts3"
 
-    batch_size = 512
+    batch_size = 128
     epochs = 10000
     model_path = ''
     input_shape = [112, 112, 3]
@@ -121,15 +121,16 @@ if __name__ == "__main__":
     if not os.path.isdir(save_dir):
         os.makedirs(save_dir)
 
-    optimizer = tf.keras.optimizers.SGD()
+    optimizer = tf.keras.optimizers.Adam()
     cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=lr,
-                                                            first_decay_steps=100,
-                                                            t_mul=2.0,
+                                                            first_decay_steps=200,
+                                                            t_mul=1.0,
                                                             m_mul=0.9,
-                                                            alpha=0.5)
+                                                            alpha=0.00001)
     
     callback = [DisplayCallback(),
-                tf.keras.callbacks.LearningRateScheduler(cdr)]
+                tf.keras.callbacks.LearningRateScheduler(cdr),
+                tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
     with strategy.scope():
         model = PFLDInference(input_shape, is_train=True, keypoints=68*2)

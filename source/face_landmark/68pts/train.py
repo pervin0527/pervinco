@@ -115,7 +115,7 @@ if __name__ == "__main__":
     epochs = 1000
     model_path = ''
     input_shape = [112, 112, 3]
-    lr = 1e-3 ## 0.001
+    lr = 1e-5 ## 0.0001
 
     # train_datasets = PFLDDatasets(train_dir, batch_size)
     # valid_datasets = PFLDDatasets(test_dir, batch_size)
@@ -132,7 +132,7 @@ if __name__ == "__main__":
     
     callback = [DisplayCallback(),
                 tf.keras.callbacks.LearningRateScheduler(adjust_lr),
-                tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=10, verbose=1),
+                # tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=10, verbose=1),
                 tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
     with strategy.scope():
