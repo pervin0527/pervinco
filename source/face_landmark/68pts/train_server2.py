@@ -133,8 +133,8 @@ if __name__ == "__main__":
     # cosine_decay = tf.keras.optimizers.schedules.CosineDecay(initial_learning_rate=lr, decay_steps=50, alpha=0.8)
 
     optimizer = tf.keras.optimizers.SGD()
-    clr = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=0.00001,
-                                              maximal_learning_rate=0.001,
+    clr = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=0.0001,
+                                              maximal_learning_rate=0.01,
                                               scale_fn=lambda x: 1.0,
                                               step_size=2 * train_steps_per_epoch)
     
