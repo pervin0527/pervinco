@@ -36,7 +36,7 @@ def data_preprocess(sample_data):
 
 
 if __name__ == "__main__":
-    data_list = "/data/Datasets/TOTAL_FACE/train_data/list.txt"
+    data_list = "/data/Datasets/TOTAL_FACE/train_data_68pts/list.txt"
     f = open(data_list, "r")
     data = f.readlines()
     
