@@ -100,22 +100,22 @@ def build_dataset(txt_file):
 
 def adjust_lr(epoch, lr):
     epoch+=1
-    if epoch % 20 != 0:
+    if epoch % 10 != 0:
         return lr
     else:
         return lr * 0.5
 
 
 if __name__ == "__main__":
-    train_dir = '/data/Datasets/WFLW/train_data_68pts/list.txt'
-    test_dir = '/data/Datasets/WFLW/test_data_68pts/list.txt'
-    save_dir = "/data/Models/face_landmark_68pts"
+    train_dir = '/home/ubuntu/Datasets/TOTAL_FACE/train_data_68pts/list.txt'
+    test_dir = '/home/ubuntu/Datasets/TOTAL_FACE/test_data_68pts/list.txt'
+    save_dir = "/home/ubuntu/Models/face_landmark_68pts"
 
-    batch_size = 256
+    batch_size = 1024
     epochs = 1000
     model_path = ''
     input_shape = [112, 112, 3]
-    lr = 1e-3 ## 0.001
+    lr = 0.00001
 
     # train_datasets = PFLDDatasets(train_dir, batch_size)
     # valid_datasets = PFLDDatasets(test_dir, batch_size)
@@ -129,10 +129,12 @@ if __name__ == "__main__":
         os.makedirs(save_dir)
     
     optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
+    cosine_decay = tf.keras.optimizers.schedules.CosineDecay(initial_learning_rate=lr, decay_steps=50, alpha=0.8)
     
     callback = [DisplayCallback(),
-                tf.keras.callbacks.LearningRateScheduler(adjust_lr),
-                tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=10, verbose=1),
+                # tf.keras.callbacks.LearningRateScheduler(adjust_lr),
+                tf.keras.callbacks.LearningRateScheduler(cosine_decay),
+                tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=20, verbose=1),
                 tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
     with strategy.scope():
