@@ -35,7 +35,7 @@ def get_overlay(index, image, landmarks):
     for (x, y) in landmarks:
         cv2.circle(image, (int(x), int(y)), radius=1, color=(255, 255, 0), thickness=-1)
 
-    cv2.imwrite(f"epochs/epoch_{index}_server2.png", image)
+    cv2.imwrite(f"epochs/epoch_{index}_server3.png", image)
 
 
 def plot_predictions(model):
