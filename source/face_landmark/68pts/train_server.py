@@ -106,7 +106,7 @@ if __name__ == "__main__":
     save_dir = "/home/ubuntu/Models/face_landmark_68pts"
 
     batch_size = 512
-    epochs = 5000
+    epochs = 10000
     model_path = ''
     input_shape = [112, 112, 3]
     lr = 0.001
