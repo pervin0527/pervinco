@@ -100,7 +100,7 @@ def build_dataset(txt_file):
 
 def adjust_lr(epoch, lr):
     epoch+=1
-    if epoch % 20 != 0:
+    if epoch % 10 != 0:
         return lr
     else:
         return lr * 0.5
