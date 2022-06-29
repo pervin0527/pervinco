@@ -2,7 +2,6 @@ import os
 import cv2
 import numpy as np
 import tensorflow as tf
-import tensorflow_addons as tfa
 
 from glob import glob
 from losses import PFLDLoss
@@ -118,11 +117,6 @@ if __name__ == "__main__":
     input_shape = [112, 112, 3]
     lr = 1e-3 ## 0.001
 
-    init_lr = 0.0001
-    alpha = 0.8
-    decay_steps = 50
-    max_lr = 0.01
-
     # train_datasets = PFLDDatasets(train_dir, batch_size)
     # valid_datasets = PFLDDatasets(test_dir, batch_size)
     train_datasets, n_train_datasets = build_dataset(train_dir)
@@ -138,7 +132,7 @@ if __name__ == "__main__":
     
     callback = [DisplayCallback(),
                 tf.keras.callbacks.LearningRateScheduler(adjust_lr),
-                tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=15, verbose=1),
+                tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=20, verbose=1),
                 tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
     with strategy.scope():
