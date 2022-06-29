@@ -35,7 +35,7 @@ def get_overlay(index, image, landmarks):
     for (x, y) in landmarks:
         cv2.circle(image, (int(x), int(y)), radius=1, color=(255, 255, 0), thickness=-1)
 
-    cv2.imwrite(f"epochs/epoch_{index}.png", image)
+    cv2.imwrite(f"epochs/epoch_{index}_server2.png", image)
 
 
 def plot_predictions(model):
@@ -112,7 +112,7 @@ if __name__ == "__main__":
     test_dir = '/home/ubuntu/Datasets/WFLW/test_data_68pts/list.txt'
     save_dir = "/home/ubuntu/Models/face_landmark_68pts"
 
-    batch_size = 1024
+    batch_size = 512
     epochs = 1000
     model_path = ''
     input_shape = [112, 112, 3]
@@ -136,8 +136,7 @@ if __name__ == "__main__":
     clr = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=0.00001,
                                               maximal_learning_rate=0.001,
                                               scale_fn=lambda x: 1.0,
-                                              step_size=2 * train_steps_per_epoch
-    )
+                                              step_size=2 * train_steps_per_epoch)
     
     callback = [DisplayCallback(),
                 # tf.keras.callbacks.LearningRateScheduler(adjust_lr),
