@@ -101,7 +101,7 @@ def build_dataset(txt_file):
 
 def adjust_lr(epoch, lr):
     epoch+=1
-    if epoch % 20 != 0:
+    if epoch % 10 != 0:
         return lr
     else:
         return lr * 0.5
@@ -135,13 +135,16 @@ if __name__ == "__main__":
         os.makedirs(save_dir)
     
     # optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
+    
     # optimizer = tf.keras.optimizers.Adam()
-    optimizer = tf.keras.optimizers.SGD()
     # scheduler = tf.keras.optimizers.schedules.CosineDecay(initial_learning_rate=init_lr, decay_steps=decay_steps, alpha=alpha)
+    
+    optimizer = tf.keras.optimizers.SGD()
     scheduler = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=init_lr, maximal_learning_rate=max_lr, scale_fn=lambda x: 1/(2.**(x-1)), step_size=2*train_steps_per_epoch)
+    
     callback = [DisplayCallback(),
-                tf.keras.callbacks.LearningRateScheduler(scheduler),
                 # tf.keras.callbacks.LearningRateScheduler(adjust_lr),
+                tf.keras.callbacks.LearningRateScheduler(scheduler),
                 tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=15, verbose=1),
                 tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
