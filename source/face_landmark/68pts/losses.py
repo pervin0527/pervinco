@@ -30,13 +30,13 @@ def PFLDLoss():
     
     return _PFLDLoss
 
-# def L2Loss():
-#     def _L2Loss(y_true, y_pred):
-#         landmarks= y_pred
-#         landmark_gt, _, _ = tf.cast(y_true[:,:196], tf.float32),tf.cast(y_true[:,196:202], tf.float32),tf.cast(y_true[:,202:],tf.float32)
-#         l2_distant = tf.reduce_sum((landmark_gt - landmarks) * (landmark_gt - landmarks), axis=1)
+def L2Loss():
+    def _L2Loss(y_true, y_pred):
+        landmarks= y_pred
+        landmark_gt, _, _ = tf.cast(y_true[:,:136], tf.float32),tf.cast(y_true[:,136:142], tf.float32),tf.cast(y_true[:,142:],tf.float32)
+        l2_distant = tf.reduce_sum((landmark_gt - landmarks) * (landmark_gt - landmarks), axis=1)
         
-#         return tf.reduce_mean(l2_distant)
+        return tf.reduce_mean(l2_distant)
 
-#     return _L2Loss
+    return _L2Loss
 

@@ -2,6 +2,8 @@ import os
 import cv2
 import numpy as np
 import tensorflow as tf
+import tensorflow_addons as tfa
+
 from glob import glob
 from model import MobileNet
 from IPython.display import clear_output
@@ -38,7 +40,7 @@ def get_overlay(index, image, landmarks):
 def plot_predictions(model):
     for idx, file in enumerate(sorted(glob("./samples/sample*"))):
         image = tf.io.read_file(file)
-        image_tensor = tf.image.decode_jpeg(image, channels=1)
+        image_tensor = tf.image.decode_png(image, channels=3)
         image_tensor = tf.image.resize(image_tensor, (IMG_SIZE, IMG_SIZE))
         image_tensor = image_tensor / 255.0
         image_tensor = tf.expand_dims(image_tensor, axis=0)
@@ -68,11 +70,27 @@ def smoothL1(y_true, y_pred):
     return  K.sum(x)
 
 
+def WING_LOSS(N_LANDMARK, w=10.0, epsilon=2.0):
+    def wing_loss(y_true, y_pred):
+        y_pred = tf.reshape(y_pred, (-1, N_LANDMARK, 2))
+        y_true = tf.reshape(y_true, (-1, N_LANDMARK, 2))
+
+        x = y_true - y_pred
+        c = w * (1.0 - tf.math.log(1.0 + w / epsilon))
+        absolute_x = tf.abs(x)
+        losses = tf.where(w > absolute_x,
+                        w * tf.math.log(1.0 + absolute_x / epsilon),
+                        absolute_x - c)
+        loss = tf.reduce_mean(tf.reduce_sum(losses, axis=[1, 2]), axis=0)
+        return loss
+    return wing_loss
+
+
 def data_process(data):
     splits = tf.strings.split(data, sep=' ')
     image_path = splits[0]
     image_file = tf.io.read_file(image_path)
-    image = tf.io.decode_jpeg(image_file, channels=1)
+    image = tf.io.decode_png(image_file, channels=3)
     
     image = tf.cast(image, dtype=tf.float32)
     image = image / 255.0
@@ -87,7 +105,7 @@ def data_process(data):
 
 def build_dataset(txt_file):
     n_dataset = '/'.join(txt_file.split('/')[:-1])
-    n_dataset = len(glob(f"{n_dataset}/images/*"))
+    n_dataset = len(glob(f"{n_dataset}/imgs/*"))
 
     dataset = tf.data.TextLineDataset(txt_file)
     dataset = dataset.map(data_process, num_parallel_calls=tf.data.AUTOTUNE)
@@ -99,8 +117,8 @@ def build_dataset(txt_file):
 
 
 def build_model():
-    # base_model = tf.keras.applications.mobilenet_v2.MobileNetV2(input_shape=INPUT_SHAPE, include_top=False, weights=None, pooling="max")
-    base_model = MobileNet(input_shape=(64, 64, 1), alpha=1.0, depth_multiplier=1, include_top=False, weights=None, pooling='max', shallow=True)
+    base_model = tf.keras.applications.mobilenet_v2.MobileNetV2(input_shape=INPUT_SHAPE, include_top=False, weights=None, pooling="max")
+    # base_model = MobileNet(input_shape=(IMG_SIZE, IMG_SIZE, 3), alpha=1.0, depth_multiplier=1, include_top=False, weights=None, pooling='max', shallow=True)
     last_layer = base_model.get_layer("global_max_pooling2d").output
     out = tf.keras.layers.Dense(N_LANDMARKS)(last_layer)
 
@@ -114,17 +132,17 @@ def build_model():
 
 if __name__ == "__main__":
     EPOCHS = 3000
-    BATCH_SIZE = 2048
-    IMG_SIZE = 64
-    INPUT_SHAPE = (IMG_SIZE, IMG_SIZE, 1)
+    BATCH_SIZE = 64
+    IMG_SIZE = 112
+    INPUT_SHAPE = (IMG_SIZE, IMG_SIZE, 3)
     HUBER_DELTA = 0.5
     N_LANDMARKS = 68 * 2
     LEARNING_RATE = 1e-3
 
     print_summary = False
     
-    train_data = "/data/Source/PFLD_68points_Pytorch/data/300VW/train_data/list.txt"
-    test_data = "/data/Source/PFLD_68points_Pytorch/data/WFLW/test_data/list.txt"
+    train_data = "/data/Datasets/TOTAL_FACE/train_data_68pts/list.txt"
+    test_data = "/data/Datasets/TOTAL_FACE/test_data_68pts/list.txt"
 
     train_dataset, n_train_dataset = build_dataset(train_data)
     test_dataset, n_test_dataset = build_dataset(test_data)
@@ -132,12 +150,23 @@ if __name__ == "__main__":
     print(train_dataset)
     print(test_dataset)
 
-    train_steps = int(n_train_dataset / BATCH_SIZE)
-    test_steps = int(n_test_dataset / BATCH_SIZE)
+    train_steps_per_epoch = int(n_train_dataset / BATCH_SIZE)
+    test_steps_per_epoch = int(n_test_dataset / BATCH_SIZE)
 
-    callbacks = [DisplayCallback(),
-                 tf.keras.callbacks.ModelCheckpoint("/data/Models/test/best.ckpt", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
+    callbacks = [DisplayCallback(),]
+
+    optimizer = tf.keras.optimizers.SGD()
+    clr = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=0.00001,
+                                              maximal_learning_rate=0.001,
+                                              scale_fn=lambda x: 1.0,
+                                              step_size=2 * train_steps_per_epoch)
 
     model = build_model()
-    model.compile(loss=smoothL1, optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE), metrics=["mape"])
-    model.fit(train_dataset, steps_per_epoch=train_steps, epochs=EPOCHS, verbose=1, validation_data=test_dataset, validation_steps=test_steps, callbacks=callbacks)
+    model.compile(loss=WING_LOSS(N_LANDMARKS), optimizer=optimizer)
+    model.fit(train_dataset,
+              steps_per_epoch=train_steps_per_epoch,
+              epochs=EPOCHS,
+              verbose=1,
+              validation_data=test_dataset,
+              validation_steps=test_steps_per_epoch,
+              callbacks=callbacks)
