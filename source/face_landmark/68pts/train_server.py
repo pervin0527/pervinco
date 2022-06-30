@@ -105,7 +105,7 @@ if __name__ == "__main__":
     test_dir = '/home/ubuntu/Datasets/WFLW/test_data_68pts/list.txt'
     save_dir = "/home/ubuntu/Models/face_landmark_68pts1"
 
-    batch_size = 512
+    batch_size = 256
     epochs = 10000
     model_path = ''
     input_shape = [112, 112, 3]
