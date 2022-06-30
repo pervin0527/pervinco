@@ -11,8 +11,6 @@ from model import PFLDInference
 from IPython.display import clear_output
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   
-os.environ["CUDA_VISIBLE_DEVICES"]="2"
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if len(gpus) > 1:
     try:
@@ -88,13 +86,15 @@ def data_process(data):
     return image, label
 
 
-def build_dataset(txt_file):
+def build_dataset(txt_file, is_train):
     n_dataset = '/'.join(txt_file.split('/')[:-1])
     n_dataset = len(glob(f"{n_dataset}/imgs/*"))
 
     dataset = tf.data.TextLineDataset(txt_file)
     dataset = dataset.map(data_process, num_parallel_calls=tf.data.AUTOTUNE)
     dataset = dataset.repeat()
+    if is_train:
+        dataset = dataset.shuffle(buffer_size=train_steps_per_epoch)
     dataset = dataset.batch(batch_size)
     dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
 
@@ -102,18 +102,18 @@ def build_dataset(txt_file):
 
 
 if __name__ == "__main__":
-    train_dir = '/home/ubuntu/Datasets/WFLW/train_data_68pts/list.txt'
-    test_dir = '/home/ubuntu/Datasets/WFLW/test_data_68pts/list.txt'
-    save_dir = "/home/ubuntu/Models/face_landmark_68pts3"
+    train_dir = '/data/Datasets/WFLW/train_data_68pts/list.txt'
+    test_dir = '/data/Datasets/WFLW/test_data_68pts/list.txt'
+    save_dir = "/data/Models/face_landmark_68pts3"
 
-    batch_size = 128
+    batch_size = 512
     epochs = 10000
     model_path = ''
     input_shape = [112, 112, 3]
     lr = 0.001
 
-    train_datasets, n_train_datasets = build_dataset(train_dir)
-    valid_datasets, n_valid_datasets = build_dataset(test_dir)
+    train_datasets, n_train_datasets = build_dataset(train_dir, True)
+    valid_datasets, n_valid_datasets = build_dataset(test_dir, False)
 
     train_steps_per_epoch = int(n_train_datasets / batch_size)
     valid_steps_per_epoch = int(n_valid_datasets / batch_size)

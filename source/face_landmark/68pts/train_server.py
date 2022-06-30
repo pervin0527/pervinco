@@ -10,8 +10,6 @@ from model import PFLDInference
 from IPython.display import clear_output
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if len(gpus) > 1:
     try:
@@ -87,13 +85,15 @@ def data_process(data):
     return image, label
 
 
-def build_dataset(txt_file):
+def build_dataset(txt_file, is_train):
     n_dataset = '/'.join(txt_file.split('/')[:-1])
     n_dataset = len(glob(f"{n_dataset}/imgs/*"))
 
     dataset = tf.data.TextLineDataset(txt_file)
     dataset = dataset.map(data_process, num_parallel_calls=tf.data.AUTOTUNE)
     dataset = dataset.repeat()
+    if is_train:
+        dataset = dataset.shuffle(buffer_size=train_steps_per_epoch)
     dataset = dataset.batch(batch_size)
     dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
 
@@ -113,8 +113,8 @@ if __name__ == "__main__":
 
     # train_datasets = PFLDDatasets(train_dir, batch_size)
     # valid_datasets = PFLDDatasets(test_dir, batch_size)
-    train_datasets, n_train_datasets = build_dataset(train_dir)
-    valid_datasets, n_valid_datasets = build_dataset(test_dir)
+    train_datasets, n_train_datasets = build_dataset(train_dir, True)
+    valid_datasets, n_valid_datasets = build_dataset(test_dir, False)
 
     train_steps_per_epoch = int(n_train_datasets / batch_size)
     valid_steps_per_epoch = int(n_valid_datasets / batch_size)
