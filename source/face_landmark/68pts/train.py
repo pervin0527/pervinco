@@ -117,7 +117,7 @@ if __name__ == "__main__":
     epochs = 1000
     model_path = ''
     input_shape = [112, 112, 3]
-    lr = 1e-3 ## 0.0001
+    lr = 1e-3 ## 0.001
 
     # train_datasets = PFLDDatasets(train_dir, batch_size)
     # valid_datasets = PFLDDatasets(test_dir, batch_size)
