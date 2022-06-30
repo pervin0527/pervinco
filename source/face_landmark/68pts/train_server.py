@@ -101,15 +101,15 @@ def build_dataset(txt_file, is_train):
 
 
 if __name__ == "__main__":
-    train_dir = '/home/ubuntu/Datasets/WFLW/train_data_68pts/list.txt'
-    test_dir = '/home/ubuntu/Datasets/WFLW/test_data_68pts/list.txt'
+    train_dir = '/home/ubuntu/Datasets/TOTAL_FACE/train_data_68pts/list.txt'
+    test_dir = '/home/ubuntu/Datasets/TOTAL_FACE/test_data_68pts/list.txt'
     save_dir = "/home/ubuntu/Models/face_landmark_68pts1"
 
-    batch_size = 1024
-    epochs = 10000
+    batch_size = 2048
+    epochs = 1000
     model_path = ''
     input_shape = [112, 112, 3]
-    lr = 0.001
+    lr = 0.01
 
     # train_datasets = PFLDDatasets(train_dir, batch_size)
     # valid_datasets = PFLDDatasets(test_dir, batch_size)
@@ -123,7 +123,7 @@ if __name__ == "__main__":
         os.makedirs(save_dir)
     
     optimizer = tf.keras.optimizers.Adam()
-    cosine_decay = tf.keras.optimizers.schedules.CosineDecay(initial_learning_rate=lr, decay_steps=100, alpha=0.00001)
+    cosine_decay = tf.keras.optimizers.schedules.CosineDecay(initial_learning_rate=lr, decay_steps=500, alpha=0.00001)
     
     callback = [DisplayCallback(),
                 tf.keras.callbacks.LearningRateScheduler(cosine_decay),
