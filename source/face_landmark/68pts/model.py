@@ -88,7 +88,7 @@ def PFLDInference(inputs, is_train=True, keypoints=196):
     
     if is_train:
         out1 = AuxiliaryNet(out1)
-        return Model(inputs, [Concatenate()([landmarks,out1]), landmarks])
+        return Model(inputs, [Concatenate(name='train_out')([landmarks,out1]), landmarks])
     else:
         return Model(inputs, landmarks)
 
