@@ -102,11 +102,11 @@ def build_dataset(txt_file, is_train):
 
 
 if __name__ == "__main__":
-    train_dir = '/data/Datasets/WFLW/train_data_68pts/list.txt'
-    test_dir = '/data/Datasets/WFLW/test_data_68pts/list.txt'
-    save_dir = "/data/Models/face_landmark_68pts3"
+    train_dir = '/home/ubuntu/Datasets/WFLW/train_data_68pts/list.txt'
+    test_dir = '/home/ubuntu/Datasets/WFLW/test_data_68pts/list.txt'
+    save_dir = "/home/ubuntu/Models/face_landmark_68pts3"
 
-    batch_size = 256
+    batch_size = 2048
     epochs = 10000
     model_path = ''
     input_shape = [112, 112, 3]
@@ -123,10 +123,10 @@ if __name__ == "__main__":
 
     optimizer = tf.keras.optimizers.Adam()
     cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=lr,
-                                                            first_decay_steps=50,
+                                                            first_decay_steps=1000,
                                                             t_mul=2.0,
                                                             m_mul=0.9,
-                                                            alpha=0.0)
+                                                            alpha=0.001)
     
     callback = [DisplayCallback(),
                 tf.keras.callbacks.LearningRateScheduler(cdr),
