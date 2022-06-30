@@ -106,7 +106,7 @@ if __name__ == "__main__":
     save_dir = "/data/Models/face_landmark_68pts1"
 
     batch_size = 256
-    epochs = 10000
+    epochs = 3000
     model_path = ''
     input_shape = [112, 112, 3]
     lr = 0.01
