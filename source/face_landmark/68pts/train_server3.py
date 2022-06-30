@@ -126,7 +126,7 @@ if __name__ == "__main__":
                                                             first_decay_steps=100,
                                                             t_mul=2.0,
                                                             m_mul=0.9,
-                                                            alpha=0.00001)
+                                                            alpha=0.000001)
     
     callback = [DisplayCallback(),
                 tf.keras.callbacks.LearningRateScheduler(cdr),
