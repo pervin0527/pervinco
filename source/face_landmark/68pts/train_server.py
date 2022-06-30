@@ -93,7 +93,7 @@ def build_dataset(txt_file, is_train):
     dataset = dataset.map(data_process, num_parallel_calls=tf.data.AUTOTUNE)
     dataset = dataset.repeat()
     if is_train:
-        dataset = dataset.shuffle(buffer_size=train_steps_per_epoch)
+        dataset = dataset.shuffle(buffer_size=int(n_dataset / batch_size))
     dataset = dataset.batch(batch_size)
     dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
 
@@ -105,7 +105,7 @@ if __name__ == "__main__":
     test_dir = '/home/ubuntu/Datasets/WFLW/test_data_68pts/list.txt'
     save_dir = "/home/ubuntu/Models/face_landmark_68pts1"
 
-    batch_size = 256
+    batch_size = 1024
     epochs = 10000
     model_path = ''
     input_shape = [112, 112, 3]

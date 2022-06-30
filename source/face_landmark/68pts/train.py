@@ -93,7 +93,7 @@ def build_dataset(txt_file, is_train):
     dataset = dataset.map(data_process, num_parallel_calls=tf.data.AUTOTUNE)
     dataset = dataset.repeat()
     if is_train:
-        dataset = dataset.shuffle(buffer_size=train_steps_per_epoch)
+        dataset = dataset.shuffle(buffer_size=int(n_dataset / batch_size))
     dataset = dataset.batch(batch_size)
     dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
 
@@ -117,7 +117,7 @@ if __name__ == "__main__":
     epochs = 1000
     model_path = ''
     input_shape = [112, 112, 3]
-    lr = 1e-5 ## 0.0001
+    lr = 1e-3 ## 0.0001
 
     # train_datasets = PFLDDatasets(train_dir, batch_size)
     # valid_datasets = PFLDDatasets(test_dir, batch_size)

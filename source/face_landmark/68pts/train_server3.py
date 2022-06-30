@@ -94,7 +94,7 @@ def build_dataset(txt_file, is_train):
     dataset = dataset.map(data_process, num_parallel_calls=tf.data.AUTOTUNE)
     dataset = dataset.repeat()
     if is_train:
-        dataset = dataset.shuffle(buffer_size=train_steps_per_epoch)
+        dataset = dataset.shuffle(buffer_size=int(n_dataset / batch_size))
     dataset = dataset.batch(batch_size)
     dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
 
@@ -106,7 +106,7 @@ if __name__ == "__main__":
     test_dir = '/home/ubuntu/Datasets/WFLW/test_data_68pts/list.txt'
     save_dir = "/home/ubuntu/Models/face_landmark_68pts3"
 
-    batch_size = 256
+    batch_size = 1024
     epochs = 10000
     model_path = ''
     input_shape = [112, 112, 3]
@@ -123,10 +123,10 @@ if __name__ == "__main__":
 
     optimizer = tf.keras.optimizers.Adam()
     cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=lr,
-                                                            first_decay_steps=200,
+                                                            first_decay_steps=100,
                                                             t_mul=1.0,
-                                                            m_mul=0.9,
-                                                            alpha=0.00001)
+                                                            m_mul=1.0,
+                                                            alpha=0.1)
     
     callback = [DisplayCallback(),
                 tf.keras.callbacks.LearningRateScheduler(cdr),
