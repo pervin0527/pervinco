@@ -102,9 +102,9 @@ def build_dataset(txt_file, is_train):
 
 
 if __name__ == "__main__":
-    train_dir = '/data/Datasets/WFLW/train_data_68pts/list.txt'
-    test_dir = '/data/Datasets/WFLW/test_data_68pts/list.txt'
-    save_dir = "/data/Models/face_landmark_68pts3"
+    train_dir = '/home/ubuntu/Datasets/WFLW/train_data_68pts/list.txt'
+    test_dir = '/home/ubuntu/Datasets/WFLW/test_data_68pts/list.txt'
+    save_dir = "/home/ubuntu/Models/face_landmark_68pts3"
 
     batch_size = 256
     epochs = 10000
