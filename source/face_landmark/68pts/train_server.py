@@ -123,7 +123,7 @@ if __name__ == "__main__":
         os.makedirs(save_dir)
     
     optimizer = tf.keras.optimizers.Adam()
-    cosine_decay = tf.keras.optimizers.schedules.CosineDecay(initial_learning_rate=lr, decay_steps=1000, alpha=0.001)
+    cosine_decay = tf.keras.optimizers.schedules.CosineDecay(initial_learning_rate=lr, decay_steps=300, alpha=0.00001)
     
     callback = [DisplayCallback(),
                 tf.keras.callbacks.LearningRateScheduler(cosine_decay),
