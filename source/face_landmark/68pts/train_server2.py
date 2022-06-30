@@ -106,7 +106,7 @@ if __name__ == "__main__":
     test_dir = '/home/ubuntu/Datasets/WFLW/test_data_68pts/list.txt'
     save_dir = "/home/ubuntu/Models/face_landmark_68pts2"
 
-    batch_size = 1024
+    batch_size = 2048
     epochs = 10000
     model_path = ''
     input_shape = [112, 112, 3]
@@ -123,8 +123,8 @@ if __name__ == "__main__":
     
 
     optimizer = tf.keras.optimizers.Adam()
-    clr = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=0.00001,
-                                              maximal_learning_rate=0.001,
+    clr = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=0.000001,
+                                              maximal_learning_rate=0.01,
                                               scale_fn=lambda x: 1.0,
                                               step_size=train_steps_per_epoch)
     

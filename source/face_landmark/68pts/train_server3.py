@@ -110,7 +110,7 @@ if __name__ == "__main__":
     epochs = 10000
     model_path = ''
     input_shape = [112, 112, 3]
-    lr = 0.001
+    lr = 0.01
 
     train_datasets, n_train_datasets = build_dataset(train_dir, True)
     valid_datasets, n_valid_datasets = build_dataset(test_dir, False)
@@ -123,10 +123,10 @@ if __name__ == "__main__":
 
     optimizer = tf.keras.optimizers.Adam()
     cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=lr,
-                                                            first_decay_steps=100,
+                                                            first_decay_steps=50,
                                                             t_mul=2.0,
                                                             m_mul=0.9,
-                                                            alpha=0.01)
+                                                            alpha=0.0)
     
     callback = [DisplayCallback(),
                 tf.keras.callbacks.LearningRateScheduler(cdr),
