@@ -7,6 +7,7 @@ from glob import glob
 from losses import PFLDLoss
 from data import PFLDDatasets
 from model import PFLDInference
+from angular_grad import AngularGrad
 from IPython.display import clear_output
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -34,7 +35,7 @@ def get_overlay(index, image, landmarks):
     for (x, y) in landmarks:
         cv2.circle(image, (int(x), int(y)), radius=1, color=(255, 255, 0), thickness=-1)
 
-    cv2.imwrite(f"epochs/server1_{index}.png", image)
+    cv2.imwrite(f"epochs/epoch_{index}.png", image)
 
 
 def plot_predictions(model):
@@ -100,16 +101,40 @@ def build_dataset(txt_file, is_train):
     return dataset, n_dataset
 
 
+def adjust_lr(epoch, lr):
+    epoch+=1
+    if epoch % 30 != 0:
+        return lr
+    else:
+        return lr * 0.7
+
+
+def build_lrfn(lr_start=0.00001, lr_max=0.001, lr_min=0.00001, lr_rampup_epochs=200, lr_sustain_epochs=0, lr_exp_decay=.5):
+    lr_max = lr_max * strategy.num_replicas_in_sync
+
+    def lrfn(epoch):
+        if epoch < lr_rampup_epochs:
+            lr = (lr_max - lr_start) / lr_rampup_epochs * epoch + lr_start
+        elif epoch < lr_rampup_epochs + lr_sustain_epochs:
+            lr = lr_max
+        else:
+            lr = (lr_max - lr_min) * lr_exp_decay**(epoch - lr_rampup_epochs - lr_sustain_epochs) + lr_min
+        
+        return lr
+
+    return lrfn
+
+
 if __name__ == "__main__":
     train_dir = '/data/Datasets/WFLW/train_data_68pts/list.txt'
     test_dir = '/data/Datasets/WFLW/test_data_68pts/list.txt'
-    save_dir = "/data/Models/face_landmark_68pts1"
+    save_dir = "/data/Models/face_landmark_68pts"
 
     batch_size = 256
     epochs = 1000
     model_path = ''
     input_shape = [112, 112, 3]
-    lr = 0.01
+    lr = 1e-3 ## 0.001
 
     # train_datasets = PFLDDatasets(train_dir, batch_size)
     # valid_datasets = PFLDDatasets(test_dir, batch_size)
@@ -122,11 +147,12 @@ if __name__ == "__main__":
     if not os.path.isdir(save_dir):
         os.makedirs(save_dir)
     
-    optimizer = tf.keras.optimizers.Adam()
-    cosine_decay = tf.keras.optimizers.schedules.CosineDecay(initial_learning_rate=lr, decay_steps=50, alpha=0.00001)
+    # optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
+    optimizer = AngularGrad(method_angle="cos", learning_rate=0.00001)
     
     callback = [DisplayCallback(),
-                tf.keras.callbacks.LearningRateScheduler(cosine_decay),
+                tf.keras.callbacks.LearningRateScheduler(build_lrfn()),
+                # tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=20, verbose=1),
                 tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
     with strategy.scope():
