@@ -109,7 +109,7 @@ def adjust_lr(epoch, lr):
         return lr * 0.7
 
 
-def build_lrfn(lr_start=0.00001, lr_max=0.001, lr_min=0.00001, lr_rampup_epochs=200, lr_sustain_epochs=0, lr_exp_decay=.5):
+def build_lrfn(lr_start=0.0001, lr_max=0.001, lr_min=0.0001, lr_rampup_epochs=300, lr_sustain_epochs=0, lr_exp_decay=.25):
     lr_max = lr_max * strategy.num_replicas_in_sync
 
     def lrfn(epoch):

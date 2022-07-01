@@ -103,10 +103,10 @@ def build_dataset(txt_file, is_train):
 
 def adjust_lr(epoch, lr):
     epoch+=1
-    if epoch % 15 != 0:
+    if epoch % 30 != 0:
         return lr
     else:
-        return lr * 0.5
+        return lr * 0.7
 
 
 if __name__ == "__main__":
@@ -136,7 +136,7 @@ if __name__ == "__main__":
     
     callback = [DisplayCallback(),
                 tf.keras.callbacks.LearningRateScheduler(adjust_lr),
-                tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=10, verbose=1),
+                # tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=20, verbose=1),
                 tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
     with strategy.scope():
