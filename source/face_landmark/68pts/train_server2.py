@@ -125,8 +125,9 @@ if __name__ == "__main__":
     optimizer = tf.keras.optimizers.Adam()
     clr = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=0.000001,
                                               maximal_learning_rate=0.01,
+                                              step_size=epochs / 2,
                                               scale_fn=lambda x: 1.0,
-                                              step_size=100*train_steps_per_epoch)
+                                              scale_mode="cycle")
     
     callback = [DisplayCallback(),
                 tf.keras.callbacks.LearningRateScheduler(clr),

@@ -102,8 +102,8 @@ def build_dataset(txt_file, is_train):
 
 
 if __name__ == "__main__":
-    train_dir = '/home/ubuntu/Datasets/TOTAL_FACE/train_data_68pts/list.txt'
-    test_dir = '/home/ubuntu/Datasets/TOTAL_FACE/test_data_68pts/list.txt'
+    train_dir = '/home/ubuntu/Datasets/WFLW/train_data_68pts/list.txt'
+    test_dir = '/home/ubuntu/Datasets/WFLW/test_data_68pts/list.txt'
     save_dir = "/home/ubuntu/Models/face_landmark_68pts3"
 
     batch_size = 2048
@@ -124,9 +124,9 @@ if __name__ == "__main__":
     optimizer = tf.keras.optimizers.Adam()
     cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=lr,
                                                             first_decay_steps=100,
-                                                            t_mul=2.0,
-                                                            m_mul=0.9,
-                                                            alpha=0.000001)
+                                                            t_mul=1.0,
+                                                            m_mul=0.1,
+                                                            alpha=0.0000001)
     
     callback = [DisplayCallback(),
                 tf.keras.callbacks.LearningRateScheduler(cdr),
