@@ -5,6 +5,7 @@ import tensorflow as tf
 
 from glob import glob
 from losses import PFLDLoss
+from data import PFLDDatasets
 from model import PFLDInference
 from angular_grad import AngularGrad
 from IPython.display import clear_output
@@ -79,7 +80,7 @@ def data_process(data):
     image = image / 255.0
     image.set_shape((112, 112, 3))
 
-    label = splits[1:146]
+    label = splits[1:206]
     label = tf.strings.to_number(label, out_type=tf.float32)
 
     return image, label
@@ -125,15 +126,15 @@ def build_lrfn(lr_start=0.00001, lr_max=0.001, lr_min=0.00001, lr_rampup_epochs=
 
 
 if __name__ == "__main__":
-    train_dir = '/data/Datasets/WFLW/train_data_68pts/list.txt'
-    test_dir = '/data/Datasets/WFLW/test_data_68pts/list.txt'
-    save_dir = "/data/Models/face_landmark_68pts"
+    train_dir = '/data/Datasets/WFLW/train_data_98pts/list.txt'
+    test_dir = '/data/Datasets/WFLW/test_data_98pts/list.txt'
+    save_dir = "/data/Models/face_landmark_98pts"
 
     batch_size = 256
     epochs = 1000
     model_path = ''
     input_shape = [112, 112, 3]
-    lr = 1e-3 ## 0.001
+    lr = 1e-3 # 0.001
 
     # train_datasets = PFLDDatasets(train_dir, batch_size)
     # valid_datasets = PFLDDatasets(test_dir, batch_size)
@@ -147,15 +148,20 @@ if __name__ == "__main__":
         os.makedirs(save_dir)
     
     # optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
-    optimizer = AngularGrad(method_angle="cos")
+    optimizer = AngularGrad(method_angle="cos", learning_rate=lr)
+    cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=lr,
+                                                            first_decay_steps=100,
+                                                            t_mul=2.0,
+                                                            m_mul=0.9,
+                                                            alpha=0.00001)
     
     callback = [DisplayCallback(),
-                tf.keras.callbacks.LearningRateScheduler(build_lrfn()),
+                tf.keras.callbacks.LearningRateScheduler(cdr),
                 # tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=20, verbose=1),
                 tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
     with strategy.scope():
-        model = PFLDInference(input_shape, is_train=True, keypoints=68*2)
+        model = PFLDInference(input_shape, is_train=True)
 
         if model_path != '':
             model.load_weights(model_path, by_name=True, skip_mismatch=True)

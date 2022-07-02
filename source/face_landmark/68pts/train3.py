@@ -5,6 +5,7 @@ import tensorflow as tf
 
 from glob import glob
 from losses import PFLDLoss
+from data import PFLDDatasets
 from model import PFLDInference
 from angular_grad import AngularGrad
 from IPython.display import clear_output
@@ -130,10 +131,10 @@ if __name__ == "__main__":
     save_dir = "/data/Models/face_landmark_68pts"
 
     batch_size = 256
-    epochs = 1000
+    epochs = 3000
     model_path = ''
     input_shape = [112, 112, 3]
-    lr = 1e-3 ## 0.001
+    lr = 1e-3 # 0.001
 
     # train_datasets = PFLDDatasets(train_dir, batch_size)
     # valid_datasets = PFLDDatasets(test_dir, batch_size)
@@ -147,10 +148,15 @@ if __name__ == "__main__":
         os.makedirs(save_dir)
     
     # optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
-    optimizer = AngularGrad(method_angle="cos")
+    optimizer = AngularGrad(method_angle="cos", learning_rate=lr)
+    cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=lr,
+                                                            first_decay_steps=100,
+                                                            t_mul=2.0,
+                                                            m_mul=0.9,
+                                                            alpha=0.0001)
     
     callback = [DisplayCallback(),
-                tf.keras.callbacks.LearningRateScheduler(build_lrfn()),
+                tf.keras.callbacks.LearningRateScheduler(cdr),
                 # tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=20, verbose=1),
                 tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 

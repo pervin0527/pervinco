@@ -123,10 +123,10 @@ if __name__ == "__main__":
 
     optimizer = tf.keras.optimizers.Adam()
     cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=lr,
-                                                            first_decay_steps=100,
+                                                            first_decay_steps=200,
                                                             t_mul=1.0,
                                                             m_mul=0.1,
-                                                            alpha=0.0000001)
+                                                            alpha=0.0001)
     
     callback = [DisplayCallback(),
                 tf.keras.callbacks.LearningRateScheduler(cdr),
