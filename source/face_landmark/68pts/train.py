@@ -5,8 +5,9 @@ import tensorflow as tf
 import tensorflow_addons as tfa
 
 from glob import glob
-from losses import PFLDLoss
-from model import PFLDInference
+from losses import PFLDLoss, L2Loss
+# from model import PFLDInference
+from model_backup import PFLDInference
 from angular_grad import AngularGrad
 from IPython.display import clear_output
 
@@ -149,22 +150,23 @@ if __name__ == "__main__":
     
     # optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
     optimizer = AngularGrad(method_angle="cos", learning_rate=lr)
-    
-    # cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=lr,
-    #                                                         first_decay_steps=100,
-    #                                                         t_mul=2.0,
-    #                                                         m_mul=0.9,
-    #                                                         alpha=0.0001)
 
-    # clr = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=0.000001,
-    #                                           maximal_learning_rate=0.01,
-    #                                           step_size=epochs / 2,
-    #                                           scale_fn=lambda x: 1.0,
-    #                                           scale_mode="cycle")
+    clr = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=0.000001,
+                                              maximal_learning_rate=0.01,
+                                              step_size=epochs / 2,
+                                              scale_fn=lambda x: 1.0,
+                                              scale_mode="cycle")
+
+    cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=lr,
+                                                            first_decay_steps=100,
+                                                            t_mul=2.0,
+                                                            m_mul=0.9,
+                                                            alpha=0.0001)
+
     
     callback = [DisplayCallback(),
-                tf.keras.callbacks.LearningRateScheduler(adjust_lr),
-                # tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=10, verbose=1),
+                tf.keras.callbacks.LearningRateScheduler(cdr),
+                tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=20, verbose=1),
                 tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
     with strategy.scope():
@@ -175,8 +177,9 @@ if __name__ == "__main__":
             print("WEIGHT LOADED")
 
         model.compile(loss={'train_out': PFLDLoss()}, optimizer=optimizer)
+        # model.compile(loss={'train_out': L2Loss()}, optimizer=optimizer)
     
-    history = model.fit(x=train_datasets,
+    history = model.fit(train_datasets,
                         validation_data=valid_datasets,
                         epochs=epochs,
                         callbacks=callback,

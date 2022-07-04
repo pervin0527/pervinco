@@ -65,26 +65,23 @@ class DisplayCallback(tf.keras.callbacks.Callback):
         plot_predictions(model=model)
 
 
-def smoothL1(y_true, y_pred):
-    x = K.abs(y_true - y_pred)
-    x = K.switch(x < HUBER_DELTA, 0.5 * x ** 2, HUBER_DELTA * (x - 0.5 * HUBER_DELTA))
-    return  K.sum(x)
+def SmoothL1():
+    def smoothL1(y_true, y_pred):
+        x = K.abs(y_true - y_pred)
+        x = K.switch(x < HUBER_DELTA, 0.5 * x ** 2, HUBER_DELTA * (x - 0.5 * HUBER_DELTA))
+        return  K.sum(x)
+    return smoothL1
 
 
-def WING_LOSS(N_LANDMARK, w=10.0, epsilon=2.0):
-    def wing_loss(y_true, y_pred):
-        y_pred = tf.reshape(y_pred, (-1, N_LANDMARK, 2))
-        y_true = tf.reshape(y_true, (-1, N_LANDMARK, 2))
-
-        x = y_true - y_pred
-        c = w * (1.0 - tf.math.log(1.0 + w / epsilon))
-        absolute_x = tf.abs(x)
-        losses = tf.where(w > absolute_x,
-                        w * tf.math.log(1.0 + absolute_x / epsilon),
-                        absolute_x - c)
-        loss = tf.reduce_mean(tf.reduce_sum(losses, axis=[1, 2]), axis=0)
-        return loss
-    return wing_loss
+def WingLoss(wing_w=10.0, wing_epsilon=2.0):
+    def wingloss(y_true, y_pred):
+        landmark_batch, landmarks_pre = y_true, y_pred
+        abs_error = tf.abs(landmark_batch - landmarks_pre)
+        wing_c = wing_w * (1.0 - tf.math.log(1.0 + wing_w / wing_epsilon))
+        loss = tf.where(tf.greater(wing_w, abs_error), wing_w * tf.math.log(1.0 + abs_error / wing_epsilon), abs_error - wing_c)
+        loss_sum = tf.reduce_sum(loss, axis=1)
+        return loss_sum
+    return wingloss
 
 
 def data_process(data):
@@ -132,18 +129,18 @@ def build_model():
 
 
 if __name__ == "__main__":
-    EPOCHS = 3000
-    BATCH_SIZE = 64
+    EPOCHS = 1000
+    BATCH_SIZE = 256
     IMG_SIZE = 112
     INPUT_SHAPE = (IMG_SIZE, IMG_SIZE, 3)
     HUBER_DELTA = 0.5
     N_LANDMARKS = 68 * 2
     LEARNING_RATE = 1e-3
-
     print_summary = False
     
     train_data = "/data/Datasets/TOTAL_FACE/train_data_68pts/list.txt"
     test_data = "/data/Datasets/TOTAL_FACE/test_data_68pts/list.txt"
+    save_dir = "/data/Models/test"
 
     train_dataset, n_train_dataset = build_dataset(train_data)
     test_dataset, n_test_dataset = build_dataset(test_data)
@@ -154,18 +151,28 @@ if __name__ == "__main__":
     train_steps_per_epoch = int(n_train_dataset / BATCH_SIZE)
     test_steps_per_epoch = int(n_test_dataset / BATCH_SIZE)
 
-    callbacks = [DisplayCallback(),]
-
-    # optimizer = tf.keras.optimizers.SGD()
     optimizer = AngularGrad(method_angle="cos")
-
-    clr = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=0.00001,
-                                              maximal_learning_rate=0.001,
+    clr = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=0.000001,
+                                              maximal_learning_rate=0.01,
+                                              step_size=EPOCHS / 2,
                                               scale_fn=lambda x: 1.0,
-                                              step_size=2 * train_steps_per_epoch)
+                                              scale_mode="cycle")
 
-    model = build_model()
-    model.compile(loss=WING_LOSS(N_LANDMARKS), optimizer=optimizer)
+    cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=LEARNING_RATE,
+                                                            first_decay_steps=100,
+                                                            t_mul=2.0,
+                                                            m_mul=0.9,
+                                                            alpha=0.0001)
+
+    callbacks = [DisplayCallback(),
+                 tf.keras.callbacks.LearningRateScheduler(cdr),
+                 tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=20, verbose=1),
+                 tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
+
+    with strategy.scope():
+        model = build_model()
+        model.compile(loss=WingLoss(4.0, 0.50), optimizer=optimizer)
+        
     model.fit(train_dataset,
               steps_per_epoch=train_steps_per_epoch,
               epochs=EPOCHS,
