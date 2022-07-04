@@ -6,6 +6,7 @@ import tensorflow_addons as tfa
 
 from glob import glob
 from model import MobileNet
+from angular_grad import AngularGrad
 from IPython.display import clear_output
 from tensorflow.python.keras import backend as K
 
@@ -155,7 +156,9 @@ if __name__ == "__main__":
 
     callbacks = [DisplayCallback(),]
 
-    optimizer = tf.keras.optimizers.SGD()
+    # optimizer = tf.keras.optimizers.SGD()
+    optimizer = AngularGrad(method_angle="cos")
+
     clr = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=0.00001,
                                               maximal_learning_rate=0.001,
                                               scale_fn=lambda x: 1.0,
