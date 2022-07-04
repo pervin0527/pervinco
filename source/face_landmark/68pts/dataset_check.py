@@ -1,38 +1,51 @@
 import cv2
 import numpy as np
 
-def data_preprocess(sample_data):
-    data = sample_data.split(' ')
+def data_preprocess(wflw, vw):
+    wflw_data = wflw.split(' ')
+    vw_data = vw.split(' ')
     
-    image_path = data[0]
-    labels = np.array(data[1:146], dtype=np.float32)
-    # print(labels.shape)
-    # print(labels)
+    wflw_image_path = wflw_data[0]
+    wflw_labels = np.array(wflw_data[1:146], dtype=np.float32)
+    vw_image_path = vw_data[0]
+    vw_labels = np.array(vw_data[1:146], dtype=np.float32)
+    # print(wflw_labels.shape)
+    # print(wflw_labels)
 
-    # landmarks = np.array(data[1:137], dtype=np.float32)
-    # attributes = data[137:143]
-    # yaw, pitch, roll = data[143:146]
+    # landmarks = np.array(wflw_data[1:137], dtype=np.float32)
+    # attributes = wflw_data[137:143]
+    # yaw, pitch, roll = wflw_data[143:146]
 
     # print(landmarks)
     # print(attributes)
     # print(yaw, pitch, roll)
 
-    landmarks = np.array(labels[0:136], dtype=np.float32)
-    attributes = labels[136:142]
-    yaw, pitch, roll = labels[142:146]
+    wflw_landmarks = np.array(wflw_labels[0:136], dtype=np.float32)
+    vw_landmarks = np.array(vw_labels[0:136], dtype=np.float32)
+    wflw_attributes = wflw_labels[136:142]
+    wflw_yaw, wflw_pitch, wflw_roll = wflw_labels[142:146]
 
-    print(landmarks)
-    print(attributes)
-    print(yaw, pitch, roll)
+    print(wflw_landmarks)
+    print(wflw_attributes)
+    print(wflw_yaw, wflw_pitch, wflw_roll)
 
-    image = cv2.imread(image_path)
-    landmarks = landmarks.reshape(-1, 2)
-    landmarks  = landmarks * image.shape[0]
+    wflw_image = cv2.imread(wflw_image_path)
+    wflw_landmarks = wflw_landmarks.reshape(-1, 2)
+    wflw_landmarks  = wflw_landmarks * wflw_image.shape[0]
 
-    for idx, (x, y) in enumerate(landmarks):
-        # cv2.circle(image, (int(x), int(y)), radius=1, color=(255, 255, 0), thickness=-1)
-        cv2.putText(image, str(idx), (int(x), int(y)), fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=1, color=(255, 255, 0), thickness=1)
-        cv2.imshow("result", image)
+    vw_image = cv2.imread(vw_image_path)
+    vw_landmarks = vw_landmarks.reshape(-1, 2)
+    vw_landmarks = vw_landmarks * vw_image.shape[0]
+
+    for (x1, y1), (x2, y2) in zip(wflw_landmarks, vw_landmarks):
+        cv2.circle(wflw_image, (int(x1), int(y1)), radius=1, color=(255, 255, 0))
+        cv2.circle(vw_image, (int(x2), int(y2)), radius=1, color=(0, 0, 255))
+
+        wflw = cv2.resize(wflw_image, (640, 480))
+        vw = cv2.resize(vw_image, (640, 480))
+
+        cv2.imshow("wflw", wflw)
+        cv2.imshow("vw300", vw)
         cv2.waitKey(0)
 
 
@@ -44,7 +57,5 @@ if __name__ == "__main__":
     WFLW = data[0]
     VW_300 = data[75001]
 
-    data_preprocess(WFLW)
-    data_preprocess(VW_300)
-
+    data_preprocess(WFLW, VW_300)
     f.close()

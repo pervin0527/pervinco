@@ -157,16 +157,21 @@ if __name__ == "__main__":
                                               scale_fn=lambda x: 1.0,
                                               scale_mode="cycle")
 
+    # cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=lr,
+    #                                                         first_decay_steps=100,
+    #                                                         t_mul=2.0,
+    #                                                         m_mul=0.9,
+    #                                                         alpha=0.0001)
+
     cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=lr,
-                                                            first_decay_steps=100,
+                                                            first_decay_steps=200,
                                                             t_mul=2.0,
                                                             m_mul=0.9,
-                                                            alpha=0.0001)
+                                                            alpha=0.00001)
 
-    
     callback = [DisplayCallback(),
                 tf.keras.callbacks.LearningRateScheduler(cdr),
-                tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=20, verbose=1),
+                # tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=20, verbose=1),
                 tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
     with strategy.scope():

@@ -13,53 +13,88 @@
 
 
 
-## Record
-- lr = 1e-3
+## Train Record
+- learning rate = 1e-3
 
+### Novel Loss with Scheduler
 1. custom scheduler  
-    - val_loss : 1.56266
+val_loss : 1.56266
 
-            def adjust_lr(epoch, lr):
-                epoch+=1
-                if epoch % 10 != 0:
-                    return lr
-                else:
-                    return lr * 0.5
+        def adjust_lr(epoch, lr):
+            epoch+=1
+            if epoch % 10 != 0:
+                return lr
+            else:
+                return lr * 0.5
 
-            optimizer = AngularGrad(method_angle="cos", learning_rate=lr)
-            tf.keras.callbacks.LearningRateScheduler(adjust_lr),
-
-
-2. CyclicalLearningRate(clr)
-    - val_loss  : 2.33912(early stopped)
-
-            clr = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=0.000001,
-                                                      maximal_learning_rate=0.01,
-                                                      step_size=epochs / 2,
-                                                      scale_fn=lambda x: 1.0,
-                                                      scale_mode="cycle")
-
-3. CosineDecayRestarts(cdr)
-    - val_loss : 1.56002(early stopped)
-
-            cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=lr,
-                                                                    first_decay_steps=100,
-                                                                    t_mul=2.0,
-                                                                    m_mul=0.9,
-                                                                    alpha=0.0001)
-
-4. L2Loss
-    - val_loss : 0.07569(early stopped)
+        optimizer = AngularGrad(method_angle="cos", learning_rate=lr)
+        tf.keras.callbacks.LearningRateScheduler(adjust_lr),
 
 
-            def L2Loss():
-                def _L2Loss(y_true, y_pred):
-                    landmarks, angle = y_pred[:, :136], y_pred[:, 136:]
-                    landmark_gt, _, _ = tf.cast(y_true[:,:136], tf.float32),tf.cast(y_true[:,136:142], tf.float32),tf.cast(y_true[:,142:],tf.float32)
-                    l2_distant = tf.reduce_sum((landmark_gt - landmarks) * (landmark_gt - landmarks), axis=1)
-                    
-                    return tf.reduce_mean(l2_distant)
+2. CyclicalLearningRate(clr)  
+val_loss  : 2.33912(early stopped)
 
-                return _L2Loss
+        clr = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=0.000001,
+                                                    maximal_learning_rate=0.01,
+                                                    step_size=epochs / 2,
+                                                    scale_fn=lambda x: 1.0,
+                                                    scale_mode="cycle")
 
-            model.compile(loss={'train_out': L2Loss()}, optimizer=optimizer)
+3. CosineDecayRestarts(cdr)  
+val_loss : 1.56002(early stopped)
+
+        cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=lr,
+                                                                first_decay_steps=100,
+                                                                t_mul=2.0,
+                                                                m_mul=0.9,
+                                                                alpha=0.0001)
+
+
+    <table border="0">
+    <tr>
+    <td>
+    <img src="./68pts/epochs/epoch_0.png" width="100%" />
+    </td>
+    <td>
+    <img src="./68pts/epochs/epoch_1.png" width="100%" />
+    </td>
+    <td>
+    <img src="./68pts/epochs/epoch_2.png" width="100%" />
+    </td>
+    <td>
+    <img src="./68pts/epochs/epoch_3.png" width="100%" />
+    </td>
+    </tr>
+    </table>
+
+### L2Loss
+- val_loss : 0.07569(early stopped)
+
+        def L2Loss():
+            def _L2Loss(y_true, y_pred):
+                landmarks, angle = y_pred[:, :136], y_pred[:, 136:]
+                landmark_gt, _, _ = tf.cast(y_true[:,:136], tf.float32),tf.cast(y_true[:,136:142], tf.float32),tf.cast(y_true[:,142:],tf.float32)
+                l2_distant = tf.reduce_sum((landmark_gt - landmarks) * (landmark_gt - landmarks), axis=1)
+                
+                return tf.reduce_mean(l2_distant)
+
+            return _L2Loss
+
+        model.compile(loss={'train_out': L2Loss()}, optimizer=optimizer)
+
+    <table border="0">
+    <tr>
+    <td>
+    <img src="./68pts/epochs/L2_epoch_0.png" width="100%" />
+    </td>
+    <td>
+    <img src="./68pts/epochs/L2_epoch_1.png" width="100%" />
+    </td>
+    <td>
+    <img src="./68pts/epochs/L2_epoch_2.png" width="100%" />
+    </td>
+    <td>
+    <img src="./68pts/epochs/L2_epoch_3.png" width="100%" />
+    </td>
+    </tr>
+    </table>
