@@ -29,8 +29,9 @@ def data_preprocess(sample_data):
     landmarks = landmarks.reshape(-1, 2)
     landmarks  = landmarks * image.shape[0]
 
-    for (x, y) in landmarks:
-        cv2.circle(image, (int(x), int(y)), radius=1, color=(255, 255, 0), thickness=-1)
+    for idx, (x, y) in enumerate(landmarks):
+        # cv2.circle(image, (int(x), int(y)), radius=1, color=(255, 255, 0), thickness=-1)
+        cv2.putText(image, str(idx), (int(x), int(y)), fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=1, color=(255, 255, 0), thickness=1)
         cv2.imshow("result", image)
         cv2.waitKey(0)
 

@@ -5,8 +5,8 @@ import tensorflow as tf
 
 from glob import glob
 from losses import PFLDLoss
-from data import PFLDDatasets
 from model import PFLDInference
+from angular_grad import AngularGrad
 from IPython.display import clear_output
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -108,6 +108,22 @@ def adjust_lr(epoch, lr):
         return lr * 0.5
 
 
+def build_lrfn(lr_start=0.00001, lr_max=0.001, lr_min=0.00001, lr_rampup_epochs=600, lr_sustain_epochs=0, lr_exp_decay=.8):
+    # lr_max = lr_max * strategy.num_replicas_in_sync
+
+    def lrfn(epoch):
+        if epoch < lr_rampup_epochs:
+            lr = (lr_max - lr_start) / lr_rampup_epochs * epoch + lr_start
+        elif epoch < lr_rampup_epochs + lr_sustain_epochs:
+            lr = lr_max
+        else:
+            lr = (lr_max - lr_min) * lr_exp_decay**(epoch - lr_rampup_epochs - lr_sustain_epochs) + lr_min
+        
+        return lr
+
+    return lrfn
+
+
 if __name__ == "__main__":
     train_dir = '/data/Datasets/WFLW/train_data_68pts/list.txt'
     test_dir = '/data/Datasets/WFLW/test_data_68pts/list.txt'
@@ -130,10 +146,18 @@ if __name__ == "__main__":
     if not os.path.isdir(save_dir):
         os.makedirs(save_dir)
     
-    optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
+    # optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
+    optimizer = AngularGrad(method_angle="cos", learning_rate=lr)
+    # cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=lr,
+    #                                                         first_decay_steps=100,
+    #                                                         t_mul=2.0,
+    #                                                         m_mul=0.9,
+    #                                                         alpha=0.0001)
     
     callback = [DisplayCallback(),
                 tf.keras.callbacks.LearningRateScheduler(adjust_lr),
+                # tf.keras.callbacks.LearningRateScheduler(build_lrfn()),
+                # tf.keras.callbacks.LearningRateScheduler(cdr),
                 # tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=10, verbose=1),
                 tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
