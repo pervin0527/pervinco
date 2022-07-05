@@ -132,7 +132,7 @@ if __name__ == "__main__":
     save_dir = "/data/Models/face_landmark_68pts"
 
     batch_size = 256
-    epochs = 1000
+    epochs = 3000
     model_path = ''
     input_shape = [112, 112, 3]
     lr = 1e-3 ## 0.001
@@ -164,10 +164,10 @@ if __name__ == "__main__":
     #                                                         alpha=0.0001)
 
     cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=lr,
-                                                            first_decay_steps=200,
+                                                            first_decay_steps=300,
                                                             t_mul=2.0,
                                                             m_mul=0.9,
-                                                            alpha=0.00001)
+                                                            alpha=0.000001)
 
     callback = [DisplayCallback(),
                 tf.keras.callbacks.LearningRateScheduler(cdr),
