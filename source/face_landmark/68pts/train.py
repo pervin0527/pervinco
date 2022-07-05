@@ -137,8 +137,6 @@ if __name__ == "__main__":
     input_shape = [112, 112, 3]
     lr = 1e-3 ## 0.001
 
-    # train_datasets = PFLDDatasets(train_dir, batch_size)
-    # valid_datasets = PFLDDatasets(test_dir, batch_size)
     train_datasets, n_train_datasets = build_dataset(train_dir, True)
     valid_datasets, n_valid_datasets = build_dataset(test_dir, False)
 
@@ -157,12 +155,14 @@ if __name__ == "__main__":
                                               scale_fn=lambda x: 1.0,
                                               scale_mode="cycle")
 
+    ### val_loss : 1.56002
     # cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=lr,
     #                                                         first_decay_steps=100,
     #                                                         t_mul=2.0,
     #                                                         m_mul=0.9,
     #                                                         alpha=0.0001)
 
+    ### val_loss : 1.36003
     cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=lr,
                                                             first_decay_steps=300,
                                                             t_mul=2.0,
