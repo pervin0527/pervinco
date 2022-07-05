@@ -88,13 +88,7 @@ class ImageDate():
         self.euler_angles = []
 
 
-    def load_data(self, is_train, repeat, mirror=None):
-        if (mirror is not None):
-            with open(mirror, 'r') as f:
-                lines = f.readlines()
-                assert len(lines) == 1
-                mirror_idx = lines[0].strip().split(',')
-                mirror_idx = list(map(int, mirror_idx))
+    def load_data(self, is_train, repeat):
         xy = np.min(self.landmark, axis=0).astype(np.int32)
         zz = np.max(self.landmark, axis=0).astype(np.int32)
         wh = zz - xy + 1
@@ -129,21 +123,24 @@ class ImageDate():
                 transformed = train_transform(image=c_image, keypoints=c_landmark)
                 c_image, c_landmark = transformed["image"], transformed["keypoints"]
 
-        landmark = []
-        for point in c_landmark:
-            x, y = point
-            landmark.extend([x, y])
-        landmark = np.array(landmark).reshape(-1, 2)
+                landmark = []
+                for point in c_landmark:
+                    x, y = point
+                    landmark.extend([x, y])
+                landmark = np.array(landmark).reshape(-1, 2)
 
-        sample = c_image.copy()
-        for (x, y) in landmark:
-            cv2.circle(sample, (int(x), int(y)), radius=1, color=(0, 0, 255), thickness=-1)
+                self.imgs.append(c_image)
+                self.landmarks.append(landmark / self.image_size)
 
-        cv2.imshow("sample", sample)
-        cv2.waitKey(0)
+        else:
+            landmark = []
+            for point in c_landmark:
+                x, y = point
+                landmark.extend([x, y])
+            landmark = np.array(landmark).reshape(-1, 2)
 
-        self.imgs.append(c_image)
-        self.landmarks.append((landmark - xy) / boxsize)
+            self.imgs.append(c_image)
+            self.landmarks.append(landmark / self.image_size)            
 
 
     def save_data(self, path, prefix):
@@ -186,7 +183,7 @@ def get_dataset_list(imgDir, outDir, landmarkDir, is_train):
         for i, line in enumerate(lines):
             Img = ImageDate(line, imgDir)
             img_name = Img.path
-            Img.load_data(is_train, 10, Mirror_file)
+            Img.load_data(is_train, 10)
             _, filename = os.path.split(img_name)
             filename, _ = os.path.splitext(filename)
             label_txt = Img.save_data(save_img, 'WFLW_' + str(i)+'_' + filename)
@@ -201,7 +198,7 @@ def get_dataset_list(imgDir, outDir, landmarkDir, is_train):
 
 if __name__ == '__main__':
     debug = False
-    root_dir = "/data/Datasets/WFLW"
+    root_dir = "/home/ubuntu/Datasets/WFLW"
     imageDirs = f'{root_dir}/WFLW_images'
     Mirror_file = './annotations/Mirror68.txt'
 
@@ -210,9 +207,9 @@ if __name__ == '__main__':
 
     train_transform = A.Compose([
         A.OneOf([
-            A.HorizontalFlip(p=0.2),
-            A.VerticalFlip(p=0.2),
-            A.Rotate(limit=(-40, 40), p=0.6)
+            # A.HorizontalFlip(p=0.2),
+            A.VerticalFlip(p=0.3),
+            A.Rotate(limit=(-40, 40), p=0.7)
         ], p=1),
 
         A.OneOf([
