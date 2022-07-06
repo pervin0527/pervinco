@@ -64,14 +64,15 @@ def mixup(fg, min=0.4, max=0.5, alpha=1.0):
 
 
 def write_txt(labels):
-    f = open(f"{SAVE_DIR}/list_68pt_rect_attr_train.txt", "w")
+    f = open(f"{SAVE_DIR}/annotations/list_68pt_rect_attr_train_test/list_68pt_rect_attr_train.txt", "w")
     for label in labels:
         f.writelines(label)
 
 
 def read_text(text_file):
     if not os.path.isdir(f"{SAVE_DIR}"):
-        os.makedirs(f"{SAVE_DIR}/images")
+        os.makedirs(f"{SAVE_DIR}/WFLW_images")
+        os.makedirs(f"{SAVE_DIR}/annotations/list_68pt_rect_attr_train_test")
 
     f = open(text_file, "r")
     lines = f.readlines()
@@ -100,9 +101,9 @@ def read_text(text_file):
             landmark_str = ' '.join(list(map(str, augment_landmark.reshape(-1).tolist())))
             attributes_str = ' '.join(list(map(str, attributes)))
 
-            label = f"{landmark_str} {bbox_str} {attributes_str} {SAVE_DIR}/images/{file_name}\n"
+            label = f"{landmark_str} {bbox_str} {attributes_str} {SAVE_DIR}/WFLW_images/{file_name}\n"
             labels.append(label)
-            cv2.imwrite(f"{SAVE_DIR}/images/{file_name}", augment_image)
+            cv2.imwrite(f"{SAVE_DIR}/WFLW_images/{file_name}", augment_image)
 
             if VISUALIZE:
                 draw_landmark(augment_image, augment_landmark)
