@@ -1,8 +1,26 @@
 import os
 import cv2
-import shutil
 import numpy as np
 import albumentations as A
+
+from tqdm import tqdm
+
+
+def draw_landmarks(image, landmarks, idx):
+    sample_image = image.copy()
+    for x, y in landmarks:
+        cv2.circle(sample_image, (int(x), int(y)), radius=2, color=(0, 0, 255), thickness=-1)
+
+    cv2.imwrite(f"{save_dir}/imgs/sample_{idx}.jpg", sample_image)
+
+
+def flatten_landmark(landmark):
+    flatten = []
+    for point in landmark:
+        x, y = point
+        flatten.extend([x, y])
+
+    return flatten
 
 
 def calculate_pitch_yaw_roll(landmarks_2D, cam_w=256, cam_h=256, radians=False):
@@ -62,155 +80,146 @@ def calculate_pitch_yaw_roll(landmarks_2D, cam_w=256, cam_h=256, radians=False):
     return pitch, yaw, roll
 
 
-class ImageDate():
-    def __init__(self, line, imgDir, image_size=112):
-        self.image_size = image_size
-        line = line.strip().split()
+def get_euler_angles(landmark):
+    assert landmark.shape == (68, 2)
 
+    TRACKED_POINTS = [17, 21, 22, 26, 36, 39, 42, 45, 31, 35, 48, 54, 57, 8]
+    
+    euler_angles_landmark = []
+    for index in TRACKED_POINTS:
+        euler_angles_landmark.append(landmark[index])
+
+    euler_angles_landmark = np.array(euler_angles_landmark).reshape((-1, 28))
+    pitch, yaw, roll = calculate_pitch_yaw_roll(euler_angles_landmark[0])
+    euler_angles = np.array((pitch, yaw, roll), dtype=np.float32)
+
+    return euler_angles
+
+
+def crop_face(image_path, landmark):
+    xy = np.min(landmark, axis=0).astype(np.int32)
+    zz = np.max(landmark, axis=0).astype(np.int32)
+    wh = zz - xy + 1
+
+    center = (xy + wh/2).astype(np.int32)
+    img = cv2.imread(f"{image_dir}/{image_path}")
+    boxsize = int(np.max(wh)*1.2)
+    xy = center - boxsize//2
+    x1, y1 = xy
+    x2, y2 = xy + boxsize
+    height, width, _ = img.shape
+
+    x1 = max(0, x1)
+    y1 = max(0, y1)
+
+    x2 = min(width, x2)
+    y2 = min(height, y2)
+
+    crop_transform = A.Compose([
+        A.Crop(x_min=x1, y_min=y1, x_max=x2, y_max=y2, p=1),
+        A.Resize(image_size, image_size, p=1)
+    ], keypoint_params=A.KeypointParams(format="xy", remove_invisible=False))
+
+    cropped_transform = crop_transform(image=img, keypoints=landmark)
+    c_image, c_landmark = cropped_transform["image"], cropped_transform["keypoints"]
+
+    return c_image, c_landmark
+
+
+def augmentation(image, keypoints, transform):
+    transformed = transform(image=image, keypoints=keypoints)
+    transformed_image, transformed_keypoints = transformed["image"], transformed["keypoints"]
+    transformed_keypoints = np.array(flatten_landmark(transformed_keypoints)).reshape(-1, 2)
+    
+    return transformed_image, transformed_keypoints
+
+
+def make_label(save_dir, file_name, image, landmark, attributes):
+    image_path = f"{file_name}.png"
+    landmark_str = ' '.join(list(map(str, landmark.reshape(-1).tolist())))
+
+    attributes = np.array(attributes, dtype=np.int32)
+    attributes_str = ' '.join(list(map(str, attributes)))
+
+    euler_angle = get_euler_angles(landmark)
+    euler_angles_str = ' '.join(list(map(str, euler_angle)))
+    label = '{} {} {} {}\n'.format(f"{save_dir}/imgs/{image_path}", landmark_str, attributes_str, euler_angles_str)
+    cv2.imwrite(f"{save_dir}/imgs/{image_path}", image)
+
+    return label
+
+
+def write_txt(save_dir, labels):
+    f = open(f"{save_dir}/list.txt", "w")
+    for label in labels:
+        f.writelines(label)
+
+
+def read_txt(txt_file, is_train, transform=None):
+    if is_train:
+        output_dir = f"{save_dir}/train"
+
+    else:
+        output_dir = f"{save_dir}/test"
+
+    if not os.path.isdir(f"{output_dir}"):
+        os.makedirs(f"{output_dir}/imgs")
+
+    f = open(txt_file, "r")
+    lines = f.readlines()
+
+    labels = []
+    # for idx, line in enumerate(lines):
+    for idx in tqdm(range(len(lines))):
+        line = lines[idx]
+        line = line.strip().split()
         assert(len(line) == 147)
-        self.list = line
-        self.landmark = np.asarray(list(map(float, line[:136])), dtype=np.float32).reshape(-1, 2)
-        self.box = np.asarray(list(map(int, line[136:140])), dtype=np.int32)
+
+        landmark = np.array(line[:136], dtype=np.float32).reshape(-1, 2)
+        bbox = np.array(line[136:140], dtype=np.int32)
+
         flag = list(map(int, line[140:146]))
         flag = list(map(bool, flag))
-        self.pose = flag[0]
-        self.expression = flag[1]
-        self.illumination = flag[2]
-        self.make_up = flag[3]
-        self.occlusion = flag[4]
-        self.blur = flag[5]
-        self.path = os.path.join(imgDir, line[146])
-        self.img = None
+        pose = flag[0]
+        expression = flag[1]
+        illumination = flag[2]
+        make_up = flag[3]
+        occlusion = flag[4]
+        blur = flag[5]
 
-        self.imgs = []
-        self.landmarks = []
-        self.boxes = []
-        self.euler_angles = []
+        image_path = line[146]
 
-
-    def load_data(self, is_train, repeat):
-        xy = np.min(self.landmark, axis=0).astype(np.int32)
-        zz = np.max(self.landmark, axis=0).astype(np.int32)
-        wh = zz - xy + 1
-
-        center = (xy + wh/2).astype(np.int32)
-        img = cv2.imread(self.path)
-        boxsize = int(np.max(wh)*1.2)
-        xy = center - boxsize//2
-        x1, y1 = xy
-        x2, y2 = xy + boxsize
-        height, width, _ = img.shape
-        dx = max(0, -x1)
-        dy = max(0, -y1)
-        x1 = max(0, x1)
-        y1 = max(0, y1)
-
-        edx = max(0, x2 - width)
-        edy = max(0, y2 - height)
-        x2 = min(width, x2)
-        y2 = min(height, y2)
-
-        crop_transform = A.Compose([
-            A.Crop(x_min=x1, y_min=y1, x_max=x2, y_max=y2, p=1),
-            A.Resize(self.image_size, self.image_size, p=1)
-        ], keypoint_params=A.KeypointParams(format="xy", remove_invisible=False))
-
-        cropped_transform = crop_transform(image=img, keypoints=self.landmark)
-        c_image, c_landmark = cropped_transform["image"], cropped_transform["keypoints"]
-        
-        if is_train:
-            for r in range(repeat):
-                transformed = train_transform(image=c_image, keypoints=c_landmark)
-                c_image, c_landmark = transformed["image"], transformed["keypoints"]
-
-                landmark = []
-                for point in c_landmark:
-                    x, y = point
-                    landmark.extend([x, y])
-                landmark = np.array(landmark).reshape(-1, 2)
-
-                self.imgs.append(c_image)
-                self.landmarks.append(landmark / self.image_size)
+        image, landmark = crop_face(image_path, landmark)
+        if transform != None:
+            for step in range(total_step):
+                image, landmark = augmentation(image, landmark, transform)
+                landmark = landmark / image_size
+                # draw_landmarks(image, (landmark * image_size), step)
+                label = make_label(output_dir, f"{idx}_{step:>06}", image, landmark, [pose, expression, illumination, make_up, occlusion, blur])
+                labels.append(label)
 
         else:
-            landmark = []
-            for point in c_landmark:
-                x, y = point
-                landmark.extend([x, y])
-            landmark = np.array(landmark).reshape(-1, 2)
-
-            self.imgs.append(c_image)
-            self.landmarks.append(landmark / self.image_size)            
-
-
-    def save_data(self, path, prefix):
-        attributes = [self.pose, self.expression, self.illumination, self.make_up, self.occlusion, self.blur]
-        attributes = np.asarray(attributes, dtype=np.int32)
-        attributes_str = ' '.join(list(map(str, attributes)))
-        labels = []
-        TRACKED_POINTS = [17, 21, 22, 26, 36, 39, 42, 45, 31, 35, 48, 54, 57, 8]
-        for i, (img, lanmark) in enumerate(zip(self.imgs, self.landmarks)):
-            assert lanmark.shape == (68, 2)
-            save_path = os.path.join(path, prefix+'_'+str(i)+'.png')
-            assert not os.path.exists(save_path), save_path
-            cv2.imwrite(save_path, img)
-
-            euler_angles_landmark = []
-            for index in TRACKED_POINTS:
-                euler_angles_landmark.append(lanmark[index])
-            euler_angles_landmark = np.asarray(euler_angles_landmark).reshape((-1, 28))
-            pitch, yaw, roll = calculate_pitch_yaw_roll(euler_angles_landmark[0])
-            euler_angles = np.asarray((pitch, yaw, roll), dtype=np.float32)
-            euler_angles_str = ' '.join(list(map(str, euler_angles)))
-
-            landmark_str = ' '.join(list(map(str, lanmark.reshape(-1).tolist())))
-            label = '{} {} {} {}\n'.format(save_path, landmark_str, attributes_str, euler_angles_str)
+            landmark = np.array(flatten_landmark(landmark)).reshape(-1, 2)
+            landmark = landmark / image_size
+            label = make_label(output_dir, f"{idx:>06}", image, landmark, [pose, expression, illumination, make_up, occlusion, blur])
             labels.append(label)
-        return labels
+        # break
 
-
-def get_dataset_list(imgDir, outDir, landmarkDir, is_train):
-    with open(landmarkDir, 'r') as f:
-        lines = f.readlines()
-        print(len(lines))
-        labels = []
-        save_img = os.path.join(outDir, 'imgs')
-        if not os.path.exists(save_img):
-            os.mkdir(save_img)
-
-        if debug:
-            lines = lines[:100]
-        for i, line in enumerate(lines):
-            Img = ImageDate(line, imgDir)
-            img_name = Img.path
-            Img.load_data(is_train, 10)
-            _, filename = os.path.split(img_name)
-            filename, _ = os.path.splitext(filename)
-            label_txt = Img.save_data(save_img, 'WFLW_' + str(i)+'_' + filename)
-            labels.append(label_txt)
-            if ((i + 1) % 100) == 0:
-                print('file: {}/{}'.format(i+1, len(lines)))
-
-    with open(os.path.join(outDir, 'list.txt'), 'w') as f:
-        for label in labels:
-            f.writelines(label)
+    write_txt(output_dir, labels)
 
 
 if __name__ == '__main__':
-    debug = False
+    total_step = 10
+    image_size = 112
     root_dir = "/home/ubuntu/Datasets/WFLW"
-    imageDirs = f'{root_dir}/WFLW_images'
-    Mirror_file = './annotations/Mirror68.txt'
+    save_dir = "/home/ubuntu/Datasets/WFLW/custom"
+    image_dir = f'{root_dir}/WFLW_images'
 
-    landmarkDirs = [f'{root_dir}/annotations/list_68pt_rect_attr_train_test/list_68pt_rect_attr_train.txt',
-                    f'{root_dir}/annotations/list_68pt_rect_attr_train_test/list_68pt_rect_attr_test.txt']
+    # landmarkDirs = [f'{root_dir}/annotations/list_68pt_rect_attr_train_test/list_68pt_rect_attr_train.txt',
+    #                 f'{root_dir}/annotations/list_68pt_rect_attr_train_test/list_68pt_rect_attr_test.txt']
 
     train_transform = A.Compose([
-        A.OneOf([
-            # A.HorizontalFlip(p=0.2),
-            A.VerticalFlip(p=0.3),
-            A.Rotate(limit=(-40, 40), p=0.7)
-        ], p=1),
+        A.Rotate(limit=(-30, 30), p=0.8),
 
         A.OneOf([
             A.RandomBrightnessContrast(p=0.5, brightness_limit=(-.15, .15), contrast_limit=(-.15, .15)),
@@ -222,24 +231,11 @@ if __name__ == '__main__':
             A.MultiplicativeNoise(p=0.5)
         ], p=0.4),
 
-        # A.OneOf([
-        #     A.RandomSnow(p=0.5),
-        #     A.Solarize(p=0.5),
-        #     A.Posterize(p=0.5)
-        # ], p=0.4)
-
     ], keypoint_params=A.KeypointParams(format="xy", remove_invisible=False))
 
-    outDirs = ['augmentation_train_68pts', 'augmentation_valid_68pts']
-    for landmarkDir, outDir in zip(landmarkDirs, outDirs):
-        outDir = os.path.join(root_dir, outDir)
-        print(outDir)
-        if os.path.exists(outDir):
-            shutil.rmtree(outDir)
-        os.mkdir(outDir)
-        if 'list_68pt_rect_attr_test.txt' in landmarkDir:
-            is_train = False
-        else:
-            is_train = True
-        imgs = get_dataset_list(imageDirs, outDir, landmarkDir, is_train)
-    print('end')
+
+    train_txt = f'{root_dir}/annotations/list_68pt_rect_attr_train_test/list_68pt_rect_attr_train.txt'
+    read_txt(train_txt, True, train_transform)
+
+    test_txt = f'{root_dir}/annotations/list_68pt_rect_attr_train_test/list_68pt_rect_attr_test.txt'
+    read_txt(test_txt, False)

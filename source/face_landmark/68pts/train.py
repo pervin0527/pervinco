@@ -6,7 +6,6 @@ import tensorflow_addons as tfa
 
 from glob import glob
 from losses import PFLDLoss, L2Loss
-# from model import PFLDInference
 from model_backup import PFLDInference
 from angular_grad import AngularGrad
 from IPython.display import clear_output
@@ -49,7 +48,6 @@ def plot_predictions(model):
 
         prediction = model.predict(image_tensor, verbose=0)
         pred1, pred2 = prediction[0], prediction[1]
-        # print(pred1.shape, pred2.shape) # 199, 196
 
         rgb_image = cv2.imread(file)
         height, width = rgb_image.shape[:2]
@@ -149,11 +147,11 @@ if __name__ == "__main__":
     # optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
     optimizer = AngularGrad(method_angle="cos", learning_rate=lr)
 
-    clr = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=0.000001,
-                                              maximal_learning_rate=0.01,
-                                              step_size=epochs / 2,
-                                              scale_fn=lambda x: 1.0,
-                                              scale_mode="cycle")
+    # clr = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=0.000001,
+    #                                           maximal_learning_rate=0.01,
+    #                                           step_size=epochs / 2,
+    #                                           scale_fn=lambda x: 1.0,
+    #                                           scale_mode="cycle")
 
     ### val_loss : 1.56002
     # cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=lr,
