@@ -40,7 +40,7 @@ def get_overlay(index, image, landmarks):
 def plot_predictions(model):
     for idx, file in enumerate(sorted(glob("./samples/*"))):
         image = tf.io.read_file(file)
-        image_tensor = tf.image.decode_jpeg(image, channels=3)
+        image_tensor = tf.image.decode_png(image, channels=3)
         image_tensor = tf.image.resize(image_tensor, (input_shape[0], input_shape[1]))
         image_tensor = image_tensor / 255.0
         image_tensor = tf.expand_dims(image_tensor, axis=0)
@@ -73,7 +73,7 @@ def data_process(data):
     splits = tf.strings.split(data, sep=' ')
     image_path = splits[0]
     image_file = tf.io.read_file(image_path)
-    image = tf.io.decode_jpeg(image_file, channels=3)
+    image = tf.io.decode_png(image_file, channels=3)
     
     image = tf.cast(image, dtype=tf.float32)
     image = image / 255.0
