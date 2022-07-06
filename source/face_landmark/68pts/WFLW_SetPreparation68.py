@@ -280,7 +280,7 @@ def get_dataset_list(imgDir, outDir, landmarkDir, is_train):
         for i, line in enumerate(lines):
             Img = ImageDate(line, imgDir)
             img_name = Img.path
-            Img.load_data(is_train, 10, Mirror_file)
+            Img.load_data(is_train, 1, Mirror_file)
             _, filename = os.path.split(img_name)
             filename, _ = os.path.splitext(filename)
             label_txt = Img.save_data(save_img, 'WFLW_' + str(i)+'_' + filename)
@@ -294,14 +294,34 @@ def get_dataset_list(imgDir, outDir, landmarkDir, is_train):
 
 
 if __name__ == '__main__':
+    # root_dir = "/data/Datasets/WFLW"
+    # imageDirs = f'{root_dir}/WFLW_images'
+    # Mirror_file = './annotations/Mirror68.txt'
+
+    # landmarkDirs = [f'{root_dir}/annotations/list_68pt_rect_attr_train_test/list_68pt_rect_attr_train.txt',
+    #                 f'{root_dir}/annotations/list_68pt_rect_attr_train_test/list_68pt_rect_attr_test.txt']
+
+    # outDirs = ['train_data_68pts', 'test_data_68pts']
+    # for landmarkDir, outDir in zip(landmarkDirs, outDirs):
+    #     outDir = os.path.join(root_dir, outDir)
+    #     print(outDir)
+    #     if os.path.exists(outDir):
+    #         shutil.rmtree(outDir)
+    #     os.mkdir(outDir)
+    #     if 'list_68pt_rect_attr_test.txt' in landmarkDir:
+    #         is_train = False
+    #     else:
+    #         is_train = True
+    #     imgs = get_dataset_list(imageDirs, outDir, landmarkDir, is_train)
+    # print('end')
+
     root_dir = "/data/Datasets/WFLW/custom"
     imageDirs = f'{root_dir}/WFLW_images'
     Mirror_file = './annotations/Mirror68.txt'
 
-    landmarkDirs = [f'{root_dir}/annotations/list_68pt_rect_attr_train_test/list_68pt_rect_attr_train.txt',
-                    f'{root_dir}/annotations/list_68pt_rect_attr_train_test/list_68pt_rect_attr_test.txt']
+    landmarkDirs = [f'{root_dir}/annotations/list_68pt_rect_attr_train_test/list_68pt_rect_attr_train.txt']
 
-    outDirs = ['train_data_68pts', 'test_data_68pts']
+    outDirs = ['train_data_68pts']
     for landmarkDir, outDir in zip(landmarkDirs, outDirs):
         outDir = os.path.join(root_dir, outDir)
         print(outDir)

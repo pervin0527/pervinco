@@ -17,7 +17,7 @@ def flatten_landmark(landmark):
     return flatten
 
 
-def draw_landmark(image, landmark):
+def draw_landmark(image, landmark, name):
     result = image.copy()
     for (x, y) in landmark:
         cv2.circle(result, (int(x), int(y)), radius=3, color=(0, 0, 255), thickness=-1)    
@@ -26,8 +26,10 @@ def draw_landmark(image, landmark):
     # plt.axis('off')
     # plt.imshow(result)
     # plt.show()    
-    cv2.imshow("image with landmarks", result)
+    result = cv2.resize(result, (960, 720))
+    cv2.imshow(f"{name}", result)
     cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 
 def augmentation(image, keypoints):
@@ -88,25 +90,31 @@ def read_text(text_file):
         attributes = np.array(line[140:146], dtype=np.int32)
         image_path = line[146]
 
-        image = cv2.imread(f"{IMG_DIR}/{image_path}")
+        if not image_path in black_list:
+            image = cv2.imread(f"{IMG_DIR}/{image_path}")
 
-        for step in range(STEPS):
-            augment_image, augment_landmark = augmentation(image, landmark)
+            for step in range(STEPS):
+                augment_image, augment_landmark = augmentation(image, landmark)
 
-            if np.random.rand(1) > 0.5:
-                augment_image = mixup(augment_image, min=0.1, max=0.2)
-            
-            file_name = f"{index}_{step:>06}.jpg"
-            bbox_str = ' '.join(list(map(str, bbox)))
-            landmark_str = ' '.join(list(map(str, augment_landmark.reshape(-1).tolist())))
-            attributes_str = ' '.join(list(map(str, attributes)))
+                if np.random.rand(1) > 0.5:
+                    augment_image = mixup(augment_image, min=0.1, max=0.2)
+                
+                file_name = f"{index}_{step:>06}.jpg"
+                bbox_str = ' '.join(list(map(str, bbox)))
+                landmark_str = ' '.join(list(map(str, augment_landmark.reshape(-1).tolist())))
+                attributes_str = ' '.join(list(map(str, attributes)))
 
-            label = f"{landmark_str} {bbox_str} {attributes_str} {SAVE_DIR}/WFLW_images/{file_name}\n"
-            labels.append(label)
-            cv2.imwrite(f"{SAVE_DIR}/WFLW_images/{file_name}", augment_image)
+                if not VISUALIZE:
+                    label = f"{landmark_str} {bbox_str} {attributes_str} {SAVE_DIR}/WFLW_images/{file_name}\n"
+                    labels.append(label)
+                    cv2.imwrite(f"{SAVE_DIR}/WFLW_images/{file_name}", augment_image)
 
-            if VISUALIZE:
-                draw_landmark(augment_image, augment_landmark)
+                else:
+                    draw_landmark(augment_image, augment_landmark, image_path)
+
+        else:
+            # print(image_path)
+            pass
 
     return labels
 
@@ -118,19 +126,31 @@ if __name__ == '__main__':
     VISUALIZE = False
     STEPS = 10
 
+    black_list = ["50--Celebration_Or_Party/50_Celebration_Or_Party_houseparty_50_321.jpg"]
+
     TRANSFORM = A.Compose([
-        A.Rotate(limit=(-45, 45), p=0.8),
+        # A.Resize(height=720, width=960, always_apply=True),
 
         A.OneOf([
-            A.RandomBrightnessContrast(brightness_limit=(-.15, .15), contrast_limit=(-.15, .15), p=0.5),
-            A.HueSaturationValue(hue_shift_limit=(-.15, .15), sat_shift_limit=(-.15, .15), val_shift_limit=(.10, .10), p=0.5)
+            A.Rotate(limit=(-20, 20), border_mode=0, p=0.5),
+            A.ShiftScaleRotate(shift_limit=(-0.03, 0.03), scale_limit=(-0.0, 0.0), rotate_limit=(-20, 20), border_mode=0, p=0.5)
         ], p=1),
 
         A.OneOf([
+            A.RandomBrightnessContrast(brightness_limit=(-0.15, 0.15), contrast_limit=(-0.15, 0.15), p=0.5),
+            A.HueSaturationValue(hue_shift_limit=(-0.15, 0.15), sat_shift_limit=(-0.15, 0.15), val_shift_limit=(.10, .10), p=0.5)
+        ], p=1),
+
+        A.OneOf([
+            A.VerticalFlip(p=0.5),
+            A.HorizontalFlip(p=0.5),
+        ], p=0.3),
+
+        A.OneOf([
             A.Blur(blur_limit=(3, 5), p=0.3),
-            A.GaussNoise(p=0.3),
-            A.RandomRain(p=0.3)
-        ], p=0.6),
+            A.GaussNoise(var_limit=(10.0, 20.0), p=0.3),
+            A.RandomRain(blur_value=2, p=0.3)
+        ], p=0.4),
 
     ], keypoint_params=A.KeypointParams(format="xy", remove_invisible=False))
     

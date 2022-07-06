@@ -1,61 +1,39 @@
+from attr import attributes
 import cv2
 import numpy as np
 
-def data_preprocess(wflw, vw):
-    wflw_data = wflw.split(' ')
-    vw_data = vw.split(' ')
+def draw_landmarks(image, landmarks):
+    sample_image = image.copy()
+    sample_landmarks = list(landmarks.copy())
+
+    for (x, y) in sample_landmarks:
+        cv2.circle(sample_image, (int(x), int(y)), radius=1, color=(0, 0, 255), thickness=-1)
+
+    sample_image = cv2.resize(sample_image, (640, 480))
+    cv2.imshow("sample_image", sample_image)
+    cv2.waitKey(0)
+
+
+def check_data(data):
+    image_path = data[0]
+    labels = data[1:146]
+
+    image = cv2.imread(image_path)
+    height, width = image.shape[:2]
+
+    landmarks = np.array(labels[:136], np.float32).reshape(-1, 2)
+    attributes = np.array(labels[136:142], np.float32)
+    euler_angles = np.array(labels[142:146], np.float32)
     
-    wflw_image_path = wflw_data[0]
-    wflw_labels = np.array(wflw_data[1:146], dtype=np.float32)
-    vw_image_path = vw_data[0]
-    vw_labels = np.array(vw_data[1:146], dtype=np.float32)
-    # print(wflw_labels.shape)
-    # print(wflw_labels)
-
-    # landmarks = np.array(wflw_data[1:137], dtype=np.float32)
-    # attributes = wflw_data[137:143]
-    # yaw, pitch, roll = wflw_data[143:146]
-
-    # print(landmarks)
-    # print(attributes)
-    # print(yaw, pitch, roll)
-
-    wflw_landmarks = np.array(wflw_labels[0:136], dtype=np.float32)
-    vw_landmarks = np.array(vw_labels[0:136], dtype=np.float32)
-    wflw_attributes = wflw_labels[136:142]
-    wflw_yaw, wflw_pitch, wflw_roll = wflw_labels[142:146]
-
-    print(wflw_landmarks)
-    print(wflw_attributes)
-    print(wflw_yaw, wflw_pitch, wflw_roll)
-
-    wflw_image = cv2.imread(wflw_image_path)
-    wflw_landmarks = wflw_landmarks.reshape(-1, 2)
-    wflw_landmarks  = wflw_landmarks * wflw_image.shape[0]
-
-    vw_image = cv2.imread(vw_image_path)
-    vw_landmarks = vw_landmarks.reshape(-1, 2)
-    vw_landmarks = vw_landmarks * vw_image.shape[0]
-
-    for (x1, y1), (x2, y2) in zip(wflw_landmarks, vw_landmarks):
-        cv2.circle(wflw_image, (int(x1), int(y1)), radius=1, color=(255, 255, 0))
-        cv2.circle(vw_image, (int(x2), int(y2)), radius=1, color=(0, 0, 255))
-
-        wflw = cv2.resize(wflw_image, (640, 480))
-        vw = cv2.resize(vw_image, (640, 480))
-
-        cv2.imshow("wflw", wflw)
-        cv2.imshow("vw300", vw)
-        cv2.waitKey(0)
+    print(image_path)
+    draw_landmarks(image, landmarks * height)
 
 
 if __name__ == "__main__":
-    data_list = "/data/Datasets/TOTAL_FACE/train_data_68pts/list.txt"
+    data_list = "/data/Datasets/WFLW/custom2/train_data_68pts/list.txt"
     f = open(data_list, "r")
-    data = f.readlines()
-    
-    WFLW = data[0]
-    VW_300 = data[75001]
+    lines = f.readlines()
 
-    data_preprocess(WFLW, VW_300)
-    f.close()
+    for line in lines:
+        line = line.strip().split()
+        check_data(line)

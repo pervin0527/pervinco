@@ -137,15 +137,18 @@ if __name__ == "__main__":
     LEARNING_RATE = 1e-3
     print_summary = False
     
-    train_data = "/data/Datasets/TOTAL_FACE/train_data_68pts/list.txt"
-    test_data = "/data/Datasets/TOTAL_FACE/test_data_68pts/list.txt"
-    save_dir = "/data/Models/test"
+    train_data = "/home/ubuntu/Datasets/TOTAL_FACE/train_data_68pts/list.txt"
+    test_data = "/home/ubuntu/Datasets/TOTAL_FACE/test_data_68pts/list.txt"
+    save_dir = "/home/ubuntu/Models/test"
+
+    if not os.path.isdir(save_dir):
+        os.makedirs(save_dir)
 
     train_dataset, n_train_dataset = build_dataset(train_data)
     test_dataset, n_test_dataset = build_dataset(test_data)
-    print(n_train_dataset, n_test_dataset)
-    print(train_dataset)
-    print(test_dataset)
+    # print(n_train_dataset, n_test_dataset)
+    # print(train_dataset)
+    # print(test_dataset)
 
     train_steps_per_epoch = int(n_train_dataset / BATCH_SIZE)
     test_steps_per_epoch = int(n_test_dataset / BATCH_SIZE)
@@ -167,6 +170,7 @@ if __name__ == "__main__":
                  tf.keras.callbacks.LearningRateScheduler(cdr),
                  tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=20, verbose=1),
                  tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
+
 
     with strategy.scope():
         model = build_model()
