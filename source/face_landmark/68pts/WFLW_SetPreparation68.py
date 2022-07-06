@@ -294,7 +294,7 @@ def get_dataset_list(imgDir, outDir, landmarkDir, is_train):
 
 
 if __name__ == '__main__':
-    root_dir = "/data/Datasets/WFLW"
+    root_dir = "/data/Datasets/WFLW/custom"
     imageDirs = f'{root_dir}/WFLW_images'
     Mirror_file = './annotations/Mirror68.txt'
 

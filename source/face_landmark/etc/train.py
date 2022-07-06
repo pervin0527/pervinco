@@ -5,7 +5,6 @@ import tensorflow as tf
 import tensorflow_addons as tfa
 
 from glob import glob
-from model import MobileNet
 from angular_grad import AngularGrad
 from IPython.display import clear_output
 from tensorflow.python.keras import backend as K
@@ -130,7 +129,7 @@ def build_model():
 
 if __name__ == "__main__":
     EPOCHS = 1000
-    BATCH_SIZE = 256
+    BATCH_SIZE = 512
     IMG_SIZE = 112
     INPUT_SHAPE = (IMG_SIZE, IMG_SIZE, 3)
     HUBER_DELTA = 0.5
