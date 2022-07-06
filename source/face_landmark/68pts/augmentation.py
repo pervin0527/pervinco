@@ -124,7 +124,7 @@ if __name__ == '__main__':
     SAVE_DIR = "/data/Datasets/WFLW/custom"
     MIXUP_DIR = "/data/Datasets/Mixup_background"
     VISUALIZE = False
-    STEPS = 10
+    STEPS = 5
 
     black_list = ["50--Celebration_Or_Party/50_Celebration_Or_Party_houseparty_50_321.jpg"]
 

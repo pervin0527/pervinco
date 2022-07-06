@@ -31,13 +31,18 @@ else:
         print(e)
         
 
-def live_stream_inference(height, width):
-    capture = cv2.VideoCapture(-1)  
-    capture.set(cv2.CAP_PROP_FRAME_WIDTH, height)
+def live_stream_inference(height, width, file=None):
+    if file == None:
+        file = -1    
+    
+    capture = cv2.VideoCapture(file)  
     capture.set(cv2.CAP_PROP_FRAME_HEIGHT, width)
+    capture.set(cv2.CAP_PROP_FRAME_WIDTH, height)
     
     while cv2.waitKey(33) != ord('q'):
         ret, frame = capture.read()
+        frame = cv2.flip(frame, 0)
+        frame = cv2.flip(frame, 1)
 
         start_time = timeit.default_timer()
         
@@ -46,7 +51,7 @@ def live_stream_inference(height, width):
         image = image / 127.5 - 1
         input_tensor = np.expand_dims(image, axis=0)
         
-        prediction = model.predict(input_tensor)
+        prediction = model.predict(input_tensor, verbose=0)
         prediction = np.argmax(prediction[0], axis=-1)
         decoded_mask = decode_segmentation_masks(prediction)
         overlay_image = get_overlay(decoded_mask, cv2.resize(frame, (IMG_SIZE, IMG_SIZE)))
@@ -56,14 +61,16 @@ def live_stream_inference(height, width):
 
         result_image = cv2.resize(overlay_image, (height, width))
         cv2.putText(result_image, text=f"FPS : {fps}", org=(10, 100), fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=3, color=(255, 255, 255), thickness=3)
+
         cv2.imshow("PREDICTION", result_image)
+        # cv2.imshow("frame", frame)
 
     capture.release()
     cv2.destroyAllWindows()
 
 
 def image_file_inference(height, width):
-    image_files = sorted(glob(f"{img_dir}/*"))
+    image_files = sorted(glob(f"{img_dir}/*.jpg"))
     for image_file in image_files:
         image = cv2.imread(image_file)
         image = cv2.resize(image, (IMG_SIZE, IMG_SIZE))
@@ -72,7 +79,7 @@ def image_file_inference(height, width):
         image = image / 127.5 - 1
         input_tensor = np.expand_dims(image, axis=0)
 
-        prediction = model.predict(input_tensor)
+        prediction = model.predict(input_tensor, verbose=0)
         prediction = np.argmax(prediction[0], axis=-1)
         decoded_mask = decode_segmentation_masks(prediction)
         overlay_image = get_overlay(decoded_mask, img)
@@ -135,6 +142,7 @@ if __name__ == "__main__":
     output_shape = 960, 720
 
     inference_type = "video" # video, images
+    video_dir = "/data/test_image/20220706_162517.mp4"
     img_dir = "/data/test_image"
 
     with open(f"{model_dir}/config.yaml") as f:
@@ -144,26 +152,26 @@ if __name__ == "__main__":
     BACKBONE_NAME = config["BACKBONE_NAME"]
     ORIGINAL_OUTPUT = config["ORIGINAL_OUTPUT"]
     COLORMAP = [[0, 0, 0], # background
-                [128, 0, 0], # aeroplane
-                [0, 128, 0], # bicycle
-                [128, 128, 0], # bird
-                [0, 0, 128], # boat
-                [128, 0, 128], # bottle
-                [0, 128, 128], # bus
-                [128, 128, 128], # car
-                [64, 0, 0], # cat
-                [192, 0, 0], # chair
-                [64, 128, 0], # cow
-                [192, 128, 0], # diningtable
-                [64, 0, 128], # dog
-                [192, 0, 128], # horse
-                [64, 128, 128], # motorbike
-                [192, 128, 128], # person
-                [0, 64, 0], # potted plant
-                [128, 64, 0], # sheep
-                [0, 192, 0], # sofa
-                [128, 192, 0], # train
-                [0, 64, 128] # tv/monitor
+                [0, 0, 0], # aeroplane
+                [0, 0, 0], # bicycle
+                [0, 0, 0], # bird
+                [0, 0, 0], # boat
+                [0, 0, 0], # bottle
+                [0, 0, 0], # bus
+                [0, 0, 255], # car
+                [0, 0, 0], # cat
+                [0, 0, 0], # chair
+                [0, 0, 0], # cow
+                [0, 0, 0], # diningtable
+                [0, 0, 0], # dog
+                [0, 0, 0], # horse
+                [0, 255, 0], # motorbike
+                [255, 0, 0], # person
+                [0, 0, 0], # potted plant
+                [0, 0, 0], # sheep
+                [0, 0, 0], # sofa
+                [0, 0, 0], # train
+                [0, 0, 0] # tv/monitor
     ]
     COLORMAP = np.array(COLORMAP, dtype=np.uint8)
 
@@ -171,7 +179,7 @@ if __name__ == "__main__":
     model.summary()
     
     if inference_type.lower() == "video":
-        live_stream_inference(output_shape[0], output_shape[1])
+        live_stream_inference(output_shape[0], output_shape[1], file=video_dir)
 
     elif inference_type.lower() == "images":
         image_file_inference(output_shape[0], output_shape[1])
