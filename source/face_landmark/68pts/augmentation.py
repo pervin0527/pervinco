@@ -4,14 +4,8 @@ import numpy as np
 import albumentations as A
 
 from tqdm import tqdm
-
-
-def draw_landmarks(image, landmarks, idx):
-    sample_image = image.copy()
-    for x, y in landmarks:
-        cv2.circle(sample_image, (int(x), int(y)), radius=2, color=(0, 0, 255), thickness=-1)
-
-    cv2.imwrite(f"{save_dir}/imgs/sample_{idx}.jpg", sample_image)
+from glob import glob
+from matplotlib import pyplot as plt
 
 
 def flatten_landmark(landmark):
@@ -23,219 +17,123 @@ def flatten_landmark(landmark):
     return flatten
 
 
-def calculate_pitch_yaw_roll(landmarks_2D, cam_w=256, cam_h=256, radians=False):
-    c_x = cam_w/2
-    c_y = cam_h/2
-    f_x = c_x / np.tan(60/2 * np.pi / 180)
-    f_y = f_x
+def draw_landmark(image, landmark):
+    result = image.copy()
+    for (x, y) in landmark:
+        cv2.circle(result, (int(x), int(y)), radius=3, color=(0, 0, 255), thickness=-1)    
 
-    camera_matrix = np.float32([[f_x, 0.0, c_x],
-                                [0.0, f_y, c_y],
-                                [0.0, 0.0, 1.0]])
-
-    camera_distortion = np.float32([0.0, 0.0, 0.0, 0.0, 0.0])
-
-    LEFT_EYEBROW_LEFT  = [6.825897, 6.760612, 4.402142]
-    LEFT_EYEBROW_RIGHT = [1.330353, 7.122144, 6.903745]
-    RIGHT_EYEBROW_LEFT = [-1.330353, 7.122144, 6.903745]
-    RIGHT_EYEBROW_RIGHT= [-6.825897, 6.760612, 4.402142]
-    LEFT_EYE_LEFT  = [5.311432, 5.485328, 3.987654]
-    LEFT_EYE_RIGHT = [1.789930, 5.393625, 4.413414]
-    RIGHT_EYE_LEFT = [-1.789930, 5.393625, 4.413414]
-    RIGHT_EYE_RIGHT= [-5.311432, 5.485328, 3.987654]
-    NOSE_LEFT  = [2.005628, 1.409845, 6.165652]
-    NOSE_RIGHT = [-2.005628, 1.409845, 6.165652]
-    MOUTH_LEFT = [2.774015, -2.080775, 5.048531]
-    MOUTH_RIGHT=[-2.774015, -2.080775, 5.048531]
-    LOWER_LIP= [0.000000, -3.116408, 6.097667]
-    CHIN     = [0.000000, -7.415691, 4.070434]
-
-    landmarks_3D = np.float32([LEFT_EYEBROW_LEFT,
-                               LEFT_EYEBROW_RIGHT,
-                               RIGHT_EYEBROW_LEFT,
-                               RIGHT_EYEBROW_RIGHT,
-                               LEFT_EYE_LEFT,
-                               LEFT_EYE_RIGHT,
-                               RIGHT_EYE_LEFT,
-                               RIGHT_EYE_RIGHT,
-                               NOSE_LEFT,
-                               NOSE_RIGHT,
-                               MOUTH_LEFT,
-                               MOUTH_RIGHT,
-                               LOWER_LIP,
-                               CHIN])
-
-    assert landmarks_2D is not None, 'landmarks_2D is None'
-    landmarks_2D = np.asarray(landmarks_2D, dtype=np.float32).reshape(-1, 2)
-    retval, rvec, tvec = cv2.solvePnP(landmarks_3D,
-                                      landmarks_2D,
-                                      camera_matrix,
-                                      camera_distortion)
-
-    rmat, _ = cv2.Rodrigues(rvec)
-    pose_mat = cv2.hconcat((rmat, tvec))
-
-    _, _, _, _, _, _, euler_angles = cv2.decomposeProjectionMatrix(pose_mat)
-    pitch, yaw, roll = map(lambda temp: temp[0], euler_angles)
-    return pitch, yaw, roll
+    # plt.figure(figsize=(8, 8))
+    # plt.axis('off')
+    # plt.imshow(result)
+    # plt.show()    
+    cv2.imshow("image with landmarks", result)
+    cv2.waitKey(0)
 
 
-def get_euler_angles(landmark):
-    assert landmark.shape == (68, 2)
+def augmentation(image, keypoints):
+    result = TRANSFORM(image=image, keypoints=keypoints)
+    result_image, result_keypoints = result['image'], result['keypoints']
+    result_keypoints = np.array(flatten_landmark(result_keypoints), dtype=np.float32).reshape(-1, 2)
 
-    TRACKED_POINTS = [17, 21, 22, 26, 36, 39, 42, 45, 31, 35, 48, 54, 57, 8]
-    
-    euler_angles_landmark = []
-    for index in TRACKED_POINTS:
-        euler_angles_landmark.append(landmark[index])
-
-    euler_angles_landmark = np.array(euler_angles_landmark).reshape((-1, 28))
-    pitch, yaw, roll = calculate_pitch_yaw_roll(euler_angles_landmark[0])
-    euler_angles = np.array((pitch, yaw, roll), dtype=np.float32)
-
-    return euler_angles
+    return result_image, result_keypoints
 
 
-def crop_face(image_path, landmark):
-    xy = np.min(landmark, axis=0).astype(np.int32)
-    zz = np.max(landmark, axis=0).astype(np.int32)
-    wh = zz - xy + 1
+def mixup(fg, min=0.4, max=0.5, alpha=1.0):
+    fg_height, fg_width = fg.shape[:2]
+    lam = np.clip(np.random.beta(alpha, alpha), min, max)
 
-    center = (xy + wh/2).astype(np.int32)
-    img = cv2.imread(f"{image_dir}/{image_path}")
-    boxsize = int(np.max(wh)*1.2)
-    xy = center - boxsize//2
-    x1, y1 = xy
-    x2, y2 = xy + boxsize
-    height, width, _ = img.shape
+    bg_transform = A.Compose([
+        A.Resize(width=fg_width, height=fg_height, always_apply=True),
 
-    x1 = max(0, x1)
-    y1 = max(0, y1)
+        A.OneOf([
+            A.RandomBrightnessContrast(brightness_limit=(-0.4, 0.4), p=0.3),
+            A.HueSaturationValue(val_shift_limit=(40, 80), p=0.3),
+            A.ChannelShuffle(p=0.3)
+        ], p=1),
+    ])
 
-    x2 = min(width, x2)
-    y2 = min(height, y2)
+    bg_files = glob(f"{MIXUP_DIR}/*")
+    random_idx = np.random.randint(0, len(bg_files))
+    bg_image = cv2.imread(bg_files[random_idx])
+    bg_result = bg_transform(image=bg_image)
+    bg_image = bg_result['image']
 
-    crop_transform = A.Compose([
-        A.Crop(x_min=x1, y_min=y1, x_max=x2, y_max=y2, p=1),
-        A.Resize(image_size, image_size, p=1)
-    ], keypoint_params=A.KeypointParams(format="xy", remove_invisible=False))
+    result_image = (lam * bg_image + (1 - lam) * fg).astype(np.uint8)
 
-    cropped_transform = crop_transform(image=img, keypoints=landmark)
-    c_image, c_landmark = cropped_transform["image"], cropped_transform["keypoints"]
-
-    return c_image, c_landmark
+    return result_image
 
 
-def augmentation(image, keypoints, transform):
-    transformed = transform(image=image, keypoints=keypoints)
-    transformed_image, transformed_keypoints = transformed["image"], transformed["keypoints"]
-    transformed_keypoints = np.array(flatten_landmark(transformed_keypoints)).reshape(-1, 2)
-    
-    return transformed_image, transformed_keypoints
-
-
-def make_label(save_dir, file_name, image, landmark, attributes):
-    image_path = f"{file_name}.png"
-    landmark_str = ' '.join(list(map(str, landmark.reshape(-1).tolist())))
-
-    attributes = np.array(attributes, dtype=np.int32)
-    attributes_str = ' '.join(list(map(str, attributes)))
-
-    euler_angle = get_euler_angles(landmark)
-    euler_angles_str = ' '.join(list(map(str, euler_angle)))
-    label = '{} {} {} {}\n'.format(f"{save_dir}/imgs/{image_path}", landmark_str, attributes_str, euler_angles_str)
-    cv2.imwrite(f"{save_dir}/imgs/{image_path}", image)
-
-    return label
-
-
-def write_txt(save_dir, labels):
-    f = open(f"{save_dir}/list.txt", "w")
+def write_txt(labels):
+    f = open(f"{SAVE_DIR}/list_68pt_rect_attr_train.txt", "w")
     for label in labels:
         f.writelines(label)
 
 
-def read_txt(txt_file, is_train, transform=None):
-    if is_train:
-        output_dir = f"{save_dir}/train"
+def read_text(text_file):
+    if not os.path.isdir(f"{SAVE_DIR}"):
+        os.makedirs(f"{SAVE_DIR}/images")
 
-    else:
-        output_dir = f"{save_dir}/test"
-
-    if not os.path.isdir(f"{output_dir}"):
-        os.makedirs(f"{output_dir}/imgs")
-
-    f = open(txt_file, "r")
+    f = open(text_file, "r")
     lines = f.readlines()
-
+    
     labels = []
-    # for idx, line in enumerate(lines):
-    for idx in tqdm(range(len(lines))):
-        line = lines[idx]
+    for index in tqdm(range(len(lines))):
+        line = lines[index]
         line = line.strip().split()
-        assert(len(line) == 147)
 
+        assert(len(line) == 147)
         landmark = np.array(line[:136], dtype=np.float32).reshape(-1, 2)
         bbox = np.array(line[136:140], dtype=np.int32)
-
-        flag = list(map(int, line[140:146]))
-        flag = list(map(bool, flag))
-        pose = flag[0]
-        expression = flag[1]
-        illumination = flag[2]
-        make_up = flag[3]
-        occlusion = flag[4]
-        blur = flag[5]
-
+        attributes = np.array(line[140:146], dtype=np.int32)
         image_path = line[146]
 
-        image, landmark = crop_face(image_path, landmark)
-        if transform != None:
-            for step in range(total_step):
-                image, landmark = augmentation(image, landmark, transform)
-                landmark = landmark / image_size
-                # draw_landmarks(image, (landmark * image_size), step)
-                label = make_label(output_dir, f"{idx}_{step:>06}", image, landmark, [pose, expression, illumination, make_up, occlusion, blur])
-                labels.append(label)
+        image = cv2.imread(f"{IMG_DIR}/{image_path}")
 
-        else:
-            landmark = np.array(flatten_landmark(landmark)).reshape(-1, 2)
-            landmark = landmark / image_size
-            label = make_label(output_dir, f"{idx:>06}", image, landmark, [pose, expression, illumination, make_up, occlusion, blur])
+        for step in range(STEPS):
+            augment_image, augment_landmark = augmentation(image, landmark)
+
+            if np.random.rand(1) > 0.5:
+                augment_image = mixup(augment_image, min=0.1, max=0.2)
+            
+            file_name = f"{index}_{step:>06}.jpg"
+            bbox_str = ' '.join(list(map(str, bbox)))
+            landmark_str = ' '.join(list(map(str, augment_landmark.reshape(-1).tolist())))
+            attributes_str = ' '.join(list(map(str, attributes)))
+
+            label = f"{landmark_str} {bbox_str} {attributes_str} {SAVE_DIR}/images/{file_name}\n"
             labels.append(label)
-        # break
+            cv2.imwrite(f"{SAVE_DIR}/images/{file_name}", augment_image)
 
-    write_txt(output_dir, labels)
+            if VISUALIZE:
+                draw_landmark(augment_image, augment_landmark)
+
+    return labels
 
 
 if __name__ == '__main__':
-    total_step = 10
-    image_size = 112
-    root_dir = "/home/ubuntu/Datasets/WFLW"
-    save_dir = "/home/ubuntu/Datasets/WFLW/custom"
-    image_dir = f'{root_dir}/WFLW_images'
+    ROOT_DIR = "/data/Datasets/WFLW"
+    SAVE_DIR = "/data/Datasets/WFLW/custom"
+    MIXUP_DIR = "/data/Datasets/Mixup_background"
+    VISUALIZE = False
+    STEPS = 10
 
-    # landmarkDirs = [f'{root_dir}/annotations/list_68pt_rect_attr_train_test/list_68pt_rect_attr_train.txt',
-    #                 f'{root_dir}/annotations/list_68pt_rect_attr_train_test/list_68pt_rect_attr_test.txt']
-
-    train_transform = A.Compose([
-        A.Rotate(limit=(-30, 30), p=0.8),
+    TRANSFORM = A.Compose([
+        A.Rotate(limit=(-45, 45), p=0.8),
 
         A.OneOf([
-            A.RandomBrightnessContrast(p=0.5, brightness_limit=(-.15, .15), contrast_limit=(-.15, .15)),
-            A.HueSaturationValue(p=0.5, hue_shift_limit=(-.15, .15), sat_shift_limit=(-.15, .15), val_shift_limit=(.10, .10))
+            A.RandomBrightnessContrast(brightness_limit=(-.15, .15), contrast_limit=(-.15, .15), p=0.5),
+            A.HueSaturationValue(hue_shift_limit=(-.15, .15), sat_shift_limit=(-.15, .15), val_shift_limit=(.10, .10), p=0.5)
         ], p=1),
 
         A.OneOf([
-            A.MotionBlur(p=0.5),
-            A.MultiplicativeNoise(p=0.5)
-        ], p=0.4),
+            A.Blur(blur_limit=(3, 5), p=0.3),
+            A.GaussNoise(p=0.3),
+            A.RandomRain(p=0.3)
+        ], p=0.6),
 
     ], keypoint_params=A.KeypointParams(format="xy", remove_invisible=False))
-
-
-    train_txt = f'{root_dir}/annotations/list_68pt_rect_attr_train_test/list_68pt_rect_attr_train.txt'
-    read_txt(train_txt, True, train_transform)
-
-    test_txt = f'{root_dir}/annotations/list_68pt_rect_attr_train_test/list_68pt_rect_attr_test.txt'
-    read_txt(test_txt, False)
+    
+    IMG_DIR = f'{ROOT_DIR}/WFLW_images'
+    TXT_DIR = f'{ROOT_DIR}/annotations/list_68pt_rect_attr_train_test/list_68pt_rect_attr_train.txt'
+    labels = read_text(TXT_DIR)
+    write_txt(labels)
