@@ -128,8 +128,8 @@ def build_model():
 
 
 if __name__ == "__main__":
-    EPOCHS = 1000
-    BATCH_SIZE = 512
+    EPOCHS = 3000
+    BATCH_SIZE = 600
     IMG_SIZE = 112
     INPUT_SHAPE = (IMG_SIZE, IMG_SIZE, 3)
     HUBER_DELTA = 0.5
@@ -137,8 +137,8 @@ if __name__ == "__main__":
     LEARNING_RATE = 1e-3
     print_summary = False
     
-    train_data = "/home/ubuntu/Datasets/TOTAL_FACE/train_data_68pts/list.txt"
-    test_data = "/home/ubuntu/Datasets/TOTAL_FACE/test_data_68pts/list.txt"
+    train_data = "/home/ubuntu/Datasets/WFLW/train_data_68pts/list.txt"
+    test_data = "/home/ubuntu/Datasets/WFLW/test_data_68pts/list.txt"
     save_dir = "/home/ubuntu/Models/test"
 
     if not os.path.isdir(save_dir):
@@ -161,19 +161,20 @@ if __name__ == "__main__":
                                               scale_mode="cycle")
 
     cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=LEARNING_RATE,
-                                                            first_decay_steps=100,
+                                                            first_decay_steps=300,
                                                             t_mul=2.0,
                                                             m_mul=0.9,
                                                             alpha=0.0001)
 
     callbacks = [DisplayCallback(),
                  tf.keras.callbacks.LearningRateScheduler(cdr),
-                 tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=20, verbose=1),
+                #  tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=20, verbose=1),
                  tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
 
     with strategy.scope():
         model = build_model()
+        # model.compile(loss=WingLoss(4.0, 0.50), optimizer=optimizer)
         model.compile(loss=WingLoss(4.0, 0.50), optimizer=optimizer)
         
     model.fit(train_dataset,
