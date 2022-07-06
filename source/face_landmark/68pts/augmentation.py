@@ -121,9 +121,6 @@ if __name__ == '__main__':
     VISUALIZE = False
     STEPS = 1
 
-    # black_list = ["50--Celebration_Or_Party/50_Celebration_Or_Party_houseparty_50_321.jpg"]
-    black_list = []
-
     TRANSFORM = A.Compose([
         # A.Rotate(limit=(-20, 20), border_mode=0, p=0.5),
         # A.Resize(height=720, width=960, always_apply=True),
