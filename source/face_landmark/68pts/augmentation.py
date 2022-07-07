@@ -119,34 +119,25 @@ if __name__ == '__main__':
     SAVE_DIR = "/data/Datasets/WFLW/custom"
     MIXUP_DIR = "/data/Datasets/Mixup_background"
     VISUALIZE = False
-    STEPS = 1
+    STEPS = 20
 
     TRANSFORM = A.Compose([
-        # A.Rotate(limit=(-20, 20), border_mode=0, p=0.5),
-        # A.Resize(height=720, width=960, always_apply=True),
-
-        # A.OneOf([
-        #     A.Rotate(limit=(-20, 20), border_mode=0, p=0.5),
-        #     A.ShiftScaleRotate(shift_limit=(-0.03, 0.03), scale_limit=(-0.0, 0.0), rotate_limit=(-20, 20), border_mode=0, p=0.5)
-        # ], p=1),
+        A.OneOf([
+            A.ShiftScaleRotate(shift_limit=(-0.0, 0.0), scale_limit=(-0.4, 0.0), rotate_limit=(-0, 0), border_mode=0, p=0.6),
+            A.RandomRotate90(p=0.2),
+            A.VerticalFlip(p=0.2),
+        ]),
 
         A.OneOf([
             A.RandomBrightnessContrast(brightness_limit=(-0.15, 0.15), contrast_limit=(-0.15, 0.15), p=0.5),
             A.HueSaturationValue(hue_shift_limit=(-0.15, 0.15), sat_shift_limit=(-0.15, 0.15), val_shift_limit=(.10, .10), p=0.5)
         ], p=1),
 
-        # A.OneOf([
-        #     A.VerticalFlip(p=0.5),
-        #     A.HorizontalFlip(p=0.5),
-        # ], p=0.3),
-
         A.OneOf([
             A.Blur(blur_limit=(3, 5), p=0.3),
             A.GaussNoise(var_limit=(10.0, 20.0), p=0.3),
             A.RandomRain(blur_value=2, p=0.3)
         ], p=0.4),
-
-        A.RandomRotate90(p=0.3)
 
     ], keypoint_params=A.KeypointParams(format="xy", remove_invisible=False))
     

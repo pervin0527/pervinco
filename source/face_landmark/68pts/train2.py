@@ -5,7 +5,7 @@ import tensorflow as tf
 import tensorflow_addons as tfa
 
 from glob import glob
-from losses import PFLDLoss, L2Loss
+from losses import PFLDLoss, L2Loss, WingLoss
 from model_backup import PFLDInference
 from angular_grad import AngularGrad
 from IPython.display import clear_output
@@ -35,7 +35,7 @@ def get_overlay(index, image, landmarks):
     for (x, y) in landmarks:
         cv2.circle(image, (int(x), int(y)), radius=1, color=(255, 255, 0), thickness=-1)
 
-    cv2.imwrite(f"epochs/epoch_{index}.png", image)
+    cv2.imwrite(f"epochs/epoch_{index}_2.png", image)
 
 
 def plot_predictions(model):
@@ -125,11 +125,11 @@ def build_lrfn(lr_start=0.00001, lr_max=0.001, lr_min=0.00001, lr_rampup_epochs=
 
 
 if __name__ == "__main__":
-    train_dir = '/data/Datasets/WFLW/custom/train_data_68pts/list.txt'
-    test_dir = '/data/Datasets/WFLW/test_data_68pts/list.txt'
-    save_dir = "/data/Models/face_landmark_68pts"
+    train_dir = '/home/ubuntu/Datasets/TOTAL_FACE/train_data_68pts/list.txt'
+    test_dir = '/home/ubuntu/Datasets/TOTAL_FACE/test_data_68pts/list.txt'
+    save_dir = "/home/ubuntu/Models/test"
 
-    batch_size = 128
+    batch_size = 2048
     epochs = 3000
     model_path = ''
     input_shape = [112, 112, 3]
@@ -179,8 +179,9 @@ if __name__ == "__main__":
             model.load_weights(model_path, by_name=True, skip_mismatch=True)
             print("WEIGHT LOADED")
 
-        model.compile(loss={'train_out': PFLDLoss()}, optimizer=optimizer)
-        # model.compile(loss={'train_out': L2Loss()}, optimizer=optimizer)
+        # model.compile(loss={'train_out': PFLDLoss()}, optimizer=optimizer)
+        model.compile(loss={'train_out': L2Loss()}, optimizer=optimizer)
+        # model.compile(loss={'train_out': WingLoss(w=10.0, epsilon=2.0)}, optimizer=optimizer)
     
     history = model.fit(train_datasets,
                         validation_data=valid_datasets,
