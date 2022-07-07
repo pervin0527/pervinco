@@ -36,18 +36,17 @@ def L2Loss():
 
 def WingLoss(w=10.0, epsilon=2.0):
     def _WingLoss(y_true, y_pred):
-        landmarks = y_pred[:, :136]
-        landmark_gt = tf.cast(y_true[:, :136], tf.float32)
+        landmarks, angle = y_pred[:, :136], y_pred[:, 136:]
+        landmark_gt, attribute_gt, euler_angle_gt = tf.cast(y_true[:,:136], tf.float32),tf.cast(y_true[:,136:142], tf.float32),tf.cast(y_true[:,142:],tf.float32)
 
-        x = tf.abs(landmark_gt - landmarks)
-        absolute_x = tf.abs(x)
         c = w * (1.0 - math.log(1.0 + w / epsilon))
-        losses = tf.where(
-            tf.greater(w, absolute_x),
-            w * tf.log(1.0 + absolute_x/epsilon),
-            absolute_x - c
-        )
-        loss = tf.reduce_mean(tf.reduce_sum(losses, axis=[1, 2]), axis=0)
-        return loss
+        weight_angle = K.sum(1 - tf.cos(angle - euler_angle_gt), axis=1) # [8,]
+
+        abs_error = tf.abs(landmark_gt - landmarks)
+        loss = tf.where(tf.less(w, abs_error), w * tf.math.log(1.0 + abs_error / epsilon), abs_error - c)
+        loss_sum = K.sum(loss, 1)
+        loss_sum *= weight_angle
+        
+        return tf.reduce_mean(loss_sum)
     
     return _WingLoss

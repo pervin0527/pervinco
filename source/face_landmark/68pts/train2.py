@@ -125,11 +125,11 @@ def build_lrfn(lr_start=0.00001, lr_max=0.001, lr_min=0.00001, lr_rampup_epochs=
 
 
 if __name__ == "__main__":
-    train_dir = '/home/ubuntu/Datasets/TOTAL_FACE/train_data_68pts/list.txt'
-    test_dir = '/home/ubuntu/Datasets/TOTAL_FACE/test_data_68pts/list.txt'
-    save_dir = "/home/ubuntu/Models/test"
+    train_dir = '/data/Datasets/WFLW/train_data_68pts/list.txt'
+    test_dir = '/data/Datasets/WFLW/test_data_68pts/list.txt'
+    save_dir = "/data/Models/test"
 
-    batch_size = 2048
+    batch_size = 256
     epochs = 3000
     model_path = ''
     input_shape = [112, 112, 3]
@@ -180,8 +180,8 @@ if __name__ == "__main__":
             print("WEIGHT LOADED")
 
         # model.compile(loss={'train_out': PFLDLoss()}, optimizer=optimizer)
-        model.compile(loss={'train_out': L2Loss()}, optimizer=optimizer)
-        # model.compile(loss={'train_out': WingLoss(w=10.0, epsilon=2.0)}, optimizer=optimizer)
+        # model.compile(loss={'train_out': L2Loss()}, optimizer=optimizer)
+        model.compile(loss={'train_out': WingLoss(w=10.0, epsilon=2.0)}, optimizer=optimizer)
     
     history = model.fit(train_datasets,
                         validation_data=valid_datasets,

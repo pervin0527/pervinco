@@ -30,12 +30,12 @@ def read_pts(filename):
     return np.loadtxt(filename, comments=("version:", "n_points:", "{", "}"))
 
 
-def generate_bbox(keypoints, frame):
+def generate_bbox(keypoints, frame, frame_h, frame_w):
     xy = np.min(keypoints, axis=0).astype(np.int32)
     zz = np.max(keypoints, axis=0).astype(np.int32)
     wh = zz - xy + 1
 
-    frame_h, frame_w = frame.shape[:2]
+    # frame_h, frame_w = frame.shape[:2]
 
     center = (xy + wh/2).astype(np.int32)
     size = int(np.max(wh)*1.2)
@@ -57,7 +57,7 @@ def generate_bbox(keypoints, frame):
     if (edx1 > 0 or edy1 > 0 or edx2 > 0 or edy2 > 0):
         crop_image = cv2.copyMakeBorder(crop_image, edy1, edy2, edx1, edx2, cv2.BORDER_CONSTANT, 0)
 
-    return size, (edx1, edy1), (x1, y1), crop_image
+    return size, (edx1, edy1), (x1, y1, x2, y2), crop_image
 
 
 def inference(folder_list, model):
@@ -69,13 +69,18 @@ def inference(folder_list, model):
 
     index = 0
     capture = cv2.VideoCapture(video_file)
+    width  = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+    fourcc = cv2.VideoWriter_fourcc(*'DIVX')
+    out = cv2.VideoWriter("/data/SAVED.avi", fourcc, 20.0, (width, height))
 
     while cv2.waitKey(33) != ord('q'):
         _, frame = capture.read()
         height, width = frame.shape[:2]
 
         points = read_pts(pts_files[index])
-        size, (edx1, edy1), (x1, y1), crop_image = generate_bbox(points, frame)
+        size, (edx1, edy1), (x1, y1, x2, y2), crop_image = generate_bbox(points, frame, height, width)
 
         input = cv2.resize(crop_image, (112, 112))
         input = np.expand_dims(input, axis=0)
@@ -84,10 +89,15 @@ def inference(folder_list, model):
         pred_landmark = pred[0]
         pred_landmark = pred_landmark.reshape(-1, 2) * [size, size] - [edx1, edy1]
 
+        cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color=(0, 0, 255))
+
         for (x, y) in pred_landmark.astype(np.int32):
-            cv2.circle(frame, (x1+x, y1+y), 2, (0, 0, 255), thickness=-1)
+            cv2.circle(frame, (x1+x, y1+y), 2, (255, 255, 0), thickness=-1)
 
         cv2.imshow("result", frame)
+        out.write(frame)
+
+    out.release()
 
 
 def load_model(model_path):

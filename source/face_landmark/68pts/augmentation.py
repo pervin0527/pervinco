@@ -119,13 +119,12 @@ if __name__ == '__main__':
     SAVE_DIR = "/data/Datasets/WFLW/custom"
     MIXUP_DIR = "/data/Datasets/Mixup_background"
     VISUALIZE = False
-    STEPS = 20
+    STEPS = 3
 
     TRANSFORM = A.Compose([
         A.OneOf([
-            A.ShiftScaleRotate(shift_limit=(-0.0, 0.0), scale_limit=(-0.4, 0.0), rotate_limit=(-0, 0), border_mode=0, p=0.6),
-            A.RandomRotate90(p=0.2),
-            A.VerticalFlip(p=0.2),
+            A.ShiftScaleRotate(shift_limit=(-0.0, 0.0), scale_limit=(-0.4, 0.0), rotate_limit=(-0, 0), border_mode=0, p=0.7),
+            A.RandomRotate90(p=0.3),
         ]),
 
         A.OneOf([
