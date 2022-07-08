@@ -127,12 +127,13 @@ if __name__ == "__main__":
 
     callbacks = [DisplayCallback(),
                  tf.keras.callbacks.LearningRateScheduler(cdr),
+                #  tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=20, verbose=1),
                  tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
     with strategy.scope():
         model = PFLD()
         model.compile(optimizer=optimizer)
-        
+
     history = model.fit(train_datasets,
                         validation_data=valid_datasets,
                         steps_per_epoch=train_steps_per_epoch,

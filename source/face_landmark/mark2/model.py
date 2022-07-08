@@ -1,5 +1,5 @@
 import tensorflow as tf
-from losses import PFLDLoss, valid_loss
+from losses import PFLDLoss, valid_loss, loss_fn, WingLoss
 from tensorflow.keras import backend as K
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import  Conv2D, BatchNormalization, Activation, DepthwiseConv2D, Add, AvgPool2D, Concatenate, Dense, Input, Reshape, MaxPool2D, Flatten
@@ -131,6 +131,7 @@ class PFLD(tf.keras.Model):
 
         with tf.GradientTape() as tape:
             landmarks, angle = self(image, training=True)
+            # weighted_loss, loss = PFLDLoss(label, landmarks, angle)
             weighted_loss, loss = PFLDLoss(label, landmarks, angle)
 
         trainable_vars = self.trainable_variables
