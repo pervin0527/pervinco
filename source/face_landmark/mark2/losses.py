@@ -30,7 +30,6 @@ def PFLDLoss(label, landmark_pred, angle_pred):
     return weighted_loss, loss
 
 
-### Epoch 94 : loss: 0.0623 - weighted_loss: 0.5965 - val_loss: 30.1277 - lr: 7.8104e-04
 def loss_fn(label, landmark_pred, angle_pred):
     batch_size = tf.cast(K.shape(label)[0], tf.float32)
     landmark_gt, attribute_gt, euler_angle_gt = tf.cast(label[:, :136], tf.float32), tf.cast(label[:, 136:142], tf.float32), tf.cast(label[:, 142:], tf.float32)
