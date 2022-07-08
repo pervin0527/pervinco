@@ -26,7 +26,6 @@ def PFLDLoss(label, landmark_pred, angle_pred):
     loss = K.mean(l2_distant)
     weighted_loss = K.mean(weight_angle * weight_attribute * l2_distant)
 
-
     return weighted_loss, loss
 
 
@@ -61,7 +60,7 @@ def L2Loss(label, landmark_pred):
 
 def valid_loss(label, landmark_pred):
     landmark_gt = tf.cast(label[:, :136], tf.float32)
-    loss = K.mean(K.sum((landmark_gt - landmark_pred) **2, 1))
+    loss = K.mean(K.sum((landmark_gt - landmark_pred)**2, 1))
 
     return loss
 

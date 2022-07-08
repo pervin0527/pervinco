@@ -83,10 +83,9 @@ def PFLDInference(inputs, keypoints=196):
     x3 = Activation('relu')(x3)
     x3 = Reshape((x3.shape[1]*x3.shape[2]*x3.shape[3],))(x3)
     
-    
     multi_scale = Concatenate()([x1, x2, x3])
-    
     landmarks = Dense(keypoints)(multi_scale)
+    
     model = Model(inputs, [landmarks, out1])
     return model
 
@@ -130,8 +129,7 @@ class PFLD(tf.keras.Model):
         image, label = data
 
         with tf.GradientTape() as tape:
-            landmarks, angle = self(image, training=True)
-            # weighted_loss, loss = PFLDLoss(label, landmarks, angle)
+            landmarks, angle = self(image, training=True)            
             weighted_loss, loss = PFLDLoss(label, landmarks, angle)
 
         trainable_vars = self.trainable_variables
@@ -139,6 +137,7 @@ class PFLD(tf.keras.Model):
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
         self.loss_tracker.update_state(loss)
         self.loss_tracker_2.update_state(weighted_loss)
+        
         return {"loss": self.loss_tracker.result(), "weighted_loss": self.loss_tracker_2.result()}
 
 
