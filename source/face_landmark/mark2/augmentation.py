@@ -149,11 +149,9 @@ def read_txt(txt_path):
     for idx in tqdm(range(len(lines))):
         line = lines[idx]
         image_path, landmarks, attributes, euler_angles = get_data(line)
-        
-        image = cv2.imread(image_path)
-        # visualize(image, landmarks)
 
         for rpt in range(repeat):
+            image = cv2.imread(image_path)
             augment_image, augment_landmarks = augmentation(image, landmarks)
             
             if np.random.rand(1) > 0.5:
@@ -175,7 +173,7 @@ def read_txt(txt_path):
 
 def write_total(origin, new):
     f = open(f"{SAVE_DIR}/list.txt", "w")
-    total = origin.extend(new)
+    total = origin + new
 
     for line in total:
         f.writelines(line)
@@ -186,7 +184,7 @@ if __name__ == "__main__":
     FILE_LIST = f"{ROOT_DIR}/train_data_68pts/list.txt"
     SAVE_DIR = f"{ROOT_DIR}/augment_data_68pts"
 
-    repeat = 2
+    repeat = 1
     bg_dir = "/data/Datasets/Mixup_background"
 
     transform = A.Compose([
