@@ -16,21 +16,21 @@ def draw_landmarks(image, landmarks):
 
 def check_data(data):
     image_path = data[0]
-    labels = data[1:146]
+    labels = data[1:]
 
     image = cv2.imread(image_path)
     height, width = image.shape[:2]
 
-    landmarks = np.array(labels[:136], np.float32).reshape(-1, 2)
-    attributes = np.array(labels[136:142], np.float32)
-    euler_angles = np.array(labels[142:146], np.float32)
+    landmarks = np.array(labels[:196], np.float32).reshape(-1, 2)
+    attributes = np.array(labels[196:202], np.float32)
+    euler_angles = np.array(labels[202:], np.float32)
     
     print(image_path)
     draw_landmarks(image, landmarks * height)
 
 
 if __name__ == "__main__":
-    data_list = "/data/Datasets/WFLW/test_data_68pts/list.txt"
+    data_list = "/data/Datasets/WFLW/test_data_98pts/list.txt"
     f = open(data_list, "r")
     lines = f.readlines()
 

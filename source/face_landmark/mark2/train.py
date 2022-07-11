@@ -64,7 +64,7 @@ class DisplayCallback(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         clear_output(wait=True)
 
-        if not os.path.isdir("./epochs"):
+        if not os.path.isdir("./epochs") and not os.path.isdir("./logs"):
             os.makedirs("./epochs")
             os.makedirs("./logs")
         plot_predictions(model=model)
@@ -126,9 +126,9 @@ def build_lrfn(lr_start=0.000001, lr_max=0.001, lr_min=0.00001, lr_rampup_epochs
     
     
 if __name__ == "__main__":
-    train_dir = '/data/Datasets/WFLW/augment_data_68pts/list.txt'
+    train_dir = '/data/Datasets/WFLW/train_data_68pts/list.txt'
     test_dir = '/data/Datasets/WFLW/test_data_68pts/list.txt'
-    save_dir = "/data/Models/facial_landmark_68pts_1"
+    save_dir = "/data/Models/facial_landmark_68pts"
 
     batch_size = 256
     epochs = 1000
