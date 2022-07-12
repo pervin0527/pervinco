@@ -315,7 +315,7 @@ if __name__ == "__main__":
             if not os.path.isdir(f"{ROOT_DIR}/augment_train_68pts"):
                 os.makedirs(f"{ROOT_DIR}/augment_train_68pts/imgs")
 
-            final_labels = line_process(lines, True, 3, f"{ROOT_DIR}/augment_train_68pts", f"{ROOT_DIR}/WFLW_annotations/Mirror68.txt")
+            final_labels = line_process(lines, True, 10, f"{ROOT_DIR}/augment_train_68pts", f"{ROOT_DIR}/WFLW_annotations/Mirror68.txt")
             write_txt(final_labels, f"{ROOT_DIR}/augment_train_68pts/list.txt")
         
         else:
@@ -323,5 +323,4 @@ if __name__ == "__main__":
                 os.makedirs(f"{ROOT_DIR}/augment_test_68pts/imgs")
 
             final_labels = line_process(lines, False, 1, f"{ROOT_DIR}/augment_test_68pts")
-            print(len(final_labels))
             write_txt(final_labels, f"{ROOT_DIR}/augment_test_68pts/list.txt")
