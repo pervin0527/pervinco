@@ -109,8 +109,7 @@ def adjust_lr(epoch, lr):
         return lr * 0.5
 
 
-def build_lrfn(lr_start=0.00001, lr_max=0.009, lr_min=0.0001, lr_rampup_epochs=200, lr_sustain_epochs=0, lr_exp_decay=0.001):
-# def build_lrfn(lr_start=0.000001, lr_max=0.001, lr_min=0.00001, lr_rampup_epochs=500, lr_sustain_epochs=0, lr_exp_decay=.8):
+def build_lrfn(lr_start=0.000001, lr_max=0.001, lr_min=0.00001, lr_rampup_epochs=500, lr_sustain_epochs=0, lr_exp_decay=0.0001):
     # lr_max = lr_max * strategy.num_replicas_in_sync
 
     def lrfn(epoch):
@@ -127,12 +126,12 @@ def build_lrfn(lr_start=0.00001, lr_max=0.009, lr_min=0.0001, lr_rampup_epochs=2
     
     
 if __name__ == "__main__":
-    train_dir = '/data/Datasets/WFLW/augment_train_68pts/list.txt'
-    test_dir = '/data/Datasets/WFLW/augment_test_68pts/list.txt'
+    train_dir = '/data/Datasets/WFLW/train_data_68pts/list.txt'
+    test_dir = '/data/Datasets/WFLW/test_data_68pts/list.txt'
     save_dir = "/data/Models/facial_landmark_68pts"
 
     batch_size = 256
-    epochs = 1000
+    epochs = 1200
     model_path = ''
     input_shape = [112, 112, 3]
     lr = 1e-3 ## 0.001
@@ -148,16 +147,10 @@ if __name__ == "__main__":
     
     optimizer = AngularGrad(method_angle="cos", learning_rate=lr)
     cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=lr,
-                                                            first_decay_steps=200,
+                                                            first_decay_steps=300,
                                                             t_mul=2.0,
                                                             m_mul=0.9,
                                                             alpha=0.001)
-
-    # clr = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=0.000001,
-    #                                           maximal_learning_rate=0.001,
-    #                                           step_size=700,
-    #                                           scale_fn=lambda x: 1.0,
-    #                                           scale_mode="cycle")
 
     callbacks = [DisplayCallback(),
                  tf.keras.callbacks.LearningRateScheduler(cdr),
