@@ -248,34 +248,35 @@ def read_file_list(path):
         os.makedirs(f"{SAVE_DIR}/annotations")
     record = open(f"{SAVE_DIR}/list.txt", "w")
 
-    for index in tqdm(range(len(total_files))):
-        opt = random.randint(0, 2)
-        if opt == 0:
-            files = random.sample(total_files, 4)
-            data_list = load_file(files)
-            result_image, result_bboxes, result_classes = mosaic(data_list)
+    for step in range(STEPS):
+        for index in tqdm(range(len(total_files))):
+            opt = random.randint(0, 2)
+            if opt == 0:
+                files = random.sample(total_files, 4)
+                data_list = load_file(files)
+                result_image, result_bboxes, result_classes = mosaic(data_list)
 
-        elif opt == 1:
-            files = random.sample(total_files, 1)
-            data_list = load_file(files)
-            result_image, result_bboxes, result_classes = mixup(data_list, bg_dir=BG_DIR, min=0.1, max=0.25)
+            elif opt == 1:
+                files = random.sample(total_files, 1)
+                data_list = load_file(files)
+                result_image, result_bboxes, result_classes = mixup(data_list, bg_dir=BG_DIR, min=0.1, max=0.25)
 
-        else:
-            files = random.sample(total_files, 1)
-            data_list = load_file(files)
-            result_image, result_bboxes, result_classes = augmentation(data_list)
+            else:
+                files = random.sample(total_files, 1)
+                data_list = load_file(files)
+                result_image, result_bboxes, result_classes = augmentation(data_list)
 
-        if VISUALIZE:
-            sample = result_image.copy()
-            for bbox in result_bboxes:
-                cv2.rectangle(sample, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), color=(0, 0, 255))
+            if VISUALIZE:
+                sample = result_image.copy()
+                for bbox in result_bboxes:
+                    cv2.rectangle(sample, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), color=(0, 0, 255))
 
-            cv2.imshow("sample", sample)
-            cv2.waitKey(0)
+                cv2.imshow("sample", sample)
+                cv2.waitKey(0)
 
-        cv2.imwrite(f"{SAVE_DIR}/images/{index:>06}.jpg", result_image)
-        write_xml(f"{SAVE_DIR}/annotations", result_bboxes, result_classes, f"{index:>06}", result_image.shape[0], result_image.shape[1])
-        record.write(f"{index:>06}\n")
+            cv2.imwrite(f"{SAVE_DIR}/images/{step}_{index:>06}.jpg", result_image)
+            write_xml(f"{SAVE_DIR}/annotations", result_bboxes, result_classes, f"{step}_{index:>06}", result_image.shape[0], result_image.shape[1])
+            record.write(f"{step}_{index:>06}\n")
 
 
 if __name__ == "__main__":
@@ -287,6 +288,7 @@ if __name__ == "__main__":
 
     CLASSES = ["face"]
     VISUALIZE = False
+    STEPS = 10
     BG_DIR = "/data/Datasets/Mixup_background"
 
     transform = A.Compose([
