@@ -109,7 +109,7 @@ def adjust_lr(epoch, lr):
         return lr * 0.5
 
 
-def build_lrfn(lr_start=0.000001, lr_max=0.001, lr_min=0.00001, lr_rampup_epochs=500, lr_sustain_epochs=0, lr_exp_decay=0.0001):
+def build_lrfn(lr_start=0.000001, lr_max=0.005, lr_min=0.00001, lr_rampup_epochs=500, lr_sustain_epochs=0, lr_exp_decay=0.0001):
     # lr_max = lr_max * strategy.num_replicas_in_sync
 
     def lrfn(epoch):
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     save_dir = "/data/Models/facial_landmark_68pts"
 
     batch_size = 256
-    epochs = 1200
+    epochs = 3000
     model_path = ''
     input_shape = [112, 112, 3]
     lr = 1e-3 ## 0.001
@@ -154,7 +154,7 @@ if __name__ == "__main__":
                                                             alpha=0.001)
 
     callbacks = [DisplayCallback(),
-                 tf.keras.callbacks.LearningRateScheduler(cdr),
+                 tf.keras.callbacks.LearningRateScheduler(build_lrfn()),
                 #  tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=20, verbose=1),
                  tf.keras.callbacks.CSVLogger("./logs/train.csv"),
                  tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
