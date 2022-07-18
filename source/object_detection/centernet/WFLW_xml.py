@@ -4,6 +4,7 @@ import albumentations as A
 import xml.etree.ElementTree as ET
 from lxml.etree import Element, SubElement
 
+
 def write_xml(save_path, bboxes, labels, filename, height, width):
     root = Element("annotation")
     
@@ -47,6 +48,7 @@ def write_xml(save_path, bboxes, labels, filename, height, width):
     tree = ET.ElementTree(root)    
     tree.write(f"{save_path}/{filename}.xml")
 
+
 def make_label_field(n):
     labels = []
     for _ in range(n):
@@ -85,6 +87,7 @@ def write_process(data_dict, save_dir, is_train):
         os.makedirs(f"{save_dir}/images")
         os.makedirs(f"{save_dir}/annotations")
 
+    record = open(f"{save_dir}/list.txt", "w")
     for idx, data in enumerate(list(data_dict.items())):
         file, bboxes = data[0], data[1]
         labels = make_label_field(len(bboxes))
@@ -94,8 +97,10 @@ def write_process(data_dict, save_dir, is_train):
         transformed = transform(image=image, bboxes=bboxes, labels=labels)
         t_image, t_bboxes = transformed['image'], transformed['bboxes']
 
-        cv2.imwrite(f"{save_dir}/images/{idx}.jpg", t_image)
-        write_xml(f"{save_dir}/annotations", t_bboxes, labels, {idx}, 512, 512)
+        cv2.imwrite(f"{save_dir}/images/{idx:>06}.jpg", t_image)
+        write_xml(f"{save_dir}/annotations", t_bboxes, labels, f"{idx:>06}", 512, 512)
+        record.writelines(f"{idx:>06}\n")
+    record.close()
 
 
 if __name__ == "__main__":

@@ -137,10 +137,10 @@ if __name__ == "__main__":
     for annot_file in ANNOT_DIR:
         if annot_file.split('/')[-1] == "wider_face_train_bbx_gt.txt":
             IMG_DIR = f"{ROOT_DIR}/WIDER_train"
-            SAVE_DIR = f"{ROOT_DIR}/CUSTOM_VOC/train"
+            SAVE_DIR = f"{ROOT_DIR}/CUSTOM_XML/train"
 
         else:
             IMG_DIR = f"{ROOT_DIR}/WIDER_val"
-            SAVE_DIR = f"{ROOT_DIR}/CUSTOM_VOC/test"
+            SAVE_DIR = f"{ROOT_DIR}/CUSTOM_XML/test"
         
         read_txt(annot_file, IMG_DIR, SAVE_DIR)

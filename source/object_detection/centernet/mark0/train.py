@@ -30,14 +30,11 @@ else:
         print(e)
 
 
-def draw_result(idx, image, pred):
-    try:
-        for res in pred:
-            xmin, ymin, xmax, ymax, score, class_id = int(res[0]), int(res[1]), int(res[2]), int(res[3]), res[4], int(res[5])
-            cv2.rectangle(image, (xmin, ymin), (xmax, ymax), color=(0, 0, 255))
-            cv2.imwrite(f"./epoch_end/{class_id}_{score}.jpg")
-    except:
-        pass
+def draw_result(idx, image, detections):
+    scores = detections[:, 4]
+    indices = np.where(scores > 0.7)[0]
+    print(indices)
+    print(detections[indices])
 
 
 def plot_predictions(model):

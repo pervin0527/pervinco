@@ -280,7 +280,7 @@ def read_file_list(path):
 
 
 if __name__ == "__main__":
-    DATA_DIR = "/data/Datasets/WIDER/CUSTOM_VOC"
+    DATA_DIR = "/data/Datasets/WFLW/CUSTOM_XML"
     SAVE_DIR = f"{DATA_DIR}/augmentation"
     IMG_PATH = f"{DATA_DIR}/train/images"
     ANNOT_PATH = f"{DATA_DIR}/train/annotations"
@@ -288,7 +288,7 @@ if __name__ == "__main__":
 
     CLASSES = ["face"]
     VISUALIZE = False
-    STEPS = 5
+    STEPS = 3
     BG_DIR = "/data/Datasets/Mixup_background"
 
     transform = A.Compose([
