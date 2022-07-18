@@ -86,7 +86,7 @@ if __name__ == "__main__":
     backbone = "resnet50"
     classes = ["face"]
     epochs = 3000
-    batch_size = 64
+    batch_size = 32
     max_detections = 10
     learning_rate = 1e-2
     input_shape = (512, 512, 3)
@@ -97,8 +97,8 @@ if __name__ == "__main__":
     train_steps = int(tf.math.ceil(len(train_dataset) / batch_size).numpy())
     test_steps = int(tf.math.ceil(len(test_dataset) / batch_size).numpy())
 
-    optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
-    # optimizer = AngularGrad(method_angle="cos", learning_rate=learning_rate)
+    # optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
+    optimizer = AngularGrad(method_angle="cos", learning_rate=learning_rate)
     cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=learning_rate,
                                                             first_decay_steps=300,
                                                             t_mul=2.0,
