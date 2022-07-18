@@ -1,3 +1,4 @@
+import tensorflow as tf
 from tensorflow.keras.initializers import RandomNormal
 from tensorflow.keras.layers import Conv2D, BatchNormalization, Activation, Add, ZeroPadding2D, MaxPooling2D
 
@@ -18,7 +19,8 @@ def identity_block(input_tensor, kernel_size, filters, stage, block):
     x = Conv2D(filters3, (1, 1), kernel_initializer=RandomNormal(stddev=0.02), name=conv_name_base + '2c', use_bias=False)(x)
     x = BatchNormalization(name=bn_name_base + '2c')(x)
 
-    x = Add()([x, input_tensor])
+    # x = Add()([x, input_tensor])
+    x = tf.keras.layers.add([x, input_tensor])
     x = Activation('relu')(x)
 
     return x
@@ -44,7 +46,8 @@ def conv_block(input_tensor, kernel_size, filters, stage, block, strides=(2, 2))
     shortcut = Conv2D(filters3, (1, 1), strides=strides, kernel_initializer=RandomNormal(stddev=0.02), name=conv_name_base + '1', use_bias=False)(input_tensor)
     shortcut = BatchNormalization(name=bn_name_base + '1')(shortcut)
 
-    x = Add()([x, shortcut])
+    # x = Add()([x, shortcut])
+    x = tf.keras.layers.add([x, shortcut])
     x = Activation('relu')(x)
 
     return x

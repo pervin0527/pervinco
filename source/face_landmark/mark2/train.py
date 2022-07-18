@@ -144,8 +144,8 @@ if __name__ == "__main__":
     if not os.path.isdir(save_dir):
         os.makedirs(save_dir)
     
-    optimizer = tf.keras.optimizers.Adam()
-    # optimizer = AngularGrad(method_angle="cos", learning_rate=lr)
+    # optimizer = tf.keras.optimizers.Adam()
+    optimizer = AngularGrad(method_angle="cos", learning_rate=lr)
     cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=lr,
                                                             first_decay_steps=300,
                                                             t_mul=2.0,
@@ -160,6 +160,7 @@ if __name__ == "__main__":
 
     with strategy.scope():
         model = PFLD()
+        model.trainable = True
         model.compile(optimizer=optimizer)
 
     history = model.fit(train_datasets,

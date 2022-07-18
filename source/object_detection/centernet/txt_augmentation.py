@@ -130,8 +130,7 @@ def mixup(data_list, bg_dir, min=0.4, max=0.5, alpha=1.0):
         ], p=1),
 
         A.OneOf([
-            A.RandomBrightnessContrast(brightness_limit=(-0.25, 0.25), p=0.3),
-            A.HueSaturationValue(val_shift_limit=(40, 80), p=0.3),
+            A.RandomBrightnessContrast(brightness_limit=(-0.15, 0.25), p=0.3),
             A.ChannelShuffle(p=0.3)
         ], p=1)
     ])
@@ -219,17 +218,17 @@ def main_func(txt_path):
 
 
 if __name__ == "__main__":
-    DATA_DIR = "/data/Datasets/WIDER/CUSTOM"
-    BG_DIR = "/data/Datasets/Mixup_background"
+    DATA_DIR = "/home/ubuntu/Datasets/WIDER/CUSTOM_TXT"
+    BG_DIR = "/home/ubuntu/Datasets/Mixup_background"
     SAVE_DIR = f"{DATA_DIR}/augmentation"
-    VISUALIZE = True
+    VISUALIZE = False
     STEPS = 5
 
     train_txt = f"{DATA_DIR}/train/list.txt"
 
     transform = A.Compose([
         A.OneOf([
-            A.RandomBrightnessContrast(brightness_limit=(-0.25, 0.25), contrast_limit=(-0.3, 0.3), p=0.5),
+            A.RandomBrightnessContrast(brightness_limit=(-0.15, 0.25), contrast_limit=(-0.15, 0.25), p=0.5),
             A.HueSaturationValue(hue_shift_limit=0, sat_shift_limit=(0, 0), val_shift_limit=(0, 3), p=0.5),
         ], p=1),
 
@@ -239,14 +238,14 @@ if __name__ == "__main__":
             A.MotionBlur(blur_limit=(3, 5), p=0.3)
         ], p=0.5),
 
-        A.ShiftScaleRotate(p=0.5),
+        A.ShiftScaleRotate(shift_limit=(-0.15, 0.15), scale_limit=(-0.15, 0.15), rotate_limit=(0, 0), border_mode=0, p=0.5),
 
         A.OneOf([
             A.VerticalFlip(p=0.5),
             A.HorizontalFlip(p=0.5)
         ], p=0.5)
 
-    ], bbox_params=A.BboxParams(format="pascal_voc", label_fields=['labels']))
+    ], bbox_params=A.BboxParams(format="pascal_voc", min_area=0.5, min_visibility=0.2, label_fields=['labels']))
 
     if not os.path.isdir(f"{SAVE_DIR}"):
         os.makedirs(f"{SAVE_DIR}/images")

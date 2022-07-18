@@ -288,7 +288,7 @@ if __name__ == "__main__":
 
     CLASSES = ["face"]
     VISUALIZE = False
-    STEPS = 10
+    STEPS = 5
     BG_DIR = "/data/Datasets/Mixup_background"
 
     transform = A.Compose([

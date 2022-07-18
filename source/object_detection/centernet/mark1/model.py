@@ -98,7 +98,3 @@ def centernet(num_classes, backbone="resnet101", input_size=512, max_detections=
     prediction_model = Model(inputs=image_input, outputs=detections)
 
     return model, prediction_model
-
-if __name__ == "__main__":
-    model, prediction_model = centernet(1, "resnet101", 512, 10)
-    model.summary()

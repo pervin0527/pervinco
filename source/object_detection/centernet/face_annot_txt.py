@@ -102,7 +102,7 @@ if __name__ == "__main__":
     ANNOT_DIR = [f"{ROOT_DIR}/wider_face_split/wider_face_train_bbx_gt.txt",
                  f"{ROOT_DIR}/wider_face_split/wider_face_val_bbx_gt.txt"]
     LABELS = ["face"]
-    MAX_OBJECTS = 3
+    MAX_OBJECTS = 2
 
     transform = A.Compose([
         A.Resize(512, 512, always_apply=True)
@@ -112,11 +112,11 @@ if __name__ == "__main__":
         if annot_file.split('/')[-1] == "wider_face_train_bbx_gt.txt":
             print("wider_face_train_bbx_gt")
             IMG_DIR = f"{ROOT_DIR}/WIDER_train"
-            SAVE_DIR = f"{ROOT_DIR}/CUSTOM/train"
+            SAVE_DIR = f"{ROOT_DIR}/CUSTOM_TXT/train"
 
         else:
             print("wider_face_test_bbx_gt")
             IMG_DIR = f"{ROOT_DIR}/WIDER_val"
-            SAVE_DIR = f"{ROOT_DIR}/CUSTOM/test"
+            SAVE_DIR = f"{ROOT_DIR}/CUSTOM_TXT/test"
         
         read_txt(annot_file, IMG_DIR, SAVE_DIR)

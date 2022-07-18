@@ -31,8 +31,8 @@ else:
 def draw_result(idx, image, pred):
     scores = pred[:, 4]
     indices = np.where(scores > 0.7)
-    print(scores)
-    print(indices)
+    for index in indices:
+        print(pred[index])
 
 
 def plot_predictions(model):
@@ -73,15 +73,15 @@ def build_lrfn(lr_start=0.000001, lr_max=0.001, lr_min=0.00001, lr_rampup_epochs
 
 
 if __name__ == "__main__":
-    backbone = "resnet50"
+    backbone = "resnet101"
     classes = {"face":0}
-    epochs = 1000
-    batch_size = 64
+    epochs = 3000
+    batch_size = 32
     max_detections = 10
-    learning_rate = 1e-4
+    learning_rate = 1e-2
     input_size = 512
         
-    train_dataset = DataGenerator(data_dir="/home/ubuntu/Datasets/WIDER/CUSTOM_VOC/train",
+    train_dataset = DataGenerator(data_dir="/home/ubuntu/Datasets/WIDER/CUSTOM_VOC/augmentation",
                                   file_list="list.txt",
                                   classes=classes,
                                   batch_size=batch_size)
@@ -95,14 +95,19 @@ if __name__ == "__main__":
     test_steps = int(tf.math.ceil(len(test_dataset) / batch_size).numpy())
 
     optimizer = tf.keras.optimizers.Adam(learning_rate=1e-3)
+    cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=learning_rate,
+                                                            first_decay_steps=300,
+                                                            t_mul=2.0,
+                                                            m_mul=0.9,
+                                                            alpha=0.000001)
     callbacks = [DisplayCallback(),
-                #  tf.keras.callbacks.LearningRateScheduler(build_lrfn()),
-                ]
+                 tf.keras.callbacks.LearningRateScheduler(cdr),
+                 tf.keras.callbacks.ModelCheckpoint(f"/home/ubuntu/Models/centernet.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
     with strategy.scope():
-        model, prediction_model = centernet(batch_size, "resnet101", input_size, max_detections)  ## output shape : topk_x1, topk_y1, topk_x2, topk_y2, scores, class_ids
+        model, prediction_model = centernet(batch_size, backbone, input_size, max_detections)  ## output shape : topk_x1, topk_y1, topk_x2, topk_y2, scores, class_ids
         model.compile(optimizer = optimizer, loss = {'centernet_loss': lambda y_true, y_pred : y_pred})
-        prediction_model.summary()
+        # prediction_model.summary()
     
     model.fit(train_dataset,
               steps_per_epoch=train_steps,
