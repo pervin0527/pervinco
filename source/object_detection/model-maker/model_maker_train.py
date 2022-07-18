@@ -3,11 +3,32 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import pandas as pd
 import tensorflow as tf
 
-from absl import logging
-from tflite_model_maker import model_spec
+# from absl import logging
+# from tflite_model_maker import model_spec
 from tflite_model_maker import object_detector
 from tflite_model_maker.config import ExportFormat
-from tflite_model_maker.config import QuantizationConfig
+# from tflite_model_maker.config import QuantizationConfig
+
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if len(gpus) > 1:
+    try:
+        print("Activate Multi GPU")
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+        strategy = tf.distribute.MirroredStrategy(cross_device_ops=tf.distribute.HierarchicalCopyAllReduce())
+    except RuntimeError as e:
+        print(e)
+
+else:
+    try:
+        print("Activate Sigle GPU")
+        tf.config.experimental.set_memory_growth(gpus[0], True)
+        strategy = tf.distribute.experimental.CentralStorageStrategy()
+    except RuntimeError as e:
+        print(e)
+
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/SPC"
