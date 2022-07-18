@@ -221,7 +221,7 @@ if __name__ == "__main__":
     DATA_DIR = "/data/Datasets/WFLW/CUSTOM_TXT"
     BG_DIR = "/data/Datasets/Mixup_background"
     SAVE_DIR = f"{DATA_DIR}/augmentation"
-    VISUALIZE = True
+    VISUALIZE = False
     STEPS = 2
 
     train_txt = f"{DATA_DIR}/train/list.txt"

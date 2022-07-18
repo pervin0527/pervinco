@@ -55,7 +55,8 @@ def write_txt(data_dict, save_dir, is_train):
         for bbox in t_bboxes:
             f.write(' ')
             xmin, ymin, xmax, ymax = bbox
-            f.write(f"{int(xmin)},{int(ymin)},{int(xmax)},{int(ymax)}")
+            label = classes.index("face")
+            f.write(f"{int(xmin)},{int(ymin)},{int(xmax)},{int(ymax)},{int(label)}")
         f.write('\n')
 
 
@@ -65,6 +66,7 @@ if __name__ == "__main__":
     train_txt = f"{root_dir}/WFLW_annotations/list_98pt_rect_attr_train_test/list_98pt_rect_attr_train.txt"
     test_txt = f"{root_dir}/WFLW_annotations/list_98pt_rect_attr_train_test/list_98pt_rect_attr_test.txt"
     save_dir = f"{root_dir}/CUSTOM_TXT"
+    classes = ["face"]
 
     transform = A.Compose([
         A.Resize(512, 512, always_apply=True)
