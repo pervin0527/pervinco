@@ -24,7 +24,7 @@ else:
         print(e)
 
 if __name__ == "__main__":
-    ROOT_DIR = "/data/Datasets/WIDER"
+    ROOT_DIR = "/data/Datasets/WFLW"
     TRAIN_DIR = f"{ROOT_DIR}/CUSTOM_VOC/augmentation"
     VALID_DIR = f"{ROOT_DIR}/CUSTOM_VOC/test"
 

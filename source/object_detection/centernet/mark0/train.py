@@ -78,16 +78,16 @@ def build_lrfn(lr_start=0.000001, lr_max=0.005, lr_min=0.00001, lr_rampup_epochs
 
 
 if __name__ == "__main__":
-    train_data_dir = "/home/ubuntu/Datasets/WIDER/CUSTOM_TXT/augmentation/list.txt"
-    test_data_dir = "/home/ubuntu/Datasets/WIDER/CUSTOM_TXT/test/list.txt"
-    save_dir = "/home/ubuntu/Models"
-    ckpt_path = "" #### /home/ubuntu/Models/centernet_resnet50_voc.h5
+    train_data_dir = "/data/Datasets/WIDER/CUSTOM_TXT/augmentation/list.txt"
+    test_data_dir = "/data/Datasets/WIDER/CUSTOM_TXT/test/list.txt"
+    save_dir = "/data/Models"
+    ckpt_path = ""
 
     backbone = "resnet50"
     classes = ["face"]
     epochs = 3000
     batch_size = 32
-    max_detections = 10
+    max_detections = 50
     learning_rate = 1e-2
     input_shape = (512, 512, 3)
         
