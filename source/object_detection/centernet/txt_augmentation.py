@@ -218,11 +218,11 @@ def main_func(txt_path):
 
 
 if __name__ == "__main__":
-    DATA_DIR = "/home/ubuntu/Datasets/WIDER/CUSTOM_TXT"
-    BG_DIR = "/home/ubuntu/Datasets/Mixup_background"
+    DATA_DIR = "/data/Datasets/WFLW/CUSTOM_TXT"
+    BG_DIR = "/data/Datasets/Mixup_background"
     SAVE_DIR = f"{DATA_DIR}/augmentation"
-    VISUALIZE = False
-    STEPS = 5
+    VISUALIZE = True
+    STEPS = 2
 
     train_txt = f"{DATA_DIR}/train/list.txt"
 
