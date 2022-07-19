@@ -77,17 +77,22 @@ def read_txt(txt_path, image_dir, save_dir):
             image = cv2.imread(f"{image_dir}/images/{img_path}")
             classes = make_label_field(int(n_boxes))
 
-            try:
-                augment_image, augment_bboxes, augment_classes = augmentation(image, bboxes, classes)
-                file_name = f"{idx:>06}.jpg"
-                cv2.imwrite(f"{save_dir}/images/{file_name}", augment_image)
-                
-                record.write(f"{save_dir}/images/{file_name}")
-                write_annots(augment_bboxes, augment_classes, record)
-                idx += 1
+            augment_image, augment_bboxes, augment_classes = augmentation(image, bboxes, classes)
+            file_name = f"{idx:>06}.jpg"
+            cv2.imwrite(f"{save_dir}/images/{file_name}", augment_image)
+            
+            record.write(f"{save_dir}/images/{file_name}")
+            write_annots(augment_bboxes, augment_classes, record)
+            idx += 1
 
-            except:
-                pass
+            if show_sample:
+                sample_image = augment_image.copy()
+                for bbox in augment_bboxes:
+                    xmin, ymin, xmax, ymax = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
+                    cv2.rectangle(sample_image, (xmin, ymin), (xmax, ymax), color=(0, 0, 255))
+                cv2.imshow("result", sample_image)
+                cv2.waitKey(0)
+
                 
         elif n_boxes > MAX_OBJECTS:
             for _ in range(n_boxes):
@@ -98,11 +103,12 @@ def read_txt(txt_path, image_dir, save_dir):
 
         
 if __name__ == "__main__":
-    ROOT_DIR = "/home/ubuntu/Datasets/WIDER"
+    ROOT_DIR = "/data/Datasets/WIDER"
     ANNOT_DIR = [f"{ROOT_DIR}/wider_face_split/wider_face_train_bbx_gt.txt",
                  f"{ROOT_DIR}/wider_face_split/wider_face_val_bbx_gt.txt"]
     LABELS = ["face"]
-    MAX_OBJECTS = 2
+    MAX_OBJECTS = 4
+    show_sample = True
 
     transform = A.Compose([
         A.Resize(512, 512, always_apply=True)

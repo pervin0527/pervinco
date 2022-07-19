@@ -49,15 +49,24 @@ def write_txt(data_dict, save_dir, is_train):
         transformed = transform(image=image, bboxes=bboxes, labels=labels)
         t_image, t_bboxes = transformed['image'], transformed['bboxes']
 
-        f.write(f"{save_dir}/images/{idx}.jpg")
-        cv2.imwrite(f"{save_dir}/images/{idx}.jpg", t_image)
+        if visualize:
+            sample_image = t_image.copy()
+            for bbox in t_bboxes:
+                xmin, ymin, xmax, ymax = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
+                cv2.rectangle(sample_image, (xmin, ymin), (xmax, ymax), color=(0, 0, 255))
+            cv2.imshow("result", sample_image)
+            cv2.waitKey(0)
 
-        for bbox in t_bboxes:
-            f.write(' ')
-            xmin, ymin, xmax, ymax = bbox
-            label = classes.index("face")
-            f.write(f"{int(xmin)},{int(ymin)},{int(xmax)},{int(ymax)},{int(label)}")
-        f.write('\n')
+        else:
+            f.write(f"{save_dir}/images/{idx}.jpg")
+            cv2.imwrite(f"{save_dir}/images/{idx}.jpg", t_image)
+
+            for bbox in t_bboxes:
+                f.write(' ')
+                xmin, ymin, xmax, ymax = bbox
+                label = classes.index("face")
+                f.write(f"{int(xmin)},{int(ymin)},{int(xmax)},{int(ymax)},{int(label)}")
+            f.write('\n')
 
 
 if __name__ == "__main__":
@@ -67,6 +76,7 @@ if __name__ == "__main__":
     test_txt = f"{root_dir}/WFLW_annotations/list_98pt_rect_attr_train_test/list_98pt_rect_attr_test.txt"
     save_dir = f"{root_dir}/CUSTOM_TXT"
     classes = ["face"]
+    visualize = True
 
     transform = A.Compose([
         A.Resize(512, 512, always_apply=True)
