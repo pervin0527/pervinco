@@ -25,64 +25,33 @@ else:
 
 if __name__ == "__main__":
     ROOT_DIR = "/data/Datasets/WFLW"
-    TRAIN_DIR = f"{ROOT_DIR}/CUSTOM_VOC/augmentation"
-    VALID_DIR = f"{ROOT_DIR}/CUSTOM_VOC/test"
+    TRAIN_DIR = f"{ROOT_DIR}/CUSTOM_XML/augmentation"
+    VALID_DIR = f"{ROOT_DIR}/CUSTOM_XML/test"
 
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
     LABEL_FILE = pd.read_csv(LABEL_FILE, sep=',', index_col=False, header=None)
     CLASSES = LABEL_FILE[0].tolist()
-    # CLASSES = CLASSES[:-1]
     print(CLASSES)
     
     EPOCHS = 300
-    BATCH_SIZE = 32
+    BATCH_SIZE = 64
     MAX_DETECTIONS = 10
 
-    # HPARAMS = {"optimizer" : "sgd",
-    #            "learning_rate" : 0.008,
-    #            "lr_warmup_init" : 0.0008,
-    #            "anchor_scale" : 7.0,
-    #            "aspect_ratios" : [8.0, 4.0, 2.0, 1.0, 0.5],
-    #            "num_scales" : 5,
-    #            "alpha" : 0.25,
-    #            "gamma" : 2,
-    #            "es" : False,
-    #            "es_monitor" : "val_det_loss",
-    #            "es_patience" : 15,
-    #            "ckpt" : None}
-
-    HPARAMS = {"optimizer" : "sgd",
-               "learning_rate" : 0.08, # 0.008
-               "lr_warmup_init" : 0.008, # 0.0008
-               "anchor_scale" : 4.0, # 7.0
-               "aspect_ratios" : [1.0, 2.0, 0.5], # [8.0, 4.0, 2.0, 1.0, 0.5]
-               "num_scales" : 3, # 5
-               "alpha" : 0.25,
-               "gamma" : 1.5, # 2
-               "es" : False,
-               "es_monitor" : "val_det_loss",
-               "es_patience" : 15,
-               "ckpt" : None}
-
-    ## TEST
-    # HPARAMS = {"optimizer" : "sgd",
-    #            "learning_rate" : 0.08,
-    #            "lr_warmup_init" : 0.008,
-    #            "anchor_scale" : [1.0, 3.0, 5.0, 7.0, 9.0],
-    #            "aspect_ratios" : [1.16, 3.48, 9.23, 20.39],
-    #            "num_scales" : 3,
-    #            "alpha" : 0.25,
-    #            "gamma" : 2,
-    #            "es" : False,
-    #            "es_monitor" : "val_det_loss",
-    #            "es_patience" : 15,
-    #            "ckpt" : None}
+    HPARAMS = {
+        "optimizer" : "sgd",
+        "learning_rate" : 0.08, # 0.008
+        "lr_warmup_init" : 0.008, # 0.0008
+        "anchor_scale" : 4.0, # 7.0
+        "aspect_ratios" : [1.0, 2.0, 0.5], # [8.0, 4.0, 2.0, 1.0, 0.5]
+        "num_scales" : 3, # 5
+        "alpha" : 0.25,
+        "gamma" : 1.5, # 2
+    }
 
     SAVE_PATH = "/data/Models/face_detection"
     PROJECT = ROOT_DIR.split('/')[-1]
     DS_NAME = TRAIN_DIR.split('/')[-2]
-    # MODEL_FILE = f"{PROJECT}-{DS_NAME}-{EPOCHS}"
-    MODEL_FILE = "wider"
+    MODEL_FILE = f"{PROJECT}-{DS_NAME}-{EPOCHS}"
 
     train_data = object_detector.DataLoader.from_pascal_voc(images_dir=f"{TRAIN_DIR}/images",
                                                             annotations_dir=f"{TRAIN_DIR}/annotations", 
@@ -105,13 +74,9 @@ if __name__ == "__main__":
                                    validation_data=validation_data,
                                    do_train=True,
                                    train_whole_model=True,)
-
-    # config = QuantizationConfig.for_int8(representative_data=validation_data)
-    # config = QuantizationConfig.for_float16()                                   
+                           
 
     model.export(export_dir=f"{SAVE_PATH}/{MODEL_FILE}",
-                 label_filename=f'{SAVE_PATH}/label_map.txt',
                  tflite_filename=f'{MODEL_FILE}.tflite',
                  saved_model_filename=f'{SAVE_PATH}/{MODEL_FILE}/saved_model',
-                 export_format=[ExportFormat.TFLITE, ExportFormat.SAVED_MODEL],)
-                #  quantization_config=config
+                 export_format=[ExportFormat.TFLITE, ExportFormat.SAVED_MODEL])
