@@ -99,7 +99,7 @@ if __name__ == "__main__":
                                                                  annotations_dir=f'{VALID_DIR}/annotations',
                                                                  label_map=CLASSES)
 
-    spec = object_detector.EfficientDetLite0Spec(verbose=1,
+    spec = object_detector.EfficientDetLite1Spec(verbose=1,
                                                  strategy=None, # 'gpus'
                                                  hparams=HPARAMS,
                                                  tflite_max_detections=MAX_DETECTIONS,

@@ -75,17 +75,17 @@ def build_lrfn(lr_start=0.000001, lr_max=0.005, lr_min=0.00001, lr_rampup_epochs
 
 
 if __name__ == "__main__":
-    train_data_dir = "/home/ubuntu/Datasets/WFLW/CUSTOM_TXT/augmentation/list.txt"
-    test_data_dir = "/home/ubuntu/Datasets/WFLW/CUSTOM_TXT/test/list.txt"
+    train_data_dir = "/home/ubuntu/Datasets/FACE_DETECTION/augmentation/list.txt"
+    test_data_dir = "/home/ubuntu/Datasets/FACE_DETECTION/test/list.txt"
     save_dir = "/home/ubuntu/Models"
     ckpt_path = ""
 
     backbone = "resnet101"
     classes = ["face"]
     epochs = 3000
-    batch_size = 16
+    batch_size = 64
     max_detections = 50
-    learning_rate = 1e-2
+    learning_rate = 1e-3
     input_shape = (512, 512, 3)
         
     train_dataset = Datasets(train_data_dir, input_shape=input_shape, batch_size=batch_size, num_classes=len(classes), max_detections=max_detections)
@@ -102,7 +102,7 @@ if __name__ == "__main__":
                                                             m_mul=0.9,
                                                             alpha=0.000001)
     callbacks = [DisplayCallback(),
-                 tf.keras.callbacks.LearningRateScheduler(build_lrfn()),
+                 tf.keras.callbacks.LearningRateScheduler(cdr),
                  tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/mark2.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
     with strategy.scope():

@@ -1,8 +1,52 @@
 import os
 import cv2
 import albumentations as A
-from tqdm import tqdm
+import xml.etree.ElementTree as ET
 from collections import deque
+from lxml.etree import Element, SubElement
+
+def write_xml(save_path, bboxes, labels, filename, height, width):
+    root = Element("annotation")
+    
+    folder = SubElement(root, "folder")
+    folder.text = "images"
+
+    file_name = SubElement(root, "filename")
+    file_name.text = f'{filename}.jpg'
+    
+    size = SubElement(root, "size")
+    w = SubElement(size, "width")
+    w.text = str(width)
+    h = SubElement(size, "height")
+    h.text = str(height)
+    depth = SubElement(size, "depth")
+    depth.text = "3"
+
+    if labels:
+        for label, bbox in zip(labels, bboxes):
+            obj = SubElement(root, 'object')
+            name = SubElement(obj, 'name')
+            name.text = label
+            pose = SubElement(obj, 'pose')
+            pose.text = 'Unspecified'
+            truncated = SubElement(obj, 'truncated')
+            truncated.text = '0'
+            difficult = SubElement(obj, 'difficult')
+            difficult.text = '0'
+            bndbox = SubElement(obj, 'bndbox')
+            xmin, ymin, xmax, ymax = bbox[0], bbox[1], bbox[2], bbox[3]
+
+            node_xmin = SubElement(bndbox, 'xmin')
+            node_xmin.text = str(int(xmin))
+            node_ymin = SubElement(bndbox, 'ymin')
+            node_ymin.text = str(int(ymin))
+            node_xmax = SubElement(bndbox, 'xmax')
+            node_xmax.text = str(int(xmax))
+            node_ymax = SubElement(bndbox, 'ymax')
+            node_ymax.text = str(int(ymax))
+    
+    tree = ET.ElementTree(root)    
+    tree.write(f"{save_path}/{filename}.xml")
 
 
 def augmentation(image, bboxes, labels):
@@ -132,20 +176,38 @@ def get_wflw_data(txt_file):
     return dataset
 
 
-def record_dataset(dataset, save_dir):
+def record_dataset(dataset, save_dir, format="txt"):
     record = open(f"{save_dir}/list.txt", "w")
 
     for data in dataset:
-        image_path = data.pop(0)
+        image_path = data[0]
         record.write(image_path)
 
-        for bbox in data:
+        for bbox in data[1:]:
             record.write(" ")
             xmin, ymin, xmax, ymax = bbox[0:4]
             label = bbox[-1]
             record.write(f"{int(xmin)},{int(ymin)},{int(xmax)},{int(ymax)},{int(label)}")
 
         record.write("\n")
+
+    if format == "xml":
+        if not os.path.isdir(f"{save_dir}/annotations"):
+            os.makedirs(f"{save_dir}/annotations")
+
+        for data in dataset:
+            image_path = data.pop(0)
+            file_name = image_path.split('/')[-1].split('.')[0]
+
+            bboxes, labels = [], []
+            for bbox in data:
+                xmin, ymin, xmax, ymax = bbox[0:4]
+                label = bbox[-1]
+
+                bboxes.append([int(xmin), int(ymin), int(xmax), int(ymax)])
+                labels.append(str(LABELS[label]))
+
+            write_xml(f"{save_dir}/annotations", bboxes, labels, file_name, 512, 512)
 
 
 if __name__ == "__main__":
@@ -161,13 +223,15 @@ if __name__ == "__main__":
     WFLW_SAVE_DIR = "/data/Datasets/FACE_DETECTION/test"
     LABELS = ["face"]
     MAX_OBJECTS = 4
+    IMG_SIZE = 384
+    FORMAT = "xml"
 
     transform = A.Compose([
-        A.Resize(512, 512, always_apply=True)
+        A.Resize(IMG_SIZE, IMG_SIZE, always_apply=True)
     ], bbox_params=A.BboxParams(format="pascal_voc", label_fields=["labels"]))
 
     train_dataset = get_wider_dataset(WIDER_TXT, WIDER_IMAGES)
-    record_dataset(train_dataset, WIDER_SAVE_DIR)
+    record_dataset(train_dataset, WIDER_SAVE_DIR, format=FORMAT)
     
     test_dataset = get_wflw_data(WFLW_TXT)
-    record_dataset(test_dataset, WFLW_SAVE_DIR)
+    record_dataset(test_dataset, WFLW_SAVE_DIR, format=FORMAT)

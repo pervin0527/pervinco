@@ -24,9 +24,9 @@ else:
         print(e)
 
 if __name__ == "__main__":
-    ROOT_DIR = "/data/Datasets/WFLW"
-    TRAIN_DIR = f"{ROOT_DIR}/CUSTOM_XML/augmentation"
-    VALID_DIR = f"{ROOT_DIR}/CUSTOM_XML/test"
+    ROOT_DIR = "/data/Datasets/FACE_DETECTION"
+    TRAIN_DIR = f"{ROOT_DIR}/augmentation"
+    VALID_DIR = f"{ROOT_DIR}/test"
 
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
     LABEL_FILE = pd.read_csv(LABEL_FILE, sep=',', index_col=False, header=None)
@@ -46,6 +46,7 @@ if __name__ == "__main__":
         "num_scales" : 3, # 5
         "alpha" : 0.25,
         "gamma" : 1.5, # 2
+        "sample_image" : "./mark0/samples/sample01.jpg"
     }
 
     SAVE_PATH = "/data/Models/face_detection"
@@ -61,7 +62,7 @@ if __name__ == "__main__":
                                                                  annotations_dir=f'{VALID_DIR}/annotations',
                                                                  label_map=CLASSES)
 
-    spec = object_detector.EfficientDetLite0Spec(verbose=1,
+    spec = object_detector.EfficientDetLite1Spec(verbose=1,
                                                  strategy=None, # 'gpus'
                                                  hparams=HPARAMS,
                                                  tflite_max_detections=MAX_DETECTIONS,

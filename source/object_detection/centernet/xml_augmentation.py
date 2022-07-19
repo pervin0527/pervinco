@@ -107,9 +107,9 @@ def crop_image(image, boxes, labels, xmin, ymin, xmax, ymax):
 
 
 def mosaic(data_list):
-    result_image = np.full((512, 512, 3), 1, dtype=np.uint8)
+    result_image = np.full((IMG_SIZE, IMG_SIZE, 3), 1, dtype=np.uint8)
     result_boxes, result_labels = [], []
-    xc, yc = [int(np.random.uniform(512 * 0.25, 512 * 0.75)) for _ in range(2)]
+    xc, yc = [int(np.random.uniform(IMG_SIZE * 0.25, IMG_SIZE * 0.75)) for _ in range(2)]
 
     for i, data in enumerate(data_list):
         image, bboxes, labels = data
@@ -117,7 +117,7 @@ def mosaic(data_list):
         boxes = refine_boxes(bboxes)
         
         if i == 0 :
-            image, boxes = crop_image(image, boxes, labels, 512-xc, 512-yc, 512, 512)
+            image, boxes = crop_image(image, boxes, labels, IMG_SIZE-xc, IMG_SIZE-yc, IMG_SIZE, IMG_SIZE)
             if len(boxes) > 0:
                 result_labels.extend(labels)
 
@@ -125,11 +125,11 @@ def mosaic(data_list):
             result_boxes.extend(boxes)
 
         elif i == 1:
-            image, boxes, = crop_image(image, boxes, labels, 0, 512-yc, 512-xc, 512)
+            image, boxes, = crop_image(image, boxes, labels, 0, IMG_SIZE-yc, IMG_SIZE-xc, IMG_SIZE)
             if len(boxes) > 0:
                 result_labels.extend(labels)
 
-            result_image[0 : yc, xc : 512, :] = image
+            result_image[0 : yc, xc : IMG_SIZE, :] = image
 
             if boxes.shape[0] > 0:
                 boxes[:, [0, 2]] += xc
@@ -137,11 +137,11 @@ def mosaic(data_list):
             result_boxes.extend(boxes)
 
         elif i == 2:
-            image, boxes = crop_image(image, boxes, labels, 0, 0, 512-xc, 512-yc)
+            image, boxes = crop_image(image, boxes, labels, 0, 0, IMG_SIZE-xc, IMG_SIZE-yc)
             if len(boxes) > 0:
                 result_labels.extend(labels)
 
-            result_image[yc:512, xc:512, :] = image
+            result_image[yc:IMG_SIZE, xc:IMG_SIZE, :] = image
             if boxes.shape[0] > 0:
                 boxes[:, [0, 2]] += xc
                 boxes[:, [1, 3]] += yc
@@ -149,11 +149,11 @@ def mosaic(data_list):
             result_boxes.extend(boxes)
 
         else:
-            image, boxes = crop_image(image, boxes, labels, 512-xc, 0, 512, 512-yc)
+            image, boxes = crop_image(image, boxes, labels, IMG_SIZE-xc, 0, IMG_SIZE, IMG_SIZE-yc)
             if len(boxes) > 0:
                 result_labels.extend(labels)
 
-            result_image[yc : 512, 0 : xc, :] = image
+            result_image[yc : IMG_SIZE, 0 : xc, :] = image
             if boxes.shape[0] > 0:
                 boxes[ :, [1, 3]] += yc
 
@@ -167,7 +167,7 @@ def mixup(data_list, bg_dir, min=0.4, max=0.5, alpha=1.0):
     image = cv2.imread(image)
 
     bg_transform = A.Compose([
-        A.Resize(512, 512, always_apply=True),
+        A.Resize(IMG_SIZE, IMG_SIZE, always_apply=True),
 
         A.OneOf([
             A.RandomRotate90(p=0.3),
@@ -229,6 +229,9 @@ def read_xml(xml_file, classes):
 def load_file(files):
     data_list = []
     for file in files:
+        #####################################################
+        file = file.split('/')[-1].split('.')[0]
+        #####################################################
         image_path = f"{IMG_PATH}/{file}.jpg"
         xml_path = f"{ANNOT_PATH}/{file}.xml"
         
@@ -251,36 +254,40 @@ def read_file_list(path):
     for step in range(STEPS):
         for index in tqdm(range(len(total_files))):
             opt = random.randint(0, 2)
-            if opt == 0:
-                files = random.sample(total_files, 4)
-                data_list = load_file(files)
-                result_image, result_bboxes, result_classes = mosaic(data_list)
+            try:
+                if opt == 0:
+                    files = random.sample(total_files, 4)
+                    data_list = load_file(files)
+                    result_image, result_bboxes, result_classes = mosaic(data_list)
 
-            elif opt == 1:
-                files = random.sample(total_files, 1)
-                data_list = load_file(files)
-                result_image, result_bboxes, result_classes = mixup(data_list, bg_dir=BG_DIR, min=0.1, max=0.25)
+                elif opt == 1:
+                    files = random.sample(total_files, 1)
+                    data_list = load_file(files)
+                    result_image, result_bboxes, result_classes = mixup(data_list, bg_dir=BG_DIR, min=0.1, max=0.25)
 
-            else:
-                files = random.sample(total_files, 1)
-                data_list = load_file(files)
-                result_image, result_bboxes, result_classes = augmentation(data_list)
+                else:
+                    files = random.sample(total_files, 1)
+                    data_list = load_file(files)
+                    result_image, result_bboxes, result_classes = augmentation(data_list)
 
-            if VISUALIZE:
-                sample = result_image.copy()
-                for bbox in result_bboxes:
-                    cv2.rectangle(sample, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), color=(0, 0, 255))
+                if VISUALIZE:
+                    sample = result_image.copy()
+                    for bbox in result_bboxes:
+                        cv2.rectangle(sample, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), color=(0, 0, 255))
 
-                cv2.imshow("sample", sample)
-                cv2.waitKey(0)
+                    cv2.imshow("sample", sample)
+                    cv2.waitKey(0)
 
-            cv2.imwrite(f"{SAVE_DIR}/images/{step}_{index:>06}.jpg", result_image)
-            write_xml(f"{SAVE_DIR}/annotations", result_bboxes, result_classes, f"{step}_{index:>06}", result_image.shape[0], result_image.shape[1])
-            record.write(f"{step}_{index:>06}\n")
+                cv2.imwrite(f"{SAVE_DIR}/images/{step}_{index:>06}.jpg", result_image)
+                write_xml(f"{SAVE_DIR}/annotations", result_bboxes, result_classes, f"{step}_{index:>06}", result_image.shape[0], result_image.shape[1])
+                record.write(f"{step}_{index:>06}\n")
+            
+            except:
+                pass
 
 
 if __name__ == "__main__":
-    DATA_DIR = "/data/Datasets/WFLW/CUSTOM_XML"
+    DATA_DIR = "/data/Datasets/FACE_DETECTION"
     SAVE_DIR = f"{DATA_DIR}/augmentation"
     IMG_PATH = f"{DATA_DIR}/train/images"
     ANNOT_PATH = f"{DATA_DIR}/train/annotations"
@@ -288,6 +295,7 @@ if __name__ == "__main__":
 
     CLASSES = ["face"]
     VISUALIZE = False
+    IMG_SIZE = 384
     STEPS = 3
     BG_DIR = "/data/Datasets/Mixup_background"
 
