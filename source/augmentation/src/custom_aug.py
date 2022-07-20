@@ -4,10 +4,7 @@ import random
 import numpy as np
 import albumentations as A
 from glob import glob
-from copy import deepcopy
-from collections import namedtuple
-from albumentations.core.transforms_interface import DualTransform
-from albumentations.augmentations.bbox_utils import denormalize_bbox, normalize_bbox
+
 from src.utils import read_xml
 
 def bb_overlap(boxA, boxB):
