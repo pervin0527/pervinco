@@ -123,14 +123,14 @@ def read_txt(txt_path, image_dir, save_dir):
 
 
 if __name__ == "__main__":
-    ROOT_DIR = "/data/Datasets/WIDER"
+    ROOT_DIR = "/home/ubuntu/Datasets/WIDER"
     ANNOT_DIR = [f"{ROOT_DIR}/wider_face_split/wider_face_train_bbx_gt.txt",
                  f"{ROOT_DIR}/wider_face_split/wider_face_val_bbx_gt.txt"]
     LABELS = ["face"]
-    MAX_OBJECTS = 2
+    MAX_OBJECTS = 10
 
     transform = A.Compose([
-        A.Resize(512, 512, always_apply=True)
+        A.Resize(384, 384, always_apply=True)
     ], bbox_params=A.BboxParams(format="pascal_voc", label_fields=['labels']))
 
 

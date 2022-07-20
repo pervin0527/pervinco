@@ -24,8 +24,8 @@ else:
         print(e)
 
 if __name__ == "__main__":
-    ROOT_DIR = "/data/Datasets/FACE_DETECTION"
-    TRAIN_DIR = f"{ROOT_DIR}/augmentation"
+    ROOT_DIR = "/home/ubuntu/Datasets/WIDER/CUSTOM_XML"
+    TRAIN_DIR = f"{ROOT_DIR}/train"
     VALID_DIR = f"{ROOT_DIR}/test"
 
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
@@ -33,23 +33,23 @@ if __name__ == "__main__":
     CLASSES = LABEL_FILE[0].tolist()
     print(CLASSES)
     
-    EPOCHS = 300
+    EPOCHS = 1000
     BATCH_SIZE = 64
     MAX_DETECTIONS = 10
 
     HPARAMS = {
-        "optimizer" : "sgd",
-        "learning_rate" : 0.08, # 0.008
-        "lr_warmup_init" : 0.008, # 0.0008
-        "anchor_scale" : 4.0, # 7.0
-        "aspect_ratios" : [1.0, 2.0, 0.5], # [8.0, 4.0, 2.0, 1.0, 0.5]
-        "num_scales" : 3, # 5
+        "optimizer" : "adam",
+        "learning_rate" : 0.008,
+        "lr_warmup_init" : 0.0008,
+        "anchor_scale" : 4.0,
+        "aspect_ratios" : [1.0, 2.0, 0.5],
+        "num_scales" : 3,
         "alpha" : 0.25,
-        "gamma" : 1.5, # 2
+        "gamma" : 1.5,
         "sample_image" : "./mark0/samples/sample01.jpg"
     }
 
-    SAVE_PATH = "/data/Models/face_detection"
+    SAVE_PATH = "/home/ubuntu/Models/face_detection"
     PROJECT = ROOT_DIR.split('/')[-1]
     DS_NAME = TRAIN_DIR.split('/')[-2]
     MODEL_FILE = f"{PROJECT}-{DS_NAME}-{EPOCHS}"
