@@ -109,7 +109,7 @@ def adjust_lr(epoch, lr):
         return lr * 0.5
 
 
-def build_lrfn(lr_start=0.000001, lr_max=0.005, lr_min=0.00001, lr_rampup_epochs=1000, lr_sustain_epochs=0, lr_exp_decay=0.0001):
+def build_lrfn(lr_start=0.000001, lr_max=0.005, lr_min=0.00001, lr_rampup_epochs=2000, lr_sustain_epochs=0, lr_exp_decay=0.0001):
     # lr_max = lr_max * strategy.num_replicas_in_sync
     def lrfn(epoch):
         if epoch < lr_rampup_epochs:
@@ -146,16 +146,17 @@ if __name__ == "__main__":
     
     # optimizer = tf.keras.optimizers.Adam()
     optimizer = AngularGrad(method_angle="cos", learning_rate=lr)
-    cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=lr,
-                                                            first_decay_steps=300,
-                                                            t_mul=2.0,
-                                                            m_mul=0.9,
-                                                            alpha=0.001)
+    # cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=lr,
+    #                                                         first_decay_steps=300,
+    #                                                         t_mul=2.0,
+    #                                                         m_mul=0.9,
+    #                                                         alpha=0.001)
 
     callbacks = [DisplayCallback(),
-                 tf.keras.callbacks.LearningRateScheduler(build_lrfn()),
-                #  tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=20, verbose=1),
                  tf.keras.callbacks.CSVLogger("./logs/train.csv"),
+                 tf.keras.callbacks.LearningRateScheduler(build_lrfn()),
+                 tf.keras.callbacks.TensorBoard(log_dir=f"{save_dir}", update_freq='epoch'),
+                #  tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=20, verbose=1),
                  tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
     with strategy.scope():
