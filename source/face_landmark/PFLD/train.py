@@ -1,5 +1,6 @@
 import os
 import cv2
+import math
 import numpy as np
 import tensorflow as tf
 import tensorflow_addons as tfa
@@ -109,7 +110,8 @@ def adjust_lr(epoch, lr):
         return lr * 0.5
 
 
-def build_lrfn(lr_start=0.000001, lr_max=0.005, lr_min=0.00001, lr_rampup_epochs=2000, lr_sustain_epochs=0, lr_exp_decay=0.0001):
+# def build_lrfn(lr_start=0.000001, lr_max=0.005, lr_min=0.00001, lr_rampup_epochs=2000, lr_sustain_epochs=0, lr_exp_decay=0.0001):
+def build_lrfn(lr_start=0.000001, lr_max=0.005, lr_min=0.00001, lr_rampup_epochs=500, lr_sustain_epochs=0, lr_exp_decay=0.0001):
     # lr_max = lr_max * strategy.num_replicas_in_sync
     def lrfn(epoch):
         if epoch < lr_rampup_epochs:
@@ -122,15 +124,16 @@ def build_lrfn(lr_start=0.000001, lr_max=0.005, lr_min=0.00001, lr_rampup_epochs
         return lr
 
     return lrfn
-    
+
     
 if __name__ == "__main__":
     train_dir = '/data/Datasets/WFLW/train_data_68pts/list.txt'
     test_dir = '/data/Datasets/WFLW/test_data_68pts/list.txt'
     save_dir = "/data/Models/facial_landmark_68pts"
+    ckpt_path = "" ### f"{save_dir}/best.h5"
 
     batch_size = 256
-    epochs = 3000
+    epochs = 1000
     model_path = ''
     input_shape = [112, 112, 3]
     lr = 1e-3 ## 0.001
@@ -143,26 +146,29 @@ if __name__ == "__main__":
 
     if not os.path.isdir(save_dir):
         os.makedirs(save_dir)
-    
-    # optimizer = tf.keras.optimizers.Adam()
+
     optimizer = AngularGrad(method_angle="cos", learning_rate=lr)
-    # cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=lr,
-    #                                                         first_decay_steps=300,
-    #                                                         t_mul=2.0,
-    #                                                         m_mul=0.9,
-    #                                                         alpha=0.001)
+    cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=lr,
+                                                            first_decay_steps=200,
+                                                            t_mul=2.0,
+                                                            m_mul=1.0,
+                                                            alpha=0.01)
 
     callbacks = [DisplayCallback(),
                  tf.keras.callbacks.CSVLogger("./logs/train.csv"),
-                 tf.keras.callbacks.LearningRateScheduler(build_lrfn()),
+                 tf.keras.callbacks.LearningRateScheduler(cdr),
                  tf.keras.callbacks.TensorBoard(log_dir=f"{save_dir}", update_freq='epoch'),
                 #  tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=20, verbose=1),
-                 tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/best.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
+                 tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/pfld.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
     with strategy.scope():
         model = PFLD()
         model.trainable = True
         model.compile(optimizer=optimizer)
+
+    if ckpt_path:
+        model.built = True
+        model.load_weights(ckpt_path, by_name=True, skip_mismatch=True)
 
     history = model.fit(train_datasets,
                         validation_data=valid_datasets,

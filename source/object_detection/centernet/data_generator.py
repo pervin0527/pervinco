@@ -178,7 +178,7 @@ class Datasets(tf.keras.utils.Sequence):
         for b, (image, annotations) in enumerate(zip(image_group, annotations_group)):
             c = np.array([image.shape[1] / 2., image.shape[0] / 2.], dtype=np.float32)
             s = max(image.shape[0], image.shape[1]) * 1.0
-            image = (image/ 127.5) - 1
+            image = (image / 127.5) - 1
             batch_images[b] = image
 
             bboxes = annotations['bboxes']

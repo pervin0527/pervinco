@@ -289,12 +289,12 @@ def read_file_list(path):
 
 if __name__ == "__main__":
     CLASSES = ["face"]
-    VISUALIZE = True
-    IMG_SIZE = 512
+    VISUALIZE = False
+    IMG_SIZE = 384
     STEPS = 2
-    BG_DIR = "/data/Datasets/Mixup_background"
+    BG_DIR = "/home/ubuntu/Datasets/Mixup_background"
 
-    DATA_DIR = "/data/Datasets/300VW_Dataset_2015_12_14/face_detection"
+    DATA_DIR = "/home/ubuntu/Datasets/300VW_Dataset_2015_12_14/face_detection_30000"
     SAVE_DIR = f"{DATA_DIR}/augmentation_{IMG_SIZE}"
     IMG_PATH = f"{DATA_DIR}/train_{IMG_SIZE}/images"
     ANNOT_PATH = f"{DATA_DIR}/train_{IMG_SIZE}/annotations"

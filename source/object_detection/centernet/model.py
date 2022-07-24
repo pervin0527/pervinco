@@ -131,7 +131,13 @@ def centernet(input_shape, num_classes, backbone='resnet50', max_detections=100,
     index_input = tf.keras.Input(shape=(max_detections,))
        
     # (b, 16, 16, 2048)
-    resnet = resnet_models.ResNet50(image_input, include_top=False, freeze_bn=freeze_bn)
+    if backbone == "resnet50":
+        resnet = resnet_models.ResNet50(image_input, include_top=False, freeze_bn=freeze_bn)
+    elif backbone == "resnet18":
+        resnet = resnet_models.ResNet18(image_input, include_top=False, freeze_bn=freeze_bn)
+    elif backbone == "resnet101":
+        resnet = resnet_models.ResNet101(image_input, include_top=False, freeze_bn=freeze_bn)
+        
     C5 = resnet.output[-1]
     x = Dropout(rate=0.5)(C5)
     

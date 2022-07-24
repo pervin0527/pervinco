@@ -1,5 +1,6 @@
 import os
 import cv2
+import math
 import numpy as np
 import tensorflow as tf
 
@@ -50,6 +51,7 @@ def draw_result(idx, image, detections):
 
     if len(indices):
         result_image = image.copy()
+        result_image = cv2.resize(result_image, (input_shape[0] // 4, input_shape[1] // 4))
         for result in detections[indices]:
             xmin, ymin, xmax, ymax, score, label = int(result[0]), int(result[1]), int(result[2]), int(result[3]), result[4], int(result[5])
             cv2.rectangle(result_image, (xmin, ymin), (xmax, ymax), (0, 0, 255))
@@ -62,6 +64,7 @@ def plot_predictions(model):
         image = cv2.imread(file)
         image = cv2.resize(image, (input_shape[0], input_shape[1]))
         input_tensor = preprocess_image(image)
+        # input_tensor = (image / 127.5) - 1
         input_tensor = np.expand_dims(input_tensor, axis=0)
 
         prediction = model.predict(input_tensor, verbose=0)[0]
@@ -79,26 +82,27 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 
 if __name__ == "__main__":
-    # train_data_dir = "/home/ubuntu/Datasets/WIDER/CUSTOM_XML/train"
-    # test_data_dir = "/home/ubuntu/Datasets/WIDER/CUSTOM_XML/test"
+    train_data_dir = "/home/ubuntu/Datasets/300VW_Dataset_2015_12_14/face_detection/train_512"
+    test_data_dir = "/home/ubuntu/Datasets/300VW_Dataset_2015_12_14/face_detection/test_512"
 
-    freeze_backbone = False
-    backbone = "resnet101"
-    classes = ["face"]
     epochs = 300
-    batch_size = 64
+    batch_size = 128
     max_detections = 30
     input_shape = (512, 512, 3)
+    classes = ["face"]
+    backbone = "resnet50"
+    freeze_backbone = True
+    save_dir = "/home/ubuntu/Models/CenterNet"
 
     if freeze_backbone:
         learning_rate = 0.001
-        save_dir = "/home/ubuntu/Models/CenterNet/custom.h5"
+        save_name = f"{save_dir}/custom_freeze.h5"
         ckpt_path = ""
 
     else:
         learning_rate = 0.0001
-        save_dir = "/home/ubuntu/Models/CenterNet/custom_unfreeze.h5"
-        ckpt_path = "/home/ubuntu/Models/CenterNet/custom_unfreeze.h5"
+        save_name = f"{save_dir}/custom_unfreeze.h5"
+        ckpt_path = f"{save_dir}/custom_freeze.h5"
     
     # train_dataset = Datasets(train_data_dir, classes, batch_size, input_shape[0], max_detections, shuffle=True)
     # test_dataset = Datasets(test_data_dir, classes, batch_size, input_shape[0], max_detections, shuffle=False)
@@ -107,7 +111,7 @@ if __name__ == "__main__":
     # test_steps = int(tf.math.ceil(test_dataset.size() / batch_size).numpy())
 
     train_generator = PascalVocGenerator(
-        "/home/ubuntu/Datasets/300VW_Dataset_2015_12_14/face_detection/train_512",
+        train_data_dir,
         'list',
         skip_difficult=True,
         skip_truncated=True,
@@ -119,7 +123,7 @@ if __name__ == "__main__":
     )
 
     test_generator = PascalVocGenerator(
-        "/home/ubuntu/Datasets/300VW_Dataset_2015_12_14/face_detection/test_512",
+        test_data_dir,
         'list',
         skip_difficult=True,
         skip_truncated=True,
@@ -130,23 +134,27 @@ if __name__ == "__main__":
         input_size=512,
     )
 
-    # optimizer = AngularGrad(method_angle="cos", learning_rate=learning_rate)
-    optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
+
+    # optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
+    optimizer = AngularGrad(method_angle="cos", learning_rate=learning_rate)
+    alpha = learning_rate * 0.1
     cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=learning_rate,
-                                                            first_decay_steps=100,
-                                                            t_mul=2.0,
-                                                            m_mul=0.3,
-                                                            alpha=0.001)
+                                                            first_decay_steps=epochs,
+                                                            t_mul=1.0,
+                                                            m_mul=1.0,
+                                                            alpha=alpha)
+
     callbacks = [DisplayCallback(),
                  tf.keras.callbacks.LearningRateScheduler(cdr),
-                 tf.keras.callbacks.ModelCheckpoint(save_dir, monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
+                 tf.keras.callbacks.TensorBoard(log_dir=f"{save_dir}", update_freq='epoch'),
+                 tf.keras.callbacks.ModelCheckpoint(save_name, monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
     with strategy.scope():
-        model, prediction_model, debug_model = centernet(input_shape=input_shape, num_classes=len(classes), backbone=backbone, max_detections=max_detections, mode="train", freeze_bn=freeze_backbone)
+        model, prediction_model = centernet(input_shape=input_shape, num_classes=len(classes), backbone=backbone, max_detections=max_detections, mode="train", freeze_bn=freeze_backbone)
 
         if freeze_backbone:
             for i in range(190):
-                print(model.layers[i].name)
+                # print(model.layers[i].name)
                 model.layers[i].trainable = False
         else:
             model.load_weights(ckpt_path, by_name=True, skip_mismatch=True)

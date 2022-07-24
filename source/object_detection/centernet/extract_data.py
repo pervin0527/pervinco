@@ -127,8 +127,8 @@ def record_xml_process(save_dir, txt_files):
 
 
 if __name__ == "__main__":
-    path = "/data/Datasets/300VW_Dataset_2015_12_14/total"
-    save_path = "/data/Datasets/300VW_Dataset_2015_12_14/face_detection"
+    path = "/home/ubuntu/Datasets/300VW_Dataset_2015_12_14/total"
+    save_path = "/home/ubuntu/Datasets/300VW_Dataset_2015_12_14/face_detection"
     image_size = 512
     classes = ["face"]
 
@@ -142,7 +142,7 @@ if __name__ == "__main__":
     txt_files = sorted(glob(f"{txt_path}/*"))
     random.shuffle(txt_files)
     
-    train_txt = txt_files[:10000]
+    train_txt = txt_files[:50000]
     test_txt = txt_files[-100:]
     print(len(train_txt), len(test_txt))
 

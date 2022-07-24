@@ -24,7 +24,7 @@ else:
         print(e)
 
 if __name__ == "__main__":
-    ROOT_DIR = "/data/Datasets/300VW_Dataset_2015_12_14/face_detection"
+    ROOT_DIR = "/home/ubuntu/Datasets/300VW_Dataset_2015_12_14/face_detection"
     TRAIN_DIR = f"{ROOT_DIR}/train_384"
     VALID_DIR = f"{ROOT_DIR}/test_384"
 
@@ -33,29 +33,17 @@ if __name__ == "__main__":
     CLASSES = LABEL_FILE[0].tolist()
     print(CLASSES)
     
-    EPOCHS = 1000
-    BATCH_SIZE = 64
+    EPOCHS = 500
+    BATCH_SIZE = 100
     MAX_DETECTIONS = 10
-
-    # HPARAMS = {
-    #     "optimizer" : "adam",
-    #     "learning_rate" : 0.00001,      ### params['adjusted_learning_rate'] = (params['learning_rate'] * batch_size / 64)
-    #     "lr_decay_method" : "cosine",   ### decay_steps = tf.cast(total_steps - lr_warmup_step, tf.float32)
-    #     "lr_warmup_epoch" : 250.0,      ### params['lr_warmup_step'] = int(params['lr_warmup_epoch'] * steps_per_epoch)
-    #     "lr_warmup_init" : 0.00008,     ### self.lr_warmup_init + (tf.cast(step, dtype=tf.float32) / self.lr_warmup_step * (self.adjusted_lr - self.lr_warmup_init)))
-    #     "anchor_scale" : 4.0,
-    #     "aspect_ratios" : [1.0, 2.0, 0.5],
-    #     "num_scales" : 3,
-    #     "alpha" : 0.25,
-    #     "gamma" : 1.5,
-    # }
 
     HPARAMS = {
         "optimizer" : "adam",
-        "learning_rate" : 0.0001,      ### params['adjusted_learning_rate'] = (params['learning_rate'] * batch_size / 64)
-        "lr_decay_method" : "cosine",   ### decay_steps = tf.cast(total_steps - lr_warmup_step, tf.float32)
-        "lr_warmup_epoch" : 500.0,      ### params['lr_warmup_step'] = int(params['lr_warmup_epoch'] * steps_per_epoch)
-        "lr_warmup_init" : 0.00009,     ### self.lr_warmup_init + (tf.cast(step, dtype=tf.float32) / self.lr_warmup_step * (self.adjusted_lr - self.lr_warmup_init)))
+        "momentum" : 0.0,                   
+        "learning_rate" : 0.0001,            
+        "lr_decay_method" : "cosine",       
+        "lr_warmup_epoch" : 300.0,          
+        "lr_warmup_init" : 0.00001,          
         "anchor_scale" : 4.0,
         "aspect_ratios" : [1.0, 2.0, 0.5],
         "num_scales" : 3,
@@ -63,7 +51,7 @@ if __name__ == "__main__":
         "gamma" : 1.5,
     }
 
-    SAVE_PATH = "/data/Models/face_detection"
+    SAVE_PATH = "/home/ubuntu/Models/face_detection"
     PROJECT = ROOT_DIR.split('/')[-1]
     DS_NAME = TRAIN_DIR.split('/')[-2]
     MODEL_FILE = f"{PROJECT}-{DS_NAME}-{EPOCHS}"
