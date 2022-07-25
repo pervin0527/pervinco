@@ -139,8 +139,8 @@ if __name__ == "__main__":
 
         if freeze_backbone:
             for i in range(190):
-                # print(model.layers[i].name)
                 model.layers[i].trainable = False
+                # print(model.layers[i].name)
         else:
             model.load_weights(ckpt_path, by_name=True, skip_mismatch=True)
 

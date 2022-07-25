@@ -6,7 +6,7 @@ import tensorflow as tf
 from glob import glob
 from model import PFLD
 
-# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if len(gpus) > 1:
     try:
@@ -26,72 +26,84 @@ else:
         print(e)
 
 
-def get_overlay(index, image, landmarks):
-    for (x, y) in landmarks:
-        cv2.circle(image, (int(x), int(y)), radius=1, color=(0, 0, 255), thickness=-1)
+def yolo2voc(class_id, width, height, x, y, w, h):
+    xmin = int((x * width) - (w * width) / 2.0)
+    ymin = int((y * height) - (h * height) / 2.0)
+    xmax = int((x * width) + (w * width) / 2.0)
+    ymax = int((y * height) + (h * height) / 2.0)
+    class_id = int(class_id)
 
-    return image
-
-
-def video_inference(video_path):
-    capture = cv2.VideoCapture(video_path)
-    
-    while cv2.waitKey(33) != ord('q'):
-        ret, frame = capture.read()
-        height, width = frame.shape[:2]
-
-        resized_image = cv2.resize(frame, (input_shape[0], input_shape[1]))
-        input_tensor = np.expand_dims(resized_image, axis=0)
-        input_tensor = input_tensor / 255.0
-
-        prediction = model.predict(input_tensor, verbose=0)[0]
-        landmarks = prediction * input_shape[0]
-        landmarks[0::2] = landmarks[0::2] * width / input_shape[0]
-        landmarks[1::2] = landmarks[1::2] * height / input_shape[0]
-        landmarks = landmarks.reshape(-1, 2)
-
-        result_image = get_overlay(index=0, image=frame, landmarks=landmarks)
-        cv2.imshow("result", result_image)
-
-    capture.release()
-    cv2.destroyAllWindows()
+    return (class_id, xmin, ymin, xmax, ymax)
 
 
 def image_inference(dir):
-    for index, file in enumerate(sorted(glob(f"{dir}/*"))):
-        image = cv2.imread(file)
-        # image = cv2.cvtColor(image, (cv2.COLOR_BGR2RGB))
-        height, width = image.shape[:2]
-        resized_image = cv2.resize(image, (input_shape[0], input_shape[1]))
-        input_tensor = np.expand_dims(resized_image, axis=0)
-        input_tensor = input_tensor / 255.0
+    image_files = sorted(glob(f"{dir}/imgs/*.jpg"))
+    label_files = sorted(glob(f"{dir}/labels/*.txt"))
 
-        prediction = model.predict(input_tensor, verbose=0)[0]
-        landmarks = prediction * input_shape[0]
-        landmarks[0::2] = landmarks[0::2] * width / input_shape[0]
-        landmarks[1::2] = landmarks[1::2] * height / input_shape[0]
-        landmarks = landmarks.reshape(-1, 2)
-        print(landmarks)
+    print(len(image_files), len(label_files))
+    for image_file, label_file in zip(image_files, label_files):
+        image = cv2.imread(image_file)
+        height, width = image.shape[0], image.shape[1]
+        
+        labels = open(label_file, "r").readlines()
+        labels = labels[0].split()
+        label, x, y, w, h = int(labels[0]), float(labels[1]), float(labels[2]), float(labels[3]), float(labels[4])
+        
+        label, xmin, ymin, xmax, ymax = yolo2voc(label, width, height, x, y, w, h)
 
-        result_image = get_overlay(index=0, image=image, landmarks=landmarks)
+        result_image = image.copy()
+        cv2.rectangle(result_image, (int(xmin), int(ymin)), (int(xmax), int(ymax)), color=(0, 0, 255))
+
+        w = xmax - xmin + 1
+        h = ymax - ymin + 1
+        cx = xmin + w // 2
+        cy = ymin + h // 2
+
+        size = int(max([w, h]) * 1.1)
+        xmin = cx - size // 2
+        xmax = xmin + size
+        ymin = cy - size //2 
+        ymax = ymin + size
+
+        xmin = max(0, xmin)
+        ymin = max(0, ymin)
+        xmax = min(width, xmax)
+        ymax = min(height, ymax)
+
+        edx1 = max(0, -xmin)
+        edy1 = max(0, -ymin)
+        edx2 = max(0, xmax - width)
+        edy2 = max(0, ymax - height)
+
+        cropped = image[ymin : ymax, xmin : xmax]
+        pfld_input = cv2.resize(cropped, (input_shape[0], input_shape[1]))
+        pfld_input = np.expand_dims((pfld_input / 255.0), axis=0)
+        landmarks = model.predict(pfld_input)[0]
+        landmarks = landmarks.reshape(-1, 2) * [size, size] - [edx1, edy1]
+
+        for (x, y) in landmarks.astype(np.int32):
+            cv2.circle(result_image, (xmin + x, ymin + y), 1, (0, 0, 255))
+
         cv2.imshow("result", result_image)
         cv2.waitKey(0)
 
 
 def model_load(model_path):
-    # model = PFLDInference(inputs=input_shape, keypoints=68*2)
     model = PFLD()
     model.built = True
     model.load_weights(model_path, by_name=True, skip_mismatch=True)
+    model.summary()
 
     return model
 
+
 if __name__ == "__main__":
+    mode = "images"
     input_shape = [112, 112, 3]
     ckpt_path = "/data/Models/facial_landmark_68pts/best.h5"
     
     model = model_load(ckpt_path)
-    model.summary()
 
-    # video_inference(-1)
-    image_inference("/data/Datasets/WFLW/inference_data")
+    if mode == "images":
+        data_dir = "/data/Datasets/300VW_Dataset_2015_12_14/original/001"
+        image_inference(data_dir)
