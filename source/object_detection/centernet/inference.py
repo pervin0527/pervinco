@@ -2,6 +2,7 @@ import os
 import cv2
 import numpy as np
 import tensorflow as tf
+from glob import glob
 from model import centernet
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -36,23 +37,60 @@ def preprocess_image(image):
 
 def draw_result(idx, image, detections):
     scores = detections[:, 4]
-    indices = np.where(scores > 0.7)[0]
-    print(indices, detections[indices])
+    indices = np.where(scores > 0.4)[0]
     detections[:, [0, 2]] = np.clip(detections[:, [0, 2]], 0, image.shape[1])
     detections[:, [1, 3]] = np.clip(detections[:, [1, 3]], 0, image.shape[0])
 
+    result_image = image.copy()
     if len(indices):
-        result_image = image.copy()
         for result in detections[indices]:
             xmin, ymin, xmax, ymax, score, label = int(result[0]), int(result[1]), int(result[2]), int(result[3]), result[4], int(result[5])
             cv2.rectangle(result_image, (xmin, ymin), (xmax, ymax), (0, 0, 255))
 
-        cv2.imwrite("./epoch_end/inference.jpg", result_image)
+    return cv2.resize(result_image, (512, 512))
+
+
+def inference_images(image_dir):
+    image_files = sorted(glob(f"{image_dir}/*"))
+
+    for index, image_file in enumerate(image_files):
+        image = cv2.imread(image_file)
+        image = cv2.resize(image, (input_shape[0], input_shape[1]))
+        input_tensor = preprocess_image(image)
+        input_tensor = np.expand_dims(input_tensor, axis=0)
+
+        detection_result = pred_model.predict(input_tensor, verbose=0)[0]
+        result_image = cv2.resize(image, (input_shape[0] // 4, input_shape[1] // 4))
+        draw_result(index, result_image, detection_result)
+
+
+def inference_frames(vid_index):
+    capture = cv2.VideoCapture(vid_index)
+    capture.set(cv2.CAP_PROP_FRAME_WIDTH, 960)
+    capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    capture.set(cv2.CAP_PROP_BRIGHTNESS, 100)
+    capture.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+
+    index = 0
+    while cv2.waitKey(33) != ord('q'):
+        ret, frame = capture.read()
+        height, width = frame.shape[:2]
+
+        resized_frame = cv2.resize(frame, (input_shape[0], input_shape[1]))
+        input_tensor = preprocess_image(resized_frame)
+        input_tensor = np.expand_dims(input_tensor, axis=0)
+
+        detection_result = pred_model.predict(input_tensor, verbose=0)[0]
+        result_frame = cv2.resize(frame, (input_shape[0] // 4, input_shape[1] // 4))
+        result_image = draw_result(index, result_frame, detection_result)
+        index += 1
+
+        cv2.imshow("detection_result", result_image)
 
 
 if __name__ == "__main__":
-    img_path = "./samples/sample01.jpg"
-    ckpt_path = "/home/ubuntu/Models/CenterNet/custom_unfreeze.h5"
+    img_path = "/data/test_image"
+    ckpt_path = "/data/Models/CenterNet/custom_unfreeze.h5"
     
     input_shape = (512, 512, 3)
     backbone = "resnet50"
@@ -60,16 +98,8 @@ if __name__ == "__main__":
     max_detections = 30
     freeze_backbone = False
 
-    model, pred_model, _ = centernet(input_shape=input_shape, num_classes=len(classes), backbone=backbone, max_detections=max_detections, mode="train", freeze_bn=freeze_backbone)
+    model, pred_model = centernet(input_shape=input_shape, num_classes=len(classes), backbone=backbone, max_detections=max_detections, mode="train", freeze_bn=freeze_backbone)
     model.load_weights(ckpt_path, by_name=True, skip_mismatch=True)
 
-
-    image = cv2.imread(img_path)
-    input_image = cv2.resize(image, (input_shape[0], input_shape[1]))
-    input_image = preprocess_image(input_image)
-    input_image = np.expand_dims(input_image, axis=0)
-    
-    detections = pred_model.predict(input_image, verbose=0)[0]
-
-    result_image = cv2.resize(image, (input_shape[0] // 4, input_shape[1] // 4))
-    draw_result(0, result_image, detections)
+    inference_frames(-1)
+    # inference_images(img_path)

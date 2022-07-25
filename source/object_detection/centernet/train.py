@@ -1,6 +1,5 @@
 import os
 import cv2
-import math
 import numpy as np
 import tensorflow as tf
 
@@ -103,30 +102,25 @@ if __name__ == "__main__":
         save_name = f"{save_dir}/custom_unfreeze.h5"
         ckpt_path = f"{save_dir}/custom_freeze.h5"
     
-    train_generator = DataGenerator(
-        train_data_dir,
-        'list',
-        classes=classes,
-        skip_difficult=True,
-        skip_truncated=True,
-        multi_scale=False,
-        batch_size=batch_size,
-        input_size=512,
-    )
+    train_generator = DataGenerator(train_data_dir,
+                                    'list',
+                                    classes=classes,
+                                    skip_difficult=True,
+                                    skip_truncated=True,
+                                    multi_scale=False,
+                                    batch_size=batch_size,
+                                    input_size=input_shape[0])
 
-    test_generator = DataGenerator(
-        test_data_dir,
-        'list',
-        classes=classes,
-        skip_difficult=True,
-        skip_truncated=True,
-        multi_scale=False,
-        batch_size=batch_size,
-        input_size=512,
-    )
+    test_generator = DataGenerator(test_data_dir,
+                                   'list',
+                                   classes=classes,
+                                   skip_difficult=True,
+                                   skip_truncated=True,
+                                   multi_scale=False,
+                                   batch_size=batch_size,
+                                   input_size=input_shape[0])
 
 
-    # optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
     optimizer = AngularGrad(method_angle="cos", learning_rate=learning_rate)
     alpha = learning_rate * 0.1
     cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=learning_rate,
