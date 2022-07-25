@@ -7,9 +7,8 @@ import tensorflow as tf
 from glob import glob
 from model import centernet
 from optimizer import AngularGrad
-from data_generator import Datasets
+from data_loader import DataGenerator
 from IPython.display import clear_output
-from generators.pascal import PascalVocGenerator
 
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -104,32 +103,24 @@ if __name__ == "__main__":
         save_name = f"{save_dir}/custom_unfreeze.h5"
         ckpt_path = f"{save_dir}/custom_freeze.h5"
     
-    # train_dataset = Datasets(train_data_dir, classes, batch_size, input_shape[0], max_detections, shuffle=True)
-    # test_dataset = Datasets(test_data_dir, classes, batch_size, input_shape[0], max_detections, shuffle=False)
-
-    # train_steps = int(tf.math.ceil(train_dataset.size() / batch_size).numpy())
-    # test_steps = int(tf.math.ceil(test_dataset.size() / batch_size).numpy())
-
-    train_generator = PascalVocGenerator(
+    train_generator = DataGenerator(
         train_data_dir,
         'list',
+        classes=classes,
         skip_difficult=True,
         skip_truncated=True,
         multi_scale=False,
-        misc_effect=False,
-        visual_effect=False,
         batch_size=batch_size,
         input_size=512,
     )
 
-    test_generator = PascalVocGenerator(
+    test_generator = DataGenerator(
         test_data_dir,
         'list',
+        classes=classes,
         skip_difficult=True,
         skip_truncated=True,
         multi_scale=False,
-        misc_effect=False,
-        visual_effect=False,
         batch_size=batch_size,
         input_size=512,
     )
@@ -165,13 +156,6 @@ if __name__ == "__main__":
         model.compile(optimizer = optimizer, loss = {'centernet_loss': lambda y_true, y_pred: y_pred})
         # prediction_model.summary()
     
-    # model.fit(train_dataset,
-    #           steps_per_epoch = train_steps,
-    #           validation_data = test_dataset,
-    #           validation_steps = test_steps,
-    #           callbacks = callbacks,
-    #           epochs = epochs)
-
     model.fit(train_generator,
               steps_per_epoch = int(tf.math.ceil(train_generator.size() / batch_size).numpy()),
               validation_data = test_generator,
