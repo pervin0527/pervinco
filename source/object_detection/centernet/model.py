@@ -1,12 +1,10 @@
-import numpy as np
 import tensorflow as tf
 from losses import total_loss
-from backbone import resnet101, resnet18
-from keras_resnet import models as resnet_models
 from tensorflow.keras.models import Model
-from tensorflow.keras.initializers import RandomNormal, Constant
 from tensorflow.keras.regularizers import L2
-from tensorflow.keras.layers import Input, MaxPooling2D, Lambda, Dropout, BatchNormalization, Conv2DTranspose, Conv2D, Activation, Dropout, ReLU
+from keras_resnet import models as resnet_models
+from tensorflow.keras.initializers import RandomNormal, Constant
+from tensorflow.keras.layers import MaxPooling2D, Lambda, Dropout, BatchNormalization, Conv2DTranspose, Conv2D, Activation, Dropout, ReLU
 
 def nms(heat, kernel=3):
     hmax = MaxPooling2D((kernel, kernel), strides=1, padding='same')(heat)

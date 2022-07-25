@@ -2,14 +2,12 @@ import os
 import cv2
 import numpy as np
 import tensorflow as tf
-import tensorflow_addons as tfa
 
 from glob import glob
 from model import PFLD
-from matplotlib import pyplot as plt
 from angular_grad import AngularGrad
 from IPython.display import clear_output
-from tensorflow.keras import backend as K
+
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -145,8 +143,8 @@ if __name__ == "__main__":
     if not os.path.isdir(save_dir):
         os.makedirs(save_dir)
     
-    optimizer = tf.keras.optimizers.Adam()
-    # optimizer = AngularGrad(method_angle="cos", learning_rate=lr)
+    # optimizer = tf.keras.optimizers.Adam()
+    optimizer = AngularGrad(method_angle="cos", learning_rate=lr)
     cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=lr,
                                                             first_decay_steps=300,
                                                             t_mul=2.0,

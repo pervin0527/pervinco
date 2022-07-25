@@ -1,5 +1,5 @@
-import tensorflow as tf
 import math
+import tensorflow as tf
 
 
 class AngularGrad(tf.keras.optimizers.Optimizer):

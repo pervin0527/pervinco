@@ -1,16 +1,13 @@
 import os
 import cv2
-import math
 import numpy as np
 import tensorflow as tf
-import tensorflow_addons as tfa
 
 from glob import glob
 from model import PFLD
-from matplotlib import pyplot as plt
 from angular_grad import AngularGrad
 from IPython.display import clear_output
-from tensorflow.keras import backend as K
+
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 gpus = tf.config.experimental.list_physical_devices('GPU')

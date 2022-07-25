@@ -4,7 +4,6 @@ import random
 import warnings
 import numpy as np
 import tensorflow as tf
-import matplotlib.pyplot as plt
 from data_utils import get_affine_transform, affine_transform, gaussian_radius, gaussian_radius_2, draw_gaussian, draw_gaussian_2
 
 
