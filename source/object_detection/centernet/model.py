@@ -176,7 +176,7 @@ def centernet(input_shape, num_classes, backbone='resnet50', max_detections=100,
 
         return model, prediction_model
 
-    elif mode == "predcit":
+    elif mode == "predict":
         detections = Lambda(lambda x: decode(*x, num_classes=num_classes, max_detections=max_detections))([y1, y2, y3])
         prediction_model = Model(inputs=image_input, outputs=detections)        
 

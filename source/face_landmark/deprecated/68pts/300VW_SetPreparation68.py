@@ -240,8 +240,8 @@ if __name__ == '__main__':
     imageDirs = f'{root_dir}/original'
     Mirror_file = './annotations/Mirror68.txt'
 
-    # landmarkDirs = ['annotations/list_68pt_rect_attr_train_test/list_68pt_rect_attr_train.txt',
-    #                 'annotations/list_68pt_rect_attr_train_test/list_68pt_rect_attr_test.txt']
+    if not os.path.isdir(f"{root_dir}/annotations"):
+        os.makedirs(f"{root_dir}/annotations")
     landmarkDirs = [f'{root_dir}/annotations/list_68pt_rect_attr_train_test/list_68pt_rect_attr_train.txt']
 
     # outDirs = ['train_data', 'test_data']
