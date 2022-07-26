@@ -80,17 +80,17 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 
 if __name__ == "__main__":
-    train_data_dir = "/home/ubuntu/Datasets/300VW_Dataset_2015_12_14/face_detection/train_512"
-    test_data_dir = "/home/ubuntu/Datasets/300VW_Dataset_2015_12_14/face_detection/test_512"
+    train_data_dir = "/data/Datasets/WIDER/CUSTOM_XML/train"
+    test_data_dir = "/data/Datasets/WIDER/CUSTOM_XML/test"
 
     epochs = 300
-    batch_size = 128
-    max_detections = 30
+    batch_size = 64
+    max_detections = 100
     input_shape = (512, 512, 3)
     classes = ["face"]
     backbone = "resnet50"
     freeze_backbone = True
-    save_dir = "/home/ubuntu/Models/CenterNet"
+    save_dir = "/data/Models/CenterNet"
 
     if freeze_backbone:
         learning_rate = 0.001

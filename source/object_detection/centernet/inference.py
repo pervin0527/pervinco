@@ -38,7 +38,7 @@ def preprocess_image(image):
 
 def draw_result(idx, image, detections):
     scores = detections[:, 4]
-    indices = np.where(scores > 0.8)[0]
+    indices = np.where(scores > 0.55)[0]
     detections[:, [0, 2]] = np.clip(detections[:, [0, 2]], 0, image.shape[1])
     detections[:, [1, 3]] = np.clip(detections[:, [1, 3]], 0, image.shape[0])
 
