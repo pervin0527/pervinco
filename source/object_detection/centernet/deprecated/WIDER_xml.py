@@ -123,24 +123,25 @@ def read_txt(txt_path, image_dir, save_dir):
 
 
 if __name__ == "__main__":
-    ROOT_DIR = "/home/ubuntu/Datasets/WIDER"
+    ROOT_DIR = "/data/Datasets/WIDER"
     ANNOT_DIR = [f"{ROOT_DIR}/wider_face_split/wider_face_train_bbx_gt.txt",
                  f"{ROOT_DIR}/wider_face_split/wider_face_val_bbx_gt.txt"]
     LABELS = ["face"]
-    MAX_OBJECTS = 1
+    IMG_SIZE = 512
+    MAX_OBJECTS = 100
 
     transform = A.Compose([
-        A.Resize(512, 512, always_apply=True)
+        A.Resize(IMG_SIZE, IMG_SIZE, always_apply=True)
     ], bbox_params=A.BboxParams(format="pascal_voc", label_fields=['labels']))
 
 
     for annot_file in ANNOT_DIR:
         if annot_file.split('/')[-1] == "wider_face_train_bbx_gt.txt":
             IMG_DIR = f"{ROOT_DIR}/WIDER_train"
-            SAVE_DIR = f"{ROOT_DIR}/CUSTOM_XML/train"
+            SAVE_DIR = f"{ROOT_DIR}/CUSTOM_XML/train_{IMG_SIZE}"
 
         else:
             IMG_DIR = f"{ROOT_DIR}/WIDER_val"
-            SAVE_DIR = f"{ROOT_DIR}/CUSTOM_XML/test"
+            SAVE_DIR = f"{ROOT_DIR}/CUSTOM_XML/test_{IMG_SIZE}"
         
         read_txt(annot_file, IMG_DIR, SAVE_DIR)

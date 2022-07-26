@@ -36,13 +36,14 @@ def read_xml(xml_file, classes):
 
 if __name__ == "__main__":
     classes = ["face"]
-    image_dir = "/data/Datasets/300VW_Dataset_2015_12_14/face_detection/augmentation_384/images"
-    annotation_dir = "/data/Datasets/300VW_Dataset_2015_12_14/face_detection/augmentation_384/annotations"
+    image_dir = "/data/Datasets/WIDER/CUSTOM_XML/test/images"
+    annotation_dir = "/data/Datasets/WIDER/CUSTOM_XML/test/annotations"
 
     image_files = sorted(glob(f"{image_dir}/*.jpg"))
     xml_files = sorted(glob(f"{annotation_dir}/*.xml"))
 
     for image, xml in zip(image_files, xml_files):
+        print(image)
         image = cv2.imread(image)
         bboxes, labels = read_xml(xml, classes)
 

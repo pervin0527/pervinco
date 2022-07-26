@@ -24,7 +24,7 @@ else:
         print(e)
 
 if __name__ == "__main__":
-    ROOT_DIR = "/home/ubuntu/Datasets/300VW_Dataset_2015_12_14/face_detection"
+    ROOT_DIR = "/home/ubuntu/Datasets/WIDER/CUSTOM_XML"
     TRAIN_DIR = f"{ROOT_DIR}/train_384"
     VALID_DIR = f"{ROOT_DIR}/test_384"
 
@@ -34,8 +34,8 @@ if __name__ == "__main__":
     print(CLASSES)
     
     EPOCHS = 500
-    BATCH_SIZE = 100
-    MAX_DETECTIONS = 10
+    BATCH_SIZE = 64
+    MAX_DETECTIONS = 100
 
     HPARAMS = {
         "optimizer" : "adam",

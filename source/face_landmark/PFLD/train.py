@@ -127,7 +127,6 @@ if __name__ == "__main__":
     train_dir = '/data/Datasets/WFLW/train_data_68pts/list.txt'
     test_dir = '/data/Datasets/WFLW/test_data_68pts/list.txt'
     save_dir = "/data/Models/facial_landmark_68pts"
-    ckpt_path = "" ### f"{save_dir}/best.h5"
 
     batch_size = 256
     epochs = 1000
@@ -152,20 +151,13 @@ if __name__ == "__main__":
                                                             alpha=0.01)
 
     callbacks = [DisplayCallback(),
-                 tf.keras.callbacks.CSVLogger("./logs/train.csv"),
                  tf.keras.callbacks.LearningRateScheduler(cdr),
-                 tf.keras.callbacks.TensorBoard(log_dir=f"{save_dir}", update_freq='epoch'),
-                #  tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=20, verbose=1),
+                 tf.keras.callbacks.TensorBoard(log_dir=f"{save_dir}/tensorboard", update_freq='epoch'),
                  tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/pfld.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
     with strategy.scope():
         model = PFLD()
-        model.trainable = True
         model.compile(optimizer=optimizer)
-
-    if ckpt_path:
-        model.built = True
-        model.load_weights(ckpt_path, by_name=True, skip_mismatch=True)
 
     history = model.fit(train_datasets,
                         validation_data=valid_datasets,
@@ -174,3 +166,8 @@ if __name__ == "__main__":
                         epochs=epochs,
                         callbacks=callbacks,
                         verbose=1)
+
+
+    model.built = True
+    model.load_weights(f"{save_dir}/pfld.h5", by_name=True, skip_mismatch=True)
+    tf.saved_model.save(model, f"{save_dir}/saved_model")

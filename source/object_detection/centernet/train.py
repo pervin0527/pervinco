@@ -80,8 +80,8 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 
 if __name__ == "__main__":
-    train_data_dir = "/data/Datasets/WIDER/CUSTOM_XML/train"
-    test_data_dir = "/data/Datasets/WIDER/CUSTOM_XML/test"
+    train_data_dir = "/home/ubuntu/Datasets/WIDER/CUSTOM_XML/train_512"
+    test_data_dir = "/home/ubuntu/Datasets/WIDER/CUSTOM_XML/test_512"
 
     epochs = 300
     batch_size = 64
@@ -90,7 +90,7 @@ if __name__ == "__main__":
     classes = ["face"]
     backbone = "resnet50"
     freeze_backbone = True
-    save_dir = "/data/Models/CenterNet"
+    save_dir = "/home/ubuntu/Models/CenterNet"
 
     if freeze_backbone:
         learning_rate = 0.001
@@ -156,3 +156,7 @@ if __name__ == "__main__":
               validation_steps = int(tf.math.ceil(test_generator.size() / batch_size).numpy()),
               callbacks = callbacks,
               epochs = epochs)
+
+    if not freeze_backbone:
+        model.load_weight(save_name, by_name=True, skip_mismatch=True)
+        tf.saved_model.save(model, f"{save_dir}/saved_model")
