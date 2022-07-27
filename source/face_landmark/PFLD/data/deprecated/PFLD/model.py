@@ -79,12 +79,10 @@ def PFLDInference(inputs, is_train=True, keypoints=196):
     x2 = Reshape((x2.shape[1]*x2.shape[2]*x2.shape[3],))(x2)
     
     x3 = Conv2D(filters=128, kernel_size=7, strides=1, padding='valid')(x)
-    x3 = relu6(x)
+    x3 = Activation('relu')(x3)
     x3 = Reshape((x3.shape[1]*x3.shape[2]*x3.shape[3],))(x3)
     
-    
     multi_scale = Concatenate()([x1, x2, x3])
-    
     landmarks = Dense(keypoints, name='landmarks')(multi_scale)
     
     if is_train:

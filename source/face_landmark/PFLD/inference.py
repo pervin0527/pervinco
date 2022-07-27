@@ -40,7 +40,6 @@ def image_inference(dir):
     image_files = sorted(glob(f"{dir}/imgs/*.jpg"))
     label_files = sorted(glob(f"{dir}/labels/*.txt"))
 
-    print(len(image_files), len(label_files))
     for image_file, label_file in zip(image_files, label_files):
         image = cv2.imread(image_file)
         height, width = image.shape[0], image.shape[1]
@@ -78,11 +77,11 @@ def image_inference(dir):
         cropped = image[ymin : ymax, xmin : xmax]
         pfld_input = cv2.resize(cropped, (input_shape[0], input_shape[1]))
         pfld_input = np.expand_dims((pfld_input / 255.0), axis=0)
-        landmarks = model.predict(pfld_input)[0]
-        landmarks = landmarks.reshape(-1, 2) * [size, size] - [edx1, edy1]
+        landmarks = model.predict(pfld_input)
+        landmarks = landmarks[0].reshape(-1, 2) * [size, size] - [edx1, edy1]
 
         for (x, y) in landmarks.astype(np.int32):
-            cv2.circle(result_image, (xmin + x, ymin + y), 1, (0, 0, 255))
+            cv2.circle(result_image, (xmin + x, ymin + y), 2, (0, 255, 255))
 
         cv2.imshow("result", result_image)
         cv2.waitKey(0)
@@ -100,7 +99,7 @@ def model_load(model_path):
 if __name__ == "__main__":
     mode = "images"
     input_shape = [112, 112, 3]
-    ckpt_path = "/data/Models/facial_landmark_68pts/best.h5"
+    ckpt_path = "/data/Models/facial_landmark_68pts/pfld.h5"
     
     model = model_load(ckpt_path)
 

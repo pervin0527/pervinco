@@ -286,6 +286,7 @@ if __name__ == "__main__":
     ANNOTATIONS = f"{ROOT_DIR}/annotations/list_68pt_rect_attr_train_test"
     IMAGES = f"{ROOT_DIR}/WFLW_images"
     
+    STEPS = 10
     MIXUP_DIR = "/data/Datasets/Mixup_background"
     VISUALIZE = False
 
@@ -315,7 +316,7 @@ if __name__ == "__main__":
             if not os.path.isdir(f"{ROOT_DIR}/augment_train_68pts"):
                 os.makedirs(f"{ROOT_DIR}/augment_train_68pts/imgs")
 
-            final_labels = line_process(lines, True, 10, f"{ROOT_DIR}/augment_train_68pts", f"{ROOT_DIR}/WFLW_annotations/Mirror68.txt")
+            final_labels = line_process(lines, True, STEPS, f"{ROOT_DIR}/augment_train_68pts", f"{ROOT_DIR}/WFLW_annotations/Mirror68.txt")
             write_txt(final_labels, f"{ROOT_DIR}/augment_train_68pts/list.txt")
         
         else:

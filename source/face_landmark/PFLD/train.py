@@ -124,12 +124,12 @@ def build_lrfn(lr_start=0.000001, lr_max=0.005, lr_min=0.00001, lr_rampup_epochs
 
     
 if __name__ == "__main__":
-    train_dir = '/data/Datasets/WFLW/train_data_68pts/list.txt'
-    test_dir = '/data/Datasets/WFLW/test_data_68pts/list.txt'
-    save_dir = "/data/Models/facial_landmark_68pts"
+    train_dir = '/data/Datasets/WFLW/augment_train_68pts/list.txt'
+    test_dir = '/data/Datasets/WFLW/augment_test_68pts/list.txt'
+    save_dir = "/data/Models/facial_landmark_68pts_aug"
 
     batch_size = 256
-    epochs = 1000
+    epochs = 1500
     model_path = ''
     input_shape = [112, 112, 3]
     lr = 1e-3 ## 0.001
@@ -145,10 +145,10 @@ if __name__ == "__main__":
 
     optimizer = AngularGrad(method_angle="cos", learning_rate=lr)
     cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=lr,
-                                                            first_decay_steps=200,
-                                                            t_mul=2.0,
+                                                            first_decay_steps=500,
+                                                            t_mul=1.0,
                                                             m_mul=1.0,
-                                                            alpha=0.01)
+                                                            alpha=0.001)
 
     callbacks = [DisplayCallback(),
                  tf.keras.callbacks.LearningRateScheduler(cdr),
