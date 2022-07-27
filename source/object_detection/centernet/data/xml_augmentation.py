@@ -252,8 +252,9 @@ def read_file_list(path):
         os.makedirs(f"{SAVE_DIR}/img_with_bbox")
     record = open(f"{SAVE_DIR}/list.txt", "w")
 
-    for step in range(STEPS):
-        for index in tqdm(range(len(total_files))):
+    total_file_num = 0
+    for index in tqdm(range(len(total_files))):
+        for step in range(STEPS):
             opt = random.randint(0, 2)
             if opt == 0:
                 files = random.sample(total_files, 4)
@@ -278,22 +279,34 @@ def read_file_list(path):
                 cv2.imshow("sample", sample)
                 cv2.waitKey(0)
 
+            outlier = None
             if len(result_bboxes) > 0:
-                cv2.imwrite(f"{SAVE_DIR}/images/{step}_{index:>06}.jpg", result_image)
-                write_xml(f"{SAVE_DIR}/annotations", result_bboxes, result_classes, f"{step}_{index:>06}", result_image.shape[0], result_image.shape[1])
-                record.write(f"{step}_{index:>06}\n")
-
-                img_with_bbox = result_image.copy()
                 for box in result_bboxes:
-                    cv2.rectangle(img_with_bbox, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 0, 255), 2)
-                cv2.imwrite(f"{SAVE_DIR}/img_with_bbox/{step}_{index:>06}.jpg", img_with_bbox)
+                    img_height, img_width = result_image.shape[:2]
+                    xmin, ymin, xmax, ymax = int(box[0]), int(box[1]), int(box[2]), int(box[3])
+                    if xmin >= xmax or ymin >= ymax or xmin < 0 or ymin < 0 or xmax > img_width or ymax > img_height:
+                        outlier = True
+
+                if outlier == None:    
+                    cv2.imwrite(f"{SAVE_DIR}/images/{step}_{index:>06}.jpg", result_image)
+                    write_xml(f"{SAVE_DIR}/annotations", result_bboxes, result_classes, f"{step}_{index:>06}", result_image.shape[0], result_image.shape[1])
+                    record.write(f"{step}_{index:>06}\n")
+
+                    img_with_bbox = result_image.copy()
+                    for box in result_bboxes:
+                        cv2.rectangle(img_with_bbox, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 0, 255), 2)
+                    cv2.imwrite(f"{SAVE_DIR}/img_with_bbox/{step}_{index:>06}.jpg", img_with_bbox)
+                    total_file_num += 1
+
+            if total_file_num == 38400:
+                exit()
 
 
 if __name__ == "__main__":
     CLASSES = ["face"]
     VISUALIZE = False
-    IMG_SIZE = 512
-    STEPS = 3
+    IMG_SIZE = 384
+    STEPS = 10
     BG_DIR = "/home/ubuntu/Datasets/Mixup_background"
 
     DATA_DIR = f"/home/ubuntu/Datasets/WIDER/CUSTOM"

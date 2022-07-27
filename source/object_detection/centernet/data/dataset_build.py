@@ -155,7 +155,7 @@ def wider_data_process(txt, is_train):
             
 
 if __name__ == "__main__":
-    IMG_SIZE = 512
+    IMG_SIZE = 384
     CLASSES = ["face"]
     MAX_OBJECTS = 10
     MINIMUM_AREA = 5000
@@ -165,7 +165,7 @@ if __name__ == "__main__":
         A.Resize(IMG_SIZE, IMG_SIZE, always_apply=True)
     ], bbox_params=A.BboxParams(format="pascal_voc", label_fields=['labels']))
 
-    WIDER_DIR = "/data/Datasets/WIDER"
+    WIDER_DIR = "/home/ubuntu/Datasets/WIDER"
     WIDER_TRAIN = f"{WIDER_DIR}/wider_face_split/wider_face_train_bbx_gt.txt"
     WIDER_TEST = f"{WIDER_DIR}/wider_face_split/wider_face_val_bbx_gt.txt"
 

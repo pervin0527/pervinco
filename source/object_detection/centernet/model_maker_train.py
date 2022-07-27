@@ -24,8 +24,8 @@ else:
         print(e)
 
 if __name__ == "__main__":
-    ROOT_DIR = "/home/ubuntu/Datasets/WIDER/CUSTOM_XML"
-    TRAIN_DIR = f"{ROOT_DIR}/train_384"
+    ROOT_DIR = "/home/ubuntu/Datasets/WIDER/CUSTOM"
+    TRAIN_DIR = f"{ROOT_DIR}/augment_384"
     VALID_DIR = f"{ROOT_DIR}/test_384"
 
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
@@ -33,7 +33,7 @@ if __name__ == "__main__":
     CLASSES = LABEL_FILE[0].tolist()
     print(CLASSES)
     
-    EPOCHS = 500
+    EPOCHS = 300
     BATCH_SIZE = 64
     MAX_DETECTIONS = 100
 
@@ -42,7 +42,7 @@ if __name__ == "__main__":
         "momentum" : 0.0,                   
         "learning_rate" : 0.0001,            
         "lr_decay_method" : "cosine",       
-        "lr_warmup_epoch" : 300.0,          
+        "lr_warmup_epoch" : 150.0,          
         "lr_warmup_init" : 0.00001,          
         "anchor_scale" : 4.0,
         "aspect_ratios" : [1.0, 2.0, 0.5],

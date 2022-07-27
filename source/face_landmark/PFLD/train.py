@@ -124,8 +124,8 @@ def build_lrfn(lr_start=0.000001, lr_max=0.005, lr_min=0.00001, lr_rampup_epochs
 
     
 if __name__ == "__main__":
-    train_dir = '/data/Datasets/WFLW/augment_train_68pts/list.txt'
-    test_dir = '/data/Datasets/WFLW/augment_test_68pts/list.txt'
+    train_dir = '/data/Datasets/WFLW/augment_data_68pts/list.txt'
+    test_dir = '/data/Datasets/WFLW/test_data_68pts/list.txt'
     save_dir = "/data/Models/facial_landmark_68pts_aug"
 
     batch_size = 256
