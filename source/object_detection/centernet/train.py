@@ -80,8 +80,8 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 
 if __name__ == "__main__":
-    train_data_dir = "/home/ubuntu/Datasets/WIDER/CUSTOM_XML/train_512"
-    test_data_dir = "/home/ubuntu/Datasets/WIDER/CUSTOM_XML/test_512"
+    train_data_dir = "/home/ubuntu/Datasets/WIDER/CUSTOM/augment_512"
+    test_data_dir = "/home/ubuntu/Datasets/WIDER/CUSTOM/test_512"
 
     epochs = 300
     batch_size = 64
@@ -90,7 +90,7 @@ if __name__ == "__main__":
     classes = ["face"]
     backbone = "resnet50"
     freeze_backbone = True
-    save_dir = "/home/ubuntu/Models/CenterNet"
+    save_dir = "/home/ubuntu/Models/CenterNet2"
 
     if freeze_backbone:
         learning_rate = 0.001
@@ -109,6 +109,7 @@ if __name__ == "__main__":
                                     skip_truncated=True,
                                     multi_scale=False,
                                     batch_size=batch_size,
+                                    shuffle_groups=False,
                                     input_size=input_shape[0])
 
     test_generator = DataGenerator(test_data_dir,
@@ -118,6 +119,7 @@ if __name__ == "__main__":
                                    skip_truncated=True,
                                    multi_scale=False,
                                    batch_size=batch_size,
+                                   shuffle_groups=False,
                                    input_size=input_shape[0])
 
 

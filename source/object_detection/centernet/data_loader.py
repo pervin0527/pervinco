@@ -4,7 +4,7 @@ import numpy as np
 import xml.etree.ElementTree as ET
 
 from six import raise_from
-from common import Generator
+from data_generator import Generator
 
 
 def _findNode(parent, name, debug_name=None, parse=None):
