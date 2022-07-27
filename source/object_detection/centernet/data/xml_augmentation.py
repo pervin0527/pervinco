@@ -1,25 +1,13 @@
-from genericpath import isfile
 import os
 import cv2
+import random
+import numpy as np
 import albumentations as A
 import xml.etree.ElementTree as ET
-from collections import deque
+
+from glob import glob
+from tqdm import tqdm
 from lxml.etree import Element, SubElement
-
-
-def make_save_dir(dir):
-    if not os.path.isdir(dir):
-        os.makedirs(f"{dir}/images")
-        os.makedirs(f"{dir}/annotations")
-        os.makedirs(f"{dir}/img_with_bbox")
-
-
-def make_label_field(n):
-    labels = []
-    for _ in range(n):
-        labels.extend(['face'])
-
-    return labels
 
 
 def write_xml(save_path, bboxes, labels, filename, height, width):
@@ -66,111 +54,273 @@ def write_xml(save_path, bboxes, labels, filename, height, width):
     tree.write(f"{save_path}/{filename}.xml")
 
 
-def refine_coordinates(bbox, img_height, img_width):
-    x, y, w, h = bbox
-    xmin = x
-    ymin = y
-    xmax = w + xmin
-    ymax = h + ymin
+def augmentation(data_list):
+    image, bboxes, classes = data_list[0]
+    image = cv2.imread(image)
+    transformed = transform(image=image, bboxes=bboxes, labels=classes)
+    transformed_image, transformed_bboxes, transformed_labels = transformed["image"], transformed["bboxes"], transformed["labels"]
 
-    outlier = None
-    if xmin >= xmax or ymin >= ymax or xmin < 0 or ymin < 0 or xmax > img_width or ymax > img_height or (abs(xmax - xmin) * abs(ymax - ymin)) < MINIMUM_AREA:
-        outlier = True
-
-    return [xmin, ymin, xmax, ymax], outlier
+    return transformed_image, transformed_bboxes, transformed_labels
 
 
-def augmentation(image, bboxes, labels):
-    transformed = transform(image=image, bboxes=bboxes, labels=labels)
-    t_image, t_bboxes, t_labels = transformed['image'], transformed['bboxes'], transformed['labels']
+def refine_boxes(boxes):
+    result_boxes = []
+    for box in boxes:
+        if box[2] - box[0] < 10 or box[3] - box[1] < 10:
+            continue
+        result_boxes.append(box)
+    result_boxes = np.array(result_boxes)
 
-    return t_image, t_bboxes, t_labels
+    return result_boxes
 
 
-def wider_data_process(txt, is_train):
-    print(txt)
-    if is_train:
-        image_dir = f"{WIDER_DIR}/WIDER_train/images"
-        save_dir = f"{WIDER_DIR}/CUSTOM/train_{IMG_SIZE}"
-        make_save_dir(save_dir)
+def crop_image(image, boxes, labels, xmin, ymin, xmax, ymax):
+    # print(labels, boxes)
+    if len(boxes) == len(labels):
+        mosaic_transform = A.Compose([
+            A.Resize(width=xmax-xmin, height=ymax-ymin, p=1),
+
+            A.OneOf([
+                A.OneOf([
+                    A.RandomBrightnessContrast(brightness_limit=(-0.25, 0.25), contrast_limit=(-0.25, 0.25), p=0.5),
+                    A.HueSaturationValue(hue_shift_limit=0, sat_shift_limit=(0, 0), val_shift_limit=(0, 100), p=0.5),
+                ], p=1),
+
+                A.OneOf([
+                    A.Downscale(scale_min=0.9, scale_max=0.95, p=0.5),
+                    A.MotionBlur(blur_limit=(3, 4), p=0.5)
+                ], p=0.4)
+
+            ], p=1),
+        
+        ], bbox_params=A.BboxParams(format='pascal_voc', label_fields=['labels']))
+        transformed = mosaic_transform(image=image, bboxes=boxes, labels=labels)
+
+        image, boxes, labels = transformed['image'], transformed['bboxes'], transformed['labels']
+        result_boxes = np.array(boxes)
 
     else:
-        image_dir = f"{WIDER_DIR}/WIDER_val/images"
-        save_dir = f"{WIDER_DIR}/CUSTOM/test_{IMG_SIZE}"
-        make_save_dir(save_dir)
+        image = np.zeros(shape=((ymax-ymin), (xmax-xmin), 3), dtype=np.uint8)
+        result_boxes = np.array([])
+    
+    return image, result_boxes
 
-    lines = open(txt, "r").readlines()
-    lines = deque(lines)
 
-    index = 0
-    records = open(f"{save_dir}/list.txt", "w")
-    while lines:
-        image_file = lines.popleft()[:-1]
-        num_boxes = int(lines.popleft()[:-1])
+def mosaic(data_list):
+    result_image = np.full((IMG_SIZE, IMG_SIZE, 3), 1, dtype=np.uint8)
+    result_boxes, result_labels = [], []
+    xc, yc = [int(np.random.uniform(IMG_SIZE * 0.25, IMG_SIZE * 0.75)) for _ in range(2)]
 
-        if num_boxes > MAX_OBJECTS:
-            for _ in range(num_boxes):
-                lines.popleft()[:-1].split()
+    for i, data in enumerate(data_list):
+        image, bboxes, labels = data
+        image = cv2.imread(image)
+        boxes = refine_boxes(bboxes)
+        
+        if i == 0 :
+            image, boxes = crop_image(image, boxes, labels, IMG_SIZE-xc, IMG_SIZE-yc, IMG_SIZE, IMG_SIZE)
+            if len(boxes) > 0:
+                result_labels.extend(labels)
 
-        elif num_boxes == 0:
-            lines.popleft()[:-1].split()
+            result_image[0 : yc, 0 : xc, :] = image
+            result_boxes.extend(boxes)
+
+        elif i == 1:
+            image, boxes, = crop_image(image, boxes, labels, 0, IMG_SIZE-yc, IMG_SIZE-xc, IMG_SIZE)
+            if len(boxes) > 0:
+                result_labels.extend(labels)
+
+            result_image[0 : yc, xc : IMG_SIZE, :] = image
+
+            if boxes.shape[0] > 0:
+                boxes[:, [0, 2]] += xc
+
+            result_boxes.extend(boxes)
+
+        elif i == 2:
+            image, boxes = crop_image(image, boxes, labels, 0, 0, IMG_SIZE-xc, IMG_SIZE-yc)
+            if len(boxes) > 0:
+                result_labels.extend(labels)
+
+            result_image[yc:IMG_SIZE, xc:IMG_SIZE, :] = image
+            if boxes.shape[0] > 0:
+                boxes[:, [0, 2]] += xc
+                boxes[:, [1, 3]] += yc
+
+            result_boxes.extend(boxes)
 
         else:
-            image = cv2.imread(f"{image_dir}/{image_file}")
-            img_height, img_width = image.shape[:2]
-            bboxes = []
+            image, boxes = crop_image(image, boxes, labels, IMG_SIZE-xc, 0, IMG_SIZE, IMG_SIZE-yc)
+            if len(boxes) > 0:
+                result_labels.extend(labels)
 
-            for _ in range(num_boxes):
-                bbox_with_attr = lines.popleft()[:-1].split()
-                bbox = list(map(int, bbox_with_attr[:4]))
-                bbox, outlier = refine_coordinates(bbox, img_height, img_width)
+            result_image[yc : IMG_SIZE, 0 : xc, :] = image
+            if boxes.shape[0] > 0:
+                boxes[ :, [1, 3]] += yc
 
-                if outlier == None:
-                    bboxes.append(bbox)
+            result_boxes.extend(boxes)
 
-            if num_boxes == len(bboxes):
-                labels = make_label_field(num_boxes)
+    return result_image, result_boxes, result_labels
 
-                image, bboxes, labels = augmentation(image, bboxes, labels)
 
-                img_with_bbox = image.copy()
-                for bbox in bboxes:
-                    cv2.rectangle(img_with_bbox, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), (0,0,255), 2)
+def mixup(data_list, bg_dir, min=0.4, max=0.5, alpha=1.0):
+    image, bbox, labels = data_list[0]
+    image = cv2.imread(image)
 
-                if VIS:
-                    cv2.imshow("result", img_with_bbox)
-                    cv2.waitKey(0)
+    bg_transform = A.Compose([
+        A.Resize(IMG_SIZE, IMG_SIZE, always_apply=True),
 
-                else:
-                    cv2.imwrite(f"{save_dir}/images/{index:>07}.jpg", image)
-                    write_xml(f"{save_dir}/annotations", bboxes, labels, f"{index:>07}", img_height, img_width)
-                    records.write(f"{index:>07}\n")
-                    cv2.imwrite(f"{save_dir}/img_with_bbox/{index:07}.jpg", img_with_bbox)
-                    index += 1
+        A.OneOf([
+            A.RandomRotate90(p=0.3),
+            A.HorizontalFlip(p=0.3),
+            A.VerticalFlip(p=0.3),
+        ], p=1),
 
-        if not is_train and index == 100:
-            break
+        A.OneOf([
+            A.RandomBrightnessContrast(brightness_limit=(-0.15, 0.25), p=0.3),
+            A.ChannelShuffle(p=0.3)
+        ], p=1)
+    ])
 
-    return records, index
-            
+    bg_file_list = glob(f"{bg_dir}/*")
+    bg_index = random.randint(0, len(bg_file_list)-1)
+    bg_image = cv2.imread(bg_file_list[bg_index])
+
+    transformed = bg_transform(image=bg_image)
+    background = transformed['image']
+
+    lam = np.clip(np.random.beta(alpha, alpha), min, max)
+    mixup_image = (lam*background + (1 - lam)*image).astype(np.uint8)
+
+    return mixup_image, bbox, labels
+
+
+def read_xml(xml_file, classes):
+    tree = ET.parse(xml_file)
+    root = tree.getroot()
+    
+    width = int(root.find('size').find('width').text)
+    height = int(root.find('size').find('height').text)
+    objects = root.findall("object")
+    
+    bboxes, labels = [], []
+    if len(objects) > 0:
+        class_names = [object.findtext("name") for object in objects]
+        
+        for idx, name in enumerate(class_names):
+            if name in classes:
+                bbox = objects[idx].find("bndbox")
+
+                xmin = float(bbox.find('xmin').text)
+                ymin = float(bbox.find('ymin').text)
+                xmax = float(bbox.find('xmax').text)
+                ymax = float(bbox.find('ymax').text)               
+
+                xmin = int(xmin)
+                ymin = int(ymin)
+                xmax = int(xmax)
+                ymax = int(ymax)
+                    
+                bboxes.append([xmin, ymin, xmax, ymax])
+                labels.append(name)
+
+    return bboxes, labels
+
+
+def load_file(files):
+    data_list = []
+    for file in files:
+        #####################################################
+        file = file.split('/')[-1].split('.')[0]
+        #####################################################
+        image_path = f"{IMG_PATH}/{file}.jpg"
+        xml_path = f"{ANNOT_PATH}/{file}.xml"
+        
+        bboxes, labels = read_xml(xml_path, CLASSES)
+        data_list.append([image_path, bboxes, labels])
+
+    return data_list
+
+    
+def read_file_list(path):
+    total_files = open(path, "r").readlines()
+    total_files = [file.strip() for file in total_files]
+    random.shuffle(total_files)
+
+    if not os.path.isdir(f"{SAVE_DIR}"):
+        os.makedirs(f"{SAVE_DIR}/images")
+        os.makedirs(f"{SAVE_DIR}/annotations")
+        os.makedirs(f"{SAVE_DIR}/img_with_bbox")
+    record = open(f"{SAVE_DIR}/list.txt", "w")
+
+    for step in range(STEPS):
+        for index in tqdm(range(len(total_files))):
+            opt = random.randint(0, 2)
+            if opt == 0:
+                files = random.sample(total_files, 4)
+                data_list = load_file(files)
+                result_image, result_bboxes, result_classes = mosaic(data_list)
+
+            elif opt == 1:
+                files = random.sample(total_files, 1)
+                data_list = load_file(files)
+                result_image, result_bboxes, result_classes = mixup(data_list, bg_dir=BG_DIR, min=0.1, max=0.25)
+
+            else:
+                files = random.sample(total_files, 1)
+                data_list = load_file(files)
+                result_image, result_bboxes, result_classes = augmentation(data_list)
+
+            if VISUALIZE:
+                sample = result_image.copy()
+                for bbox in result_bboxes:
+                    cv2.rectangle(sample, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), color=(0, 0, 255))
+
+                cv2.imshow("sample", sample)
+                cv2.waitKey(0)
+
+            if len(result_bboxes) > 0:
+                cv2.imwrite(f"{SAVE_DIR}/images/{step}_{index:>06}.jpg", result_image)
+                write_xml(f"{SAVE_DIR}/annotations", result_bboxes, result_classes, f"{step}_{index:>06}", result_image.shape[0], result_image.shape[1])
+                record.write(f"{step}_{index:>06}\n")
+
+                img_with_bbox = result_image.copy()
+                for box in result_bboxes:
+                    cv2.rectangle(img_with_bbox, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 0, 255), 2)
+                cv2.imwrite(f"{SAVE_DIR}/img_with_bbox/{step}_{index:>06}.jpg", img_with_bbox)
+
 
 if __name__ == "__main__":
-    IMG_SIZE = 512
     CLASSES = ["face"]
-    MAX_OBJECTS = 10
-    MINIMUM_AREA = 5000
-    VIS = False
+    VISUALIZE = False
+    IMG_SIZE = 512
+    STEPS = 3
+    BG_DIR = "/home/ubuntu/Datasets/Mixup_background"
+
+    DATA_DIR = f"/home/ubuntu/Datasets/WIDER/CUSTOM"
+    SAVE_DIR = f"{DATA_DIR}/augment_{IMG_SIZE}"
+    IMG_PATH = f"{DATA_DIR}/train_{IMG_SIZE}/images"
+    ANNOT_PATH = f"{DATA_DIR}/train_{IMG_SIZE}/annotations"
+    TXT_PATH = f"{DATA_DIR}/train_{IMG_SIZE}/list.txt"
 
     transform = A.Compose([
-        A.Resize(IMG_SIZE, IMG_SIZE, always_apply=True)
+        A.OneOf([
+            A.RandomBrightnessContrast(brightness_limit=(-0.15, 0.25), contrast_limit=(-0.15, 0.25), p=0.5),
+            A.HueSaturationValue(hue_shift_limit=0, sat_shift_limit=(0, 0), val_shift_limit=(0, 3), p=0.5),
+        ], p=1),
+
+        A.OneOf([
+            A.RandomRain(blur_value=4, brightness_coefficient=0.3, p=0.4),
+            A.Downscale(scale_min=0.85, scale_max=0.95, p=0.3),
+            A.MotionBlur(blur_limit=(3, 5), p=0.3)
+        ], p=0.5),
+
+        A.ShiftScaleRotate(shift_limit=(-0.2, 0.2), scale_limit=(-0.2, 0.2), rotate_limit=(0, 0), border_mode=0, p=0.5),
+
+        A.OneOf([
+            A.VerticalFlip(p=0.5),
+            A.HorizontalFlip(p=0.5)
+        ], p=0.5)
+
     ], bbox_params=A.BboxParams(format="pascal_voc", label_fields=['labels']))
 
-    WIDER_DIR = "/home/ubuntu/Datasets/WIDER"
-    WIDER_TRAIN = f"{WIDER_DIR}/wider_face_split/wider_face_train_bbx_gt.txt"
-    WIDER_TEST = f"{WIDER_DIR}/wider_face_split/wider_face_val_bbx_gt.txt"
-
-    train_records, train_end_index = wider_data_process(WIDER_TRAIN, True)
-    print(train_end_index)
-    
-    test_records, test_end_index = wider_data_process(WIDER_TEST, False)
-    print(test_end_index)
+    read_file_list(TXT_PATH)
