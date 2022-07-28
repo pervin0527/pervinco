@@ -1,6 +1,7 @@
 import os
 import cv2
 import numpy as np
+import pandas as pd
 import tensorflow as tf
 
 from glob import glob
@@ -43,7 +44,7 @@ def preprocess_image(image):
 def draw_result(idx, image, detections):
     scores = detections[:, 4]
     indices = np.where(scores > 0.7)[0]
-    print(indices, detections[indices])
+    # print(indices, detections[indices])
     detections[:, [0, 2]] = np.clip(detections[:, [0, 2]], 0, image.shape[1])
     detections[:, [1, 3]] = np.clip(detections[:, [1, 3]], 0, image.shape[0])
 
@@ -79,28 +80,46 @@ class DisplayCallback(tf.keras.callbacks.Callback):
         plot_predictions(model=prediction_model)
 
 
+def build_lrfn(lr_start=0.00001, lr_max=0.001, lr_min=0.000001, lr_rampup_epochs=150, lr_sustain_epochs=0, lr_exp_decay=0.0001):
+    def lrfn(epoch):
+        if epoch < lr_rampup_epochs:
+            lr = (lr_max - lr_start) / lr_rampup_epochs * epoch + lr_start
+        elif epoch < lr_rampup_epochs + lr_sustain_epochs:
+            lr = lr_max
+        else:
+            lr = (lr_max - lr_min) * lr_exp_decay**(epoch - lr_rampup_epochs - lr_sustain_epochs) + lr_min
+        
+        return lr
+
+    return lrfn
+
+
 if __name__ == "__main__":
-    train_data_dir = "/home/ubuntu/Datasets/WIDER/CUSTOM/augment_512"
-    test_data_dir = "/home/ubuntu/Datasets/WIDER/CUSTOM/test_512"
+    root_dir = "/home/ubuntu/Datasets/WIDER"
+    train_data_dir = f"{root_dir}/FACE2/train_512"
+    test_data_dir = f"{root_dir}/FACE2/test_512"
 
     epochs = 300
     batch_size = 64
-    max_detections = 100
+    max_detections = 10
     input_shape = (512, 512, 3)
-    classes = ["face"]
     backbone = "resnet50"
     freeze_backbone = True
-    save_dir = "/home/ubuntu/Models/CenterNet2"
+    save_dir = "/home/ubuntu/Models/CenterNet"
+    label_file = f"{root_dir}/Labels/labels.txt"
+    label_file = pd.read_csv(label_file, sep=',', index_col=False, header=None)
+    classes = label_file[0].tolist()
+    print(classes)
 
     if freeze_backbone:
         learning_rate = 0.001
-        save_name = f"{save_dir}/custom_freeze.h5"
+        save_name = f"{save_dir}/freeze.h5"
         ckpt_path = ""
 
     else:
         learning_rate = 0.0001
-        save_name = f"{save_dir}/custom_unfreeze.h5"
-        ckpt_path = f"{save_dir}/custom_freeze.h5"
+        save_name = f"{save_dir}/unfreeze.h5"
+        ckpt_path = f"{save_dir}/freeze.h5"
     
     train_generator = DataGenerator(train_data_dir,
                                     'list',
@@ -132,7 +151,7 @@ if __name__ == "__main__":
                                                             alpha=alpha)
 
     callbacks = [DisplayCallback(),
-                 tf.keras.callbacks.LearningRateScheduler(cdr),
+                 tf.keras.callbacks.LearningRateScheduler(build_lrfn()),
                  tf.keras.callbacks.TensorBoard(log_dir=f"{save_dir}", update_freq='epoch'),
                  tf.keras.callbacks.ModelCheckpoint(save_name, monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
@@ -158,7 +177,3 @@ if __name__ == "__main__":
               validation_steps = int(tf.math.ceil(test_generator.size() / batch_size).numpy()),
               callbacks = callbacks,
               epochs = epochs)
-
-    if not freeze_backbone:
-        model.load_weight(save_name, by_name=True, skip_mismatch=True)
-        tf.saved_model.save(model, f"{save_dir}/saved_model")

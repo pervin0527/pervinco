@@ -129,7 +129,7 @@ if __name__ == "__main__":
     save_dir = "/data/Models/facial_landmark_68pts_aug"
 
     batch_size = 256
-    epochs = 1500
+    epochs = 2000
     model_path = ''
     input_shape = [112, 112, 3]
     lr = 1e-3 ## 0.001
@@ -145,7 +145,7 @@ if __name__ == "__main__":
 
     optimizer = AngularGrad(method_angle="cos", learning_rate=lr)
     cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=lr,
-                                                            first_decay_steps=500,
+                                                            first_decay_steps=1000,
                                                             t_mul=1.0,
                                                             m_mul=1.0,
                                                             alpha=0.001)

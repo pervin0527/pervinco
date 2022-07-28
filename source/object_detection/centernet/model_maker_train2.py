@@ -25,8 +25,8 @@ else:
 
 if __name__ == "__main__":
     ROOT_DIR = "/home/ubuntu/Datasets/WIDER"
-    TRAIN_DIR = f"{ROOT_DIR}/FACE/train_384"
-    VALID_DIR = f"{ROOT_DIR}/FACE/test_384"
+    TRAIN_DIR = f"{ROOT_DIR}/FACE2/train_384"
+    VALID_DIR = f"{ROOT_DIR}/FACE2/test_384"
 
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
     LABEL_FILE = pd.read_csv(LABEL_FILE, sep=',', index_col=False, header=None)
@@ -40,8 +40,8 @@ if __name__ == "__main__":
     HPARAMS = {
         "optimizer" : "SGD",
         "momentum" : 0.9,                   
-        "learning_rate" : 0.008,            
-        "lr_warmup_init" : 0.0008,          
+        "learning_rate" : 0.0008,            
+        "lr_warmup_init" : 0.00008,          
         "lr_decay_method" : "cosine",       
         "lr_warmup_epoch" : 150.0,          
         "anchor_scale" : 4.0,
