@@ -98,33 +98,9 @@ def build_dataset(txt_file, is_train):
 
     return dataset, n_dataset
 
-
-def adjust_lr(epoch, lr):
-    epoch+=1
-    if epoch % 10 != 0:
-        return lr
-    else:
-        return lr * 0.5
-
-
-# def build_lrfn(lr_start=0.000001, lr_max=0.005, lr_min=0.00001, lr_rampup_epochs=2000, lr_sustain_epochs=0, lr_exp_decay=0.0001):
-def build_lrfn(lr_start=0.000001, lr_max=0.005, lr_min=0.00001, lr_rampup_epochs=500, lr_sustain_epochs=0, lr_exp_decay=0.0001):
-    # lr_max = lr_max * strategy.num_replicas_in_sync
-    def lrfn(epoch):
-        if epoch < lr_rampup_epochs:
-            lr = (lr_max - lr_start) / lr_rampup_epochs * epoch + lr_start
-        elif epoch < lr_rampup_epochs + lr_sustain_epochs:
-            lr = lr_max
-        else:
-            lr = (lr_max - lr_min) * lr_exp_decay**(epoch - lr_rampup_epochs - lr_sustain_epochs) + lr_min
-        
-        return lr
-
-    return lrfn
-
     
 if __name__ == "__main__":
-    train_dir = '/data/Datasets/WFLW/augment_data_68pts/list.txt'
+    train_dir = '/data/Datasets/WFLW/train_data_68pts/list.txt'
     test_dir = '/data/Datasets/WFLW/test_data_68pts/list.txt'
     save_dir = "/data/Models/facial_landmark_68pts_aug"
 

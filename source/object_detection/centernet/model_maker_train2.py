@@ -33,17 +33,17 @@ if __name__ == "__main__":
     CLASSES = LABEL_FILE[0].tolist()
     print(CLASSES)
     
-    EPOCHS = 300
+    EPOCHS = 700
     BATCH_SIZE = 64
     MAX_DETECTIONS = 10
 
     HPARAMS = {
         "optimizer" : "SGD",
         "momentum" : 0.9,                   
-        "learning_rate" : 0.0008,            
-        "lr_warmup_init" : 0.00008,          
+        "learning_rate" : 0.008,            
+        "lr_warmup_init" : 0.0008,          
         "lr_decay_method" : "cosine",       
-        "lr_warmup_epoch" : 150.0,          
+        "lr_warmup_epoch" : 1.0,          
         "anchor_scale" : 4.0,
         "aspect_ratios" : [1.0, 2.0, 0.5],
         "num_scales" : 3,

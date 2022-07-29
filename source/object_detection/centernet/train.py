@@ -80,30 +80,16 @@ class DisplayCallback(tf.keras.callbacks.Callback):
         plot_predictions(model=prediction_model)
 
 
-def build_lrfn(lr_start=0.00001, lr_max=0.001, lr_min=0.000001, lr_rampup_epochs=150, lr_sustain_epochs=0, lr_exp_decay=0.0001):
-    def lrfn(epoch):
-        if epoch < lr_rampup_epochs:
-            lr = (lr_max - lr_start) / lr_rampup_epochs * epoch + lr_start
-        elif epoch < lr_rampup_epochs + lr_sustain_epochs:
-            lr = lr_max
-        else:
-            lr = (lr_max - lr_min) * lr_exp_decay**(epoch - lr_rampup_epochs - lr_sustain_epochs) + lr_min
-        
-        return lr
-
-    return lrfn
-
-
 if __name__ == "__main__":
     root_dir = "/home/ubuntu/Datasets/WIDER"
     train_data_dir = f"{root_dir}/FACE2/train_512"
     test_data_dir = f"{root_dir}/FACE2/test_512"
 
-    epochs = 300
+    epochs = 800
     batch_size = 64
     max_detections = 10
     input_shape = (512, 512, 3)
-    backbone = "resnet50"
+    backbone = "resnet101"
     freeze_backbone = True
     save_dir = "/home/ubuntu/Models/CenterNet"
     label_file = f"{root_dir}/Labels/labels.txt"
@@ -143,15 +129,16 @@ if __name__ == "__main__":
 
 
     optimizer = AngularGrad(method_angle="cos", learning_rate=learning_rate)
-    alpha = learning_rate * 0.1
+    alpha = learning_rate * 0.001
     cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=learning_rate,
-                                                            first_decay_steps=epochs,
-                                                            t_mul=1.0,
-                                                            m_mul=1.0,
+                                                            first_decay_steps=200,
+                                                            t_mul=2.0,
+                                                            m_mul=0.8,
                                                             alpha=alpha)
 
     callbacks = [DisplayCallback(),
-                 tf.keras.callbacks.LearningRateScheduler(build_lrfn()),
+                 tf.keras.callbacks.LearningRateScheduler(cdr),
+                #  tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss", patience=5, verbose=1, mode="min", factor=0.9, min_delta=0.01, min_lr=1e-5),
                  tf.keras.callbacks.TensorBoard(log_dir=f"{save_dir}", update_freq='epoch'),
                  tf.keras.callbacks.ModelCheckpoint(save_name, monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
@@ -159,9 +146,14 @@ if __name__ == "__main__":
         model, prediction_model = centernet(input_shape=input_shape, num_classes=len(classes), backbone=backbone, max_detections=max_detections, mode="train", freeze_bn=freeze_backbone)
 
         if freeze_backbone:
-            for i in range(190):
+            if backbone == "resnet50":
+                end_layer = 190
+            elif backbone == "resnet101":
+                end_layer = 377
+
+            for i in range(end_layer):
                 model.layers[i].trainable = False
-                # print(model.layers[i].name)
+
         else:
             model.load_weights(ckpt_path, by_name=True, skip_mismatch=True)
 
@@ -169,7 +161,6 @@ if __name__ == "__main__":
                 layer.trainable = True
 
         model.compile(optimizer = optimizer, loss = {'centernet_loss': lambda y_true, y_pred: y_pred})
-        # prediction_model.summary()
     
     model.fit(train_generator,
               steps_per_epoch = int(tf.math.ceil(train_generator.size() / batch_size).numpy()),
