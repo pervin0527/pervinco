@@ -52,13 +52,18 @@ def bbox_refine(xmin, ymin, xmax, ymax):
     return xmin, ymin, xmax, ymax
 
 
-def inference():
-    capture = cv2.VideoCapture(-1)
+def inference(id, recording=False):
+    capture = cv2.VideoCapture(id)
     capture.set(cv2.CAP_PROP_FRAME_HEIGHT, frame_height)
     capture.set(cv2.CAP_PROP_FRAME_WIDTH, frame_width)
+
+    if recording:
+        fcc = cv2.VideoWriter_fourcc("D", "I", "V", "X")
+        out = cv2.VideoWriter("/data/Record.avi", fcc, 20, (frame_width, frame_height))
     
     while cv2.waitKey(33) != ord('q'):
         ret, frame = capture.read()
+        frame = cv2.resize(frame, (frame_width, frame_height))
         bboxes = get_detect_result(frame)
 
         result_frame = frame.copy()
@@ -99,7 +104,12 @@ def inference():
             for (x, y) in landmarks.astype(np.int32):
                 cv2.circle(result_frame, (xmin + x, ymin + y), 2, (255, 255, 0), thickness=-1)
 
-        result_frame = cv2.flip(result_frame, 1)
+        if id == -1:
+            result_frame = cv2.flip(result_frame, 1)
+
+        if recording:
+            out.write(result_frame)
+
         cv2.imshow("result", result_frame)
 
     capture.release()
@@ -113,6 +123,8 @@ if __name__ == "__main__":
     landmark_model = tf.saved_model.load("/data/Models/facial_landmark_68pts_aug/saved_model")
 
     detection_shape = (384, 384, 3)
-    detection_model = tf.saved_model.load("/data/Models/WIDER-FACE-300/saved_model")
+    detection_model = tf.saved_model.load("/data/Models/FACE_DETECTION/WIDER-FACE-300/saved_model")
 
-    inference()
+    # inference(-1)
+    # inference("/data/Datasets/300VW_Dataset_2015_12_14/original/540/vid.avi", recording=True)
+    inference("/data/test_image/test3.mp4", recording=True)
