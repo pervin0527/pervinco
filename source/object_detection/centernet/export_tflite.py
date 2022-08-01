@@ -1,23 +1,24 @@
 import os
 import tensorflow as tf
-from model import PFLD
+from model import centernet
 
-def load_model(ckpt_path):
-    model = PFLD()
-    model.built = True
-    model.load_weights(ckpt_path, by_name=True, skip_mismatch=True)
+
+def load_model(ckpt):
+    model = centernet(input_shape=input_shape, num_classes=len(classes), backbone=backbone, max_detections=max_detections, mode="predict")
+    model.load_weights(ckpt, by_name=True, skip_mismatch=True)
 
     return model
 
 
 if __name__ == "__main__":
-    input_shape = [112, 112, 3]
-    save_path = "/data/Models/facial_landmark_68pts_aug"
-    ckpt_path = f"{save_path}/pfld.h5"
-    
-    model = load_model(ckpt_path)
-    model.build = True
-    model.summary()
+    input_shape = (512, 512, 3)
+    classes = ["face"]
+    backbone = "resnet50"
+    max_detections = 50
+    ckpt = "/data/Models/CenterNet/unfreeze.h5"
+    save_path = "/data/Models/CenterNet"
+
+    model = load_model(ckpt)
 
     ### SAVED_MODEL
     run_model = tf.function(lambda x : model(x))

@@ -55,7 +55,7 @@ def draw_result(idx, image, detections):
             xmin, ymin, xmax, ymax, score, label = int(result[0]), int(result[1]), int(result[2]), int(result[3]), result[4], int(result[5])
             cv2.rectangle(result_image, (xmin, ymin), (xmax, ymax), (0, 0, 255))
 
-        cv2.imwrite("./epoch_end/result.jpg", result_image)
+        cv2.imwrite(f"./epoch_end/result_{idx}.jpg", result_image)
 
 
 def plot_predictions(model):
@@ -81,17 +81,18 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 
 if __name__ == "__main__":
-    root_dir = "/home/ubuntu/Datasets/WIDER"
-    train_data_dir = f"{root_dir}/FACE2/train_512"
+    root_dir = "/data/Datasets/WIDER"
+    train_data_dir = f"{root_dir}/FACE2/augment_512"
+
     test_data_dir = f"{root_dir}/FACE2/test_512"
 
-    epochs = 800
-    batch_size = 64
-    max_detections = 10
+    epochs = 200
+    batch_size = 32
+    max_detections = 50
     input_shape = (512, 512, 3)
-    backbone = "resnet101"
-    freeze_backbone = True
-    save_dir = "/home/ubuntu/Models/CenterNet"
+    backbone = "resnet50"
+    freeze_backbone = False
+    save_dir = "/data/Models/CenterNet"
     label_file = f"{root_dir}/Labels/labels.txt"
     label_file = pd.read_csv(label_file, sep=',', index_col=False, header=None)
     classes = label_file[0].tolist()
@@ -129,7 +130,7 @@ if __name__ == "__main__":
 
 
     optimizer = AngularGrad(method_angle="cos", learning_rate=learning_rate)
-    alpha = learning_rate * 0.001
+    alpha = learning_rate * 0.01
     cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=learning_rate,
                                                             first_decay_steps=200,
                                                             t_mul=2.0,
@@ -137,8 +138,8 @@ if __name__ == "__main__":
                                                             alpha=alpha)
 
     callbacks = [DisplayCallback(),
-                 tf.keras.callbacks.LearningRateScheduler(cdr),
-                #  tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss", patience=5, verbose=1, mode="min", factor=0.9, min_delta=0.01, min_lr=1e-5),
+                #  tf.keras.callbacks.LearningRateScheduler(cdr),
+                 tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss", patience=5, verbose=1, mode="min", factor=0.9, min_delta=0.01, min_lr=1e-5),
                  tf.keras.callbacks.TensorBoard(log_dir=f"{save_dir}", update_freq='epoch'),
                  tf.keras.callbacks.ModelCheckpoint(save_name, monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 

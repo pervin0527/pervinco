@@ -166,7 +166,7 @@ def vw_data_process():
 
     annotations = sorted(glob(f"{annot_dir}/*.txt"))
     random.shuffle(annotations)
-    split = [annotations[:10086], annotations[-50:]]
+    split = [annotations[:26086], annotations[-50:]]
     save_dirs = [f"{WIDER_DIR}/{FOLDER}/train_{IMG_SIZE}", f"{WIDER_DIR}/{FOLDER}/test_{IMG_SIZE}"]
     
     for i, dataset in enumerate(split):
@@ -214,7 +214,7 @@ if __name__ == "__main__":
         A.Resize(IMG_SIZE, IMG_SIZE, always_apply=True)
     ], bbox_params=A.BboxParams(format="pascal_voc", label_fields=['labels']))
 
-    WIDER_DIR = "/home/ubuntu/Datasets/WIDER"
+    WIDER_DIR = "/data/Datasets/WIDER"
     WIDER_TRAIN = f"{WIDER_DIR}/wider_face_split/wider_face_train_bbx_gt.txt"
     WIDER_TEST = f"{WIDER_DIR}/wider_face_split/wider_face_val_bbx_gt.txt"
 
@@ -222,5 +222,5 @@ if __name__ == "__main__":
     test_end_index = wider_data_process(WIDER_TEST, False)
     print(train_end_index, test_end_index)
 
-    VW_DIR = "/home/ubuntu/Datasets/300VW_Dataset_2015_12_14/total"
+    VW_DIR = "/data/Datasets/300VW_Dataset_2015_12_14/total"
     vw_data_process()

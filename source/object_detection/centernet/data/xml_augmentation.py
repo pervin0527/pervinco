@@ -298,18 +298,18 @@ def read_file_list(path):
                     cv2.imwrite(f"{SAVE_DIR}/img_with_bbox/{step}_{index:>06}.jpg", img_with_bbox)
                     total_file_num += 1
 
-            if total_file_num == 38400:
-                exit()
+            # if total_file_num == 38400:
+            #     exit()
 
 
 if __name__ == "__main__":
     CLASSES = ["face"]
     VISUALIZE = False
-    IMG_SIZE = 384
-    STEPS = 10
-    BG_DIR = "/home/ubuntu/Datasets/Mixup_background"
+    IMG_SIZE = 512
+    STEPS = 2
+    BG_DIR = "/data/Datasets/Mixup_background"
 
-    DATA_DIR = f"/home/ubuntu/Datasets/WIDER/CUSTOM"
+    DATA_DIR = f"/data/Datasets/WIDER/FACE2"
     SAVE_DIR = f"{DATA_DIR}/augment_{IMG_SIZE}"
     IMG_PATH = f"{DATA_DIR}/train_{IMG_SIZE}/images"
     ANNOT_PATH = f"{DATA_DIR}/train_{IMG_SIZE}/annotations"
