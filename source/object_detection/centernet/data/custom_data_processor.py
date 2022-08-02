@@ -2,7 +2,9 @@ import os
 import xml.etree.ElementTree as ET
 
 def convert_voc_annotation(data_path, folder, txt_file, annot_path, use_difficul_bbox=True):
-    data_list_file = f"{data_path}/{folder}/{txt_file}.txt"
+    data_list_file = f"{data_path}/{folder}/{txt_file}"
+    annot_path = f"{data_path}/{folder}/annot.txt"
+
     with open(data_list_file, "r") as f:
         lines = f.readlines()
         files = [line.strip() for line in lines]
@@ -38,9 +40,7 @@ def convert_voc_annotation(data_path, folder, txt_file, annot_path, use_difficul
 
 if __name__ == "__main__":
     classes = ["face"]
-    data_path = "/data/Datasets/WIDER/FACE2"
-    train_annotation = "./custom_train.txt"
-    test_annotation = "./custom_test.txt"
+    data_path = "/data/Datasets/WIDER/FACE"
 
-    train_data = convert_voc_annotation(data_path, "train_512", "list", train_annotation, False)
-    test_data = convert_voc_annotation(data_path, "test_512", "list", test_annotation, False)
+    train_data = convert_voc_annotation(data_path, "train_512", "list.txt", False)
+    test_data = convert_voc_annotation(data_path, "test_512", "list.txt", False)
