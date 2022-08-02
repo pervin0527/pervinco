@@ -3,8 +3,8 @@ import tensorflow as tf
 from model import CenterNet
 from data_loader import DataGenerator
 
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+# os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+# os.environ["CUDA_VISIBLE_DEVICES"]="0"
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if len(gpus) > 1:
@@ -27,12 +27,13 @@ else:
 
 if __name__ == "__main__":
     epochs = 500
-    batch_size = 32
+    batch_size = 64
     classes = ["face"]
     max_detections = 10
     backbone = "resnet18"
     learning_rate = 0.0001
     input_shape = (512, 512, 3)
+    save_dir = "/data/Models/FACE_DETECTION/CenterNet"
     
     train_txt = "./data/custom_train.txt"
     test_txt = "./data/custom_test.txt"
@@ -43,18 +44,24 @@ if __name__ == "__main__":
     test_dataset = DataGenerator(test_txt, classes, batch_size, (input_shape[0], input_shape[1]), max_detections)
     test_steps = int(tf.math.ceil(len(test_dataset) / batch_size).numpy())
 
-    model = CenterNet(inputs=input_shape, num_classes=len(classes), backbone=backbone)
-    
     optimizer = tf.keras.optimizers.Adam()
-    model.compile(optimizer=optimizer)
     cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=learning_rate,
                                                             first_decay_steps=200,
                                                             t_mul=2.0,
                                                             m_mul=0.8,
                                                             alpha=learning_rate * 0.1)
 
+    callbacks = [tf.keras.callbacks.LearningRateScheduler(cdr),
+                 tf.keras.callbacks.TensorBoard(log_dir=f"{save_dir}/TensorBoard", update_freq='epoch'),
+                 tf.keras.callbacks.ModelCheckpoint(save_dir, monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
+
+    with strategy.scope():
+        model = CenterNet(inputs=input_shape, num_classes=len(classes), backbone=backbone)
+        model.compile(optimizer=optimizer)
+    
     model.fit(train_dataset,
               steps_per_epoch=train_steps,
+              epochs = epochs,
               validation_data=test_dataset,
               validation_steps=test_steps,
-              epochs = epochs)
+              callbacks=callbacks)
