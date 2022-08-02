@@ -1,154 +1,72 @@
 import os
 import cv2
+import math
 import numpy as np
-import xml.etree.ElementTree as ET
+import tensorflow as tf
+from data_utils import image_preporcess, gaussian_radius, draw_umich_gaussian
 
-from six import raise_from
-from data_generator import Generator
-
-
-def _findNode(parent, name, debug_name=None, parse=None):
-    if debug_name is None:
-        debug_name = name
-
-    result = parent.find(name)
-    if result is None:
-        raise ValueError('missing element \'{}\''.format(debug_name))
-    if parse is not None:
-        try:
-            return parse(result.text)
-        except ValueError as e:
-            raise_from(ValueError('illegal value for \'{}\': {}'.format(debug_name, e)), None)
-    return result
-
-
-class DataGenerator(Generator):
-    def __init__(
-            self,
-            data_dir,
-            set_name,
-            classes,
-            image_extension='.jpg',
-            skip_truncated=False,
-            skip_difficult=False,
-            **kwargs
-    ):
-        self.data_dir = data_dir
-        self.set_name = set_name
+class DataGenerator(tf.keras.utils.Sequence):
+    def __init__(self, txt_file, classes, batch_size, input_shape, max_detections):
+        self.total_lines = open(txt_file, "r").readlines()
         self.classes = classes
-        self.image_names = [l.strip().split(None, 1)[0] for l in
-                            open(os.path.join(data_dir, 'list.txt')).readlines()]
-        self.image_extension = image_extension
-        self.skip_truncated = skip_truncated
-        self.skip_difficult = skip_difficult
-        self.labels = {}
-        # for key, value in self.classes.items():
-        #     self.labels[value] = key
-        for index, label in enumerate(classes):
-            self.labels[index] = label
+        self.batch_size = batch_size
+        self.input_shape = input_shape
+        self.max_detections = max_detections
 
-        super(DataGenerator, self).__init__(**kwargs)
+    def __getitem__(self, index):
+        batch_image = np.zeros((self.batch_size, self.input_shape[0], self.input_shape[1], 3), dtype=np.float32)
+        batch_hm = np.zeros((self.batch_size, self.input_shape[0] // 4, self.input_shape[1] // 4, len(self.classes)), dtype=np.float32)
+        batch_wh = np.zeros((self.batch_size, self.max_detections, 2), dtype=np.float32)
+        batch_reg = np.zeros((self.batch_size, self.max_detections, 2), dtype=np.float32)
+        batch_reg_mask = np.zeros((self.batch_size, self.max_detections), dtype=np.float32)
+        batch_ind = np.zeros((self.batch_size, self.max_detections), dtype=np.float32)
 
-    def size(self):
-        """
-        Size of the dataset.
-        """
-        return len(self.image_names)
+        for num, i in enumerate(range(index * self.batch_size, (index + 1) * self.batch_size)):
+            i = i % len(self.total_lines)
+            image, hm, wh, reg, reg_mask, ind = self.process_data(self.total_lines[i], self.input_shape)
+            batch_image[num, :, :, :] = image
+            batch_hm[num, :, :, :] = hm
+            batch_wh[num, :, :] = wh
+            batch_reg[num, :, :] = reg
+            batch_reg_mask[num, :] = reg_mask
+            batch_ind[num, :] = ind
 
-    def num_classes(self):
-        """
-        Number of classes in the dataset.
-        """
-        return len(self.classes)
+        # return batch_image, batch_hm, batch_wh, batch_reg, batch_reg_mask, batch_ind
+        # return [batch_image, batch_hm, batch_wh, batch_reg, batch_reg_mask, batch_ind], np.zeros((self.batch_size,))
+        return batch_image, [batch_hm, batch_wh, batch_reg, batch_reg_mask, batch_ind]
 
-    def has_label(self, label):
-        """
-        Return True if label is a known label.
-        """
-        return label in self.labels
+    def process_data(self, line, input_shape):
+        line = line.strip().split(' ')
 
-    def has_name(self, name):
-        """
-        Returns True if name is a known class.
-        """
-        return name in self.classes
+        image = np.array(cv2.imread(line[0]))
+        labels = np.array([list(map(lambda x: int(float(x)), box.split(','))) for box in line[1:]])
+        image, labels = image_preporcess(np.copy(image), [input_shape[0], input_shape[1]], np.copy(labels))
 
-    def name_to_label(self, name):
-        return self.classes.index(name)
+        output_h, output_w = input_shape[0] // 4, input_shape[1] // 4
+        hm = np.zeros((output_h, output_w, len(self.classes)), dtype=np.float32)
+        wh = np.zeros((self.max_detections, 2), dtype=np.float32)
+        reg = np.zeros((self.max_detections, 2), dtype=np.float32)
+        ind = np.zeros((self.max_detections), dtype=np.float32)
+        reg_mask = np.zeros((self.max_detections), dtype=np.float32)
 
-    def num_classes(self):
-        return len(self.classes)
+        for idx, label in enumerate(labels):
+            bbox = label[:4] / 4
+            class_id = label[4]
+            
+            h, w = bbox[3] - bbox[1], bbox[2] - bbox[0]
+            radius = gaussian_radius((math.ceil(h), math.ceil(w)))
+            radius = max(0, int(radius))
 
-    def image_aspect_ratio(self, image_index):
-        """
-        Compute the aspect ratio for an image with image_index.
-        """
-        path = os.path.join(self.data_dir, 'images', self.image_names[image_index] + self.image_extension)
-        image = cv2.imread(path)
-        h, w = image.shape[:2]
-        return float(w) / float(h)
+            ct = np.array([(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2], dtype=np.float32)
+            ct_int = ct.astype(np.int32)
 
-    def load_image(self, image_index):
-        """
-        Load an image at the image_index.
-        """
-        path = os.path.join(self.data_dir, 'images', self.image_names[image_index] + self.image_extension)
-        image = cv2.imread(path)
-        return image
+            draw_umich_gaussian(hm[:, :, class_id], ct_int, radius)
+            wh[idx] = 1. * w, 1. * h
+            ind[idx] = ct_int[1] * output_w + ct_int[0]
+            reg[idx] = ct - ct_int
+            reg_mask[idx] = 1
 
-    def __parse_annotation(self, element):
-        """
-        Parse an annotation given an XML element.
-        """
-        truncated = _findNode(element, 'truncated', parse=int)
-        difficult = _findNode(element, 'difficult', parse=int)
+        return image, hm, wh, reg, reg_mask, ind
 
-        class_name = _findNode(element, 'name').text
-        if class_name not in self.classes:
-            raise ValueError('class name \'{}\' not found in classes: {}'.format(class_name, list(self.classes.keys())))
-
-        box = np.zeros((4,))
-        label = self.name_to_label(class_name)
-
-        bndbox = _findNode(element, 'bndbox')
-        box[0] = _findNode(bndbox, 'xmin', 'bndbox.xmin', parse=float)
-        box[1] = _findNode(bndbox, 'ymin', 'bndbox.ymin', parse=float)
-        box[2] = _findNode(bndbox, 'xmax', 'bndbox.xmax', parse=float)
-        box[3] = _findNode(bndbox, 'ymax', 'bndbox.ymax', parse=float)
-
-        return truncated, difficult, box, label
-
-    def __parse_annotations(self, xml_root):
-        """
-        Parse all annotations under the xml_root.
-        """
-        annotations = {'labels': np.empty((0,), dtype=np.int32),
-                       'bboxes': np.empty((0, 4))}
-        for i, element in enumerate(xml_root.iter('object')):
-            try:
-                truncated, difficult, box, label = self.__parse_annotation(element)
-            except ValueError as e:
-                raise_from(ValueError('could not parse object #{}: {}'.format(i, e)), None)
-
-            if truncated and self.skip_truncated:
-                continue
-            if difficult and self.skip_difficult:
-                continue
-
-            annotations['bboxes'] = np.concatenate([annotations['bboxes'], [box]])
-            annotations['labels'] = np.concatenate([annotations['labels'], [label]])
-
-        return annotations
-
-    def load_annotations(self, image_index):
-        """
-        Load annotations for an image_index.
-        """
-        filename = self.image_names[image_index] + '.xml'
-        try:
-            tree = ET.parse(os.path.join(self.data_dir, 'annotations', filename))
-            return self.__parse_annotations(tree.getroot())
-        except ET.ParseError as e:
-            raise_from(ValueError('invalid annotations file: {}: {}'.format(filename, e)), None)
-        except ValueError as e:
-            raise_from(ValueError('invalid annotations file: {}: {}'.format(filename, e)), None)
+    def __len__(self):
+        return len(self.total_lines)

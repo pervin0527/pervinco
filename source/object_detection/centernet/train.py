@@ -1,16 +1,10 @@
 import os
-import cv2
-import numpy as np
-import pandas as pd
 import tensorflow as tf
-
-from glob import glob
-from model import centernet
-from optimizer import AngularGrad
+from model import CenterNet
 from data_loader import DataGenerator
-from IPython.display import clear_output
 
-
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if len(gpus) > 1:
@@ -31,141 +25,36 @@ else:
         print(e)
 
 
-def preprocess_image(image):
-    image = image.astype(np.float32)
-
-    image[..., 0] -= 103.939
-    image[..., 1] -= 116.779
-    image[..., 2] -= 123.68
-
-    return image
-
-
-def draw_result(idx, image, detections):
-    scores = detections[:, 4]
-    indices = np.where(scores > 0.7)[0]
-    # print(indices, detections[indices])
-    detections[:, [0, 2]] = np.clip(detections[:, [0, 2]], 0, image.shape[1])
-    detections[:, [1, 3]] = np.clip(detections[:, [1, 3]], 0, image.shape[0])
-
-    if len(indices):
-        result_image = image.copy()
-        result_image = cv2.resize(result_image, (input_shape[0] // 4, input_shape[1] // 4))
-        for result in detections[indices]:
-            xmin, ymin, xmax, ymax, score, label = int(result[0]), int(result[1]), int(result[2]), int(result[3]), result[4], int(result[5])
-            cv2.rectangle(result_image, (xmin, ymin), (xmax, ymax), (0, 0, 255))
-
-        cv2.imwrite(f"./epoch_end/result_{idx}.jpg", result_image)
-
-
-def plot_predictions(model):
-    for idx, file in enumerate(sorted(glob("./samples/*"))):
-        image = cv2.imread(file)
-        image = cv2.resize(image, (input_shape[0], input_shape[1]))
-        input_tensor = preprocess_image(image)
-        # input_tensor = (image / 127.5) - 1
-        input_tensor = np.expand_dims(input_tensor, axis=0)
-
-        prediction = model.predict(input_tensor, verbose=0)[0]
-        draw_result(idx, image, prediction)
-
-
-class DisplayCallback(tf.keras.callbacks.Callback):
-    def on_epoch_end(self, epoch, logs=None):
-        clear_output(wait=True)
-
-        if not os.path.isdir("./epoch_end"):
-            os.makedirs("./epoch_end")
-
-        plot_predictions(model=prediction_model)
-
-
 if __name__ == "__main__":
-    root_dir = "/data/Datasets/WIDER"
-    train_data_dir = f"{root_dir}/FACE2/augment_512"
-
-    test_data_dir = f"{root_dir}/FACE2/test_512"
-
-    epochs = 200
+    epochs = 500
     batch_size = 32
-    max_detections = 50
+    classes = ["face"]
+    max_detections = 10
+    backbone = "resnet18"
+    learning_rate = 0.0001
     input_shape = (512, 512, 3)
-    backbone = "resnet50"
-    freeze_backbone = False
-    save_dir = "/data/Models/CenterNet"
-    label_file = f"{root_dir}/Labels/labels.txt"
-    label_file = pd.read_csv(label_file, sep=',', index_col=False, header=None)
-    classes = label_file[0].tolist()
-    print(classes)
-
-    if freeze_backbone:
-        learning_rate = 0.001
-        save_name = f"{save_dir}/freeze.h5"
-        ckpt_path = ""
-
-    else:
-        learning_rate = 0.0001
-        save_name = f"{save_dir}/unfreeze.h5"
-        ckpt_path = f"{save_dir}/freeze.h5"
     
-    train_generator = DataGenerator(train_data_dir,
-                                    'list',
-                                    classes=classes,
-                                    skip_difficult=True,
-                                    skip_truncated=True,
-                                    multi_scale=False,
-                                    batch_size=batch_size,
-                                    shuffle_groups=False,
-                                    input_size=input_shape[0])
+    train_txt = "./data/custom_train.txt"
+    test_txt = "./data/custom_test.txt"
 
-    test_generator = DataGenerator(test_data_dir,
-                                   'list',
-                                   classes=classes,
-                                   skip_difficult=True,
-                                   skip_truncated=True,
-                                   multi_scale=False,
-                                   batch_size=batch_size,
-                                   shuffle_groups=False,
-                                   input_size=input_shape[0])
+    train_dataset = DataGenerator(train_txt, classes, batch_size, (input_shape[0], input_shape[1]), max_detections)
+    train_steps = int(tf.math.ceil(len(train_dataset) / batch_size).numpy())
 
+    test_dataset = DataGenerator(test_txt, classes, batch_size, (input_shape[0], input_shape[1]), max_detections)
+    test_steps = int(tf.math.ceil(len(test_dataset) / batch_size).numpy())
 
-    optimizer = AngularGrad(method_angle="cos", learning_rate=learning_rate)
-    alpha = learning_rate * 0.01
+    model = CenterNet(inputs=input_shape, num_classes=len(classes), backbone=backbone)
+    
+    optimizer = tf.keras.optimizers.Adam()
+    model.compile(optimizer=optimizer)
     cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=learning_rate,
                                                             first_decay_steps=200,
                                                             t_mul=2.0,
                                                             m_mul=0.8,
-                                                            alpha=alpha)
+                                                            alpha=learning_rate * 0.1)
 
-    callbacks = [DisplayCallback(),
-                #  tf.keras.callbacks.LearningRateScheduler(cdr),
-                 tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss", patience=5, verbose=1, mode="min", factor=0.9, min_delta=0.01, min_lr=1e-5),
-                 tf.keras.callbacks.TensorBoard(log_dir=f"{save_dir}", update_freq='epoch'),
-                 tf.keras.callbacks.ModelCheckpoint(save_name, monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
-
-    with strategy.scope():
-        model, prediction_model = centernet(input_shape=input_shape, num_classes=len(classes), backbone=backbone, max_detections=max_detections, mode="train", freeze_bn=freeze_backbone)
-
-        if freeze_backbone:
-            if backbone == "resnet50":
-                end_layer = 190
-            elif backbone == "resnet101":
-                end_layer = 377
-
-            for i in range(end_layer):
-                model.layers[i].trainable = False
-
-        else:
-            model.load_weights(ckpt_path, by_name=True, skip_mismatch=True)
-
-            for layer in model.layers:
-                layer.trainable = True
-
-        model.compile(optimizer = optimizer, loss = {'centernet_loss': lambda y_true, y_pred: y_pred})
-    
-    model.fit(train_generator,
-              steps_per_epoch = int(tf.math.ceil(train_generator.size() / batch_size).numpy()),
-              validation_data = test_generator,
-              validation_steps = int(tf.math.ceil(test_generator.size() / batch_size).numpy()),
-              callbacks = callbacks,
+    model.fit(train_dataset,
+              steps_per_epoch=train_steps,
+              validation_data=test_dataset,
+              validation_steps=test_steps,
               epochs = epochs)
