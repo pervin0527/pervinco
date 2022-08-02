@@ -53,7 +53,7 @@ if __name__ == "__main__":
 
     callbacks = [tf.keras.callbacks.LearningRateScheduler(cdr),
                  tf.keras.callbacks.TensorBoard(log_dir=f"{save_dir}/TensorBoard", update_freq='epoch'),
-                 tf.keras.callbacks.ModelCheckpoint(save_dir, monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
+                 tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/ckpt.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
     with strategy.scope():
         model = CenterNet(inputs=input_shape, num_classes=len(classes), backbone=backbone)

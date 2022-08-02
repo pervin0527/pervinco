@@ -108,3 +108,56 @@ class CenterNet(tf.keras.Model):
     @property
     def metrics(self):
         return [self.loss_tracker]
+
+
+def nms(heat, kernel=3):
+    hmax = tf.keras.layers.MaxPooling2D((kernel, kernel), strides=1, padding='same')(heat)
+    heat = tf.where(tf.equal(hmax, heat), heat, tf.zeros_like(heat))
+
+    return heat
+
+
+def topk(hm, max_detections):
+    hm = nms(hm)
+    b, h, w, c = tf.shape(hm)[0], tf.shape(hm)[1], tf.shape(hm)[2], tf.shape(hm)[3]
+    hm = tf.reshape(hm, (b, -1))
+    scores, indices = tf.math.top_k(hm, k=max_detections, sorted=True)
+
+    class_ids = indices % c
+    xs = indices // c % w
+    ys = indices // c // w
+    indices = ys * w + xs
+    
+    return scores, indices, class_ids, xs, ys
+
+
+def decode(hm, wh, reg, max_detections):
+    scores, indices, class_ids, xs, ys = topk(hm, max_detections=max_detections)
+    b = tf.shape(hm)[0]
+    
+    reg = tf.reshape(reg, [b, -1, 2])
+    wh = tf.reshape(wh, [b, -1, 2])
+    length = tf.shape(wh)[1]
+
+    batch_idx = tf.expand_dims(tf.range(0, b), 1)
+    batch_idx = tf.tile(batch_idx, (1, max_detections))
+    full_indices = tf.reshape(batch_idx, [-1]) * tf.cast(length, tf.int32) + tf.reshape(indices, [-1])
+                    
+    topk_reg = tf.gather(tf.reshape(reg, [-1,2]), full_indices)
+    topk_reg = tf.reshape(topk_reg, [b, -1, 2])
+    
+    topk_wh = tf.gather(tf.reshape(wh, [-1,2]), full_indices)
+    topk_wh = tf.reshape(topk_wh, [b, -1, 2])
+
+    topk_cx = tf.cast(tf.expand_dims(xs, axis=-1), tf.float32) + topk_reg[..., 0:1]
+    topk_cy = tf.cast(tf.expand_dims(ys, axis=-1), tf.float32) + topk_reg[..., 1:2]
+
+    topk_x1, topk_y1 = topk_cx - topk_wh[..., 0:1] / 2, topk_cy - topk_wh[..., 1:2] / 2
+    topk_x2, topk_y2 = topk_cx + topk_wh[..., 0:1] / 2, topk_cy + topk_wh[..., 1:2] / 2
+    
+    scores = tf.expand_dims(scores, axis=-1)
+    class_ids = tf.cast(tf.expand_dims(class_ids, axis=-1), tf.float32)
+
+    detections = tf.concat([topk_x1, topk_y1, topk_x2, topk_y2, scores, class_ids], axis=-1)
+
+    return detections
