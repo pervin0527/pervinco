@@ -30,13 +30,13 @@ if __name__ == "__main__":
     batch_size = 64
     classes = ["face"]
     max_detections = 10
-    backbone = "resnet18"
+    backbone = "resnet101"
     learning_rate = 0.0001
     input_shape = (512, 512, 3)
-    save_dir = "/data/Models/FACE_DETECTION/CenterNet"
+    save_dir = "/home/ubuntu/Models/FACE_DETECTION/CenterNet"
     
-    train_txt = "/data/Datasets/WIDER/FACE/annot.txt"
-    test_txt = "/data/Datasets/WIDER/FACE/annot.txt"
+    train_txt = "/home/ubuntu/Datasets/WIDER/FACE/train_512/annot.txt"
+    test_txt = "/home/ubuntu/Datasets/WIDER/FACE/test_512/annot.txt"
 
     train_dataset = DataGenerator(train_txt, classes, batch_size, (input_shape[0], input_shape[1]), max_detections)
     train_steps = int(tf.math.ceil(len(train_dataset) / batch_size).numpy())

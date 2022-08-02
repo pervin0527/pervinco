@@ -35,7 +35,7 @@ def centernet(input_shape, num_classes, backbone='resnet18'):
     
     if backbone == "resnet18":
         c2, c3, c4, c5 = resnet18()(input_layer)
-    elif backbone == "rensnet101":
+    elif backbone == "resnet101":
         c2, c3, c4, c5 = resnet101()(input_layer)
 
     p5 = conv_bn_act(c5, filters=128, kernel_size=[1, 1])
