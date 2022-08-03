@@ -3,8 +3,8 @@ import tensorflow as tf
 from model import CenterNet
 from data_loader import DataGenerator
 
-# os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-# os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if len(gpus) > 1:
@@ -27,11 +27,11 @@ else:
 
 if __name__ == "__main__":
     epochs = 500
-    batch_size = 64
+    batch_size = 32
     classes = ["face"]
     max_detections = 10
-    backbone = "resnet101"
-    learning_rate = 0.0001
+    backbone = "resnet18"
+    learning_rate = 0.001
     input_shape = (512, 512, 3)
     save_dir = "/home/ubuntu/Models/FACE_DETECTION/CenterNet"
     
@@ -49,7 +49,7 @@ if __name__ == "__main__":
                                                             first_decay_steps=200,
                                                             t_mul=2.0,
                                                             m_mul=0.8,
-                                                            alpha=learning_rate * 0.1)
+                                                            alpha=learning_rate * 0.01)
 
     callbacks = [tf.keras.callbacks.LearningRateScheduler(cdr),
                  tf.keras.callbacks.TensorBoard(log_dir=f"{save_dir}/TensorBoard", update_freq='epoch'),
