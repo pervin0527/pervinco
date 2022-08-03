@@ -83,7 +83,7 @@ def upsampling(inputs,  method="deconv"):
     return output
 
 
-def centernet(input_shape, num_classes, backbone='resnet18'):
+def centernet(input_shape, num_classes, max_detections, backbone='resnet18'):
     input_layer = tf.keras.Input(shape=input_shape)
     
     if backbone == "resnet18":
@@ -116,31 +116,34 @@ def centernet(input_shape, num_classes, backbone='resnet18'):
     y3 =  conv_bn_act(features, filters=64, kernel_size=[3, 3])
     y3 = tf.keras.layers.Conv2D(2, 1, 1, padding='valid', activation = None, name='y3')(y3)
 
-    model = tf.keras.models.Model(inputs=input_layer, outputs=[y1, y2, y3])
+    detections = tf.keras.layers.Lambda(lambda x: decode(*x, max_detections=max_detections))([y1, y2, y3])
+
+    model = tf.keras.models.Model(inputs=input_layer, outputs=[[y1, y2, y3], detections])
 
     return model
 
 
 class CenterNet(tf.keras.Model):
-    def __init__(self, inputs, num_classes, backbone):
+    def __init__(self, inputs, num_classes, max_detections, backbone):
         super(CenterNet, self).__init__()
         self.inputs = inputs
         self.num_classes = num_classes
         self.backbone = backbone
+        self.max_detections = max_detections
 
-        self.model = centernet(input_shape=self.inputs, num_classes=self.num_classes, backbone=self.backbone)
+        self.model = centernet(input_shape=self.inputs, num_classes=self.num_classes, max_detections=self.max_detections, backbone=self.backbone)
         self.loss_tracker = tf.keras.metrics.Mean(name="loss")
 
-    def call(self, x, training=False):
-        hm_pred, wh_pred, reg_pred = self.model(x)
+    def call(self, x):
+        [hm_pred, wh_pred, reg_pred], detections = self.model(x)
 
-        return hm_pred, wh_pred, reg_pred
+        return hm_pred, wh_pred, reg_pred, detections
 
     def train_step(self, data):
         image, hm_gt, wh_gt, reg_gt, reg_mask, ind = data[0], data[1][0], data[1][1], data[1][2], data[1][3], data[1][4]
 
         with tf.GradientTape() as tape:
-            hm_pred, wh_pred, reg_pred = self(image, training=True)
+            hm_pred, wh_pred, reg_pred, detections = self(image, training=True)
             loss = compute_loss(hm_pred, wh_pred, reg_pred, hm_gt, wh_gt, reg_gt, reg_mask, ind)
 
         trainable_vars = self.trainable_variables
@@ -152,7 +155,7 @@ class CenterNet(tf.keras.Model):
 
     def test_step(self, data):
         image, hm_gt, wh_gt, reg_gt, reg_mask, ind = data[0], data[1][0], data[1][1], data[1][2], data[1][3], data[1][4]
-        hm_pred, wh_pred, reg_pred = self(image)
+        hm_pred, wh_pred, reg_pred, detections = self(image)
         loss = compute_loss(hm_pred, wh_pred, reg_pred, hm_gt, wh_gt, reg_gt, reg_mask, ind)
 
         self.loss_tracker.update_state(loss)

@@ -33,10 +33,10 @@ if __name__ == "__main__":
     backbone = "resnet18"
     learning_rate = 0.001
     input_shape = (512, 512, 3)
-    save_dir = "/home/ubuntu/Models/FACE_DETECTION/CenterNet"
+    save_dir = "/data/Models/FACE_DETECTION/CenterNet"
     
-    train_txt = "/home/ubuntu/Datasets/WIDER/FACE/train_512/annot.txt"
-    test_txt = "/home/ubuntu/Datasets/WIDER/FACE/test_512/annot.txt"
+    train_txt = "/data/Datasets/WIDER/FACE/train_512/annot.txt"
+    test_txt = "/data/Datasets/WIDER/FACE/test_512/annot.txt"
 
     train_dataset = DataGenerator(train_txt, classes, batch_size, (input_shape[0], input_shape[1]), max_detections)
     train_steps = int(tf.math.ceil(len(train_dataset) / batch_size).numpy())
@@ -56,7 +56,7 @@ if __name__ == "__main__":
                  tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/ckpt.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
     with strategy.scope():
-        model = CenterNet(inputs=input_shape, num_classes=len(classes), backbone=backbone)
+        model = CenterNet(inputs=input_shape, num_classes=len(classes), max_detections=max_detections, backbone=backbone)
         model.compile(optimizer=optimizer)
     
     model.fit(train_dataset,
