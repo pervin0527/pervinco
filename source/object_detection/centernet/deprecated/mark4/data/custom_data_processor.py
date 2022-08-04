@@ -40,7 +40,7 @@ def convert_voc_annotation(data_path, folder, txt_file, annot_path, use_difficul
 
 if __name__ == "__main__":
     classes = ["face"]
-    data_path = "/home/ubuntu/Datasets/WIDER/FACE"
+    data_path = "/data/Datasets/WIDER/FACE"
 
     train_data = convert_voc_annotation(data_path, "train_512", "list.txt", False)
     test_data = convert_voc_annotation(data_path, "test_512", "list.txt", False)

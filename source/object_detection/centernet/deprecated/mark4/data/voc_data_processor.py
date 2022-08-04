@@ -1,18 +1,16 @@
 import os
 import xml.etree.ElementTree as ET
 
-def convert_voc_annotation(data_path, folder, txt_file, annot_path, use_difficul_bbox=True):
-    data_list_file = f"{data_path}/{folder}/{txt_file}"
-    annot_path = f"{data_path}/{folder}/annot.txt"
-
+def convert_voc_annotation(data_path, txt_file, annot_path, use_difficul_bbox=True):
+    data_list_file = f"{data_path}/ImageSets/Main/{txt_file}.txt"
     with open(data_list_file, "r") as f:
         lines = f.readlines()
         files = [line.strip() for line in lines]
 
-    with open(annot_path, 'w') as f:
+    with open(annot_path, 'a') as f:
         for file in files:
-            img_path = f"{data_path}/{folder}/images/{file}.jpg"
-            xml_path = f"{data_path}/{folder}/annotations/{file}.xml"
+            img_path = f"{data_path}/JPEGImages/{file}.jpg"
+            xml_path = f"{data_path}/Annotations/{file}.xml"
 
             annotation = img_path
 
@@ -39,8 +37,14 @@ def convert_voc_annotation(data_path, folder, txt_file, annot_path, use_difficul
 
 
 if __name__ == "__main__":
-    classes = ["face"]
-    data_path = "/home/ubuntu/Datasets/WIDER/FACE"
+    # classes = ["face"]
+    classes = ['aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus',
+               'car', 'cat', 'chair', 'cow', 'diningtable', 'dog', 'horse',
+               'motorbike', 'person', 'pottedplant', 'sheep', 'sofa',
+               'train', 'tvmonitor']
 
-    train_data = convert_voc_annotation(data_path, "train_512", "list.txt", False)
-    test_data = convert_voc_annotation(data_path, "test_512", "list.txt", False)
+    data_path = "/data/Datasets/VOCdevkit/VOC2012"
+    train_annotation = "./voc_train.txt"
+    test_annotation = "./voc_test.txt"
+
+    dataset1 = convert_voc_annotation(data_path, "train", train_annotation, False)

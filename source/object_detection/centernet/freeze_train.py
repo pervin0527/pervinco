@@ -7,7 +7,7 @@ from data_loader import DataGenerator
 from IPython.display import clear_output
 
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if len(gpus) > 1:
@@ -58,9 +58,9 @@ if __name__ == "__main__":
 
     freeze_backbone = True
     backbone = "resnet18"
-    train_dir = "/data/Datasets/WIDER/FACE/train_512"
-    test_dir = "/data/Datasets/WIDER/FACE/test_512"
-    save_dir = "/data/Models/FACE_DETECTION/test"
+    train_dir = "/home/ubuntu/Datasets/WIDER/FACE/train_512"
+    test_dir = "/home/ubuntu/Datasets/WIDER/FACE/test_512"
+    save_dir = "/home/ubuntu/Models/FACE_DETECTION/CenterNet-test"
 
     train_dataset = DataGenerator(train_dir, classes, batch_size, (input_shape[0], input_shape[1]), max_detections)
     train_steps = int(tf.math.ceil(len(train_dataset) / batch_size).numpy())
@@ -69,7 +69,7 @@ if __name__ == "__main__":
     test_steps = int(tf.math.ceil(len(test_dataset) / batch_size).numpy())
 
     if freeze_backbone:
-        epochs = 100
+        epochs = 200
         learning_rate = 0.0001
         ckpt_name = "freezed.h5"
 
@@ -95,7 +95,7 @@ if __name__ == "__main__":
                 model.layers[i].trainable = False
 
         else:
-            model.load_weights("/data/Models/FACE_DETECTION/CenterNet-test/freezed.h5", by_name=True, skip_mismatch=True)
+            model.load_weights("/home/ubuntu/Models/FACE_DETECTION/CenterNet-test/freezed.h5", by_name=True, skip_mismatch=True)
     
     model.fit(train_dataset,
               steps_per_epoch=train_steps,

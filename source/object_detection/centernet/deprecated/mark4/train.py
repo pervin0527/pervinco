@@ -32,12 +32,12 @@ def plot_predictions(model):
     for idx, file in enumerate(sorted(glob("./samples/*"))):
         file = tf.io.read_file(file)
         image = tf.io.decode_jpeg(file, channels=3)
-        resized = tf.image.resize(image, (input_shape[0], input_shape[1])) / 255.0
+        resized = tf.image.resize(image, (input_shape[0], input_shape[1]))
         input_tensor = tf.expand_dims(resized, axis=0)
 
-        prediction = pred_model.predict(input_tensor, verbose=0)[0]
+        prediction = model.predict(input_tensor, verbose=0)[-1][0]
         scores = prediction[:, 4]
-        indexes = np.where(scores > 0.6)[0]
+        indexes = np.where(scores > 0.7)
         detections = prediction[indexes]
         print(detections)
 
@@ -51,51 +51,43 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 
 if __name__ == "__main__":
+    epochs = 500
     batch_size = 32
     classes = ["face"]
     max_detections = 10
-    input_shape = (512, 512, 3)
-
-    freeze_backbone = True
     backbone = "resnet18"
-    train_dir = "/data/Datasets/WIDER/FACE/train_512"
-    test_dir = "/data/Datasets/WIDER/FACE/test_512"
-    save_dir = "/data/Models/FACE_DETECTION/test"
+    learning_rate = 0.001
+    input_shape = (512, 512, 3)
+    save_dir = "/data/Models/FACE_DETECTION/CenterNet"
+    
+    train_txt = "/data/Datasets/WIDER/FACE/train_512/annot.txt"
+    test_txt = "/data/Datasets/WIDER/FACE/test_512/annot.txt"
 
-    train_dataset = DataGenerator(train_dir, classes, batch_size, (input_shape[0], input_shape[1]), max_detections)
+    train_dataset = DataGenerator(train_txt, classes, batch_size, (input_shape[0], input_shape[1]), max_detections)
     train_steps = int(tf.math.ceil(len(train_dataset) / batch_size).numpy())
 
-    test_dataset = DataGenerator(test_dir, classes, batch_size, (input_shape[0], input_shape[1]), max_detections)
+    test_dataset = DataGenerator(test_txt, classes, batch_size, (input_shape[0], input_shape[1]), max_detections)
     test_steps = int(tf.math.ceil(len(test_dataset) / batch_size).numpy())
 
-    if freeze_backbone:
-        epochs = 100
-        learning_rate = 0.0001
-        ckpt_name = "freezed.h5"
-
-    else:
-        epochs = 500
-        learning_rate = 0.001
-        ckpt_name = "unfreezed.h5"
+    optimizer = tf.keras.optimizers.Adam()
+    cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=learning_rate,
+                                                            first_decay_steps=200,
+                                                            t_mul=2.0,
+                                                            m_mul=0.8,
+                                                            alpha=learning_rate * 0.01)
 
     callbacks = [
         DisplayCallback(),
-        tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss", patience=5, verbose=1, mode="min", factor=0.9, min_delta=0.01, min_lr=1e-5),
+        tf.keras.callbacks.LearningRateScheduler(cdr),
+        # tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss", patience=5, verbose=1, mode="min", factor=0.9, min_delta=0.01, min_lr=1e-5),
         tf.keras.callbacks.TensorBoard(log_dir=f"{save_dir}/TensorBoard", update_freq='epoch'),
-        tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/{ckpt_name}", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)
+        tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/ckpt.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)
     ]
 
-    optimizer = tf.keras.optimizers.Adam()
     with strategy.scope():
-        model, pred_model = CenterNet(input_shape, len(classes), max_detections, backbone)
-        model.compile(optimizer=optimizer, loss={'centernet_loss': lambda y_true, y_pred: y_pred})
-
-        if freeze_backbone:
-            for i in range(85): # resnet18 : 85
-                model.layers[i].trainable = False
-
-        else:
-            model.load_weights("/data/Models/FACE_DETECTION/CenterNet-test/freezed.h5", by_name=True, skip_mismatch=True)
+        model = CenterNet(inputs=input_shape, num_classes=len(classes), max_detections=max_detections, backbone=backbone)
+        model.trainable=True
+        model.compile(optimizer=optimizer)
     
     model.fit(train_dataset,
               steps_per_epoch=train_steps,

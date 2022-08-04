@@ -1,7 +1,8 @@
 import numpy as np
 import tensorflow as tf
 from loss import compute_loss
-from backbone import resnet18, resnet101
+# from backbone import resnet18, resnet101
+from keras_resnet import models as resnet_models
 
 def nms(heat, kernel=3):
     hmax = tf.keras.layers.MaxPooling2D((kernel, kernel), strides=1, padding='same')(heat)
@@ -10,7 +11,7 @@ def nms(heat, kernel=3):
     return heat
 
 
-def topk(hm, max_detections=100):
+def topk(hm, max_detections):
     hm = nms(hm)
     b, h, w, c = tf.shape(hm)[0], tf.shape(hm)[1], tf.shape(hm)[2], tf.shape(hm)[3]
     hm = tf.reshape(hm, (b, -1))
@@ -24,7 +25,7 @@ def topk(hm, max_detections=100):
     return scores, indices, class_ids, xs, ys
 
 
-def decode(hm, wh, reg, max_detections=100):
+def decode(hm, wh, reg, max_detections):
     scores, indices, class_ids, xs, ys = topk(hm, max_detections=max_detections)
     b = tf.shape(hm)[0]
     
@@ -56,112 +57,57 @@ def decode(hm, wh, reg, max_detections=100):
     return detections
     
 
-def conv_bn_act(inputs, filters, kernel_size, strides=1, padding="same", activation=tf.nn.relu, use_bn=True):
-    if use_bn:
-        conv = tf.keras.layers.Conv2D(filters=filters, kernel_size=kernel_size, strides=strides, padding=padding, use_bias=False)(inputs)
-        conv = tf.keras.layers.BatchNormalization()(conv)
-    else:
-        conv = tf.keras.layers.Conv2D(filters=filters, kernel_size=kernel_size, strides=strides, padding=padding, use_bias=True)(inputs)
-
-    if activation != None:
-        conv = activation(conv)
-
-    return conv
-
-
-def upsampling(inputs,  method="deconv"):
-    assert method in ["resize", "deconv"]
-
-    if method == "resize":
-        input_shape = tf.shape(inputs)
-        output = tf.image.resize(inputs, (input_shape[1] * 2, input_shape[2] * 2))
-
-    if method == "deconv":
-        numm_filter = inputs.shape.as_list()[-1]
-        output = tf.layers.Conv2DTranspose(inputs=inputs, filters=numm_filter, kernel_size=4, strides=2, padding='same')
-    
-    return output
-
-
-def centernet(input_shape, num_classes, max_detections, backbone='resnet18'):
-    input_layer = tf.keras.Input(shape=input_shape)
+def CenterNet(input_shape, num_classes, max_detections, backbone='resnet18'):
+    output_size = input_shape[0] // 4
+    image_input = tf.keras.Input(shape=(None, None, 3))
+    hm_input = tf.keras.Input(shape=(output_size, output_size, num_classes))
+    wh_input = tf.keras.Input(shape=(max_detections, 2))
+    reg_input = tf.keras.Input(shape=(max_detections, 2))
+    reg_mask_input = tf.keras.Input(shape=(max_detections,))
+    index_input = tf.keras.Input(shape=(max_detections,))
     
     if backbone == "resnet18":
-        c2, c3, c4, c5 = resnet18()(input_layer)
+        resnet = resnet_models.ResNet18(image_input, include_top=False, freeze_bn=False)
+
     elif backbone == "resnet101":
-        c2, c3, c4, c5 = resnet101()(input_layer)
+        resnet = resnet_models.ResNet101(image_input, include_top=False, freeze_bn=False)
 
-    p5 = conv_bn_act(c5, filters=128, kernel_size=[1, 1])
-
-    up_p5 = upsampling(p5, method='resize')
-    reduce_dim_c4 = conv_bn_act(c4, filters=128, kernel_size=[1, 1])
-    p4 = 0.5 * up_p5 + 0.5 * reduce_dim_c4
-
-    up_p4 = upsampling(p4, method='resize')
-    reduce_dim_c3 = conv_bn_act(c3, filters=128, kernel_size=[1, 1])
-    p3 = 0.5 * up_p4 + 0.5 * reduce_dim_c3
-
-    up_p3 = upsampling(p3, method='resize')
-    reduce_dim_c2 = conv_bn_act(c2, filters=128, kernel_size=[1, 1])
-    p2 = 0.5 * up_p3 + 0.5 * reduce_dim_c2
-
-    features = conv_bn_act(p2, filters=128, kernel_size=[3, 3])
-
-    y1 = conv_bn_act(features, filters=64, kernel_size=[3, 3])
-    y1 = tf.keras.layers.Conv2D(num_classes, 1, 1, padding='valid', activation = tf.nn.sigmoid, bias_initializer=tf.constant_initializer(-np.log(99.)), name='y1')(y1)
-
-    y2 = conv_bn_act(features, filters=64, kernel_size=[3, 3])
-    y2 = tf.keras.layers.Conv2D(2, 1, 1, padding='valid', activation = None, name='y2')(y2)
+    C5 = resnet.output[-1]
+    x = tf.keras.layers.Dropout(rate=0.5)(C5)
     
-    y3 =  conv_bn_act(features, filters=64, kernel_size=[3, 3])
-    y3 = tf.keras.layers.Conv2D(2, 1, 1, padding='valid', activation = None, name='y3')(y3)
+    # decoder
+    num_filters = 256
+    for i in range(3):
+        num_filters = num_filters // pow(2, i)
+        x = tf.keras.layers.Conv2DTranspose(num_filters, (4, 4), strides=2, use_bias=False, padding='same',
+                                            kernel_initializer='he_normal',
+                                            kernel_regularizer=tf.keras.regularizers.L2(5e-4))(x)
+        x = tf.keras.layers.BatchNormalization()(x)
+        x = tf.keras.layers.ReLU()(x)
 
-    # detections = tf.keras.layers.Lambda(lambda x: decode(*x, max_detections=max_detections))([y1, y2, y3])
-    detections = decode(y1, y2, y3, max_detections)
+    # hm header
+    y1 = tf.keras.layers.Conv2D(64, 3, padding='same', use_bias=False, kernel_initializer='he_normal', kernel_regularizer=tf.keras.regularizers.L2(5e-4))(x)
+    y1 = tf.keras.layers.BatchNormalization()(y1)
+    y1 = tf.keras.layers.ReLU()(y1)
+    y1 = tf.keras.layers.Conv2D(num_classes, 1, kernel_initializer='he_normal', kernel_regularizer=tf.keras.regularizers.L2(5e-4), activation='sigmoid')(y1)
 
-    model = tf.keras.models.Model(inputs=input_layer, outputs=[[y1, y2, y3], detections])
+    # wh header
+    y2 = tf.keras.layers.Conv2D(64, 3, padding='same', use_bias=False, kernel_initializer='he_normal', kernel_regularizer=tf.keras.regularizers.L2(5e-4))(x)
+    y2 = tf.keras.layers.BatchNormalization()(y2)
+    y2 = tf.keras.layers.ReLU()(y2)
+    y2 = tf.keras.layers.Conv2D(2, 1, kernel_initializer='he_normal', kernel_regularizer=tf.keras.regularizers.L2(5e-4))(y2)
 
-    return model
+    # reg header
+    y3 = tf.keras.layers.Conv2D(64, 3, padding='same', use_bias=False, kernel_initializer='he_normal', kernel_regularizer=tf.keras.regularizers.L2(5e-4))(x)
+    y3 = tf.keras.layers.BatchNormalization()(y3)
+    y3 = tf.keras.layers.ReLU()(y3)
+    y3 = tf.keras.layers.Conv2D(2, 1, kernel_initializer='he_normal', kernel_regularizer=tf.keras.regularizers.L2(5e-4))(y3)
 
+    loss_ = tf.keras.layers.Lambda(compute_loss, name='centernet_loss')([y1, y2, y3, hm_input, wh_input, reg_input, reg_mask_input, index_input])
+    model = tf.keras.Model(inputs=[image_input, hm_input, wh_input, reg_input, reg_mask_input, index_input], outputs=[loss_])
 
-class CenterNet(tf.keras.Model):
-    def __init__(self, inputs, num_classes, max_detections, backbone):
-        super(CenterNet, self).__init__()
-        self.inputs = inputs
-        self.num_classes = num_classes
-        self.backbone = backbone
-        self.max_detections = max_detections
+    # detections = decode(y1, y2, y3)
+    detections = tf.keras.layers.Lambda(lambda x: decode(*x, max_detections=max_detections))([y1, y2, y3])
+    prediction_model = tf.keras.Model(inputs=image_input, outputs=detections)
 
-        self.model = centernet(input_shape=self.inputs, num_classes=self.num_classes, max_detections=self.max_detections, backbone=self.backbone)
-        self.loss_tracker = tf.keras.metrics.Mean(name="loss")
-
-    def call(self, x):
-        [hm_pred, wh_pred, reg_pred], detections = self.model(x)
-
-        return hm_pred, wh_pred, reg_pred, detections
-
-    def train_step(self, data):
-        image, hm_gt, wh_gt, reg_gt, reg_mask, ind = data[0], data[1][0], data[1][1], data[1][2], data[1][3], data[1][4]
-
-        with tf.GradientTape() as tape:
-            hm_pred, wh_pred, reg_pred, detections = self(image, training=True)
-            loss = compute_loss(hm_pred, wh_pred, reg_pred, hm_gt, wh_gt, reg_gt, reg_mask, ind)
-
-        trainable_vars = self.trainable_variables
-        gradients = tape.gradient(loss, trainable_vars)
-        self.optimizer.apply_gradients(zip(gradients, trainable_vars))
-        self.loss_tracker.update_state(loss)
-        
-        return {"loss": self.loss_tracker.result()}
-
-    def test_step(self, data):
-        image, hm_gt, wh_gt, reg_gt, reg_mask, ind = data[0], data[1][0], data[1][1], data[1][2], data[1][3], data[1][4]
-        hm_pred, wh_pred, reg_pred, detections = self(image)
-        loss = compute_loss(hm_pred, wh_pred, reg_pred, hm_gt, wh_gt, reg_gt, reg_mask, ind)
-
-        self.loss_tracker.update_state(loss)
-        return {"loss" : self.loss_tracker.result()}
-
-    @property
-    def metrics(self):
-        return [self.loss_tracker]
+    return model, prediction_model

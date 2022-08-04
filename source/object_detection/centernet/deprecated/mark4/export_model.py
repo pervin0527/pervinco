@@ -21,7 +21,6 @@ def single_image_infer(model, image_path):
     print(prediction)
     
 
-
 if __name__ == "__main__":
     classes = ["face"]
     backbone = "resnet18"
