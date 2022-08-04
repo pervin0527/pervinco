@@ -10,7 +10,7 @@ def nms(heat, kernel=3):
     return heat
 
 
-def topk(hm, max_detections):
+def topk(hm, max_detections=100):
     hm = nms(hm)
     b, h, w, c = tf.shape(hm)[0], tf.shape(hm)[1], tf.shape(hm)[2], tf.shape(hm)[3]
     hm = tf.reshape(hm, (b, -1))
@@ -24,7 +24,7 @@ def topk(hm, max_detections):
     return scores, indices, class_ids, xs, ys
 
 
-def decode(hm, wh, reg, max_detections):
+def decode(hm, wh, reg, max_detections=100):
     scores, indices, class_ids, xs, ys = topk(hm, max_detections=max_detections)
     b = tf.shape(hm)[0]
     
@@ -116,7 +116,8 @@ def centernet(input_shape, num_classes, max_detections, backbone='resnet18'):
     y3 =  conv_bn_act(features, filters=64, kernel_size=[3, 3])
     y3 = tf.keras.layers.Conv2D(2, 1, 1, padding='valid', activation = None, name='y3')(y3)
 
-    detections = tf.keras.layers.Lambda(lambda x: decode(*x, max_detections=max_detections))([y1, y2, y3])
+    # detections = tf.keras.layers.Lambda(lambda x: decode(*x, max_detections=max_detections))([y1, y2, y3])
+    detections = decode(y1, y2, y3, max_detections)
 
     model = tf.keras.models.Model(inputs=input_layer, outputs=[[y1, y2, y3], detections])
 

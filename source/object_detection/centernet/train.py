@@ -1,7 +1,10 @@
 import os
+import numpy as np
 import tensorflow as tf
+from glob import glob
 from model import CenterNet
 from data_loader import DataGenerator
+from IPython.display import clear_output
 
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
@@ -23,6 +26,28 @@ else:
         strategy = tf.distribute.experimental.CentralStorageStrategy()
     except RuntimeError as e:
         print(e)
+
+
+def plot_predictions(model):
+    for idx, file in enumerate(sorted(glob("./samples/*"))):
+        file = tf.io.read_file(file)
+        image = tf.io.decode_jpeg(file, channels=3)
+        resized = tf.image.resize(image, (input_shape[0], input_shape[1]))
+        input_tensor = tf.expand_dims(resized, axis=0)
+
+        prediction = model.predict(input_tensor, verbose=0)[-1][0]
+        scores = prediction[:, 4]
+        indexes = np.where(scores > 0.7)
+        detections = prediction[indexes]
+        print(detections)
+
+        break
+
+
+class DisplayCallback(tf.keras.callbacks.Callback):
+    def on_epoch_end(self, epoch, logs=None):
+        clear_output(wait=True)
+        plot_predictions(model=model)
 
 
 if __name__ == "__main__":
@@ -51,12 +76,17 @@ if __name__ == "__main__":
                                                             m_mul=0.8,
                                                             alpha=learning_rate * 0.01)
 
-    callbacks = [tf.keras.callbacks.LearningRateScheduler(cdr),
-                 tf.keras.callbacks.TensorBoard(log_dir=f"{save_dir}/TensorBoard", update_freq='epoch'),
-                 tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/ckpt.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
+    callbacks = [
+        DisplayCallback(),
+        tf.keras.callbacks.LearningRateScheduler(cdr),
+        # tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss", patience=5, verbose=1, mode="min", factor=0.9, min_delta=0.01, min_lr=1e-5),
+        tf.keras.callbacks.TensorBoard(log_dir=f"{save_dir}/TensorBoard", update_freq='epoch'),
+        tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/ckpt.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)
+    ]
 
     with strategy.scope():
         model = CenterNet(inputs=input_shape, num_classes=len(classes), max_detections=max_detections, backbone=backbone)
+        model.trainable=True
         model.compile(optimizer=optimizer)
     
     model.fit(train_dataset,
