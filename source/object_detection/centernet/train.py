@@ -92,7 +92,13 @@ if __name__ == "__main__":
         model.compile(optimizer=optimizer, loss={'centernet_loss': lambda y_true, y_pred: y_pred})
 
         if freeze_backbone:
-            for i in range(85): # resnet18 : 85, resnet101 : 376
+            if backbone == "resnet18":
+                freeze_layer = 85
+
+            elif backbone == "resnet101":
+                freeze_layer = 376
+
+            for i in range(freeze_layer): # resnet18 : 85, resnet101 : 376
                 model.layers[i].trainable = False
 
         else:
