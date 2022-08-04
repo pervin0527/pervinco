@@ -32,7 +32,8 @@ def plot_predictions(model):
     for idx, file in enumerate(sorted(glob("./samples/*"))):
         file = tf.io.read_file(file)
         image = tf.io.decode_jpeg(file, channels=3)
-        resized = tf.image.resize(image, (input_shape[0], input_shape[1])) / 255.0
+        resized = tf.image.resize(image, (input_shape[0], input_shape[1]))
+        resized = (resized / 128.0) - 1
         input_tensor = tf.expand_dims(resized, axis=0)
 
         prediction = pred_model.predict(input_tensor, verbose=0)[0]
@@ -78,6 +79,7 @@ if __name__ == "__main__":
         learning_rate = 0.001
         ckpt_name = "unfreezed.h5"
 
+    optimizer = tf.keras.optimizers.Adam(learning_rate)
     callbacks = [
         DisplayCallback(),
         tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss", patience=5, verbose=1, mode="min", factor=0.9, min_delta=0.01, min_lr=1e-5),
@@ -85,13 +87,12 @@ if __name__ == "__main__":
         tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/{ckpt_name}", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)
     ]
 
-    optimizer = tf.keras.optimizers.Adam()
     with strategy.scope():
         model, pred_model = CenterNet(input_shape, len(classes), max_detections, backbone)
         model.compile(optimizer=optimizer, loss={'centernet_loss': lambda y_true, y_pred: y_pred})
 
         if freeze_backbone:
-            for i in range(85): # resnet18 : 85
+            for i in range(85): # resnet18 : 85, resnet101 : 376
                 model.layers[i].trainable = False
 
         else:
