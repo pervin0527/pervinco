@@ -71,18 +71,19 @@ if __name__ == "__main__":
 
     if freeze_backbone:
         epochs = 100
-        learning_rate = 0.0001
+        learning_rate = 1e-3 # 0.001
         ckpt_name = "freezed.h5"
 
     else:
         epochs = 500
-        learning_rate = 0.001
+        learning_rate = 1e-4 # 0.0001
         ckpt_name = "unfreezed.h5"
 
     optimizer = tf.keras.optimizers.Adam(learning_rate)
     callbacks = [
         DisplayCallback(),
-        tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss", patience=5, verbose=1, mode="min", factor=0.9, min_delta=0.01, min_lr=1e-5),
+        tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss", patience=5, verbose=1, mode="min", factor=0.9, min_delta=0.01, min_lr=1e-6),
+        tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=10, mode="min"),
         tf.keras.callbacks.TensorBoard(log_dir=f"{save_dir}/TensorBoard", update_freq='epoch'),
         tf.keras.callbacks.ModelCheckpoint(f"{save_dir}/{ckpt_name}", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)
     ]
