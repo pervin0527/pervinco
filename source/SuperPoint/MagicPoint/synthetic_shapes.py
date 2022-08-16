@@ -88,24 +88,30 @@ if __name__ == "__main__":
             'gaussian_noise'
     ]
 
-    data_path = "/data/Datasets/Synthetic_Shapes"
-    config_path = "./magic-point_shapes.yaml"
-    
+    config_path = "./magic-point_shapes.yaml"    
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
+    data_path = "/home/ubuntu/Datasets/synthetic_shapes"
     total_sets = generate_dataset()
     
     training_images = total_sets["training"]["images"]
     training_points = total_sets["training"]["points"]
     
     for key in total_sets.keys():
-        save_dir = f"{data_path}_" + config["data"]["suffix"] + f"/{key}"
+        save_dir = f"{data_path}/synthetic_shapes_" + config["data"]["suffix"] + f"/{key}"
         
         if not os.path.isdir(save_dir):
             os.makedirs(f"{save_dir}/images")
             os.makedirs(f"{save_dir}/points")
 
-        for index, (png_file, np_file) in enumerate(zip(total_sets[key]["images"], total_sets[key]["points"])):
+        # for index, (png_file, np_file) in enumerate(zip(total_sets[key]["images"], total_sets[key]["points"])):
+        #     copyfile(png_file, f"{save_dir}/images/{index:>09}.png")
+        #     copyfile(np_file, f"{save_dir}/points/{index:>09}.npy")
+
+        for index in tqdm(range(len(total_sets[key]["images"]))):
+            png_file = total_sets[key]["images"][index]
+            npy_file = total_sets[key]["points"][index]
+
             copyfile(png_file, f"{save_dir}/images/{index:>09}.png")
-            copyfile(np_file, f"{save_dir}/points/{index:>09}.npy")
+            copyfile(npy_file, f"{save_dir}/points/{index:>09}.npy")

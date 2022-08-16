@@ -162,7 +162,7 @@ def show_sample(dataset, n_samples, name):
 
 
 if __name__ == "__main__":
-    data_path = "/data/Datasets/Synthetic_Shapes_v0"
+    data_path = "/home/ubuntu/Datasets/synthetic_shapes/synthetic_shapes_v0"
     config_path = "./magic-point_shapes.yaml"
 
     with open(config_path, "r") as f:
@@ -196,10 +196,10 @@ if __name__ == "__main__":
 
     callbacks = [DisplayCallback(),
                  tf.keras.callbacks.LearningRateScheduler(clr),
-                 tf.keras.callbacks.ModelCheckpoint("/data/Models/MagicPoint/ckpt.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
+                 tf.keras.callbacks.ModelCheckpoint("/home/ubuntu/Models/MagicPoint/ckpt.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
 
-    model = MagicPoint(input_shape)
-    model.compile(optimizer=optimizer, metrics=["accuracy"])
+    model = MagicPoint(input_shape, summary=True)
+    model.compile(optimizer=optimizer)
     for index in range(len(model.layers)):
         model.layers[index].trainable = True
 
