@@ -12,8 +12,8 @@ from IPython.display import clear_output
 from magic_point_model import MagicPoint
 from homograhic_augmentation import sample_homography, compute_valid_mask, warp_points, filter_points
 
-np.set_printoptions(threshold=sys.maxsize)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+np.set_printoptions(threshold=sys.maxsize)
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if len(gpus) > 1:
     try:
@@ -97,10 +97,10 @@ def build_tf_dataset(path, target="training"):
     dataset = tf.data.Dataset.from_tensor_slices((images, points))
     dataset = dataset.map(lambda image, points : (read_image(image), tf.numpy_function(read_points, [points], tf.float32)))
     dataset = dataset.map(lambda image, points : (image, tf.reshape(points, [-1, 2])))
-    dataset = dataset.shuffle(train_iter)
+    dataset = dataset.shuffle(config["model"]["train_iter"])
 
     if target == "training":
-        dataset = dataset.take(train_iter)
+        dataset = dataset.take(config["model"]["train_iter"])
 
     dataset = dataset.map(lambda image, keypoints : {"image" : image, "keypoints" : keypoints})
     dataset = dataset.map(add_dummy_valid_mask)
@@ -117,6 +117,24 @@ def build_tf_dataset(path, target="training"):
     return dataset
 
 
+def box_nms(prob, size, iou=0.1, threshold=0.01, keep_top_k=0):
+    pts = tf.cast(tf.where(tf.greater_equal(prob, threshold)), dtype=tf.float32)
+    size = tf.constant(size/2.)
+    boxes = tf.concat([pts-size, pts+size], axis=1)
+    scores = tf.gather_nd(prob, tf.cast(pts, dtype=tf.int32))
+    
+    indices = tf.image.non_max_suppression(boxes, scores, tf.shape(boxes)[0], iou)
+    pts = tf.gather(pts, indices)
+    scores = tf.gather(scores, indices)
+    if keep_top_k:
+        k = tf.minimum(tf.shape(scores)[0], tf.constant(keep_top_k))  # when fewer
+        scores, indices = tf.nn.top_k(scores, k)
+        pts = tf.gather(pts, indices)
+    prob = tf.scatter_nd(tf.cast(pts, tf.int32), scores, tf.shape(prob))
+    
+    return prob
+
+
 def draw_keypoints(img, corners, color):
     keypoints = [cv2.KeyPoint(int(c[1]), int(c[0]), 1) for c in np.stack(corners).T]
     return cv2.drawKeypoints(img.astype(np.uint8), keypoints, None, color=color)
@@ -130,13 +148,10 @@ def plot_predictions(model):
         pred_logits, pred_probs = model.predict(data["image"])
         image = (data["image"][0].numpy() * 255).astype(np.int32)
 
-        pred_probs = pred_probs[0]
-        pred_probs[pred_probs > threshold] = 255
-        cv2.imwrite(f"./on_epoch_end/keypoints_{index}.png", pred_probs)
-        
-        results = np.greater_equal(pred_probs, threshold).astype(np.int32)
-        result_img = draw_keypoints(image, np.where(results), (0, 255, 0))
-        cv2.imwrite(f"./on_epoch_end/result_{index}.png", result_img)
+        nms_prob = tf.map_fn(lambda p : box_nms(p, config["model"]["nms_size"], threshold=config["model"]["threshold"], keep_top_k=0), pred_probs)
+        result_img = draw_keypoints(image, np.where(nms_prob[0] > config["model"]["threshold"]), (0, 255, 0))
+        # result_img = draw_keypoints(image, np.where(pred_probs[0] > config["model"]["threshold"]), (0, 255, 0))
+        cv2.imwrite(f"./on_epoch_end/nms_{name}_{index}.png", result_img)
 
 
 class DisplayCallback(tf.keras.callbacks.Callback):
@@ -162,18 +177,12 @@ def show_sample(dataset, n_samples, name):
 
 
 if __name__ == "__main__":
-    data_path = "/home/ubuntu/Datasets/synthetic_shapes/synthetic_shapes_v0"
     config_path = "./magic-point_shapes.yaml"
-
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
-    epochs = 10000
-    threshold = 0.2
-    learning_rate = 0.001
-    input_shape = (120, 160, 1)
-    train_iter = 10000
-
+    name = config["model"]["backbone_name"]
+    data_path = config["path"]["dataset"]
     train_dataset = build_tf_dataset(data_path, "training")
     valid_dataset = build_tf_dataset(data_path, "validation")
     test_dataset = build_tf_dataset(data_path, "test")
@@ -182,28 +191,24 @@ if __name__ == "__main__":
     show_sample(valid_dataset, 10, "valid")
     show_sample(test_dataset, 5, "test")
 
-    optimizer = tf.keras.optimizers.Adam(learning_rate)
-    cdr = tf.keras.optimizers.schedules.CosineDecayRestarts(initial_learning_rate=learning_rate,
-                                                            first_decay_steps=300,
-                                                            t_mul=2.0,
-                                                            m_mul=0.9,
-                                                            alpha=0.001)
-
+    optimizer = tf.keras.optimizers.Adam()
     clr = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=0.0001,
                                               maximal_learning_rate=0.009,
                                               scale_fn=lambda x : 1.0,
-                                              step_size=epochs/2)
+                                              step_size=config["model"]["epochs"] / 2)
 
-    callbacks = [DisplayCallback(),
-                 tf.keras.callbacks.LearningRateScheduler(clr),
-                 tf.keras.callbacks.ModelCheckpoint("/home/ubuntu/Models/MagicPoint/ckpt.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)]
+    callbacks = [
+        DisplayCallback(),
+        tf.keras.callbacks.LearningRateScheduler(clr),
+        tf.keras.callbacks.ModelCheckpoint(config["path"]["save_path"] + f"/{name}.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)
+    ]
 
-    model = MagicPoint(input_shape, summary=True)
+    model = MagicPoint(config["model"]["backbone_name"], config["model"]["input_shape"], config["model"]["nms_size"], config["model"]["threshold"], True)
     model.compile(optimizer=optimizer)
     for index in range(len(model.layers)):
         model.layers[index].trainable = True
 
     model.fit(train_dataset,
               validation_data=valid_dataset,
-              epochs=epochs,
+              epochs=config["model"]["epochs"],
               callbacks=callbacks)

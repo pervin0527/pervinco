@@ -4,11 +4,11 @@ data:
     truncate: {draw_ellipses: 0.3, draw_stripes: 0.2, gaussian_noise: 0.1}
     cache_in_memory: true
     validation_size: 500
-    suffix: 'v1'
+    suffix: 'v2'
     add_augmentation_to_test_set: false  # set to true to evaluate with noise
 
     generation:
-      split_sizes: {"training": 100, "validation": 20, "test": 10}
+      split_sizes: {"training": 200000, "validation": 2000, "test": 100}
       image_size: [960, 1280]
       random_seed: 0
       params: {
@@ -57,16 +57,16 @@ data:
             valid_border_margin: 2
 
 model:
-    name: 'magic_point'
-    batch_size: 1
-    eval_batch_size: 1
-    learning_rate: 0.001
-    kernel_reg: 0.
-    detection_threshold: 0.001 # 1/65
-    nms: 4
-train_iter: 50000
-eval_iter: 200
-validation_interval: 1000
-seed: 0
-#save_interval: 5000
-#keep_checkpoints: 20
+    backbone_name : "vgg"
+    input_shape : [120, 160, 1]
+    epochs : 10000
+    train_iter : 5000
+    nms_size : 4
+    threshold : 0.01
+    init_lr : 0.0001
+    maximum_lr : 0.009
+    summary : False
+
+path:
+    dataset : "/home/ubuntu/Datasets/synthetic_shapes/synthetic_shapes_v0"
+    save_path : "/home/ubuntu/Models/MagicPoint"
