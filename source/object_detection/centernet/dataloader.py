@@ -161,14 +161,14 @@ class DataGenerator(tf.keras.utils.Sequence):
                                        (annotations['bboxes'][:, 2] > image.shape[1]) |
                                        (annotations['bboxes'][:, 3] > image.shape[0]))[0]
 
-            # delete invalid indices
-            if len(invalid_indices):
-                warnings.warn('Image with id {} (shape {}) contains the following invalid boxes: {}.'.format(group[index], image.shape, annotations['bboxes'][invalid_indices, :]))
-                for k in annotations_group[index].keys():
-                    annotations_group[index][k] = np.delete(annotations[k], invalid_indices, axis=0)
+            # # delete invalid indices
+            # if len(invalid_indices):
+            #     warnings.warn('Image with id {} (shape {}) contains the following invalid boxes: {}.'.format(group[index], image.shape, annotations['bboxes'][invalid_indices, :]))
+            #     for k in annotations_group[index].keys():
+            #         annotations_group[index][k] = np.delete(annotations[k], invalid_indices, axis=0)
 
-            if annotations['bboxes'].shape[0] == 0:
-                warnings.warn('Image with id {} (shape {}) contains no valid boxes before transform'.format(group[index], image.shape,))
+            # if annotations['bboxes'].shape[0] == 0:
+            #     warnings.warn('Image with id {} (shape {}) contains no valid boxes before transform'.format(group[index], image.shape,))
         return image_group, annotations_group
 
 
@@ -204,9 +204,9 @@ class DataGenerator(tf.keras.utils.Sequence):
 
             # outputs
             bboxes = annotations['bboxes']
-            assert bboxes.shape[0] != 0
+            # assert bboxes.shape[0] != 0
             class_ids = annotations['labels']
-            assert class_ids.shape[0] != 0
+            # assert class_ids.shape[0] != 0
 
             trans_output = get_affine_transform(c, s, self.output_size)
             for i in range(bboxes.shape[0]):

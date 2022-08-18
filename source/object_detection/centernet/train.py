@@ -5,7 +5,8 @@ import math
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from model import CenterNet
+import tensorflow_addons as tfa
+from model import centernet
 from dataloader import DataGenerator
 from IPython.display import clear_output
 
@@ -33,24 +34,34 @@ else:
 class DisplayCallback(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         clear_output(wait=True)
-        plot_predictions(model=model)
+        plot_predictions()
 
 
-def plot_predictions(model):
-    image = cv2.imread(f"{data_dir}/dog.jpg")
+def plot_predictions():
+    image = cv2.imread(f"./dog.jpg")
     image = cv2.resize(image, (input_shape[0], input_shape[1]))
     input_tensor = np.expand_dims(image, axis=0)
-    hm_pred, wh_pred, reg_pred = model.predict(input_tensor)
+    prediction = prediction_model.predict(input_tensor)[0]
+
+    scores = prediction[:, 4]
+    indices = np.where(scores > threshold)
+    
+    if len(indices) > 0:
+        print(prediction[indices])
 
 
 if __name__ == "__main__":
     data_dir = "/home/ubuntu/Datasets/VOCdevkit/VOC2012/detection"
     label_dir = f"{data_dir}/Labels/labels.txt"
     
-    backbone = "resnet18"
+    backbone = "resnet50"
+    freeze_backbone = True
+
     epochs = 1000
+    init_lr = 0.0001
+    max_lr = 0.009
     batch_size = 32
-    threshold = 0.1
+    threshold = 0.4
     max_detections = 100
     input_shape = [512, 512, 3]
 
@@ -62,14 +73,27 @@ if __name__ == "__main__":
     train_steps = int(math.ceil(len(train_dataset) // batch_size))
     test_steps = int(math.ceil(len(test_dataset) // batch_size))
     
-    optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+    optimizer = tf.keras.optimizers.Adam()
+    clr = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=init_lr,
+                                              maximal_learning_rate=max_lr,
+                                              scale_fn=lambda x : 1.0,
+                                              step_size=epochs / 2)
     callbacks = [
         DisplayCallback(),
+        tf.keras.callbacks.LearningRateScheduler(clr),
         tf.keras.callbacks.ModelCheckpoint("/home/ubuntu/Models/test.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)
     ]
 
-    model = CenterNet(input_shape, len(classes), max_detections, threshold, backbone, False)
-    model.compile(optimizer=optimizer)
+    with strategy.scope():
+        model, prediction_model = centernet(len(classes), backbone, input_shape[0], max_detections, threshold, False, False, True)
+        model.summary()
+        if freeze_backbone:
+            for i in range(190):
+                model.layers[i].trainable = False
+        else:
+            model.load_weights("/home/ubuntu/Models/test.h5", by_name=True, skip_mismatch=True)
+        model.compile(optimizer=optimizer, loss={'centernet_loss': lambda y_true, y_pred: y_pred})
+
     model.fit(train_dataset,
               steps_per_epoch=train_steps,
               validation_data=test_dataset,

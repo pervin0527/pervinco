@@ -1,7 +1,7 @@
 import tensorflow as tf
 from loss import centernet_loss
-from keras_resnet import models as resnet_models
 from tensorflow.keras import backend as K
+from keras_resnet import models as resnet_models
 
 def nms(heat, kernel=3):
     hmax = tf.nn.max_pool2d(heat, (kernel, kernel), strides=1, padding='SAME')
@@ -101,85 +101,72 @@ def decode(hm, wh, reg, max_objects=100, nms=True, flip_test=False, num_classes=
                                dtype=tf.float32)
     return detections
 
-def centernet(inputs, num_classes, max_detections, threshold, backbone_name="resnet18", freeze_bn=True):
-    inputs = tf.keras.Input(shape=inputs)
+def centernet(num_classes, backbone='resnet50', input_size=512, max_objects=100, score_threshold=0.1,
+              nms=True,
+              flip_test=False,
+              freeze_bn=True):
+    assert backbone in ['resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152']
+    output_size = input_size // 4
+    image_input = tf.keras.Input(shape=(None, None, 3))
+    hm_input = tf.keras.Input(shape=(output_size, output_size, num_classes))
+    wh_input = tf.keras.Input(shape=(max_objects, 2))
+    reg_input = tf.keras.Input(shape=(max_objects, 2))
+    reg_mask_input = tf.keras.Input(shape=(max_objects,))
+    index_input = tf.keras.Input(shape=(max_objects,))
 
-    if backbone_name == "resnet18":
-       backbone_model = resnet_models.ResNet18(inputs, include_top=False, freeze_bn=freeze_bn)
-    elif backbone_name == 'resnet34':
-        backbone_model = resnet_models.ResNet34(inputs, include_top=False, freeze_bn=freeze_bn)
-    elif backbone_name == 'resnet50':
-        backbone_model = resnet_models.ResNet50(inputs, include_top=False, freeze_bn=freeze_bn)
-    elif backbone_name == 'resnet101':
-        backbone_model = resnet_models.ResNet101(inputs, include_top=False, freeze_bn=freeze_bn)
+    if backbone == 'resnet18':
+        resnet = resnet_models.ResNet18(image_input, include_top=False, freeze_bn=freeze_bn)
+    elif backbone == 'resnet34':
+        resnet = resnet_models.ResNet34(image_input, include_top=False, freeze_bn=freeze_bn)
+    elif backbone == 'resnet50':
+        resnet = resnet_models.ResNet50(image_input, include_top=False, freeze_bn=freeze_bn)
+        # resnet = ResNet50(input_tensor=image_input, include_top=False)
+    elif backbone == 'resnet101':
+        resnet = resnet_models.ResNet101(image_input, include_top=False, freeze_bn=freeze_bn)
+    else:
+        resnet = resnet_models.ResNet152(image_input, include_top=False, freeze_bn=freeze_bn)
 
-    C5 = backbone_model.outputs[-1]
+    C5 = resnet.outputs[-1]
     x = tf.keras.layers.Dropout(rate=0.5)(C5)
 
+    # decoder
     num_filters = 256
     for i in range(3):
         num_filters = num_filters // pow(2, i)
-
-        x = tf.keras.layers.Conv2DTranspose(num_filters, (4, 4), strides=2, padding="same", kernel_initializer="he_normal", kernel_regularizer=tf.keras.regularizers.L2(5e-4), use_bias=False)(x)
+        x = tf.keras.layers.Conv2DTranspose(num_filters, (4, 4), strides=2, use_bias=False, padding='same',
+                            kernel_initializer='he_normal',
+                            kernel_regularizer=tf.keras.regularizers.L2(5e-4))(x)
         x = tf.keras.layers.BatchNormalization()(x)
-        x = tf.nn.relu(x)
+        x = tf.keras.layers.ReLU()(x)
 
-    y1 = tf.keras.layers.Conv2D(64, 3, padding="SAME", use_bias=False, kernel_initializer="he_normal", kernel_regularizer=tf.keras.regularizers.L2(5e-4))(x)
+    # hm header
+    y1 = tf.keras.layers.Conv2D(64, 3, padding='same', use_bias=False, kernel_initializer='he_normal', kernel_regularizer=tf.keras.regularizers.L2(5e-4))(x)
     y1 = tf.keras.layers.BatchNormalization()(y1)
-    y1 = tf.nn.relu(y1)
+    y1 = tf.keras.layers.ReLU()(y1)
     y1 = tf.keras.layers.Conv2D(num_classes, 1, kernel_initializer='he_normal', kernel_regularizer=tf.keras.regularizers.L2(5e-4), activation='sigmoid')(y1)
 
+    # wh header
     y2 = tf.keras.layers.Conv2D(64, 3, padding='same', use_bias=False, kernel_initializer='he_normal', kernel_regularizer=tf.keras.regularizers.L2(5e-4))(x)
     y2 = tf.keras.layers.BatchNormalization()(y2)
     y2 = tf.keras.layers.ReLU()(y2)
     y2 = tf.keras.layers.Conv2D(2, 1, kernel_initializer='he_normal', kernel_regularizer=tf.keras.regularizers.L2(5e-4))(y2)
 
+    # reg header
     y3 = tf.keras.layers.Conv2D(64, 3, padding='same', use_bias=False, kernel_initializer='he_normal', kernel_regularizer=tf.keras.regularizers.L2(5e-4))(x)
     y3 = tf.keras.layers.BatchNormalization()(y3)
     y3 = tf.keras.layers.ReLU()(y3)
     y3 = tf.keras.layers.Conv2D(2, 1, kernel_initializer='he_normal', kernel_regularizer=tf.keras.regularizers.L2(5e-4))(y3)
 
-    model = tf.keras.Model(inputs=inputs, outputs=[y1, y2, y3])
+    loss_ = tf.keras.layers.Lambda(centernet_loss, name='centernet_loss')([y1, y2, y3, hm_input, wh_input, reg_input, reg_mask_input, index_input])
+    model = tf.keras.Model(inputs=[image_input, hm_input, wh_input, reg_input, reg_mask_input, index_input], outputs=[loss_])
 
-    # detections = tf.keras.layers.Lambda(lambda x: decode(*x, max_objects=max_detections, score_threshold=threshold, nms=nms, num_classes=num_classes))([y1, y2, y3])
-    # model = tf.keras.Model(inputs=inputs, outputs=[y1, y2, y3, detections])
-
-    return model
-
-class CenterNet(tf.keras.Model):
-    def __init__(self, inputs, num_classes, max_detections, threshold, backbone_name="resnet18", freeze_bn=True):
-        super(CenterNet, self).__init__()
-
-        self.centernet = centernet(inputs, num_classes, max_detections, threshold, backbone_name, freeze_bn)
-        self.loss_tracker = tf.keras.metrics.Mean(name="loss")
-        self.centernet.summary()
-
-    def call(self, x, training=False):
-        hm_pred, wh_pred, reg_pred = self.centernet(x)
-        return hm_pred, wh_pred, reg_pred
-        # hm_pred, wh_pred, reg_pred, detections = self.centernet(x)
-        # return hm_pred, wh_pred, reg_pred, detections
-
-    def train_step(self, data):
-        image, hm, wh, reg, reg_mask, indices = data["image"], data["hm"], data["wh"], data["reg"], data["reg_mask"], data["indices"]
-
-        with tf.GradientTape() as tape:
-            hm_pred, wh_pred, reg_pred = self(image, training=True)
-            # hm_pred, wh_pred, reg_pred, detections = self(image, training=True)
-            loss = centernet_loss(hm_pred, wh_pred, reg_pred, hm, wh, reg, reg_mask, indices)
-        
-        trainable_vars = self.trainable_variables
-        gradients = tape.gradient(loss, trainable_vars)
-        self.optimizer.apply_gradients(zip(gradients, trainable_vars))
-        self.loss_tracker.update_state(loss)
-
-        return {"loss" : self.loss_tracker.result()}
-
-    def test_step(self, data):
-        image, hm, wh, reg, reg_mask, indices = data["image"], data["hm"], data["wh"], data["reg"], data["reg_mask"], data["indices"]
-        hm_pred, wh_pred, reg_pred = self(image, training=False)
-        # hm_pred, wh_pred, reg_pred, detections = self(image, training=False)
-        loss = centernet_loss(hm_pred, wh_pred, reg_pred, hm, wh, reg, reg_mask, indices)
-        self.loss_tracker.update_state(loss)
-
-        return {"loss" : self.loss_tracker.result()}
+    # detections = decode(y1, y2, y3)
+    detections = tf.keras.layers.Lambda(lambda x: decode(*x,
+                                         max_objects=max_objects,
+                                         score_threshold=score_threshold,
+                                         nms=nms,
+                                         flip_test=flip_test,
+                                         num_classes=num_classes))([y1, y2, y3])
+    prediction_model = tf.keras.Model(inputs=image_input, outputs=detections)
+    
+    return model, prediction_model

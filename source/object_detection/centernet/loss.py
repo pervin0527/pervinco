@@ -1,6 +1,5 @@
 import tensorflow as tf
 
-
 def focal_loss(hm_pred, hm_true):
     pos_mask = tf.cast(tf.equal(hm_true, 1), tf.float32)
     neg_mask = tf.cast(tf.less(hm_true, 1), tf.float32)
@@ -30,7 +29,8 @@ def reg_l1_loss(y_pred, y_true, indices, mask):
     return reg_loss
 
 
-def centernet_loss(hm_pred, wh_pred, reg_pred, hm_true, wh_true, reg_true, reg_mask, indices):
+def centernet_loss(args):
+    hm_pred, wh_pred, reg_pred, hm_true, wh_true, reg_true, reg_mask, indices = args
     hm_loss = focal_loss(hm_pred, hm_true)
     wh_loss = 0.1 * reg_l1_loss(wh_pred, wh_true, indices, reg_mask)
     reg_loss = reg_l1_loss(reg_pred, reg_true, indices, reg_mask)
