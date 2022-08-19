@@ -4,9 +4,8 @@ import cv2
 import yaml
 import numpy as np
 import tensorflow as tf
-import tensorflow_addons as tfa
-import photometric_augmentation as photaug
 
+from tqdm import tqdm
 from pathlib import Path
 from magic_point_model import MagicPoint
 from tensorflow_addons.image import transform as H_transform
@@ -14,7 +13,7 @@ from homograhic_augmentation import sample_homography
 from data_utils import add_dummy_valid_mask, add_keypoint_map, ratio_preserving_resize, photometric_augmentation, homographic_augmentation, invert_homography
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-np.set_printoptions(threshold=sys.maxsize)
+# np.set_printoptions(threshold=sys.maxsize)
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if len(gpus) > 1:
     try:
@@ -175,35 +174,37 @@ def homography_adaptation(data, model, config):
     elif config["model"]["homography_adaptation"]["aggregation"] == "sum":
         prob = mean_prob
     else:
-        raise ValueError('Unkown aggregation method: {}'.format(config['aggregation']))
+        raise ValueError('Unkown aggregation method: {}'.format(config["model"]["homography_adaptation"]["aggregation"]))
 
     if config['model']['homography_adaptation']['filter_counts']:
-        prob = tf.where(tf.greater_equal(counts, config['filter_counts']), prob, tf.zeros_like(prob))
+        prob = tf.where(tf.greater_equal(counts, config['model']['homography_adaptation']['filter_counts']), prob, tf.zeros_like(prob))
 
     return {'prob': prob, 'counts': counts, 'mean_prob': mean_prob, 'input_images': images, 'H_probs': probs}  # debug
 
         
 if __name__ == "__main__":
-    coco_path = "/home/ubuntu/Datasets/COCO2014"
     config_path = "./magic-point_coco_export.yaml"
 
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
+
+    if not os.path.isdir(config["path"]["output_path"]):
+        os.makedirs(config["path"]["output_path"])
     
-    files = build_dataset(coco_path, config) ## keys : "image_paths", "names"
+    files = build_dataset(config["path"]["coco_path"], config) ## keys : "image_paths", "names"
     print(len(files["image_paths"]), len(files["names"]))
 
     dataset = make_tf_dataset(files, False)
     iterator = iter(dataset)
-    # for data in dataset.take(1):
-    #     image, name = data["image"].numpy(), data["name"].numpy()
-    #     print(image.shape, name)
 
     model = MagicPoint(config["model"]["backbone_name"], config["model"]["input_shape"], config["model"]["nms_size"], config["model"]["threshold"], False)
     model.built = True
-    model.load_weights(config["model"]["ckpt_path"])
+    model.load_weights(config["path"]["ckpt_path"])
     print("model_loaded")
 
+    # pbar = tqdm(total=config['eval_iter'] if config['eval_iter'] > 0 else None)
+    pbar = tqdm(total=len(files["names"]))
+    i = 0
     while True:
         data = []
         try:
@@ -215,6 +216,17 @@ if __name__ == "__main__":
             data += [data[-1] for _ in range(config["model"]["batch_size"] - len(data))]
         data = dict(zip(data[0], zip(*[d.values() for d in data])))
 
-        prediction = homography_adaptation(data, model, config)
-        print(prediction)
-        print("???")
+        pred = homography_adaptation(data, model, config)
+
+        d2l = lambda d: [dict(zip(d, e)) for e in zip(*d.values())]
+        for p, d in zip(d2l(pred), d2l(data)):
+            if not ('name' in d):
+                p.update(d)
+            filename = d['name'].numpy().decode('utf-8') if 'name' in d else str(i)
+            filepath = Path(config["path"]["output_path"], '{}.npz'.format(filename))
+            np.savez_compressed(filepath, **p)
+            i += 1
+            pbar.update(1)
+
+            if i >= len(files["names"]):
+                break
