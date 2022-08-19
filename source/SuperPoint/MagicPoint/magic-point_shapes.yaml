@@ -8,7 +8,7 @@ data:
     add_augmentation_to_test_set: false  # set to true to evaluate with noise
 
     generation:
-      split_sizes: {"training": 200000, "validation": 2000, "test": 100}
+      split_sizes: {"training": 50000, "validation": 1000, "test": 10} ## default 10000 : 200 : 500
       image_size: [960, 1280]
       random_seed: 0
       params: {
