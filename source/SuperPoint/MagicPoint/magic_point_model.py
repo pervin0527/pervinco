@@ -112,7 +112,8 @@ class MagicPoint(tf.keras.Model):
         super(MagicPoint, self).__init__()
 
         if backbone_name == "vgg":
-            self.backbone = vgg_backbone(inputs=(backbone_input))
+            # self.backbone = vgg_backbone(inputs=(backbone_input))
+            self.backbone = vgg_backbone(inputs=(backbone_input[0], backbone_input[1], 1))
             self.output_channel = 128
 
         elif backbone_name == "resnet":

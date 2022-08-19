@@ -3,20 +3,20 @@ from math import pi
 import tensorflow as tf
 import tensorflow_addons as tfa
 
-def sample_homography(shape, params):
-    n_scales = 5
-    n_angles = 25
-    patch_ratio = params["patch_ratio"]
-    perspective = params["perspective"]
-    allow_artifacts = params["allow_artifacts"]
-    scaling = params["scaling"]
-    scaling_amplitude = params["scaling_amplitude"]
-    translation = params["translation"]
-    translation_overflow = params["translation_overflow"]
-    rotation = params["rotation"]
-    max_angle = params["max_angle"]
-    perspective_amplitude_x = params["perspective_amplitude_x"]
-    perspective_amplitude_y = params["perspective_amplitude_y"]
+def sample_homography(shape,
+                      perspective=True, 
+                      scaling=True, 
+                      rotation=True, 
+                      translation=True,
+                      n_scales=5, 
+                      n_angles=25, 
+                      scaling_amplitude=0.1, 
+                      perspective_amplitude_x=0.1,
+                      perspective_amplitude_y=0.1, 
+                      patch_ratio=0.5, 
+                      max_angle=pi/2,
+                      allow_artifacts=False,
+                      translation_overflow=0.):
 
     margin = (1 -patch_ratio) / 2
     pts1 = margin + tf.constant([[0, 0], [0, patch_ratio], [patch_ratio, patch_ratio], [patch_ratio, 0]], tf.float32)

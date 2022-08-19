@@ -4,7 +4,7 @@ data:
     truncate: {draw_ellipses: 0.3, draw_stripes: 0.2, gaussian_noise: 0.1}
     cache_in_memory: true
     validation_size: 500
-    suffix: 'v2'
+    suffix: 'v0'
     add_augmentation_to_test_set: false  # set to true to evaluate with noise
 
     generation:

@@ -26,8 +26,8 @@ data:
 model:
     backbone_name: "vgg"
     ckpt_path: "/home/ubuntu/Models/MagicPoint/vgg.h5"
-    input_shape: [120, 160, 1]
-    batch_size: 50
+    input_shape: [240, 320, 1]
+    batch_size: 1
     learning_rate: 0.001
     threshold: 0.015  # 0.001
     nms_size: 4

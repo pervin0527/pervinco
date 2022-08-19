@@ -10,7 +10,8 @@ import photometric_augmentation as photaug
 from pathlib import Path
 from magic_point_model import MagicPoint
 from tensorflow_addons.image import transform as H_transform
-from homograhic_augmentation import sample_homography, compute_valid_mask, warp_points, filter_points
+from homograhic_augmentation import sample_homography
+from data_utils import add_dummy_valid_mask, add_keypoint_map, ratio_preserving_resize, photometric_augmentation, homographic_augmentation, invert_homography
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 np.set_printoptions(threshold=sys.maxsize)
@@ -45,20 +46,6 @@ def build_dataset(data_dir, config):
     return files
 
 
-def add_dummy_valid_mask(data):
-    with tf.name_scope('dummy_valid_mask'):
-        valid_mask = tf.ones(tf.shape(data['image'])[:2], dtype=tf.int32)
-    return {**data, 'valid_mask': valid_mask}
-
-
-def add_keypoint_map(data):
-    image_shape = tf.shape(data['image'])[:2]
-    kp = tf.minimum(tf.cast(tf.round(data['keypoints']), tf.int32), image_shape-1)
-    kmap = tf.scatter_nd(kp, tf.ones([tf.shape(kp)[0]], dtype=tf.int32), image_shape)
-    
-    return {**data, 'keypoint_map': kmap}
-
-
 def read_points(filename):
     return np.load(filename.decode("utf-8"))["points"].astype(np.float32)
 
@@ -69,53 +56,11 @@ def read_image(path):
     return tf.cast(image, tf.float32)
 
 
-def ratio_preserving_resize(image, config):
-    target_size = tf.convert_to_tensor(config['resize'])
-    scales = tf.cast(tf.divide(target_size, tf.shape(image)[:2]), tf.float32)
-    new_size = tf.cast(tf.shape(image)[:2], tf.float32) * tf.reduce_max(scales)
-    image = tf.image.resize(image, tf.cast(new_size, tf.int32), method=tf.image.ResizeMethod.BILINEAR)
-    return tf.image.resize_with_crop_or_pad(image, target_size[0], target_size[1])
-
-
 def preprocess(image):
     image = tf.image.rgb_to_grayscale(image)
     if config["data"]["preprocessing"]["resize"]:
         image = ratio_preserving_resize(image, config["data"]["preprocessing"])
     return image
-
-
-def photometric_augmentation(data):
-    primitives = config["data"]["augmentation"]["photometric"]["primitives"]
-    params = config["data"]["augmentation"]["photometric"]["params"]
-
-    prim_configs = [params.get(p, {}) for p in primitives]
-    indices = tf.range(len(primitives))
-    def step(i, image):
-        fn_pairs = [(tf.equal(indices[i], j), lambda p=p, c=c: getattr(photaug, p)(image, **c)) for j, (p, c) in enumerate(zip(primitives, prim_configs))]
-        image = tf.case(fn_pairs)
-        return i + 1, image
-
-    _, image = tf.while_loop(lambda i, image: tf.less(i, len(primitives)), step, [0, data['image']], parallel_iterations=1)
-
-    return {**data, 'image': image}
-
-
-def homographic_augmentation(data, config, add_homography=False):
-    params = config["data"]["augmentation"]["homographic"]["params"]
-    valid_border_margin = config["data"]["augmentation"]["homographic"]["valid_border_margin"]
-
-    image_shape = tf.shape(data["image"])[:2]
-    homography = sample_homography(image_shape, params)[0]
-    warped_image = tfa.image.transform(data['image'], homography, interpolation='BILINEAR')
-    valid_mask = compute_valid_mask(image_shape, homography, valid_border_margin)
-
-    warped_points = warp_points(data['keypoints'], homography)
-    warped_points = filter_points(warped_points, image_shape)
-
-    ret = {**data, 'image': warped_image, 'keypoints': warped_points, 'valid_mask': valid_mask}
-    if add_homography:
-        ret["homography"] = homography
-    return ret
 
 
 def make_tf_dataset(files, is_train):
@@ -166,23 +111,13 @@ def make_tf_dataset(files, is_train):
     return data
 
 
-def flat2mat(H):
-    return tf.reshape(tf.concat([H, tf.ones([tf.shape(H)[0], 1])], axis=1), [-1, 3, 3])
+def homography_adaptation(data, model, config):
+    image = data["image"][0].numpy()
+    image = tf.expand_dims(image, axis=0)
 
-
-def mat2flat(H):
-    H = tf.reshape(H, [-1, 9])
-    return (H / H[:, 8:9])[:, :8]
-
-
-def invert_homography(H):
-    return mat2flat(tf.linalg.inv(flat2mat(H)))
-
-
-def homography_adaptation(image, model, config):
     logits, probs = model(image)
     counts = tf.ones_like(probs)
-    image = image
+    images = image
 
     probs = tf.expand_dims(probs, axis=-1)
     counts = tf.expand_dims(counts, axis=-1)
@@ -199,10 +134,18 @@ def homography_adaptation(image, model, config):
 
         if config["model"]["homography_adaptation"]["valid_border_margin"]:
             kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (config["model"]["homography_adaptation"]["valid_border_margin"] *2,) * 2)
-            count = tf.nn.erosion2d(count, tf.cast(tf.constant(kernel)[..., tf.newaxis], tf.float32),
-                                    [1, 1, 1, 1], [1, 1, 1, 1], "SAME")[..., 0] + 1.
-            mask = tf.nn.erosion2d(mask, tf.cast(tf.constant(kernel)[..., tf.newaxis], tf.float32),
-                                   [1, 1, 1, 1], [1, 1, 1, 1], "SAME")[..., 0] + 1.
+            count = tf.nn.erosion2d(value=count, 
+                                    filters=tf.cast(tf.constant(kernel)[..., tf.newaxis], tf.float32), 
+                                    strides=[1, 1, 1, 1], 
+                                    dilations=[1, 1, 1, 1], 
+                                    data_format="NHWC",
+                                    padding="SAME")[..., 0] + 1.
+            mask = tf.nn.erosion2d(value=mask,
+                                   filters=tf.cast(tf.constant(kernel)[..., tf.newaxis], tf.float32),
+                                   strides=[1, 1, 1, 1],
+                                   dilations=[1, 1, 1, 1],
+                                   data_format="NHWC",
+                                   padding="SAME")[..., 0] + 1.
 
         logits, prob = model(warped)
         prob = prob * mask
@@ -214,12 +157,15 @@ def homography_adaptation(image, model, config):
         images = tf.concat([images, tf.expand_dims(warped, -1)], axis=-1)
         return i + 1, probs, counts, images
 
-    _, probs, counts, images = tf.while_loop(lambda i, p, c, im : tf.less(i, config["num"] - 1), step, [0, probs, counts, images],
-                                             parallel_iterations=1, back_prop=False,
-                                             shape_invariants=[tf.TensorShape([]),
-                                                               tf.TensorShape([None, None, None, None]),
-                                                               tf.TensorShape([None, None, None, None]),
-                                                               tf.TensorShape([None, None, None, 1, None])])
+    _, probs, counts, images = tf.nest.map_structure(tf.stop_gradient, 
+                                                     tf.while_loop(lambda i, p, c, im : tf.less(i, config["model"]["homography_adaptation"]["num"] - 1), 
+                                                                   step,
+                                                                   [0, probs, counts, images],
+                                                                   parallel_iterations=1,
+                                                                   shape_invariants=[tf.TensorShape([]),
+                                                                                   tf.TensorShape([None, None, None, None]),
+                                                                                   tf.TensorShape([None, None, None, None]),
+                                                                                   tf.TensorShape([None, None, None, 1, None])]))
     counts = tf.reduce_sum(counts, axis=-1)
     max_prob = tf.reduce_sum(probs, axis=-1)
     mean_prob = tf.reduce_sum(probs, axis=-1) / counts
@@ -246,14 +192,29 @@ if __name__ == "__main__":
     
     files = build_dataset(coco_path, config) ## keys : "image_paths", "names"
     print(len(files["image_paths"]), len(files["names"]))
-    print(files["image_paths"][:3])
-    print(files["names"][:3])
 
     dataset = make_tf_dataset(files, False)
-    for data in dataset.take(1):
-        print(data)
+    iterator = iter(dataset)
+    # for data in dataset.take(1):
+    #     image, name = data["image"].numpy(), data["name"].numpy()
+    #     print(image.shape, name)
 
     model = MagicPoint(config["model"]["backbone_name"], config["model"]["input_shape"], config["model"]["nms_size"], config["model"]["threshold"], False)
     model.built = True
     model.load_weights(config["model"]["ckpt_path"])
     print("model_loaded")
+
+    while True:
+        data = []
+        try:
+            for _ in range(config["model"]["batch_size"]):
+                data.append(iterator.get_next())
+        except (StopIteration, tf.errors.OutOfRangeError):
+            if not data:
+                break
+            data += [data[-1] for _ in range(config["model"]["batch_size"] - len(data))]
+        data = dict(zip(data[0], zip(*[d.values() for d in data])))
+
+        prediction = homography_adaptation(data, model, config)
+        print(prediction)
+        print("???")
