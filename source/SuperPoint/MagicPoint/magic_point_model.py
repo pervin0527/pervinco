@@ -47,7 +47,7 @@ def vgg_block(inputs, filters, kernel_size, activation):
 
 
 def vgg_backbone(inputs):
-    inputs = tf.keras.Input(shape=inputs)
+    inputs = tf.keras.Input(shape=inputs, name="image")
     x = vgg_block(inputs, 64, 3, "relu") ## 120, 160, 64
     x = vgg_block(x, 64, 3, "relu") ## 120, 160, 64
     x = tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=2, padding="SAME")(x) ## 60, 80, 64

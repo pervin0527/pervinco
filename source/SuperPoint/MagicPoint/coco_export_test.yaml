@@ -30,22 +30,23 @@ model:
     learning_rate: 0.001
     threshold: 0.001  # 0.001
     nms_size: 4
-    top_k: 0
+    top_k: 100
     homography_adaptation:
         num: 100
         aggregation: 'sum'
-        filter_counts: 0
+        filter_counts: 2
         valid_border_margin: 3
         homographies:
             translation: true
             rotation: true
             scaling: true
             perspective: true
-            scaling_amplitude: 0.2
-            perspective_amplitude_x: 0.2
-            perspective_amplitude_y: 0.2
+            scaling_amplitude: 0.1
+            perspective_amplitude_x: 0.22
+            perspective_amplitude_y: 0.22
             allow_artifacts: true
-            patch_ratio: 0.85
+            translation_overflow: 0.1
+            allow_artifacts: true
 
 path:
     output_path: "/home/ubuntu/Datasets/COCO_MagicPoint"

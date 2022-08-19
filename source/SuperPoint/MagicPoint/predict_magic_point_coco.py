@@ -5,15 +5,12 @@ import yaml
 import numpy as np
 import tensorflow as tf
 
-from tqdm import tqdm
 from pathlib import Path
 from magic_point_model import MagicPoint
-from tensorflow_addons.image import transform as H_transform
-from homograhic_augmentation import sample_homography
-from data_utils import add_dummy_valid_mask, add_keypoint_map, ratio_preserving_resize, photometric_augmentation, homographic_augmentation, invert_homography
+from data_utils import add_dummy_valid_mask, add_keypoint_map, homography_adaptation, ratio_preserving_resize, photometric_augmentation, homographic_augmentation, box_nms
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-# np.set_printoptions(threshold=sys.maxsize)
+np.set_printoptions(threshold=sys.maxsize)
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if len(gpus) > 1:
     try:
@@ -110,123 +107,55 @@ def make_tf_dataset(files, is_train):
     return data
 
 
-def homography_adaptation(data, model, config):
-    image = data["image"][0].numpy()
-    image = tf.expand_dims(image, axis=0)
+def draw_keypoints(img, corners, color, s = 4):
+    keypoints = [cv2.KeyPoint(int(c[1])*s, int(c[0])*s, 1) for c in np.stack(corners).T]
+    return cv2.drawKeypoints(img.astype(np.uint8), keypoints, None, color=color)
 
-    logits, probs = model(image)
-    counts = tf.ones_like(probs)
-    images = image
 
-    probs = tf.expand_dims(probs, axis=-1)
-    counts = tf.expand_dims(counts, axis=-1)
-    images = tf.expand_dims(images, axis=-1)
-
-    shape = tf.shape(image)[1:3]
-    
-    def step(i, probs, counts, images):
-        H = sample_homography(shape, config["model"]["homography_adaptation"]["homographies"])
-        H_inv = invert_homography(H)
-        warped = H_transform(image, H, interpolation='BILINEAR')
-        count = H_transform(tf.expand_dims(tf.ones(tf.shape(image)[:3]), -1), H_inv, interpolation="nearest")
-        mask = H_transform(tf.expand_dims(tf.ones(tf.shape(image)[:3]), -1), H, interpolation="nearest")
-
-        if config["model"]["homography_adaptation"]["valid_border_margin"]:
-            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (config["model"]["homography_adaptation"]["valid_border_margin"] *2,) * 2)
-            count = tf.nn.erosion2d(value=count, 
-                                    filters=tf.cast(tf.constant(kernel)[..., tf.newaxis], tf.float32), 
-                                    strides=[1, 1, 1, 1], 
-                                    dilations=[1, 1, 1, 1], 
-                                    data_format="NHWC",
-                                    padding="SAME")[..., 0] + 1.
-            mask = tf.nn.erosion2d(value=mask,
-                                   filters=tf.cast(tf.constant(kernel)[..., tf.newaxis], tf.float32),
-                                   strides=[1, 1, 1, 1],
-                                   dilations=[1, 1, 1, 1],
-                                   data_format="NHWC",
-                                   padding="SAME")[..., 0] + 1.
-
-        logits, prob = model(warped)
-        prob = prob * mask
-        prob_proj = H_transform(tf.expand_dims(prob, -1), H_inv, interpolation="BILNEAR")[..., 0]
-        prob_proj = prob_proj * count
-
-        probs = tf.concat([probs, tf.expand_dims(prob_proj, -1)], axis=-1)
-        counts = tf.concat([counts, tf.expand_dims(count, -1)], axis=-1)
-        images = tf.concat([images, tf.expand_dims(warped, -1)], axis=-1)
-        return i + 1, probs, counts, images
-
-    _, probs, counts, images = tf.nest.map_structure(tf.stop_gradient, 
-                                                     tf.while_loop(lambda i, p, c, im : tf.less(i, config["model"]["homography_adaptation"]["num"] - 1), 
-                                                                   step,
-                                                                   [0, probs, counts, images],
-                                                                   parallel_iterations=1,
-                                                                   shape_invariants=[tf.TensorShape([]),
-                                                                                   tf.TensorShape([None, None, None, None]),
-                                                                                   tf.TensorShape([None, None, None, None]),
-                                                                                   tf.TensorShape([None, None, None, 1, None])]))
-    counts = tf.reduce_sum(counts, axis=-1)
-    max_prob = tf.reduce_sum(probs, axis=-1)
-    mean_prob = tf.reduce_sum(probs, axis=-1) / counts
-
-    if config["model"]["homography_adaptation"]["aggregation"] == "max":
-        prob = max_prob
-    elif config["model"]["homography_adaptation"]["aggregation"] == "sum":
-        prob = mean_prob
-    else:
-        raise ValueError('Unkown aggregation method: {}'.format(config["model"]["homography_adaptation"]["aggregation"]))
-
-    if config['model']['homography_adaptation']['filter_counts']:
-        prob = tf.where(tf.greater_equal(counts, config['model']['homography_adaptation']['filter_counts']), prob, tf.zeros_like(prob))
-
-    return {'prob': prob, 'counts': counts, 'mean_prob': mean_prob, 'input_images': images, 'H_probs': probs}  # debug
-
-        
 if __name__ == "__main__":
     config_path = "./magic-point_coco_export.yaml"
-
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
-
-    if not os.path.isdir(config["path"]["output_path"]):
-        os.makedirs(config["path"]["output_path"])
-    
-    files = build_dataset(config["path"]["coco_path"], config) ## keys : "image_paths", "names"
-    print(len(files["image_paths"]), len(files["names"]))
-
-    dataset = make_tf_dataset(files, False)
-    iterator = iter(dataset)
 
     model = MagicPoint(config["model"]["backbone_name"], config["model"]["input_shape"], config["model"]["nms_size"], config["model"]["threshold"], False)
     model.built = True
     model.load_weights(config["path"]["ckpt_path"])
     print("model_loaded")
 
-    # pbar = tqdm(total=config['eval_iter'] if config['eval_iter'] > 0 else None)
-    pbar = tqdm(total=len(files["names"]))
-    i = 0
+    files = build_dataset(config["path"]["coco_path"], config)
+    dataset = make_tf_dataset(files, False)
+    iterator = iter(dataset)
+
+    if not os.path.isdir(config["path"]["output_path"] + "/samples"):
+        os.makedirs(config["path"]["output_path"] + "/samples")
+    
+    index = 0
     while True:
         data = []
+        image, name = None, None
         try:
             for _ in range(config["model"]["batch_size"]):
-                data.append(iterator.get_next())
+                current_data = iterator.get_next()
+                image = (current_data["image"].numpy()[..., 0] * 255)
+                name = current_data["name"].numpy().decode("utf-8")
+                data.append(current_data)
+                
         except (StopIteration, tf.errors.OutOfRangeError):
             if not data:
                 break
             data += [data[-1] for _ in range(config["model"]["batch_size"] - len(data))]
+
         data = dict(zip(data[0], zip(*[d.values() for d in data])))
+        outputs = homography_adaptation(data["image"][0], model, config) # prob, counts, mean_prob, input_images, H_probs
+        outputs = {k: v[0] for k, v in outputs.items()}  # batch to single element
+        
+        outputs['prob_nms'] = box_nms(outputs['prob'], config["model"]['nms_size'], keep_top_k=config["model"]['top_k'])
+        outputs['pred'] = tf.cast(tf.greater_equal(outputs['prob_nms'], config["model"]['threshold']), dtype=tf.int32)
+        pred = outputs["pred"].numpy().astype(np.int32)
 
-        pred = homography_adaptation(data, model, config)
-
-        d2l = lambda d: [dict(zip(d, e)) for e in zip(*d.values())]
-        for p, d in zip(d2l(pred), d2l(data)):
-            if not ('name' in d):
-                p.update(d)
-            filename = d['name'].numpy().decode('utf-8') if 'name' in d else str(i)
-            filepath = Path(config["path"]["output_path"], '{}.npz'.format(filename))
-            np.savez_compressed(filepath, **p)
-            i += 1
-            pbar.update(1)
-
-            if i >= len(files["names"]):
-                break
+        print(name)
+        cv2.imwrite(config["path"]["output_path"] + "/samples" + f"/{index}_input.jpg", image)
+        
+        result = draw_keypoints(image, np.where(pred), (0, 255, 0))
+        cv2.imwrite(config["path"]["output_path"] + "/samples" + f"/{index}_result.jpg", result)
+        index += 1
