@@ -37,10 +37,20 @@ class DisplayCallback(tf.keras.callbacks.Callback):
         plot_predictions()
 
 
+def preprocess_image(image):
+    image = image.astype(np.float32)
+
+    image[..., 0] -= 103.939
+    image[..., 1] -= 116.779
+    image[..., 2] -= 123.68
+
+    return image
+
+
 def plot_predictions():
     image = cv2.imread(f"./dog.jpg")
     image = cv2.resize(image, (input_shape[0], input_shape[1]))
-    input_tensor = np.expand_dims(image, axis=0)
+    input_tensor = np.expand_dims(preprocess_image(image), axis=0)
     prediction = prediction_model.predict(input_tensor)[0]
 
     scores = prediction[:, 4]
@@ -86,12 +96,13 @@ if __name__ == "__main__":
 
     with strategy.scope():
         model, prediction_model = centernet(len(classes), backbone, input_shape[0], max_detections, threshold, False, False, True)
-        model.summary()
+
         if freeze_backbone:
             for i in range(190):
                 model.layers[i].trainable = False
         else:
             model.load_weights("/home/ubuntu/Models/test.h5", by_name=True, skip_mismatch=True)
+        model.summary()
         model.compile(optimizer=optimizer, loss={'centernet_loss': lambda y_true, y_pred: y_pred})
 
     model.fit(train_dataset,
