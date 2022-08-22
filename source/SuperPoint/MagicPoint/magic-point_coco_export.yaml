@@ -30,7 +30,7 @@ model:
     learning_rate: 0.001
     threshold: 0.001  # 0.001
     nms_size: 4
-    top_k: 0
+    top_k: 300
     homography_adaptation:
         num: 100
         aggregation: 'sum'

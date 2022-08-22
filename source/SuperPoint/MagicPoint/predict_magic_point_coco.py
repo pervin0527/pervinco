@@ -5,12 +5,13 @@ import yaml
 import numpy as np
 import tensorflow as tf
 
+from tqdm import tqdm
 from pathlib import Path
 from magic_point_model import MagicPoint
 from data_utils import add_dummy_valid_mask, add_keypoint_map, homography_adaptation, ratio_preserving_resize, photometric_augmentation, homographic_augmentation, box_nms
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-np.set_printoptions(threshold=sys.maxsize)
+# np.set_printoptions(threshold=sys.maxsize)
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if len(gpus) > 1:
     try:
@@ -48,7 +49,7 @@ def read_points(filename):
 
 def read_image(path):
     image = tf.io.read_file(path)
-    image = tf.image.decode_png(image, channels=3)
+    image = tf.io.decode_png(image, channels=3)
     return tf.cast(image, tf.float32)
 
 
@@ -56,6 +57,7 @@ def preprocess(image):
     image = tf.image.rgb_to_grayscale(image)
     if config["data"]["preprocessing"]["resize"]:
         image = ratio_preserving_resize(image, config["data"]["preprocessing"])
+    
     return image
 
 
@@ -107,8 +109,8 @@ def make_tf_dataset(files, is_train):
     return data
 
 
-def draw_keypoints(img, corners, color, s = 4):
-    keypoints = [cv2.KeyPoint(int(c[1])*s, int(c[0])*s, 1) for c in np.stack(corners).T]
+def draw_keypoints(img, corners, color):
+    keypoints = [cv2.KeyPoint(int(c[1]), int(c[0]), 1) for c in np.stack(corners)]
     return cv2.drawKeypoints(img.astype(np.uint8), keypoints, None, color=color)
 
 
@@ -129,16 +131,19 @@ if __name__ == "__main__":
     if not os.path.isdir(config["path"]["output_path"] + "/samples"):
         os.makedirs(config["path"]["output_path"] + "/samples")
     
-    index = 0
+
+    i = 0
+    steps = len(files["image_paths"])
+    pbar = tqdm(total=steps)
     while True:
         data = []
         image, name = None, None
         try:
             for _ in range(config["model"]["batch_size"]):
                 current_data = iterator.get_next()
+                data.append(current_data)
                 image = (current_data["image"].numpy()[..., 0] * 255)
                 name = current_data["name"].numpy().decode("utf-8")
-                data.append(current_data)
                 
         except (StopIteration, tf.errors.OutOfRangeError):
             if not data:
@@ -146,16 +151,38 @@ if __name__ == "__main__":
             data += [data[-1] for _ in range(config["model"]["batch_size"] - len(data))]
 
         data = dict(zip(data[0], zip(*[d.values() for d in data])))
-        outputs = homography_adaptation(data["image"][0], model, config) # prob, counts, mean_prob, input_images, H_probs
-        outputs = {k: v[0] for k, v in outputs.items()}  # batch to single element
+        # outputs = homography_adaptation(data["image"][0], model, config) # prob, counts, mean_prob, input_images, H_probs
+        # outputs = {k: v[0] for k, v in outputs.items()}  # batch to single element
         
-        outputs['prob_nms'] = box_nms(outputs['prob'], config["model"]['nms_size'], keep_top_k=config["model"]['top_k'])
-        outputs['pred'] = tf.cast(tf.greater_equal(outputs['prob_nms'], config["model"]['threshold']), dtype=tf.int32)
-        pred = outputs["pred"].numpy().astype(np.int32)
+        # outputs['prob_nms'] = box_nms(outputs['prob'], config["model"]['nms_size'], keep_top_k=config["model"]['top_k'])
+        # outputs['pred'] = tf.cast(tf.greater_equal(outputs['prob_nms'], config["model"]['threshold']), dtype=tf.int32)
+        # pred = outputs["pred"].numpy().astype(np.int32)
 
-        print(name)
-        cv2.imwrite(config["path"]["output_path"] + "/samples" + f"/{index}_input.jpg", image)
+        # print(name)
+        # cv2.imwrite(config["path"]["output_path"] + "/samples" + f"/{name}_input.jpg", image)
         
-        result = draw_keypoints(image, np.where(pred), (0, 255, 0))
-        cv2.imwrite(config["path"]["output_path"] + "/samples" + f"/{index}_result.jpg", result)
-        index += 1
+        # result = draw_keypoints(image, np.where(pred), (0, 255, 0))
+        # cv2.imwrite(config["path"]["output_path"] + "/samples" + f"/{name}_result.jpg", result)
+        # index += 1
+
+        prediction = homography_adaptation(data["image"][0], model, config)
+        prob = tf.map_fn(lambda p : box_nms(p, config["model"]["nms_size"]), prediction["prob"])
+        prob = tf.cast(tf.greater_equal(prob, config["model"]["threshold"]), dtype=tf.int32)
+        pred = {'points': [np.array(np.where(e)).T for e in prob]}
+
+        result = draw_keypoints(image, pred["points"][0], (0, 255,0))
+        cv2.imwrite(config["path"]["output_path"] + "/samples" + f"/{name}_result.jpg", result)
+
+        d2l = lambda d: [dict(zip(d, e)) for e in zip(*d.values())]
+        for p, d in zip(d2l(pred), d2l(data)):
+            if not ('name' in d):
+                p.update(d)
+            filename = d['name'].numpy().decode('utf-8') if 'name' in d else str(i)
+            filepath = Path(config["path"]["output_path"], '{}.npz'.format(filename))
+            np.savez_compressed(filepath, **p)
+            i += 1
+            pbar.update(1)
+
+        if i >= steps:
+            print("DONE")
+            break

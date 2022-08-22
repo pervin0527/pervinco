@@ -10,6 +10,26 @@ from pathlib import Path
 from magic_point_model import MagicPoint
 from data_utils import homography_adaptation, box_nms
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+np.set_printoptions(threshold=sys.maxsize)
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if len(gpus) > 1:
+    try:
+        print("Activate Multi GPU")
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+        strategy = tf.distribute.MirroredStrategy(cross_device_ops=tf.distribute.HierarchicalCopyAllReduce())
+    except RuntimeError as e:
+        print(e)
+
+else:
+    try:
+        print("Activate Sigle GPU")
+        tf.config.experimental.set_memory_growth(gpus[0], True)
+        strategy = tf.distribute.experimental.CentralStorageStrategy()
+    except RuntimeError as e:
+        print(e)
+
 
 def draw_keypoints(img, corners, color):
     keypoints = [cv2.KeyPoint(int(c[1]), int(c[0]), 1) for c in np.stack(corners).T]
@@ -25,7 +45,8 @@ if __name__ == "__main__":
     model.built = True
     model.load_weights("/home/ubuntu/Models/MagicPoint/vgg.h5")
 
-    image_path = "/home/ubuntu/Datasets/COCO2014/train2014/COCO_train2014_000000519723.jpg"
+    # image_path = "/home/ubuntu/Datasets/COCO2014/train2014/COCO_train2014_000000519723.jpg"
+    image_path = "/home/ubuntu/Datasets/COCO2014/train2014/COCO_train2014_000000270070.jpg"
     image = tf.io.read_file(image_path)
     image = tf.io.decode_jpeg(image, channels=1)
     image = tf.image.resize(image, (240, 320))
@@ -40,5 +61,8 @@ if __name__ == "__main__":
     pred = outputs["pred"].numpy()
     result = draw_keypoints(image, np.where(pred), (0, 255, 0))
 
-    cv2.imwrite("./samples/image.jpg", image)
-    cv2.imwrite("./samples/result.jpg", result)
+    if not os.path.isdir("./samples/coco_export"):
+        os.makedirs("./samples/coco_export")
+
+    cv2.imwrite("./samples/coco_export/image.jpg", image)
+    cv2.imwrite("./samples/coco_export/result.jpg", result)
