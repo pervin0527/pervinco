@@ -49,4 +49,4 @@ model:
 path:
     output_path: "/home/ubuntu/Datasets/COCO_MagicPoint"
     coco_path: "/home/ubuntu/Datasets/COCO2014"
-    ckpt_path: "/home/ubuntu/Models/MagicPoint/vgg.h5"
+    ckpt_path: "/home/ubuntu/Models/MagicPoint/ckpt.h5"

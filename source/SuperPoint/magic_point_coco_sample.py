@@ -37,16 +37,15 @@ def draw_keypoints(img, corners, color):
 
 
 if __name__ == "__main__":
-    config_path = "./coco_export_test.yaml"
+    config_path = "./magic-point_coco_test.yaml"
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
-    model = MagicPoint((240, 320), 4, 0.001)
+    model = MagicPoint(config["model"]["input_shape"], 4, 0.001)
     model.built = True
-    model.load_weights("/home/ubuntu/Models/MagicPoint/vgg.h5")
+    model.load_weights(config["path"]["ckpt_path"])
 
-    # image_path = "/home/ubuntu/Datasets/COCO2014/train2014/COCO_train2014_000000519723.jpg"
-    image_path = "/home/ubuntu/Datasets/COCO2014/train2014/COCO_train2014_000000270070.jpg"
+    image_path = "/home/ubuntu/Datasets/COCO2014/train2014/COCO_train2014_000000519723.jpg"
     image = tf.io.read_file(image_path)
     image = tf.io.decode_jpeg(image, channels=1)
     image = tf.image.resize(image, (240, 320))
