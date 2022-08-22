@@ -1,7 +1,6 @@
 import os
 import cv2
 import yaml
-import collections
 import numpy as np
 import synthetic_data
 from tqdm import tqdm
@@ -84,7 +83,7 @@ if __name__ == "__main__":
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
-    data_path = "/home/ubuntu/Datasets/synthetic_shapes"
+    data_path = config["path"]["dataset"]
     total_sets = generate_dataset()
     
     training_images = total_sets["training"]["images"]

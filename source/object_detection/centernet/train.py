@@ -70,7 +70,7 @@ if __name__ == "__main__":
     epochs = 1000
     init_lr = 0.0001
     max_lr = 0.009
-    batch_size = 32
+    batch_size = 64
     threshold = 0.4
     max_detections = 100
     input_shape = [512, 512, 3]
