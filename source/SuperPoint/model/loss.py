@@ -2,7 +2,7 @@ import itertools
 import tensorflow as tf
 
 
-def detector_loss(keypoint_map, logits, valid_mask):
+def detector_loss(keypoint_map, logits, valid_mask, is_focal):
     labels = tf.cast(keypoint_map[..., tf.newaxis], tf.float32) 
     labels = tf.nn.space_to_depth(labels, 8)
 
@@ -16,8 +16,10 @@ def detector_loss(keypoint_map, logits, valid_mask):
     valid_mask = tf.nn.space_to_depth(valid_mask, 8)
     valid_mask = tf.reduce_prod(valid_mask, axis=3)
 
-    loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=labels)
-    # loss = sparse_categorical_focal_loss(y_true=labels, y_pred=logits, gamma=2, alpha=0.25, from_logits=True)
+    if not is_focal:
+        loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=labels)
+    else:
+        loss = sparse_categorical_focal_loss(y_true=labels, y_pred=logits, gamma=2, alpha=0.25, from_logits=True)
 
     return loss
 

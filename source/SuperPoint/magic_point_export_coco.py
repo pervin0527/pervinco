@@ -8,7 +8,7 @@ import tensorflow as tf
 from tqdm import tqdm
 from pathlib import Path
 from magic_point_model import MagicPoint
-from data_utils import add_dummy_valid_mask, add_keypoint_map, homography_adaptation, ratio_preserving_resize, photometric_augmentation, homographic_augmentation, box_nms
+from data.data_utils import add_dummy_valid_mask, add_keypoint_map, homography_adaptation, ratio_preserving_resize, photometric_augmentation, homographic_augmentation, box_nms
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 # np.set_printoptions(threshold=sys.maxsize)
@@ -115,11 +115,11 @@ def draw_keypoints(img, corners, color):
 
 
 if __name__ == "__main__":
-    config_path = "./magic-point_coco_export.yaml"
+    config_path = "./configs/magic-point_coco_export.yaml"
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
-    model = MagicPoint(config["model"]["input_shape"], config["model"]["nms_size"], config["model"]["threshold"], False)
+    model = MagicPoint(config["model"]["backbone"], config["model"]["input_shape"], config["model"]["nms_size"], config["model"]["threshold"])
     model.built = True
     model.load_weights(config["path"]["ckpt_path"])
     print("model_loaded")
@@ -131,7 +131,6 @@ if __name__ == "__main__":
     if not os.path.isdir(config["path"]["output_path"] + "/samples"):
         os.makedirs(config["path"]["output_path"] + "/samples")
     
-
     i = 0
     steps = len(files["image_paths"])
     pbar = tqdm(total=steps)

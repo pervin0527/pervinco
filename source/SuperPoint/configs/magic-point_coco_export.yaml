@@ -1,6 +1,5 @@
 data:
     name: 'coco'
-    cache_in_memory: false
     validation_size: 100
     
     truncate: null
@@ -24,6 +23,7 @@ data:
             valid_border_margin: 0
 
 model:
+    backbone: "vgg"
     input_shape: [240, 320, 1]
     batch_size: 1
     learning_rate: 0.001
@@ -47,6 +47,6 @@ model:
             patch_ratio: 0.85
 
 path:
-    output_path: "/home/ubuntu/Datasets/COCO_MagicPoint"
-    coco_path: "/home/ubuntu/Datasets/COCO2014"
-    ckpt_path: "/home/ubuntu/Models/MagicPoint/ckpt.h5"
+    coco_path: "/data/Datasets/COCO2014"
+    ckpt_path: "/data/Models/MagicPoint/vgg.h5"
+    output_path: "/data/Datasets/COCO_MagicPoint"

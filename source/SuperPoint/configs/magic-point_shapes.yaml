@@ -2,13 +2,10 @@ data:
     name: 'synthetic_shapes'
     primitives: 'all'
     truncate: {draw_ellipses: 0.6, draw_stripes: 0.4, gaussian_noise: 0.25} # draw_ellipses: 0.3, draw_stripes: 0.2, gaussian_noise: 0.1
-    cache_in_memory: true
-    validation_size: 500
     suffix: 'v0'
-    add_augmentation_to_test_set: false  # set to true to evaluate with noise
 
     generation:
-      split_sizes: {"training": 100000, "validation": 1000, "test": 10} ## default 10000 : 200 : 500
+      split_sizes: {"training": 10000, "validation": 100, "test": 10} ## default 10000 : 200 : 500
       image_size: [960, 1280]
       random_seed: 0
       params: {
@@ -57,15 +54,18 @@ data:
             valid_border_margin: 2
 
 model:
+    backbone : "resnet"
     input_shape : [120, 160, 1]
     epochs : 10000
-    train_iter : 5000
+    train_iter : 10000
     nms_size : 4
-    threshold : 0.01
+    threshold : 0.015
     init_lr : 0.0001
-    maximum_lr : 0.009
+    max_lr : 0.009
     summary : False
+    focal_loss : true
+    optimizer : "angular"
 
 path:
-    dataset : "/home/ubuntu/Datasets/synthetic_shapes"
-    save_path : "/home/ubuntu/Models/MagicPoint"
+    dataset : "/data/Datasets/synthetic_shapes"
+    save_path : "/data/Models/MagicPoint"

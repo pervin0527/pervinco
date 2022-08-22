@@ -1,5 +1,6 @@
 import tensorflow as tf
-from losses import detector_loss
+from model.loss import detector_loss
+from model.resnet import resnet_backbone
    
 
 def vgg_block(inputs, filters, kernel_size, activation):
@@ -72,11 +73,18 @@ class detector_postprocess(tf.keras.layers.Layer):
 
 
 class MagicPoint(tf.keras.Model):
-    def __init__(self, backbone_input, nms_size, threshold, summary=False):
+    def __init__(self, backbone_name, backbone_input, nms_size, threshold, is_focal=False, summary=False):
         super(MagicPoint, self).__init__()
+        self.focal = is_focal
 
-        self.backbone = vgg_backbone(inputs=(backbone_input))
-        self.output_channel = 128
+        if backbone_name.lower() == "vgg":
+            self.backbone = vgg_backbone(inputs=(backbone_input))
+            self.output_channel = 128
+
+        elif backbone_name.lower() == "resnet":
+            self.backbone = resnet_backbone()
+            self.backbone.build(input_shape=(None, backbone_input[0], backbone_input[1], 1))
+            self.output_channel = 512
 
         self.detector_head = detector_head((int(backbone_input[0] / 8), int(backbone_input[1] / 8), self.output_channel), nms_size, threshold)
         self.loss_tracker = tf.keras.metrics.Mean(name="loss")
@@ -96,7 +104,7 @@ class MagicPoint(tf.keras.Model):
 
         with tf.GradientTape() as tape:
             pred_logits, pred_prob = self(image, training=True)
-            loss = detector_loss(keypoint_map, pred_logits, valid_mask)
+            loss = detector_loss(keypoint_map, pred_logits, valid_mask, self.focal)
 
         trainable_vars = self.trainable_variables
         gradients = tape.gradient(loss, trainable_vars)
@@ -108,7 +116,7 @@ class MagicPoint(tf.keras.Model):
     def test_step(self, data):
         image, keypoints, valid_mask, keypoint_map = data["image"], data["keypoints"], data["valid_mask"], data["keypoint_map"]
         pred_logits, pred_prob = self(image, training=False)
-        loss = detector_loss(keypoint_map, pred_logits, valid_mask)
+        loss = detector_loss(keypoint_map, pred_logits, valid_mask, self.focal)
         
         self.loss_tracker.update_state(loss)
         return {"loss" : self.loss_tracker.result()}

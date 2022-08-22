@@ -1,9 +1,9 @@
 import cv2
 import tensorflow as tf
 import tensorflow_addons as tfa
-import photometric_augmentation as photaug
+import augmentation.photometric_augmentation as photoaug
 from tensorflow_addons.image import transform as H_transform
-from homograhic_augmentation import sample_homography, compute_valid_mask, warp_points, filter_points
+from augmentation.homograhic_augmentation import sample_homography, compute_valid_mask, warp_points, filter_points
 
 def add_dummy_valid_mask(data):
     valid_mask = tf.ones(tf.shape(data['image'])[:2], dtype=tf.int32)
@@ -33,7 +33,7 @@ def photometric_augmentation(data, config):
     prim_configs = [params.get(p, {}) for p in primitives]
     indices = tf.range(len(primitives))
     def step(i, image):
-        fn_pairs = [(tf.equal(indices[i], j), lambda p=p, c=c: getattr(photaug, p)(image, **c)) for j, (p, c) in enumerate(zip(primitives, prim_configs))]
+        fn_pairs = [(tf.equal(indices[i], j), lambda p=p, c=c: getattr(photoaug, p)(image, **c)) for j, (p, c) in enumerate(zip(primitives, prim_configs))]
         image = tf.case(fn_pairs)
         return i + 1, image
 

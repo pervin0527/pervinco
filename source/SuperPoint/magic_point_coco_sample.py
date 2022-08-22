@@ -4,11 +4,9 @@ import cv2
 import yaml
 import numpy as np
 import tensorflow as tf
-import matplotlib.pyplot as plt
 
-from pathlib import Path
 from magic_point_model import MagicPoint
-from data_utils import homography_adaptation, box_nms
+from data.data_utils import homography_adaptation, box_nms
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 np.set_printoptions(threshold=sys.maxsize)
@@ -37,18 +35,17 @@ def draw_keypoints(img, corners, color):
 
 
 if __name__ == "__main__":
-    config_path = "./magic-point_coco_test.yaml"
+    config_path = "./configs/magic-point_coco_test.yaml"
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
-    model = MagicPoint(config["model"]["input_shape"], 4, 0.001)
+    model = MagicPoint(config["model"]["backbone"], config["model"]["input_shape"], config["model"]["nms_size"], config["model"]["threshold"])
     model.built = True
     model.load_weights(config["path"]["ckpt_path"])
 
-    image_path = "/home/ubuntu/Datasets/COCO2014/train2014/COCO_train2014_000000519723.jpg"
-    image = tf.io.read_file(image_path)
+    image = tf.io.read_file(config["path"]["image_path"])
     image = tf.io.decode_jpeg(image, channels=1)
-    image = tf.image.resize(image, (240, 320))
+    image = tf.image.resize(image, config["data"]["preprocessing"]["resize"])
     input_image = tf.cast(image, tf.float32) / 255.
 
     outputs = homography_adaptation(input_image, model, config)

@@ -2,10 +2,10 @@ import os
 import cv2
 import yaml
 import numpy as np
-import synthetic_data
 from tqdm import tqdm
 from pathlib import Path
 from shutil import copyfile
+from data import synthetic_data
 
 
 def parse_primitives(names, all_primitives):
@@ -79,7 +79,7 @@ if __name__ == "__main__":
             'gaussian_noise'
     ]
 
-    config_path = "./magic-point_shapes.yaml"    
+    config_path = "./configs/magic-point_shapes.yaml"    
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 

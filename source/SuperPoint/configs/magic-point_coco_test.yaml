@@ -1,0 +1,32 @@
+data:
+    preprocessing:
+        resize: [240, 320]
+
+model:
+    backbone: "vgg"
+    input_shape: [240, 320, 1]
+    threshold : 0.015
+    nms_size: 4
+    top_k: 100
+    homography_adaptation:
+        num: 100
+        aggregation: 'sum'
+        filter_counts: 2
+        valid_border_margin: 3
+        homographies:
+            translation: true
+            rotation: true
+            scaling: true
+            perspective: true
+            scaling_amplitude: 0.1
+            perspective_amplitude_x: 0.22
+            perspective_amplitude_y: 0.22
+            allow_artifacts: true
+            translation_overflow: 0.1
+            allow_artifacts: true
+
+path:
+    coco_path: "/data/Datasets/COCO2014"
+    ckpt_path: "/data/Models/MagicPoint/vgg.h5"
+    output_path: "/data/Datasets/COCO_MagicPoint"
+    image_path: "/data/Datasets/COCO2014/train2014/COCO_train2014_000000519723.jpg"

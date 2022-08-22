@@ -1,5 +1,4 @@
 import os
-import sys
 import cv2
 import yaml
 import numpy as np
@@ -7,12 +6,13 @@ import tensorflow as tf
 import tensorflow_addons as tfa
 
 from glob import glob
+from datetime import datetime
 from IPython.display import clear_output
 from magic_point_model import MagicPoint
-from data_utils import add_dummy_valid_mask, photometric_augmentation, homographic_augmentation, add_keypoint_map, box_nms
+from model.angular_grad import AngularGrad
+from data.data_utils import add_dummy_valid_mask, photometric_augmentation, homographic_augmentation, add_keypoint_map, box_nms
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-np.set_printoptions(threshold=sys.maxsize)
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if len(gpus) > 1:
     try:
@@ -113,12 +113,12 @@ def show_sample(dataset, n_samples, name):
 
 
 if __name__ == "__main__":
-    config_path = "./magic-point_shapes.yaml"
+    config_path = "./configs/magic-point_shapes.yaml"
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
     data_path = config["path"]["dataset"] + "/synthetic_shapes_" + config["data"]["suffix"]
-    print(data_path)
+    print("DATASET PATH : ", data_path)
     train_dataset = build_tf_dataset(data_path, "training")
     valid_dataset = build_tf_dataset(data_path, "validation")
     test_dataset = build_tf_dataset(data_path, "test")
@@ -127,22 +127,35 @@ if __name__ == "__main__":
     show_sample(valid_dataset, 10, "valid")
     show_sample(test_dataset, 5, "test")
 
-    optimizer = tf.keras.optimizers.Adam()
-    clr = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=0.0001,
-                                              maximal_learning_rate=0.009,
+    if config["model"]["optimizer"] == "adam":
+        optimizer = tf.keras.optimizers.Adam()
+    elif config["model"]["optimizer"] == "angular":
+        optimizer = AngularGrad(method_angle="cos")
+
+    clr = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=config["model"]["init_lr"],
+                                              maximal_learning_rate=config["model"]["max_lr"],
                                               scale_fn=lambda x : 1.0,
                                               step_size=config["model"]["epochs"] / 2)
+
+    save_folder = datetime.now().strftime("%Y.%m.%d_%H:%M")
+    save_path = config["path"]["save_path"] + f"/{save_folder}"
+    if not os.path.isdir(save_path):
+        os.makedirs(save_path)
+
+    with open(f"{save_path}/train_magic-point.yaml", "w") as f:
+        yaml.dump(config, f, default_flow_style=False)
 
     callbacks = [
         DisplayCallback(),
         tf.keras.callbacks.LearningRateScheduler(clr),
-        tf.keras.callbacks.ModelCheckpoint(config["path"]["save_path"] + f"/ckpt.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)
+        tf.keras.callbacks.ModelCheckpoint(f"{save_path}/weights.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)
     ]
 
-    model = MagicPoint(config["model"]["input_shape"], config["model"]["nms_size"], config["model"]["threshold"], True)
-    model.compile(optimizer=optimizer)
-    for index in range(len(model.layers)):
-        model.layers[index].trainable = True
+    with strategy.scope():
+        model = MagicPoint(config["model"]["backbone"], config["model"]["input_shape"], config["model"]["nms_size"], config["model"]["threshold"], config["model"]["focal_loss"], config["model"]["summary"])
+        for index in range(len(model.layers)):
+            model.layers[index].trainable = True
+        model.compile(optimizer=optimizer)
 
     model.fit(train_dataset,
               validation_data=valid_dataset,
