@@ -1,42 +1,6 @@
 import tensorflow as tf
 from losses import detector_loss
-from tensorflow.keras import backend as K
-
-def basic_block(inputs, filters, kernel_size, strides, padding="SAME", activation="relu"):
-    x = tf.keras.layers.Conv2D(filters=filters, kernel_size=(kernel_size, kernel_size), strides=strides, padding=padding)(inputs)
-    x = tf.keras.layers.BatchNormalization()(x)
-
-    x = tf.keras.layers.Conv2D(filters=filters, kernel_size=kernel_size, strides=strides, padding=padding)(x)
-    x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.Activation(activation)(x)
-
-    return x
-
-
-def resnet_backbone(inputs):
-    inputs = tf.keras.Input(shape=inputs) ## 120, 160, 1
-    x = tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3), strides=1, padding="SAME")(inputs)
-    x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.Activation("relu")(x)
-    x = tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=2, padding="SAME")(x) ## 60, 80, 64
-
-    x = basic_block(x, 64, 3, 1, "SAME", "relu")
-    x = basic_block(x, 64, 3, 1, "SAME", "relu")
-
-    x = basic_block(x, 128, 3, 1, "SAME", "relu")
-    x = basic_block(x, 128, 3, 1, "SAME", "relu")
-    x = tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=2, padding="SAME")(x) ## 30, 40, 64
-
-    x = basic_block(x, 256, 3, 1, "SAME", "relu")
-    x = basic_block(x, 256, 3, 1, "SAME", "relu")
-    x = tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=2, padding="SAME")(x) ## 15, 20, 128
-
-    x = basic_block(x, 512, 3, 1, "SAME", "relu")
-    x = basic_block(x, 512, 3, 1, "SAME", "relu")
-
-    model = tf.keras.Model(inputs=inputs, outputs=x)
-    return model
-    
+   
 
 def vgg_block(inputs, filters, kernel_size, activation):
     x = tf.keras.layers.Conv2D(filters=filters, kernel_size=kernel_size, padding="SAME")(inputs)
@@ -108,17 +72,11 @@ class detector_postprocess(tf.keras.layers.Layer):
 
 
 class MagicPoint(tf.keras.Model):
-    def __init__(self, backbone_name, backbone_input, nms_size, threshold, summary=False):
+    def __init__(self, backbone_input, nms_size, threshold, summary=False):
         super(MagicPoint, self).__init__()
 
-        if backbone_name == "vgg":
-            # self.backbone = vgg_backbone(inputs=(backbone_input))
-            self.backbone = vgg_backbone(inputs=(backbone_input[0], backbone_input[1], 1))
-            self.output_channel = 128
-
-        elif backbone_name == "resnet":
-            self.backbone = resnet_backbone(inputs=(backbone_input))
-            self.output_channel = 512
+        self.backbone = vgg_backbone(inputs=(backbone_input))
+        self.output_channel = 128
 
         self.detector_head = detector_head((int(backbone_input[0] / 8), int(backbone_input[1] / 8), self.output_channel), nms_size, threshold)
         self.loss_tracker = tf.keras.metrics.Mean(name="loss")

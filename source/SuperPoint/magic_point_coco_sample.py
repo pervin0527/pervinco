@@ -41,7 +41,7 @@ if __name__ == "__main__":
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
-    model = MagicPoint("vgg", (240, 320), 4, 0.001)
+    model = MagicPoint((240, 320), 4, 0.001)
     model.built = True
     model.load_weights("/home/ubuntu/Models/MagicPoint/vgg.h5")
 

@@ -87,7 +87,7 @@ def plot_predictions(model):
         nms_prob = tf.map_fn(lambda p : box_nms(p, config["model"]["nms_size"], threshold=config["model"]["threshold"], keep_top_k=0), pred_probs)
         result_img = draw_keypoints(image, np.where(nms_prob[0] > config["model"]["threshold"]), (0, 255, 0))
         # result_img = draw_keypoints(image, np.where(pred_probs[0] > config["model"]["threshold"]), (0, 255, 0))
-        cv2.imwrite(f"./on_epoch_end/nms_{name}_{index}.png", result_img)
+        cv2.imwrite(f"./on_epoch_end/nms_result_{index}.png", result_img)
 
 
 class DisplayCallback(tf.keras.callbacks.Callback):
@@ -117,8 +117,8 @@ if __name__ == "__main__":
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
-    name = config["model"]["backbone_name"]
-    data_path = config["path"]["dataset"]
+    data_path = config["path"]["dataset"] + "/synthetic_shapes_" + config["data"]["suffix"]
+    print(data_path)
     train_dataset = build_tf_dataset(data_path, "training")
     valid_dataset = build_tf_dataset(data_path, "validation")
     test_dataset = build_tf_dataset(data_path, "test")
@@ -136,10 +136,10 @@ if __name__ == "__main__":
     callbacks = [
         DisplayCallback(),
         tf.keras.callbacks.LearningRateScheduler(clr),
-        tf.keras.callbacks.ModelCheckpoint(config["path"]["save_path"] + f"/{name}.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)
+        tf.keras.callbacks.ModelCheckpoint(config["path"]["save_path"] + f"/ckpt.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)
     ]
 
-    model = MagicPoint(config["model"]["backbone_name"], config["model"]["input_shape"], config["model"]["nms_size"], config["model"]["threshold"], True)
+    model = MagicPoint(config["model"]["input_shape"], config["model"]["nms_size"], config["model"]["threshold"], True)
     model.compile(optimizer=optimizer)
     for index in range(len(model.layers)):
         model.layers[index].trainable = True

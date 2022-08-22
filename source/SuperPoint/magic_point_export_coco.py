@@ -77,8 +77,8 @@ def make_tf_dataset(files, is_train):
         data = tf.data.Dataset.zip((data, kepoint).map(lambda d, k : {**d, "keypoints" : k}))
         data = data.map(add_dummy_valid_mask)
 
-    if not is_train:
-        data = data.take(config["data"]["validation_size"])
+    # if not is_train:
+    #     data = data.take(config["data"]["validation_size"])
 
     if config["data"]["warped_pair"]["enable"]:
         assert has_keypoints
@@ -119,7 +119,7 @@ if __name__ == "__main__":
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
-    model = MagicPoint(config["model"]["backbone_name"], config["model"]["input_shape"], config["model"]["nms_size"], config["model"]["threshold"], False)
+    model = MagicPoint(config["model"]["input_shape"], config["model"]["nms_size"], config["model"]["threshold"], False)
     model.built = True
     model.load_weights(config["path"]["ckpt_path"])
     print("model_loaded")
