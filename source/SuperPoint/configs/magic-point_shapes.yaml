@@ -64,7 +64,7 @@ model:
     max_lr : 0.009
     summary : true
     focal_loss : false
-    optimizer : "angular"
+    optimizer : "adam"
     ckpt_path : null
 
 path:
