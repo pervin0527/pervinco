@@ -80,7 +80,7 @@ def plot_predictions(model):
     if not os.path.isdir(f"{save_path}/on_epoch_end"):
         os.makedirs(f"{save_path}/on_epoch_end")
 
-    for index, data in enumerate(test_dataset.take(5)):
+    for index, data in enumerate(test_dataset.take(50)):
         pred_logits, pred_probs = model.predict(data["image"])
         image = (data["image"][0].numpy() * 255).astype(np.int32)
 
@@ -126,7 +126,7 @@ if __name__ == "__main__":
     save_folder = datetime.now().strftime("%Y_%m_%d-%H_%M")
     save_path = config["path"]["save_path"] + f"/{save_folder}"
     print("SAVE PATH : ", save_path)
-    
+
     if not os.path.isdir(save_path):
         os.makedirs(save_path)
 

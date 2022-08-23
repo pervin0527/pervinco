@@ -16,8 +16,14 @@ def detector_loss(keypoint_map, logits, valid_mask, is_focal):
     valid_mask = tf.nn.space_to_depth(valid_mask, 8)
     valid_mask = tf.reduce_prod(valid_mask, axis=3)
 
+    # tf.print(tf.shape(valid_mask), tf.shape(labels), tf.shape(logits))
+    ## valid_mask : 1, 15, 20
+    ## labels : 1, 15, 20
+    ## logits : 1, 15, 20 , 65
+
     if not is_focal:
         loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=labels)
+        loss *= valid_mask
     else:
         loss = sparse_categorical_focal_loss(y_true=labels, y_pred=logits, gamma=2, alpha=0.25, from_logits=True)
 

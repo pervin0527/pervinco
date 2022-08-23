@@ -57,12 +57,12 @@ model:
     backbone : "vgg"
     input_shape : [120, 160, 1]
     epochs : 10000
-    train_iter : 10000
+    train_iter : 50000
     nms_size : 4
     threshold : 0.015
     init_lr : 0.0001
     max_lr : 0.009
-    summary : false
+    summary : true
     focal_loss : false
     optimizer : "angular"
     ckpt_path : null
