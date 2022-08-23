@@ -73,9 +73,8 @@ class detector_postprocess(tf.keras.layers.Layer):
 
 
 class MagicPoint(tf.keras.Model):
-    def __init__(self, backbone_name, backbone_input, nms_size, threshold, is_focal=False, summary=False):
+    def __init__(self, backbone_name, backbone_input, nms_size, threshold, summary=False):
         super(MagicPoint, self).__init__()
-        self.focal = is_focal
 
         if backbone_name.lower() == "vgg":
             self.backbone = vgg_backbone(inputs=(backbone_input))
@@ -104,7 +103,7 @@ class MagicPoint(tf.keras.Model):
 
         with tf.GradientTape() as tape:
             pred_logits, pred_prob = self(image, training=True)
-            loss = detector_loss(keypoint_map, pred_logits, valid_mask, self.focal)
+            loss = detector_loss(keypoint_map, pred_logits, valid_mask)
 
         trainable_vars = self.trainable_variables
         gradients = tape.gradient(loss, trainable_vars)
@@ -116,7 +115,7 @@ class MagicPoint(tf.keras.Model):
     def test_step(self, data):
         image, keypoints, valid_mask, keypoint_map = data["image"], data["keypoints"], data["valid_mask"], data["keypoint_map"]
         pred_logits, pred_prob = self(image, training=False)
-        loss = detector_loss(keypoint_map, pred_logits, valid_mask, self.focal)
+        loss = detector_loss(keypoint_map, pred_logits, valid_mask)
         
         self.loss_tracker.update_state(loss)
         return {"loss" : self.loss_tracker.result()}

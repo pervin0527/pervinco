@@ -154,7 +154,7 @@ if __name__ == "__main__":
     ]
 
     with strategy.scope():
-        model = MagicPoint(config["model"]["backbone"], config["model"]["input_shape"], config["model"]["nms_size"], config["model"]["threshold"], config["model"]["focal_loss"], config["model"]["summary"])
+        model = MagicPoint(config["model"]["backbone"], config["model"]["input_shape"], config["model"]["nms_size"], config["model"]["threshold"], config["model"]["summary"])
         
         if config["model"]["ckpt_path"]:
             model.load_weights(config["model"]["ckpt_path"])

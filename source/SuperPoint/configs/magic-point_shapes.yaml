@@ -2,7 +2,7 @@ data:
     name: 'synthetic_shapes'
     primitives: 'all'
     truncate: {draw_ellipses: 0.6, draw_stripes: 0.4, gaussian_noise: 0.25} # draw_ellipses: 0.3, draw_stripes: 0.2, gaussian_noise: 0.1
-    suffix: 'v0'
+    suffix: 'v1'
 
     generation:
       split_sizes: {"training": 100000, "validation": 1000, "test": 100} ## default 10000 : 200 : 500
@@ -63,7 +63,6 @@ model:
     init_lr : 0.0001
     max_lr : 0.009
     summary : true
-    focal_loss : false
     optimizer : "adam"
     ckpt_path : null
 
