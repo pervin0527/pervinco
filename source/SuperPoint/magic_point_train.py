@@ -149,7 +149,7 @@ if __name__ == "__main__":
 
     callbacks = [
         DisplayCallback(),
-        # tf.keras.callbacks.LearningRateScheduler(clr),
+        tf.keras.callbacks.LearningRateScheduler(clr),
         tf.keras.callbacks.ModelCheckpoint(f"{save_path}/weights.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)
     ]
 

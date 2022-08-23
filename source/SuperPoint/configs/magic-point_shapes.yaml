@@ -40,16 +40,16 @@ data:
         homographic:
             enable: true
             params:
-                translation: true
-                rotation: true
-                scaling: true
+                allow_artifacts: true
+                max_angle: 1.57  # 3.14
+                patch_ratio: 0.8
                 perspective: true
-                scaling_amplitude: 0.2
                 perspective_amplitude_x: 0.2
                 perspective_amplitude_y: 0.2
-                patch_ratio: 0.8
-                max_angle: 1.57  # 3.14
-                allow_artifacts: true
+                rotation: true
+                scaling: true
+                scaling_amplitude: 0.2
+                translation: true
                 translation_overflow: 0.05
             valid_border_margin: 2
 
@@ -57,10 +57,10 @@ model:
     backbone : "vgg"
     input_shape : [120, 160, 1]
     epochs : 1000
-    train_iter : 50000
+    train_iter : 10000
     nms_size : 4
     threshold : 0.015
-    init_lr : 0.001 # 0.0001
+    init_lr : 0.00001 # 0.0001
     max_lr : 0.009
     summary : true
     optimizer : "adam"

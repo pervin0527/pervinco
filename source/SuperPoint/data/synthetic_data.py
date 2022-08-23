@@ -37,8 +37,8 @@ def add_salt_and_pepper(img):
     return np.empty((0, 2), dtype=np.int)
 
 
-def generate_background(size=(960, 1280), nb_blobs=100, min_rad_ratio=0.01,
-                        max_rad_ratio=0.05, min_kernel_size=50, max_kernel_size=300):
+def generate_background(size=(960, 1280), nb_blobs=100, min_rad_ratio=0.01, max_rad_ratio=0.05, min_kernel_size=50, max_kernel_size=300):
+    # print(max_kernel_size, min_kernel_size, min_rad_ratio, max_rad_ratio)
     img = np.zeros(size, dtype=np.uint8)
     dim = max(size)
     cv2.randu(img, 0, 255)
