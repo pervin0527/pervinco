@@ -77,8 +77,8 @@ def draw_keypoints(img, corners, color):
 
 
 def plot_predictions(model):
-    if not os.path.isdir("./on_epoch_end"):
-        os.makedirs("./on_epoch_end")
+    if not os.path.isdir(f"{save_path}/on_epoch_end"):
+        os.makedirs(f"{save_path}/on_epoch_end")
 
     for index, data in enumerate(test_dataset.take(5)):
         pred_logits, pred_probs = model.predict(data["image"])
@@ -87,7 +87,7 @@ def plot_predictions(model):
         nms_prob = tf.map_fn(lambda p : box_nms(p, config["model"]["nms_size"], threshold=config["model"]["threshold"], keep_top_k=0), pred_probs)
         result_img = draw_keypoints(image, np.where(nms_prob[0] > config["model"]["threshold"]), (0, 255, 0))
         # result_img = draw_keypoints(image, np.where(pred_probs[0] > config["model"]["threshold"]), (0, 255, 0))
-        cv2.imwrite(f"./on_epoch_end/nms_result_{index}.png", result_img)
+        cv2.imwrite(f"{save_path}/on_epoch_end/nms_result_{index}.png", result_img)
 
 
 class DisplayCallback(tf.keras.callbacks.Callback):
@@ -97,8 +97,8 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 
 def show_sample(dataset, n_samples, name):
-    if not os.path.isdir(f"./samples/{name}"):
-        os.makedirs(f"./samples/{name}")
+    if not os.path.isdir(f"{save_path}/samples/{name}"):
+        os.makedirs(f"{save_path}/samples/{name}")
 
         for index, data in enumerate(dataset.take(n_samples)):
             image = data["image"][0].numpy() ### shape : 120, 160, 1
@@ -107,7 +107,7 @@ def show_sample(dataset, n_samples, name):
             keypoint_map = data["keypoint_map"][0].numpy()
 
             sample = draw_keypoints(image[..., 0] * 255, np.where(keypoint_map), (0, 255, 0))
-            cv2.imwrite(f"./samples/{name}/{index}.png", sample)
+            cv2.imwrite(f"{save_path}/samples/{name}/{index}.png", sample)
     else:
         pass
 
@@ -123,6 +123,11 @@ if __name__ == "__main__":
     valid_dataset = build_tf_dataset(data_path, "validation")
     test_dataset = build_tf_dataset(data_path, "test")
 
+    save_folder = datetime.now().strftime("%Y_%m_%d-%H_%M")
+    save_path = config["path"]["save_path"] + f"/{save_folder}"
+    if not os.path.isdir(save_path):
+        os.makedirs(save_path)
+
     show_sample(train_dataset, 10, "train")
     show_sample(valid_dataset, 10, "valid")
     show_sample(test_dataset, 5, "test")
@@ -137,11 +142,6 @@ if __name__ == "__main__":
                                               scale_fn=lambda x : 1.0,
                                               step_size=config["model"]["epochs"] / 2)
 
-    save_folder = datetime.now().strftime("%Y.%m.%d_%H:%M")
-    save_path = config["path"]["save_path"] + f"/{save_folder}"
-    if not os.path.isdir(save_path):
-        os.makedirs(save_path)
-
     with open(f"{save_path}/train_magic-point.yaml", "w") as f:
         yaml.dump(config, f, default_flow_style=False)
 
@@ -153,8 +153,13 @@ if __name__ == "__main__":
 
     with strategy.scope():
         model = MagicPoint(config["model"]["backbone"], config["model"]["input_shape"], config["model"]["nms_size"], config["model"]["threshold"], config["model"]["focal_loss"], config["model"]["summary"])
+        
+        if config["model"]["ckpt_path"]:
+            model.load_weights(config["model"]["ckpt_path"])
+
         for index in range(len(model.layers)):
             model.layers[index].trainable = True
+
         model.compile(optimizer=optimizer)
 
     model.fit(train_dataset,

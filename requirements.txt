@@ -1,0 +1,10 @@
+albumentations
+opencv-python
+opencv-contrib-python
+pandas
+IPython
+matplotlib
+tqdm
+tflite-model-maker
+pycocotools
+keras_resnet
