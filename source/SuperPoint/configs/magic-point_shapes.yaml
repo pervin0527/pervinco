@@ -56,7 +56,7 @@ data:
 model:
     backbone : "vgg"
     input_shape : [120, 160, 1]
-    epochs : 10000
+    epochs : 1000
     train_iter : 50000
     nms_size : 4
     threshold : 0.015
