@@ -80,7 +80,7 @@ def plot_predictions(model):
     if not os.path.isdir(f"{save_path}/on_epoch_end"):
         os.makedirs(f"{save_path}/on_epoch_end")
 
-    for index, data in enumerate(test_dataset.take(50)):
+    for index, data in enumerate(test_dataset.take(20)):
         pred_logits, pred_probs = model.predict(data["image"])
         image = (data["image"][0].numpy() * 255).astype(np.int32)
 
@@ -135,9 +135,9 @@ if __name__ == "__main__":
     show_sample(test_dataset, 5, "test")
 
     if config["model"]["optimizer"] == "adam":
-        optimizer = tf.keras.optimizers.Adam()
+        optimizer = tf.keras.optimizers.Adam(learning_rate=config["model"]["init_lr"])
     elif config["model"]["optimizer"] == "angular":
-        optimizer = AngularGrad(method_angle="cos")
+        optimizer = AngularGrad(method_angle="cos", learning_rate=config["model"]["init_lr"])
 
     clr = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=config["model"]["init_lr"],
                                               maximal_learning_rate=config["model"]["max_lr"],
@@ -149,7 +149,7 @@ if __name__ == "__main__":
 
     callbacks = [
         DisplayCallback(),
-        tf.keras.callbacks.LearningRateScheduler(clr),
+        # tf.keras.callbacks.LearningRateScheduler(clr),
         tf.keras.callbacks.ModelCheckpoint(f"{save_path}/weights.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)
     ]
 

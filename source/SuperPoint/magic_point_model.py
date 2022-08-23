@@ -1,41 +1,50 @@
 import tensorflow as tf
 from model.loss import detector_loss
-from model.resnet import resnet_backbone
-   
+from model.resnet import resnet_backbone   
 
-def vgg_block(inputs, filters, kernel_size, activation):
-    x = tf.keras.layers.Conv2D(filters=filters, kernel_size=kernel_size, padding="SAME")(inputs)
-    x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.Activation(activation)(x)
+def vgg_block(inputs, filters, kernel_size, kernel_reg=0., batch_normalization=True, **params):
+    x = tf.keras.layers.Conv2D(filters=filters, kernel_size=kernel_size, kernel_regularizer=tf.keras.regularizers.L2(kernel_reg), **params)(inputs)
+    
+    if batch_normalization:
+        x = tf.keras.layers.BatchNormalization()(x)
 
     return x
 
 
 def vgg_backbone(inputs):
+    params_conv = {'padding': 'SAME', 
+                   'activation': tf.nn.relu,
+                   'batch_normalization': True,
+                   'kernel_reg': 0.}
+
     inputs = tf.keras.Input(shape=inputs, name="image")
-    x = vgg_block(inputs, 64, 3, "relu") ## 120, 160, 64
-    x = vgg_block(x, 64, 3, "relu") ## 120, 160, 64
+    x = vgg_block(inputs, 64, 3, **params_conv) ## 120, 160, 64
+    x = vgg_block(x, 64, 3, **params_conv) ## 120, 160, 64
     x = tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=2, padding="SAME")(x) ## 60, 80, 64
 
-    x = vgg_block(x, 64, 3, "relu") ## 60, 80, 64
-    x = vgg_block(x, 64, 3, "relu") ## 60, 80, 64
+    x = vgg_block(x, 64, 3, **params_conv) ## 60, 80, 64
+    x = vgg_block(x, 64, 3, **params_conv) ## 60, 80, 64
     x = tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=2, padding="SAME")(x) ## 30, 40, 64
 
-    x = vgg_block(x, 128, 3, "relu") ## 30, 40, 128
-    x = vgg_block(x, 128, 3, "relu") ## 30, 40, 128
+    x = vgg_block(x, 128, 3, **params_conv) ## 30, 40, 128
+    x = vgg_block(x, 128, 3, **params_conv) ## 30, 40, 128
     x = tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=2, padding="SAME")(x) ## 15, 20, 128
 
-    x = vgg_block(x, 128, 3, "relu")
-    output = vgg_block(x, 128, 3, "relu")
+    x = vgg_block(x, 128, 3, **params_conv)
+    output = vgg_block(x, 128, 3, **params_conv)
 
     model = tf.keras.Model(inputs=inputs, outputs=output)
     return model
 
 
 def detector_head(inputs, nms_size, threshold):
+    params_conv = {'padding': 'SAME',
+                   'batch_normalization': True,
+                   'kernel_reg': 0.}
+                   
     inputs = tf.keras.Input(shape=inputs)
-    x = vgg_block(inputs, inputs.shape[-1], 3, "relu")
-    x = vgg_block(x, 1 + pow(8, 2), 1, None)
+    x = vgg_block(inputs, 256, 3, activation=tf.nn.relu, **params_conv)
+    x = vgg_block(x, 1 + pow(8, 2), 1, activation=None, **params_conv)
 
     prob = tf.keras.activations.softmax(x, axis=-1)
     prob = prob[:, :, :, :-1]

@@ -1,11 +1,11 @@
 data:
     name: 'synthetic_shapes'
     primitives: 'all'
-    truncate: {draw_ellipses: 0.6, draw_stripes: 0.4, gaussian_noise: 0.25} # draw_ellipses: 0.3, draw_stripes: 0.2, gaussian_noise: 0.1
-    suffix: 'v1'
+    truncate: {draw_ellipses: 0.3, draw_stripes: 0.2, gaussian_noise: 0.1} # draw_ellipses: 0.3, draw_stripes: 0.2, gaussian_noise: 0.1
+    suffix: 'v0'
 
     generation:
-      split_sizes: {"training": 100000, "validation": 1000, "test": 100} ## default 10000 : 200 : 500
+      split_sizes: {"training": 10000, "validation": 200, "test": 500} ## default 10000 : 200 : 500
       image_size: [960, 1280]
       random_seed: 0
       params: {
@@ -60,7 +60,7 @@ model:
     train_iter : 50000
     nms_size : 4
     threshold : 0.015
-    init_lr : 0.0001
+    init_lr : 0.001 # 0.0001
     max_lr : 0.009
     summary : true
     optimizer : "adam"
