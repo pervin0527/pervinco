@@ -125,6 +125,8 @@ if __name__ == "__main__":
 
     save_folder = datetime.now().strftime("%Y_%m_%d-%H_%M")
     save_path = config["path"]["save_path"] + f"/{save_folder}"
+    print("SAVE PATH : ", save_path)
+    
     if not os.path.isdir(save_path):
         os.makedirs(save_path)
 
