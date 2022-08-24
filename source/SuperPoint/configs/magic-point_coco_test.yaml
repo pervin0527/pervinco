@@ -3,7 +3,6 @@ data:
         resize: [240, 320]
 
 model:
-    backbone: "vgg"
     input_shape: [240, 320, 1]
     threshold : 0.015
     nms_size: 4

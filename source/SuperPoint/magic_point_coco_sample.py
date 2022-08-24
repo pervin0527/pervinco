@@ -39,7 +39,7 @@ if __name__ == "__main__":
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
-    model = MagicPoint(config["model"]["backbone"], config["model"]["input_shape"], config["model"]["nms_size"], config["model"]["threshold"])
+    model = MagicPoint(config["model"]["input_shape"], config["model"]["nms_size"], config["model"]["threshold"])
     model.built = True
     model.load_weights(config["path"]["ckpt_path"])
 

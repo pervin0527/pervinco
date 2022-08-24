@@ -2,9 +2,7 @@ import cv2
 import math
 import numpy as np
 
-
 random_state = np.random.RandomState(None)
-
 def set_random_state(state):
     global random_state
     random_state = state
@@ -58,24 +56,21 @@ def generate_background(size=(960, 1280), nb_blobs=100, min_rad_ratio=0.01, max_
     return img
 
 
-def generate_custom_background(size, background_color, nb_blobs=3000,
-                               kernel_boundaries=(50, 100)):
+def generate_custom_background(size, background_color, nb_blobs=3000, kernel_boundaries=(50, 100)):
     img = np.zeros(size, dtype=np.uint8)
     img = img + get_random_color(background_color)
-    blobs = np.concatenate([np.random.randint(0, size[1], size=(nb_blobs, 1)),
-                            np.random.randint(0, size[0], size=(nb_blobs, 1))],
-                           axis=1)
+    blobs = np.concatenate([np.random.randint(0, size[1], size=(nb_blobs, 1)), np.random.randint(0, size[0], size=(nb_blobs, 1))], axis=1)
+    
     for i in range(nb_blobs):
         col = get_random_color(background_color)
-        cv2.circle(img, (blobs[i][0], blobs[i][1]),
-                  np.random.randint(20), col, -1)
+        cv2.circle(img, (blobs[i][0], blobs[i][1]), np.random.randint(20), col, -1)
+
     kernel_size = np.random.randint(kernel_boundaries[0], kernel_boundaries[1])
     cv2.blur(img, (kernel_size, kernel_size), img)
     return img
 
 
 def final_blur(img, kernel_size=(5, 5)):
-
     cv2.GaussianBlur(img, kernel_size, 0, img)
 
 

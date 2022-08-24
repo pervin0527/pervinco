@@ -51,7 +51,7 @@ def build_tf_dataset(path, target="training", augmentation=False):
     dataset = tf.data.Dataset.from_tensor_slices((images, points))
     dataset = dataset.map(lambda image, points : (read_image(image), tf.numpy_function(read_points, [points], tf.float32)))
     dataset = dataset.map(lambda image, points : (image, tf.reshape(points, [-1, 2])))
-    dataset = dataset.shuffle(len(images))
+    # dataset = dataset.shuffle(len(images))
 
     if target == "training":
         dataset = dataset.take(config["model"]["train_iter"])
@@ -156,7 +156,7 @@ if __name__ == "__main__":
     ]
 
     with strategy.scope():
-        model = MagicPoint(config["model"]["backbone"], config["model"]["input_shape"], config["model"]["nms_size"], config["model"]["threshold"], config["model"]["summary"])
+        model = MagicPoint(config["model"]["input_shape"], config["model"]["nms_size"], config["model"]["threshold"], config["model"]["summary"])
         
         if config["model"]["ckpt_path"]:
             model.built = True

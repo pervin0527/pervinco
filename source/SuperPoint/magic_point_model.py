@@ -1,7 +1,5 @@
 import tensorflow as tf
 from model.loss import detector_loss
-from model.resnet import resnet_backbone   
-
 
 def vgg_block(inputs, filters, kernel_size, padding="SAME", strides=1, kernel_reg=0.0, activation=tf.nn.relu, batch_normalization=True):
     x = tf.keras.layers.Conv2D(filters=filters,
@@ -79,17 +77,11 @@ class detector_postprocess(tf.keras.layers.Layer):
 
 
 class MagicPoint(tf.keras.Model):
-    def __init__(self, backbone_name, backbone_input, nms_size, threshold, summary=False):
+    def __init__(self, backbone_input, nms_size, threshold, summary=False):
         super(MagicPoint, self).__init__()
 
-        if backbone_name.lower() == "vgg":
-            self.backbone = vgg_backbone(inputs=(backbone_input))
-            self.output_channel = 128
-
-        elif backbone_name.lower() == "resnet":
-            self.backbone = resnet_backbone()
-            self.backbone.build(input_shape=(None, backbone_input[0], backbone_input[1], 1))
-            self.output_channel = 512
+        self.backbone = vgg_backbone(inputs=(backbone_input))
+        self.output_channel = 128
 
         self.detector_head = detector_head((int(backbone_input[0] / 8), int(backbone_input[1] / 8), self.output_channel), nms_size, threshold)
         self.loss_tracker = tf.keras.metrics.Mean(name="loss")

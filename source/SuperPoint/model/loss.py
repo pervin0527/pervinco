@@ -21,7 +21,7 @@ def detector_loss(keypoint_map, logits, valid_mask):
     ## logits : 1, 15, 20, 65
 
     loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=labels) ## 1, 15, 20
-    loss = tf.math.multiply(loss, valid_mask)
+    # loss = tf.math.multiply(loss, valid_mask)
     # loss *= valid_mask
 
     return loss

@@ -16,9 +16,9 @@ def parse_primitives(names, all_primitives):
 
 def dump_primitive_data(primitive, config):
     temp_dir = Path(data_path, "synthetic_shapes" + ('_{}'.format(config['data']['suffix'])), "original", primitive)
-    synthetic_data.set_random_state(np.random.RandomState(config['data']['generation']['random_seed']))
-
+    
     print(f"Generating dataset for Pimitive {primitive}")
+    synthetic_data.set_random_state(np.random.RandomState(config['data']['generation']['random_seed']))
     for split, size in config['data']['generation']['split_sizes'].items():
         im_dir, pts_dir = [Path(temp_dir, i, split) for i in ['images', 'points']]
         im_dir.mkdir(parents=True, exist_ok=True)

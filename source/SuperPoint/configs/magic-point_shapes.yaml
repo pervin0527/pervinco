@@ -2,7 +2,7 @@ data:
     name: 'synthetic_shapes'
     primitives: 'all'
     truncate: {draw_ellipses: 0.3, draw_stripes: 0.2, gaussian_noise: 0.1} # draw_ellipses: 0.3, draw_stripes: 0.2, gaussian_noise: 0.1
-    suffix: 'v1'
+    suffix: 'v0'
 
     generation:
       split_sizes: {"training": 10000, "validation": 200, "test": 500} ## default 10000 : 200 : 500
@@ -54,18 +54,17 @@ data:
             valid_border_margin: 2
 
 model:
-    backbone : "vgg"
     input_shape : [120, 160, 1]
     epochs : 1000
     augmentation : false
     train_iter : 50000
     nms_size : 4
     threshold : 0.015
-    init_lr : 0.00001 # 0.0001
+    init_lr : 0.0001 # 0.0001
     max_lr : 0.001
     summary : true
     optimizer : "adam"
-    ckpt_path : "/data/Models/MagicPoint/2022_08_24-01_06/weights.h5"
+    ckpt_path : null # "/data/Models/MagicPoint/2022_08_24-01_06/weights.h5"
 
 path:
     dataset : "/data/Datasets/synthetic_shapes"

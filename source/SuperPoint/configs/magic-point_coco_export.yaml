@@ -23,7 +23,6 @@ data:
             valid_border_margin: 0
 
 model:
-    backbone: "vgg"
     input_shape: [240, 320, 1]
     batch_size: 1
     learning_rate: 0.001
