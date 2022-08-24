@@ -43,7 +43,7 @@ def read_points(file_name):
     return np.load(file_name.decode("utf-8")).astype(np.float32)
 
 
-def build_tf_dataset(path, target="training"):
+def build_tf_dataset(path, target="training", augmentation=False):
     images = sorted(glob(f"{path}/{target}/images/*.png"))
     points = sorted(glob(f"{path}/{target}/points/*.npy"))
     print(len(images), len(points))
@@ -51,15 +51,17 @@ def build_tf_dataset(path, target="training"):
     dataset = tf.data.Dataset.from_tensor_slices((images, points))
     dataset = dataset.map(lambda image, points : (read_image(image), tf.numpy_function(read_points, [points], tf.float32)))
     dataset = dataset.map(lambda image, points : (image, tf.reshape(points, [-1, 2])))
-    dataset = dataset.shuffle(config["model"]["train_iter"])
+    dataset = dataset.shuffle(len(images))
 
     if target == "training":
         dataset = dataset.take(config["model"]["train_iter"])
+    elif target == "validation":
+        dataset = dataset.take(100)
 
     dataset = dataset.map(lambda image, keypoints : {"image" : image, "keypoints" : keypoints})
     dataset = dataset.map(add_dummy_valid_mask)
 
-    if target == "training":
+    if augmentation:
         dataset = dataset.map(lambda x : photometric_augmentation(x, config))
         dataset = dataset.map(lambda x : homographic_augmentation(x, config))
         
@@ -80,14 +82,14 @@ def plot_predictions(model):
     if not os.path.isdir(f"{save_path}/on_epoch_end"):
         os.makedirs(f"{save_path}/on_epoch_end")
 
-    for index, data in enumerate(test_dataset.take(20)):
+    for index, data in enumerate(test_dataset.take(50)):
         pred_logits, pred_probs = model.predict(data["image"])
         image = (data["image"][0].numpy() * 255).astype(np.int32)
 
         nms_prob = tf.map_fn(lambda p : box_nms(p, config["model"]["nms_size"], threshold=config["model"]["threshold"], keep_top_k=0), pred_probs)
         result_img = draw_keypoints(image, np.where(nms_prob[0] > config["model"]["threshold"]), (0, 255, 0))
         # result_img = draw_keypoints(image, np.where(pred_probs[0] > config["model"]["threshold"]), (0, 255, 0))
-        cv2.imwrite(f"{save_path}/on_epoch_end/nms_result_{index}.png", result_img)
+        cv2.imwrite(f"{save_path}/on_epoch_end/{index:>04}.png", result_img)
 
 
 class DisplayCallback(tf.keras.callbacks.Callback):
@@ -107,7 +109,7 @@ def show_sample(dataset, n_samples, name):
             keypoint_map = data["keypoint_map"][0].numpy()
 
             sample = draw_keypoints(image[..., 0] * 255, np.where(keypoint_map), (0, 255, 0))
-            cv2.imwrite(f"{save_path}/samples/{name}/{index}.png", sample)
+            cv2.imwrite(f"{save_path}/samples/{name}/{index:>04}.png", sample)
     else:
         pass
 
@@ -119,9 +121,9 @@ if __name__ == "__main__":
 
     data_path = config["path"]["dataset"] + "/synthetic_shapes_" + config["data"]["suffix"]
     print("DATASET PATH : ", data_path)
-    train_dataset = build_tf_dataset(data_path, "training")
-    valid_dataset = build_tf_dataset(data_path, "validation")
-    test_dataset = build_tf_dataset(data_path, "test")
+    train_dataset = build_tf_dataset(data_path, "training", config["model"]["augmentation"])
+    valid_dataset = build_tf_dataset(data_path, "validation", False)
+    test_dataset = build_tf_dataset(data_path, "test", False)
 
     save_folder = datetime.now().strftime("%Y_%m_%d-%H_%M")
     save_path = config["path"]["save_path"] + f"/{save_folder}"
@@ -130,12 +132,12 @@ if __name__ == "__main__":
     if not os.path.isdir(save_path):
         os.makedirs(save_path)
 
-    show_sample(train_dataset, 10, "train")
-    show_sample(valid_dataset, 10, "valid")
-    show_sample(test_dataset, 5, "test")
+    show_sample(train_dataset, 100, "train")
+    show_sample(valid_dataset, 100, "valid")
+    show_sample(test_dataset, 10, "test")
 
     if config["model"]["optimizer"] == "adam":
-        optimizer = tf.keras.optimizers.Adam(learning_rate=config["model"]["init_lr"])
+        optimizer = tf.keras.optimizers.Adam(learning_rate=config["model"]["init_lr"], beta_1=0.9, beta_2=0.999)
     elif config["model"]["optimizer"] == "angular":
         optimizer = AngularGrad(method_angle="cos", learning_rate=config["model"]["init_lr"])
 
@@ -157,7 +159,9 @@ if __name__ == "__main__":
         model = MagicPoint(config["model"]["backbone"], config["model"]["input_shape"], config["model"]["nms_size"], config["model"]["threshold"], config["model"]["summary"])
         
         if config["model"]["ckpt_path"]:
+            model.built = True
             model.load_weights(config["model"]["ckpt_path"])
+            print("Weight Loaded")
 
         for index in range(len(model.layers)):
             model.layers[index].trainable = True

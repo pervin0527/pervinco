@@ -2,8 +2,14 @@ import tensorflow as tf
 from model.loss import detector_loss
 from model.resnet import resnet_backbone   
 
-def vgg_block(inputs, filters, kernel_size, kernel_reg=0., batch_normalization=True, **params):
-    x = tf.keras.layers.Conv2D(filters=filters, kernel_size=kernel_size, kernel_regularizer=tf.keras.regularizers.L2(kernel_reg), **params)(inputs)
+
+def vgg_block(inputs, filters, kernel_size, padding="SAME", strides=1, kernel_reg=0.0, activation=tf.nn.relu, batch_normalization=True):
+    x = tf.keras.layers.Conv2D(filters=filters,
+                               kernel_size=kernel_size,
+                               padding=padding,
+                               strides=strides,
+                               activation=activation,
+                               kernel_regularizer=tf.keras.regularizers.L2(kernel_reg))(inputs)
     
     if batch_normalization:
         x = tf.keras.layers.BatchNormalization()(x)
@@ -12,39 +18,30 @@ def vgg_block(inputs, filters, kernel_size, kernel_reg=0., batch_normalization=T
 
 
 def vgg_backbone(inputs):
-    params_conv = {'padding': 'SAME', 
-                   'activation': tf.nn.relu,
-                   'batch_normalization': True,
-                   'kernel_reg': 0.}
-
     inputs = tf.keras.Input(shape=inputs, name="image")
-    x = vgg_block(inputs, 64, 3, **params_conv) ## 120, 160, 64
-    x = vgg_block(x, 64, 3, **params_conv) ## 120, 160, 64
-    x = tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=2, padding="SAME")(x) ## 60, 80, 64
+    x = vgg_block(inputs, filters=64, kernel_size=3, padding="SAME", strides=1, activation=tf.nn.relu)     ## 120, 160, 64
+    x = vgg_block(x, filters=64, kernel_size=3, padding="SAME", strides=1, activation=tf.nn.relu)          ## 120, 160, 64
+    x = tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=2, padding="SAME")(x)                          ## 60, 80, 64
 
-    x = vgg_block(x, 64, 3, **params_conv) ## 60, 80, 64
-    x = vgg_block(x, 64, 3, **params_conv) ## 60, 80, 64
-    x = tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=2, padding="SAME")(x) ## 30, 40, 64
+    x = vgg_block(x, filters=64, kernel_size=3, padding="SAME", strides=1, activation=tf.nn.relu)          ## 60, 80, 64
+    x = vgg_block(x, filters=64, kernel_size=3, padding="SAME", strides=1, activation=tf.nn.relu)          ## 60, 80, 64
+    x = tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=2, padding="SAME")(x)                          ## 30, 40, 64
 
-    x = vgg_block(x, 128, 3, **params_conv) ## 30, 40, 128
-    x = vgg_block(x, 128, 3, **params_conv) ## 30, 40, 128
-    x = tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=2, padding="SAME")(x) ## 15, 20, 128
+    x = vgg_block(x, filters=128, kernel_size=3, padding="SAME", strides=1, activation=tf.nn.relu)         ## 30, 40, 128
+    x = vgg_block(x, filters=128, kernel_size=3, padding="SAME", strides=1, activation=tf.nn.relu)         ## 30, 40, 128
+    x = tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=2, padding="SAME")(x)                          ## 15, 20, 128
 
-    x = vgg_block(x, 128, 3, **params_conv)
-    output = vgg_block(x, 128, 3, **params_conv)
+    x = vgg_block(x, filters=128, kernel_size=3, padding="SAME", strides=1, activation=tf.nn.relu)
+    output = vgg_block(x, filters=128, kernel_size=3, padding="SAME", strides=1, activation=tf.nn.relu)
 
     model = tf.keras.Model(inputs=inputs, outputs=output)
     return model
 
 
-def detector_head(inputs, nms_size, threshold):
-    params_conv = {'padding': 'SAME',
-                   'batch_normalization': True,
-                   'kernel_reg': 0.}
-                   
+def detector_head(inputs, nms_size, threshold):                  
     inputs = tf.keras.Input(shape=inputs)
-    x = vgg_block(inputs, 256, 3, activation=tf.nn.relu, **params_conv)
-    x = vgg_block(x, 1 + pow(8, 2), 1, activation=None, **params_conv)
+    x = vgg_block(inputs, filters=256, kernel_size=3, padding="SAME", strides=1, activation=tf.nn.relu)
+    x = vgg_block(x, filters=1 + pow(8, 2), kernel_size=1, padding="VALID", strides=1, activation=None)
 
     prob = tf.keras.activations.softmax(x, axis=-1)
     prob = prob[:, :, :, :-1]
@@ -101,11 +98,13 @@ class MagicPoint(tf.keras.Model):
             self.backbone.summary()
             self.detector_head.summary()
 
+
     def call(self, x, training=False):
         backbone_output = self.backbone(x)
         logits, prob = self.detector_head(backbone_output)
 
         return logits, prob
+
 
     def train_step(self, data):
         image, keypoints, valid_mask, keypoint_map = data["image"], data["keypoints"], data["valid_mask"], data["keypoint_map"]
@@ -121,10 +120,11 @@ class MagicPoint(tf.keras.Model):
 
         return {"loss" : self.loss_tracker.result()}
 
+
     def test_step(self, data):
         image, keypoints, valid_mask, keypoint_map = data["image"], data["keypoints"], data["valid_mask"], data["keypoint_map"]
         pred_logits, pred_prob = self(image, training=False)
         loss = detector_loss(keypoint_map, pred_logits, valid_mask)
-        
         self.loss_tracker.update_state(loss)
+
         return {"loss" : self.loss_tracker.result()}
