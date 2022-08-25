@@ -4,9 +4,10 @@ import yaml
 import numpy as np
 import tensorflow as tf
 
-from glob import glob
+from data import synthetic_data
 from magic_point_model import MagicPoint
-from data.data_utils import photometric_augmentation, homographic_augmentation, add_keypoint_map, box_nms
+from synthetic_shapes import parse_primitives
+from data.data_utils import photometric_augmentation, homographic_augmentation, add_keypoint_map, box_nms, downsample
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -37,20 +38,38 @@ def read_img_file(file):
 
 def read_pnt_file(file):
     return np.load(file.decode("utf-8")).astype(np.float32)
+
+
+def generate_shapes():
+    drawing_primitives = [
+            'draw_lines',
+            'draw_polygon',
+            'draw_multiple_polygons',
+            'draw_ellipses',
+            'draw_star',
+            'draw_checkerboard',
+            'draw_stripes',
+            'draw_cube',
+            'gaussian_noise'
+    ]
+    primitives = parse_primitives(config["data"]['primitives'], drawing_primitives)
+    while True:
+        primitive = np.random.choice(primitives)
+        image = synthetic_data.generate_background(config["data"]['generation']['image_size'], **config["data"]['generation']['params']['generate_background'])
+        points = np.array(getattr(synthetic_data, primitive)(image, **config["data"]['generation']['params'].get(primitive, {})))
+        yield (np.expand_dims(image, axis=-1).astype(np.float32), np.flip(points.astype(np.float32), 1))
+
     
 
-def build_test_dataset(path, augmentation):
-    images = sorted(glob(f"{path}/images/*.png"))
-    points = sorted(glob(f"{path}/points/*.npy"))
-    print(len(images), len(points))
-
-    dataset = tf.data.Dataset.from_tensor_slices((images, points))
-    dataset = dataset.map(lambda image, points : (read_img_file(image), tf.numpy_function(read_pnt_file, [points], tf.float32)))
-    dataset = dataset.map(lambda image, points : (image, tf.reshape(points, [-1, 2])))
+def build_test_dataset(path):
+    dataset = tf.data.Dataset.from_generator(generate_shapes, (tf.float32, tf.float32),
+                                                (tf.TensorShape(config["data"]["generation"]["image_size"] + [1]), tf.TensorShape([None, 2])))
+    dataset = dataset.map(lambda i, c : downsample(i, c, **config["data"]["preprocessing"]))
     dataset = dataset.map(lambda image, keypoints : {"image" : image, "keypoints" : keypoints})
 
-    if augmentation:
+    if config["data"]["augmentation"]["photometric"]["enable"]:
         dataset = dataset.map(lambda x : photometric_augmentation(x, config))
+    if config["data"]["augmentation"]["homographic"]["enable"]:
         dataset = dataset.map(lambda x : homographic_augmentation(x, config))
     
     dataset = dataset.map(lambda x : add_keypoint_map(x))
@@ -76,7 +95,7 @@ if __name__ == "__main__":
     model.load_weights(config["path"]["ckpt_path"])
     print("Model Loaded")
 
-    testset = build_test_dataset(config["path"]["data_path"], config["data"]["augmentation"])
+    testset = build_test_dataset(config["path"]["data_path"])
     test_iterator = iter(testset)
 
     while True:

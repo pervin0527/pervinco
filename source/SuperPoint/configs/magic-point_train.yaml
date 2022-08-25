@@ -60,8 +60,8 @@ model:
     valid_iter : 500
     test_iter : 30
     nms_size : 4 ## 2
-    threshold : 0.015 ## 0.015, 0.00001
-    init_lr : 0.0001
+    threshold : 0.1 ## 0.015
+    init_lr : 0.0001 ## 0.001
     max_lr : 0.009
     summary : false
     optimizer : "adam"

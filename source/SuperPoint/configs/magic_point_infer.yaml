@@ -2,13 +2,26 @@ data:
     primitives: 'all'
     truncate: {draw_ellipses: 0.3, draw_stripes: 0.2, gaussian_noise: 0.1} # draw_ellipses: 0.3, draw_stripes: 0.2, gaussian_noise: 0.1
 
+    generation:
+      split_sizes: {"training": 10000, "validation": 200, "test": 500} ## default 10000 : 200 : 500
+      image_size: [960, 1280]
+      random_seed: 0
+      params: {
+          generate_background: {min_kernel_size: 150, 
+                                max_kernel_size: 500,
+                                min_rad_ratio: 0.02,
+                                max_rad_ratio: 0.031},
+          draw_stripes: {transform_params: [0.1, 0.1]},
+          draw_multiple_polygons: {kernel_boundaries: [50, 100]}
+      }
+
     preprocessing:
         blur_size: 21
-        resize: [120, 160]  # Should be multiples of 8
+        resize: [240, 320]  # Should be multiples of 8
 
     augmentation:
         photometric:
-            enable: true
+            enable: false
             primitives: [
                 'random_brightness', 'random_contrast', 'additive_speckle_noise',
                 'additive_gaussian_noise', 'additive_shade', 'motion_blur' ]
@@ -23,7 +36,7 @@ data:
                 motion_blur: {max_kernel_size: 7}
 
         homographic:
-            enable: true
+            enable: false
             params:
                 allow_artifacts: true
                 max_angle: 1.57  # 3.14
@@ -39,11 +52,11 @@ data:
             valid_border_margin: 2
 
 model:
-    input_shape: [120, 160, 1]
+    input_shape: [240, 320, 1]
     threshold : 0.1
-    nms_size: 2
+    nms_size: 4
 
 path:
     coco_path: "/data/Datasets/COCO2014"
-    ckpt_path: "/data/Models/MagicPoint/2022_08_24-08_25/weights.h5"
+    ckpt_path: "/data/Models/MagicPoint/2022_08_25-02_29/weights.h5"
     data_path: "/data/Datasets/synthetic_shapes/synthetic_shapes_v0/test"
