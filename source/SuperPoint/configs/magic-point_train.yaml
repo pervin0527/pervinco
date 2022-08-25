@@ -1,0 +1,73 @@
+data:
+    name: 'synthetic_shapes'
+    primitives: 'all'
+    truncate: {} # draw_ellipses: 0.3, draw_stripes: 0.2, gaussian_noise: 0.1
+    suffix: 'v0'
+
+    generation:
+      split_sizes: {"training": 10000, "validation": 200, "test": 500} ## default 10000 : 200 : 500
+      image_size: [960, 1280]
+      random_seed: 0
+      params: {
+          generate_background: {min_kernel_size: 150, 
+                                max_kernel_size: 500,
+                                min_rad_ratio: 0.02,
+                                max_rad_ratio: 0.031},
+          draw_stripes: {transform_params: [0.1, 0.1]},
+          draw_multiple_polygons: {kernel_boundaries: [50, 100]}
+      }
+
+    preprocessing:
+        resize: [240, 320]  # Should be multiples of 8
+        blur_size: 11 ## 21
+
+    augmentation:
+        photometric:
+            enable: false
+            primitives: [
+                'random_brightness', 'random_contrast', 'additive_speckle_noise',
+                'additive_gaussian_noise', 'additive_shade', 'motion_blur' ]
+            params:
+                random_brightness: {max_abs_change: 75}
+                random_contrast: {strength_range: [0.3, 1.8]}
+                additive_gaussian_noise: {stddev_range: [0, 15]}
+                additive_speckle_noise: {prob_range: [0, 0.0035]}
+                additive_shade:
+                    transparency_range: [-0.5, 0.8]
+                    kernel_size_range: [50, 100]
+                motion_blur: {max_kernel_size: 7}
+
+        homographic:
+            enable: false
+            params:
+                allow_artifacts: true
+                max_angle: 1.57  # 3.14
+                patch_ratio: 0.8
+                perspective: true
+                perspective_amplitude_x: 0.2
+                perspective_amplitude_y: 0.2
+                rotation: true
+                scaling: true
+                scaling_amplitude: 0.2
+                translation: true
+                translation_overflow: 0.05
+            valid_border_margin: 2
+
+model:
+    input_shape : [240, 320, 1]
+    epochs : 1000
+    train_iter : 10000
+    valid_iter : 500
+    test_iter : 30
+    nms_size : 4 ## 2
+    threshold : 0.015 ## 0.015, 0.00001
+    init_lr : 0.0001
+    max_lr : 0.009
+    summary : false
+    optimizer : "adam"
+    ckpt_path : null
+    on-the-fly : true
+
+path:
+    dataset : "/data/Datasets/synthetic_shapes"
+    save_path : "/data/Models/MagicPoint"

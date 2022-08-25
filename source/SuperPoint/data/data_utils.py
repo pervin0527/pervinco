@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 import tensorflow as tf
 import tensorflow_addons as tfa
 import augmentation.photometric_augmentation as photoaug
@@ -24,6 +25,36 @@ def ratio_preserving_resize(image, config):
     new_size = tf.cast(tf.shape(image)[:2], tf.float32) * tf.reduce_max(scales)
     image = tf.image.resize(image, tf.cast(new_size, tf.int32), method=tf.image.ResizeMethod.BILINEAR)
     return tf.image.resize_with_crop_or_pad(image, target_size[0], target_size[1])
+
+
+def downsample(image, coordinates, **config):
+    k_size = config['blur_size']
+    kernel = cv2.getGaussianKernel(k_size, 0)[:, 0]
+    kernel = np.outer(kernel, kernel).astype(np.float32)
+    kernel = tf.reshape(tf.convert_to_tensor(kernel), [k_size]*2+[1, 1])
+    pad_size = int(k_size/2)
+    image = tf.pad(image, [[pad_size]*2, [pad_size]*2, [0, 0]], 'REFLECT')
+    image = tf.expand_dims(image, axis=0)  # add batch dim
+    image = tf.nn.depthwise_conv2d(image, kernel, [1, 1, 1, 1], 'VALID')[0]
+
+    ratio = tf.divide(tf.convert_to_tensor(config['resize']), tf.shape(image)[0:2])
+    coordinates = coordinates * tf.cast(ratio, tf.float32)
+    image = tf.image.resize(image, config['resize'], method=tf.image.ResizeMethod.BILINEAR)
+
+    return image, coordinates
+
+
+def flat2mat(H):
+    return tf.reshape(tf.concat([H, tf.ones([tf.shape(H)[0], 1])], axis=1), [-1, 3, 3])
+
+
+def mat2flat(H):
+    H = tf.reshape(H, [-1, 9])
+    return (H / H[:, 8:9])[:, :8]
+
+
+def invert_homography(H):
+    return mat2flat(tf.linalg.inv(flat2mat(H)))
 
 
 def photometric_augmentation(data, config):
@@ -58,19 +89,6 @@ def homographic_augmentation(data, config, add_homography=False):
     if add_homography:
         ret["homography"] = homography
     return ret
-
-
-def flat2mat(H):
-    return tf.reshape(tf.concat([H, tf.ones([tf.shape(H)[0], 1])], axis=1), [-1, 3, 3])
-
-
-def mat2flat(H):
-    H = tf.reshape(H, [-1, 9])
-    return (H / H[:, 8:9])[:, :8]
-
-
-def invert_homography(H):
-    return mat2flat(tf.linalg.inv(flat2mat(H)))
 
 
 def box_nms(prob, size, iou=0.1, threshold=0.01, keep_top_k=0):

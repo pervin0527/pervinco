@@ -7,10 +7,13 @@ import tensorflow_addons as tfa
 
 from glob import glob
 from datetime import datetime
+from data import synthetic_data
 from IPython.display import clear_output
 from magic_point_model import MagicPoint
 from model.angular_grad import AngularGrad
-from data.data_utils import add_dummy_valid_mask, photometric_augmentation, homographic_augmentation, add_keypoint_map, box_nms
+from synthetic_shapes import parse_primitives
+from data.data_utils import add_dummy_valid_mask, photometric_augmentation, homographic_augmentation, add_keypoint_map, box_nms, downsample
+
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -43,27 +46,56 @@ def read_points(file_name):
     return np.load(file_name.decode("utf-8")).astype(np.float32)
 
 
-def build_tf_dataset(path, target="training", augmentation=False):
-    images = sorted(glob(f"{path}/{target}/images/*.png"))
-    points = sorted(glob(f"{path}/{target}/points/*.npy"))
-    print(len(images), len(points))
+def generate_shapes():
+    drawing_primitives = [
+            'draw_lines',
+            'draw_polygon',
+            'draw_multiple_polygons',
+            'draw_ellipses',
+            'draw_star',
+            'draw_checkerboard',
+            'draw_stripes',
+            'draw_cube',
+            'gaussian_noise'
+    ]
+    primitives = parse_primitives(config["data"]['primitives'], drawing_primitives)
+    while True:
+        primitive = np.random.choice(primitives)
+        image = synthetic_data.generate_background(config["data"]['generation']['image_size'], **config["data"]['generation']['params']['generate_background'])
+        points = np.array(getattr(synthetic_data, primitive)(image, **config["data"]['generation']['params'].get(primitive, {})))
+        yield (np.expand_dims(image, axis=-1).astype(np.float32), np.flip(points.astype(np.float32), 1))
 
-    dataset = tf.data.Dataset.from_tensor_slices((images, points))
-    dataset = dataset.map(lambda image, points : (read_image(image), tf.numpy_function(read_points, [points], tf.float32)))
-    dataset = dataset.map(lambda image, points : (image, tf.reshape(points, [-1, 2])))
-    # dataset = dataset.shuffle(len(images))
+
+def build_tf_dataset(path, target="training"):
+    if not config["model"]["on-the-fly"]:
+        images = sorted(glob(f"{path}/{target}/images/*.png"))
+        points = sorted(glob(f"{path}/{target}/points/*.npy"))
+        print(len(images), len(points))
+
+        dataset = tf.data.Dataset.from_tensor_slices((images, points))
+        dataset = dataset.map(lambda image, points : (read_image(image), tf.numpy_function(read_points, [points], tf.float32)))
+        dataset = dataset.map(lambda image, points : (image, tf.reshape(points, [-1, 2])))
+        dataset = dataset.shuffle(config["model"]["train_iter"])
+
+    else:
+        dataset = tf.data.Dataset.from_generator(generate_shapes, (tf.float32, tf.float32),
+                                                 (tf.TensorShape(config["data"]["generation"]["image_size"] + [1]), tf.TensorShape([None, 2])))
+        dataset = dataset.map(lambda i, c : downsample(i, c, **config["data"]["preprocessing"]))
 
     if target == "training":
         dataset = dataset.take(config["model"]["train_iter"])
+
     elif target == "validation":
-        dataset = dataset.take(100)
+        dataset = dataset.take(config["model"]["valid_iter"])
 
     dataset = dataset.map(lambda image, keypoints : {"image" : image, "keypoints" : keypoints})
     dataset = dataset.map(add_dummy_valid_mask)
 
-    if augmentation:
-        dataset = dataset.map(lambda x : photometric_augmentation(x, config))
-        dataset = dataset.map(lambda x : homographic_augmentation(x, config))
+    if target == "training":
+        if config["data"]["augmentation"]["photometric"]["enable"]:
+            dataset = dataset.map(lambda x : photometric_augmentation(x, config))
+        if config["data"]["augmentation"]["homographic"]["enable"]:
+            dataset = dataset.map(lambda x : homographic_augmentation(x, config))
         
     dataset = dataset.map(lambda x : add_keypoint_map(x))
     dataset = dataset.map(lambda d : {**d, "image" : tf.cast(d["image"], tf.float32) / 255.})
@@ -82,7 +114,7 @@ def plot_predictions(model):
     if not os.path.isdir(f"{save_path}/on_epoch_end"):
         os.makedirs(f"{save_path}/on_epoch_end")
 
-    for index, data in enumerate(test_dataset.take(50)):
+    for index, data in enumerate(test_dataset.take(config["model"]["test_iter"])):
         pred_logits, pred_probs = model.predict(data["image"])
         image = (data["image"][0].numpy() * 255).astype(np.int32)
 
@@ -115,15 +147,15 @@ def show_sample(dataset, n_samples, name):
 
 
 if __name__ == "__main__":
-    config_path = "./configs/magic-point_shapes.yaml"
+    config_path = "./configs/magic-point_train.yaml"
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
     data_path = config["path"]["dataset"] + "/synthetic_shapes_" + config["data"]["suffix"]
     print("DATASET PATH : ", data_path)
-    train_dataset = build_tf_dataset(data_path, "training", config["model"]["augmentation"])
-    valid_dataset = build_tf_dataset(data_path, "validation", False)
-    test_dataset = build_tf_dataset(data_path, "test", False)
+    train_dataset = build_tf_dataset(data_path, "training")
+    valid_dataset = build_tf_dataset(data_path, "validation")
+    test_dataset = build_tf_dataset(data_path, "test")
 
     save_folder = datetime.now().strftime("%Y_%m_%d-%H_%M")
     save_path = config["path"]["save_path"] + f"/{save_folder}"
@@ -132,8 +164,8 @@ if __name__ == "__main__":
     if not os.path.isdir(save_path):
         os.makedirs(save_path)
 
-    show_sample(train_dataset, 100, "train")
-    show_sample(valid_dataset, 100, "valid")
+    show_sample(train_dataset, 10, "train")
+    show_sample(valid_dataset, 10, "valid")
     show_sample(test_dataset, 10, "test")
 
     if config["model"]["optimizer"] == "adam":
@@ -152,7 +184,8 @@ if __name__ == "__main__":
     callbacks = [
         DisplayCallback(),
         tf.keras.callbacks.LearningRateScheduler(clr),
-        tf.keras.callbacks.ModelCheckpoint(f"{save_path}/weights.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True)
+        tf.keras.callbacks.ModelCheckpoint(f"{save_path}/weights.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True),
+        tf.keras.callbacks.TensorBoard(f"{save_path}/logs", write_graph=True, write_images=True, write_steps_per_second=True, update_freq="epoch")
     ]
 
     with strategy.scope():

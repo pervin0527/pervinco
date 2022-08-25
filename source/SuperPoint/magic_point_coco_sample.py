@@ -35,7 +35,7 @@ def draw_keypoints(img, corners, color):
 
 
 if __name__ == "__main__":
-    config_path = "./configs/magic-point_coco_test.yaml"
+    config_path = "./configs/magic-point_coco_sample.yaml"
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
