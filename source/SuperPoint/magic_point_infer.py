@@ -4,6 +4,7 @@ import yaml
 import numpy as np
 import tensorflow as tf
 
+from tqdm import tqdm
 from data import synthetic_data
 from magic_point_model import MagicPoint
 from synthetic_shapes import parse_primitives
@@ -98,12 +99,21 @@ if __name__ == "__main__":
     testset = build_test_dataset(config["path"]["data_path"])
     test_iterator = iter(testset)
 
-    while True:
-        data = test_iterator.get_next()
+    save_path = '/'.join(config["path"]["ckpt_path"].split('/')[:-1]) + '/inference'
+    if not os.path.isdir(save_path):
+        os.makedirs(save_path)
+    
+    pbar = tqdm(total=config["model"]["test_iter"])
+    for idx, data in enumerate(testset.take(config["model"]["test_iter"])):
         pred_logits, pred_probs = model(data["image"])
         nms_prob = tf.map_fn(lambda p : box_nms(p, config["model"]["nms_size"], threshold=config["model"]["threshold"], keep_top_k=0), pred_probs)
 
         image = (data["image"][0].numpy() * 255).astype(np.int32)
         result_image = draw_keypoints(image, np.where(nms_prob[0] > config["model"]["threshold"]), (0, 255, 0))
-        cv2.imshow("result", result_image)
-        cv2.waitKey(0)
+        
+        # cv2.imshow("result", result_image)
+        # cv2.waitKey(0)
+        cv2.imwrite(f"{save_path}/{idx:>04}.png", result_image)
+        pbar.update(1)
+    
+    print("DONE")
