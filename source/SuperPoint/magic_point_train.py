@@ -113,7 +113,8 @@ def draw_keypoints(img, corners, color):
 
 def plot_predictions(model):
     if not os.path.isdir(f"{save_path}/on_epoch_end"):
-        os.makedirs(f"{save_path}/on_epoch_end")
+        os.makedirs(f"{save_path}/on_epoch_end/pred")
+        os.makedirs(f"{save_path}/on_epoch_end/gt")
 
     for index, data in enumerate(test_dataset.take(config["model"]["test_iter"])):
         pred_logits, pred_probs = model.predict(data["image"])
@@ -122,27 +123,11 @@ def plot_predictions(model):
         nms_prob = tf.map_fn(lambda p : box_nms(p, config["model"]["nms_size"], threshold=config["model"]["threshold"], keep_top_k=0), pred_probs)
         result_img = draw_keypoints(image, np.where(nms_prob[0] > config["model"]["threshold"]), (0, 255, 0))
         result_img = draw_keypoints(image, np.where(pred_probs[0] > config["model"]["threshold"]), (0, 255, 0))
-        cv2.imwrite(f"{save_path}/on_epoch_end/pred/{index:>02}.png", result_img)
+        cv2.imwrite(f"{save_path}/on_epoch_end/pred/pred-{index:>04}.png", result_img)
 
         gt_keypoint_map = data["keypoint_map"][0].numpy()
         gt_img = draw_keypoints(image, np.where(gt_keypoint_map), (0, 255, 0))
-        cv2.imwrite(f"{save_path}/on_epoch_end/gt/{index:>02}.png", gt_img)
-
-        # fig = plt.figure(figsize=(8, 6))
-        # rows, columns = 1, 2
-
-        # fig.add_subplot(rows, columns, 1)
-        # plt.imshow(gt_img)
-        # plt.axis("off")
-        # plt.title("Ground Truth")
-
-        # fig.add_subplot(rows, columns, 2)
-        # plt.imshow(result_img)
-        # plt.axis("off")
-        # plt.title("Prediction")
-
-        # plt.savefig(f"{save_path}/on_epoch_end/{index:04}.jpg")
-        # plt.close("all")
+        cv2.imwrite(f"{save_path}/on_epoch_end/gt/gt-{index:>04}.png", gt_img)
         
 
 class DisplayCallback(tf.keras.callbacks.Callback):
