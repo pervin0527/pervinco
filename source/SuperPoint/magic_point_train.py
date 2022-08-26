@@ -4,6 +4,7 @@ import yaml
 import numpy as np
 import tensorflow as tf
 import tensorflow_addons as tfa
+import matplotlib.pyplot as plt
 
 from glob import glob
 from datetime import datetime
@@ -121,8 +122,28 @@ def plot_predictions(model):
         nms_prob = tf.map_fn(lambda p : box_nms(p, config["model"]["nms_size"], threshold=config["model"]["threshold"], keep_top_k=0), pred_probs)
         result_img = draw_keypoints(image, np.where(nms_prob[0] > config["model"]["threshold"]), (0, 255, 0))
         # result_img = draw_keypoints(image, np.where(pred_probs[0] > config["model"]["threshold"]), (0, 255, 0))
-        cv2.imwrite(f"{save_path}/on_epoch_end/{index:>04}.png", result_img)
+        # cv2.imwrite(f"{save_path}/on_epoch_end/{index:>02}_predict.png", result_img)
 
+        gt_keypoint_map = data["keypoint_map"][0].numpy()
+        gt_img = draw_keypoints(image, np.where(gt_keypoint_map), (0, 255, 0))
+
+        fig = plt.figure(figsize=(8, 6))
+        rows = 1
+        columns = 2
+
+        fig.add_subplot(rows, columns, 1)
+        plt.imshow(gt_img)
+        plt.axis("off")
+        plt.title("Ground Truth")
+
+        fig.add_subplot(rows, columns, 2)
+        plt.imshow(result_img)
+        plt.axis("off")
+        plt.title("Prediction")
+
+        plt.savefig(f"{save_path}/on_epoch_end/{index:04}.jpg")
+        plt.close("all")
+        
 
 class DisplayCallback(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
@@ -135,13 +156,15 @@ def show_sample(dataset, n_samples, name):
         os.makedirs(f"{save_path}/samples/{name}")
 
         for index, data in enumerate(dataset.take(n_samples)):
-            image = data["image"][0].numpy() ### shape : 120, 160, 1
-            keypoints = data["keypoints"][0].numpy() # shape : (120, 160) values : 0 or 1
+            image = data["image"][0].numpy() ## shape : 120, 160, 1
+            keypoints = data["keypoints"][0].numpy() ## shape : (120, 160) values : 0 or 1
             valid_mask = data["valid_mask"][0].numpy() ## shape : (120, 160) values : 0 or 1
             keypoint_map = data["keypoint_map"][0].numpy()
 
             sample = draw_keypoints(image[..., 0] * 255, np.where(keypoint_map), (0, 255, 0))
-            cv2.imwrite(f"{save_path}/samples/{name}/{index:>04}.png", sample)
+            cv2.imwrite(f"{save_path}/samples/{name}/{index:>02}_img_pt.png", sample)
+            cv2.imwrite(f"{save_path}/samples/{name}/{index:>02}_keypoints.png", keypoint_map)
+            cv2.imwrite(f"{save_path}/samples/{name}/{index:>02}_valid_mask.png", valid_mask)
     else:
         pass
 
@@ -164,9 +187,8 @@ if __name__ == "__main__":
     if not os.path.isdir(save_path):
         os.makedirs(save_path)
 
-    show_sample(train_dataset, 10, "train")
-    show_sample(valid_dataset, 10, "valid")
-    show_sample(test_dataset, 10, "test")
+    show_sample(train_dataset, 5, "train")
+    show_sample(valid_dataset, 5, "valid")
 
     if config["model"]["optimizer"] == "adam":
         optimizer = tf.keras.optimizers.Adam(learning_rate=config["model"]["init_lr"], beta_1=0.9, beta_2=0.999)

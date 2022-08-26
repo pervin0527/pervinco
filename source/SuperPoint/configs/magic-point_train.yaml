@@ -23,7 +23,7 @@ data:
 
     augmentation:
         photometric:
-            enable: false
+            enable: true
             primitives: [
                 'random_brightness', 'random_contrast', 'additive_speckle_noise',
                 'additive_gaussian_noise', 'additive_shade', 'motion_blur' ]
@@ -38,7 +38,7 @@ data:
                 motion_blur: {max_kernel_size: 7}
 
         homographic:
-            enable: false
+            enable: true
             params:
                 allow_artifacts: true
                 max_angle: 1.57  # 3.14
@@ -57,12 +57,12 @@ model:
     input_shape : [240, 320, 1]
     epochs : 1000
     train_iter : 10000
-    valid_iter : 200
-    test_iter : 100
+    valid_iter : 500
+    test_iter : 25
     nms_size : 4 ## [120, 160] : 2, [240, 320] : 4, [480, 640] : 8
     threshold : 0.015 ## threshold of 0.015 only to create the pseudo ground truth and 0,001 to actually train MagicPoint.
     init_lr : 0.0001 ## paper set 0.001
-    max_lr : 0.009
+    max_lr : 0.001
     summary : false
     optimizer : "adam"
     ckpt_path : null
