@@ -12,6 +12,7 @@ def detector_loss(keypoint_map, logits, valid_mask):
     shape = tf.concat([tf.shape(labels)[:3], [1]], axis=0)
     labels = tf.concat([2*labels, tf.ones(shape)], 3)
     labels = tf.argmax(labels + tf.random.uniform(tf.shape(labels), 0, 0.1), axis=3)
+    # labels = tf.argmax(labels, axis=3)
 
     valid_mask = tf.ones_like(keypoint_map) if valid_mask is None else valid_mask
     valid_mask = tf.cast(valid_mask[..., tf.newaxis], tf.float32)

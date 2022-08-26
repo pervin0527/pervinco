@@ -122,7 +122,6 @@ def plot_predictions(model):
 
         nms_prob = tf.map_fn(lambda p : box_nms(p, config["model"]["nms_size"], threshold=config["model"]["threshold"], keep_top_k=0), pred_probs)
         result_img = draw_keypoints(image, np.where(nms_prob[0] > config["model"]["threshold"]), (0, 255, 0))
-        result_img = draw_keypoints(image, np.where(pred_probs[0] > config["model"]["threshold"]), (0, 255, 0))
         cv2.imwrite(f"{save_path}/on_epoch_end/pred/pred-{index:>04}.png", result_img)
 
         gt_keypoint_map = data["keypoint_map"][0].numpy()
