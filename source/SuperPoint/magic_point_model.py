@@ -40,16 +40,15 @@ def vgg_backbone(inputs):
 def detector_head(inputs, nms_size, threshold):                  
     inputs = tf.keras.Input(shape=inputs)
     x = vgg_block(inputs, filters=256, kernel_size=3, padding="SAME", strides=1, activation=tf.nn.relu)
-    x = vgg_block(x, filters=1 + pow(8, 2), kernel_size=1, padding="VALID", strides=1, activation=None)
+    logits = vgg_block(x, filters=1 + pow(8, 2), kernel_size=1, padding="VALID", strides=1, activation=None)
 
-    prob = tf.keras.activations.softmax(x, axis=-1)
+    prob = tf.keras.activations.softmax(logits, axis=-1)
     prob = prob[:, :, :, :-1]
     prob = tf.nn.depth_to_space(prob, 8, data_format='NHWC')
     prob = tf.squeeze(prob, axis=-1)
-
     # prob = detector_postprocess()(prob, nms_size, threshold)
 
-    model = tf.keras.Model(inputs=inputs, outputs=[x, prob])
+    model = tf.keras.Model(inputs=inputs, outputs=[logits, prob])
 
     return model
 
@@ -86,7 +85,7 @@ class MagicPoint(tf.keras.Model):
         self.nms_size = nms_size
         self.threshold = threshold
 
-        self.detector_head = detector_head((int(backbone_input[0] / 8), int(backbone_input[1] / 8), self.output_channel), self.nms_size, self.threshold)
+        self.detector_head = detector_head((backbone_input[0] // 8, backbone_input[1] // 8, self.output_channel), self.nms_size, self.threshold)
         self.loss_tracker = tf.keras.metrics.Mean(name="loss")
         self.precision_tracker = tf.keras.metrics.Mean(name="precision")
         self.recall_tracker = tf.keras.metrics.Mean(name="recall")
