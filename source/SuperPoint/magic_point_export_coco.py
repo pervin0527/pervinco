@@ -169,19 +169,20 @@ if __name__ == "__main__":
         prob = tf.cast(tf.greater_equal(prob, config["model"]["threshold"]), dtype=tf.int32)
         pred = {'points': [np.array(np.where(e)).T for e in prob]}
 
-        result = draw_keypoints(image, pred["points"][0], (0, 255,0))
-        cv2.imwrite(config["path"]["output_path"] + "/samples" + f"/{name}_result.jpg", result)
+        if len(pred["points"][0]) > 0:
+            result = draw_keypoints(image, pred["points"][0], (0, 255,0))
+            cv2.imwrite(config["path"]["output_path"] + "/samples" + f"/{name}_result.jpg", result)
 
-        d2l = lambda d: [dict(zip(d, e)) for e in zip(*d.values())]
-        for p, d in zip(d2l(pred), d2l(data)):
-            if not ('name' in d):
-                p.update(d)
-            filename = d['name'].numpy().decode('utf-8') if 'name' in d else str(i)
-            filepath = Path(config["path"]["output_path"], '{}.npz'.format(filename))
-            np.savez_compressed(filepath, **p)
-            i += 1
-            pbar.update(1)
+            d2l = lambda d: [dict(zip(d, e)) for e in zip(*d.values())]
+            for p, d in zip(d2l(pred), d2l(data)):
+                if not ('name' in d):
+                    p.update(d)
+                filename = d['name'].numpy().decode('utf-8') if 'name' in d else str(i)
+                filepath = Path(config["path"]["output_path"], '{}.npz'.format(filename))
+                np.savez_compressed(filepath, **p)
+                i += 1
+                pbar.update(1)
 
-        if i >= steps:
-            print("DONE")
-            break
+            if i >= steps:
+                print("DONE")
+                break

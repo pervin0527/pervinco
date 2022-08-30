@@ -56,9 +56,10 @@ data:
 model:
     input_shape : [240, 320, 1]
     epochs : 1000
-    train_iter : 10000
-    valid_iter : 500
-    test_iter : 25
+    batch_size : 256
+    train_iter : 50000
+    valid_iter : 1000
+    test_iter : 50
     nms_size : 4 ## [120, 160] : 2, [240, 320] : 4, [480, 640] : 8
     threshold : 0.015 ## threshold of 0.015 only to create the pseudo ground truth and 0,001 to actually train MagicPoint.
     init_lr : 0.0001 ## paper set 0.001

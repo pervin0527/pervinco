@@ -1,5 +1,6 @@
 import tensorflow as tf
 from model.loss import detector_loss
+from data.data_utils import box_nms
 
 def vgg_block(inputs, filters, kernel_size, padding="SAME", strides=1, kernel_reg=0.0, activation=tf.nn.relu, batch_normalization=True):
     x = tf.keras.layers.Conv2D(filters=filters,
@@ -82,9 +83,13 @@ class MagicPoint(tf.keras.Model):
 
         self.backbone = vgg_backbone(inputs=(backbone_input))
         self.output_channel = 128
+        self.nms_size = nms_size
+        self.threshold = threshold
 
-        self.detector_head = detector_head((int(backbone_input[0] / 8), int(backbone_input[1] / 8), self.output_channel), nms_size, threshold)
+        self.detector_head = detector_head((int(backbone_input[0] / 8), int(backbone_input[1] / 8), self.output_channel), self.nms_size, self.threshold)
         self.loss_tracker = tf.keras.metrics.Mean(name="loss")
+        self.precision_tracker = tf.keras.metrics.Mean(name="precision")
+        self.recall_tracker = tf.keras.metrics.Mean(name="recall")
 
         if summary:
             self.backbone.summary()
@@ -119,4 +124,13 @@ class MagicPoint(tf.keras.Model):
         loss = detector_loss(keypoint_map, pred_logits, valid_mask)
         self.loss_tracker.update_state(loss)
 
-        return {"loss" : self.loss_tracker.result()}
+        nms_prob = tf.map_fn(lambda p : box_nms(p, self.nms_size, threshold=self.threshold, keep_top_k=0), pred_prob)
+        pred = tf.cast(valid_mask, tf.float32) * nms_prob
+        labels = tf.cast(keypoint_map, tf.float32)
+
+        precision = tf.math.divide_no_nan(tf.reduce_sum(pred * labels), tf.reduce_sum(pred))
+        recall = tf.math.divide_no_nan(tf.reduce_sum(pred * labels), tf.reduce_sum(labels))
+        self.precision_tracker.update_state(precision)
+        self.recall_tracker.update_state(recall)
+
+        return {"loss" : self.loss_tracker.result(), "precision" : self.precision_tracker.result(), "recall" : self.recall_tracker.result()}

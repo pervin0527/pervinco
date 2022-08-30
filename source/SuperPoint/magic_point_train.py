@@ -74,14 +74,13 @@ def build_tf_dataset(path, target="training"):
         print(len(images), len(points))
 
         dataset = tf.data.Dataset.from_tensor_slices((images, points))
-        dataset = dataset.map(lambda image, points : (read_image(image), tf.numpy_function(read_points, [points], tf.float32)))
-        dataset = dataset.map(lambda image, points : (image, tf.reshape(points, [-1, 2])))
+        dataset = dataset.map(lambda image, points : (read_image(image), tf.numpy_function(read_points, [points], tf.float32)), num_parallel_calls=tf.data.AUTOTUNE)
+        dataset = dataset.map(lambda image, points : (image, tf.reshape(points, [-1, 2])), num_parallel_calls=tf.data.AUTOTUNE)
         dataset = dataset.shuffle(config["model"]["train_iter"])
 
     else:
-        dataset = tf.data.Dataset.from_generator(generate_shapes, (tf.float32, tf.float32),
-                                                 (tf.TensorShape(config["data"]["generation"]["image_size"] + [1]), tf.TensorShape([None, 2])))
-        dataset = dataset.map(lambda i, c : downsample(i, c, **config["data"]["preprocessing"]))
+        dataset = tf.data.Dataset.from_generator(generate_shapes, (tf.float32, tf.float32), (tf.TensorShape(config["data"]["generation"]["image_size"] + [1]), tf.TensorShape([None, 2])))
+        dataset = dataset.map(lambda i, c : downsample(i, c, **config["data"]["preprocessing"]), num_parallel_calls=tf.data.AUTOTUNE)
 
     if target == "training":
         dataset = dataset.take(config["model"]["train_iter"])
@@ -89,20 +88,21 @@ def build_tf_dataset(path, target="training"):
     elif target == "validation":
         dataset = dataset.take(config["model"]["valid_iter"])
 
-    dataset = dataset.map(lambda image, keypoints : {"image" : image, "keypoints" : keypoints})
-    dataset = dataset.map(add_dummy_valid_mask)
+    dataset = dataset.map(lambda image, keypoints : {"image" : image, "keypoints" : keypoints}, num_parallel_calls=tf.data.AUTOTUNE)
+    dataset = dataset.map(add_dummy_valid_mask, num_parallel_calls=tf.data.AUTOTUNE)
 
     if target == "training":
         if config["data"]["augmentation"]["photometric"]["enable"]:
-            dataset = dataset.map(lambda x : photometric_augmentation(x, config))
+            dataset = dataset.map(lambda x : photometric_augmentation(x, config), num_parallel_calls=tf.data.AUTOTUNE)
         if config["data"]["augmentation"]["homographic"]["enable"]:
-            dataset = dataset.map(lambda x : homographic_augmentation(x, config))
+            dataset = dataset.map(lambda x : homographic_augmentation(x, config), num_parallel_calls=tf.data.AUTOTUNE)
         
-    dataset = dataset.map(lambda x : add_keypoint_map(x))
-    dataset = dataset.map(lambda d : {**d, "image" : tf.cast(d["image"], tf.float32) / 255.})
-    dataset = dataset.batch(batch_size=1)
-    dataset = dataset.prefetch(tf.data.AUTOTUNE)
+    dataset = dataset.map(lambda x : add_keypoint_map(x), num_parallel_calls=tf.data.AUTOTUNE)
+    dataset = dataset.map(lambda d : {**d, "image" : tf.cast(d["image"], tf.float32) / 255., "keypoints" : tf.zeros([0], tf.float32)}, num_parallel_calls=tf.data.AUTOTUNE)
 
+    dataset = dataset.batch(batch_size=config["model"]["batch_size"])
+    dataset = dataset.prefetch(tf.data.AUTOTUNE)
+    
     return dataset
 
 
@@ -135,22 +135,6 @@ class DisplayCallback(tf.keras.callbacks.Callback):
         plot_predictions(model=model)
 
 
-def show_sample(dataset, n_samples, name):
-    if not os.path.isdir(f"{save_path}/samples/{name}"):
-        os.makedirs(f"{save_path}/samples/{name}")
-
-        for index, data in enumerate(dataset.take(n_samples)):
-            image = data["image"][0].numpy() ## shape : 120, 160, 1
-            keypoints = data["keypoints"][0].numpy() ## shape : (120, 160) values : 0 or 1
-            valid_mask = data["valid_mask"][0].numpy() ## shape : (120, 160) values : 0 or 1
-            keypoint_map = data["keypoint_map"][0].numpy()
-
-            sample = draw_keypoints(image[..., 0] * 255, np.where(keypoint_map), (0, 255, 0))
-            cv2.imwrite(f"{save_path}/samples/{name}/{index:>02}_img_pt.png", sample)
-    else:
-        pass
-
-
 if __name__ == "__main__":
     config_path = "./configs/magic-point_train.yaml"
     with open(config_path, "r") as f:
@@ -168,9 +152,6 @@ if __name__ == "__main__":
 
     if not os.path.isdir(save_path):
         os.makedirs(save_path)
-
-    show_sample(train_dataset, 5, "train")
-    show_sample(valid_dataset, 5, "valid")
 
     if config["model"]["optimizer"] == "adam":
         optimizer = tf.keras.optimizers.Adam(learning_rate=config["model"]["init_lr"], beta_1=0.9, beta_2=0.999)
