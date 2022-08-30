@@ -8,7 +8,7 @@ from tqdm import tqdm
 from data import synthetic_data
 from magic_point_model import MagicPoint
 from synthetic_shapes import parse_primitives
-from data.data_utils import photometric_augmentation, homographic_augmentation, add_keypoint_map, box_nms, downsample
+from data.data_utils import photometric_augmentation, homographic_augmentation, add_keypoint_map, box_nms, downsample, add_dummy_valid_mask
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -62,11 +62,11 @@ def generate_shapes():
 
     
 
-def build_test_dataset(path):
-    dataset = tf.data.Dataset.from_generator(generate_shapes, (tf.float32, tf.float32),
-                                                (tf.TensorShape(config["data"]["generation"]["image_size"] + [1]), tf.TensorShape([None, 2])))
+def build_test_dataset():
+    dataset = tf.data.Dataset.from_generator(generate_shapes, (tf.float32, tf.float32), (tf.TensorShape(config["data"]["generation"]["image_size"] + [1]), tf.TensorShape([None, 2])))
     dataset = dataset.map(lambda i, c : downsample(i, c, **config["data"]["preprocessing"]))
     dataset = dataset.map(lambda image, keypoints : {"image" : image, "keypoints" : keypoints})
+    dataset = dataset.map(add_dummy_valid_mask)
 
     if config["data"]["augmentation"]["photometric"]["enable"]:
         dataset = dataset.map(lambda x : photometric_augmentation(x, config))
@@ -96,7 +96,7 @@ if __name__ == "__main__":
     model.load_weights(config["path"]["ckpt_path"])
     print("Model Loaded")
 
-    testset = build_test_dataset(config["path"]["data_path"])
+    testset = build_test_dataset()
     test_iterator = iter(testset)
 
     save_path = '/'.join(config["path"]["ckpt_path"].split('/')[:-1]) + '/inference'
@@ -108,11 +108,17 @@ if __name__ == "__main__":
         pred_logits, pred_probs = model(data["image"])
         nms_prob = tf.map_fn(lambda p : box_nms(p, config["model"]["nms_size"], threshold=config["model"]["threshold"], keep_top_k=0), pred_probs)
 
+        valid_mask = tf.cast(data["valid_mask"], tf.float32)
+        pred = valid_mask * nms_prob
+        labels = tf.cast(data["keypoint_map"], tf.float32)
+
+        precision = tf.reduce_sum(pred * labels) / tf.reduce_sum(pred)
+        recall = tf.reduce_sum(pred * labels) / tf.reduce_sum(labels)
+        print(precision.numpy(), recall.numpy())
+
         image = (data["image"][0].numpy() * 255).astype(np.int32)
         result_image = draw_keypoints(image, np.where(nms_prob[0] > config["model"]["threshold"]), (0, 255, 0))
         
-        # cv2.imshow("result", result_image)
-        # cv2.waitKey(0)
         cv2.imwrite(f"{save_path}/{idx:>04}.png", result_image)
         pbar.update(1)
     

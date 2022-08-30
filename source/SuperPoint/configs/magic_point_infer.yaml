@@ -57,5 +57,4 @@ model:
     test_iter: 100
 
 path:
-    ckpt_path: "/data/Models/MagicPoint/2022_08_25-02_29/weights.h5"
-    data_path: "/data/Datasets/synthetic_shapes/synthetic_shapes_v0/test"
+    ckpt_path: "/data/Models/MagicPoint/2022_08_26-03_32/weights.h5"

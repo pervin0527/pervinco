@@ -26,6 +26,6 @@ model:
 
 path:
     coco_path: "/data/Datasets/COCO2014"
-    ckpt_path: "/data/Models/MagicPoint/vgg.h5"
+    ckpt_path: "/data/Models/MagicPoint/2022_08_26-03_32/weights.h5"
     output_path: "/data/Datasets/COCO_MagicPoint"
     image_path: "/data/Datasets/COCO2014/train2014/COCO_train2014_000000519723.jpg"

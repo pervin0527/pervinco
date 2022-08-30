@@ -55,7 +55,7 @@ def read_image(path):
 
 def preprocess(image):
     image = tf.image.rgb_to_grayscale(image)
-    if config["data"]["preprocessing"]["resize"]:
+    if config["data"]["preprocessing"]:
         image = ratio_preserving_resize(image, config["data"]["preprocessing"])
     
     return image
@@ -115,7 +115,7 @@ def draw_keypoints(img, corners, color):
 
 
 if __name__ == "__main__":
-    config_path = "./configs/magic-point_coco_export.yaml"
+    config_path = "./configs/magic-point_export_coco.yaml"
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 

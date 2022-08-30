@@ -1,9 +1,8 @@
 data:
     name: 'coco'
-    validation_size: 100
-    
     truncate: null
     labels: null
+    
     preprocessing:
         resize: [240, 320]
 
@@ -25,10 +24,9 @@ data:
 model:
     input_shape: [240, 320, 1]
     batch_size: 1
-    learning_rate: 0.001
-    threshold: 0.001  # 0.001
+    threshold: 0.015
     nms_size: 4
-    top_k: 300
+    # top_k: 300
     homography_adaptation:
         num: 100
         aggregation: 'sum'
@@ -47,5 +45,5 @@ model:
 
 path:
     coco_path: "/data/Datasets/COCO2014"
-    ckpt_path: "/data/Models/MagicPoint/vgg.h5"
+    ckpt_path: "/data/Models/MagicPoint/2022_08_26-03_32/weights.h5"
     output_path: "/data/Datasets/COCO_MagicPoint"
