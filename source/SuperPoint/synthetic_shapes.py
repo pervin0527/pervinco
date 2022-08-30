@@ -78,7 +78,7 @@ if __name__ == "__main__":
             'gaussian_noise'
     ]
 
-    config_path = "./configs/magic-point_shapes.yaml"    
+    config_path = "./configs/magic-point_train.yaml"    
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 

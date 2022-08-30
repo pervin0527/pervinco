@@ -76,7 +76,7 @@ def build_tf_dataset(path, target="training"):
         dataset = tf.data.Dataset.from_tensor_slices((images, points))
         dataset = dataset.map(lambda image, points : (read_image(image), tf.numpy_function(read_points, [points], tf.float32)), num_parallel_calls=tf.data.AUTOTUNE)
         dataset = dataset.map(lambda image, points : (image, tf.reshape(points, [-1, 2])), num_parallel_calls=tf.data.AUTOTUNE)
-        dataset = dataset.shuffle(config["model"]["train_iter"])
+        dataset = dataset.shuffle(len(images))
 
     else:
         dataset = tf.data.Dataset.from_generator(generate_shapes, (tf.float32, tf.float32), (tf.TensorShape(config["data"]["generation"]["image_size"] + [1]), tf.TensorShape([None, 2])))
@@ -189,4 +189,5 @@ if __name__ == "__main__":
     model.fit(train_dataset,
               validation_data=valid_dataset,
               epochs=config["model"]["epochs"],
-              callbacks=callbacks)
+              callbacks=callbacks,
+              verbose=1)
