@@ -56,10 +56,10 @@ data:
 model:
     input_shape : [120, 160, 1]
     epochs : 1000
-    batch_size : 100
-    train_iter : 50000
-    valid_iter : 1000
-    test_iter : 50
+    batch_size : 128
+    train_iter : 64000
+    valid_iter : 640
+    test_iter : 64
     init_lr : 0.0001 ## paper set 0.001
     max_lr : 0.009
     optimizer : "adam"
