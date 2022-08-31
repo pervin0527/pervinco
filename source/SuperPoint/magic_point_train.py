@@ -76,17 +76,25 @@ def build_tf_dataset(path, target="training"):
         dataset = tf.data.Dataset.from_tensor_slices((images, points))
         dataset = dataset.map(lambda image, points : (read_image(image), tf.numpy_function(read_points, [points], tf.float32)), num_parallel_calls=tf.data.AUTOTUNE)
         dataset = dataset.map(lambda image, points : (image, tf.reshape(points, [-1, 2])), num_parallel_calls=tf.data.AUTOTUNE)
-        dataset = dataset.shuffle(len(images))
-
+        
     else:
         dataset = tf.data.Dataset.from_generator(generate_shapes, (tf.float32, tf.float32), (tf.TensorShape(config["data"]["generation"]["image_size"] + [1]), tf.TensorShape([None, 2])))
         dataset = dataset.map(lambda i, c : downsample(i, c, **config["data"]["preprocessing"]), num_parallel_calls=tf.data.AUTOTUNE)
 
     if target == "training":
+        # dataset = dataset.shuffle(config["model"]["train_iter"])
         dataset = dataset.take(config["model"]["train_iter"])
+        steps = int(tf.math.ceil(config["model"]["train_iter"] / config["model"]["batch_size"]))
 
     elif target == "validation":
+        # dataset = dataset.shuffle(config["model"]["valid_iter"])
         dataset = dataset.take(config["model"]["valid_iter"])
+        steps = int(tf.math.ceil(config["model"]["valid_iter"] / config["model"]["batch_size"]))
+
+    elif target == "test":
+        dataset = dataset.take(config["model"]["test_iter"])
+        config["model"]["batch_size"] = 1
+        steps = 0
 
     dataset = dataset.map(lambda image, keypoints : {"image" : image, "keypoints" : keypoints}, num_parallel_calls=tf.data.AUTOTUNE)
     dataset = dataset.map(add_dummy_valid_mask, num_parallel_calls=tf.data.AUTOTUNE)
@@ -103,7 +111,7 @@ def build_tf_dataset(path, target="training"):
     dataset = dataset.batch(batch_size=config["model"]["batch_size"])
     dataset = dataset.prefetch(tf.data.AUTOTUNE)
     
-    return dataset
+    return dataset, steps
 
 
 def draw_keypoints(img, corners, color):
@@ -143,9 +151,9 @@ if __name__ == "__main__":
 
     data_path = config["path"]["dataset"] + "/synthetic_shapes_" + config["data"]["suffix"]
     print("DATASET PATH : ", data_path)
-    train_dataset = build_tf_dataset(data_path, "training")
-    valid_dataset = build_tf_dataset(data_path, "validation")
-    test_dataset = build_tf_dataset(data_path, "test")
+    train_dataset, train_steps = build_tf_dataset(data_path, "training")
+    valid_dataset, valid_steps = build_tf_dataset(data_path, "validation")
+    test_dataset, _ = build_tf_dataset(data_path, "test")
 
     save_folder = datetime.now().strftime("%Y_%m_%d-%H_%M")
     save_path = config["path"]["save_path"] + f"/{save_folder}"
@@ -188,7 +196,9 @@ if __name__ == "__main__":
         model.compile(optimizer=optimizer)
 
     model.fit(train_dataset,
+              steps_per_epoch=train_steps,
               validation_data=valid_dataset,
+              validation_steps=valid_steps,
               epochs=config["model"]["epochs"],
               callbacks=callbacks,
               verbose=1)
