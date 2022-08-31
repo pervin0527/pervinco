@@ -83,13 +83,18 @@ def build_tf_dataset(path, target="training"):
 
     if target == "training":
         # dataset = dataset.shuffle(config["model"]["train_iter"])
-        dataset = dataset.take(config["model"]["train_iter"])
-        steps = int(tf.math.ceil(config["model"]["train_iter"] / config["model"]["batch_size"]))
+        # dataset = dataset.take(config["model"]["train_iter"])
+        # steps = int(tf.math.ceil(config["model"]["train_iter"] / config["model"]["batch_size"]))
+        
+        steps = int(tf.math.ceil(len(images) / config["model"]["batch_size"]))
 
     elif target == "validation":
         # dataset = dataset.shuffle(config["model"]["valid_iter"])
+        # dataset = dataset.take(config["model"]["valid_iter"])
+        # steps = int(tf.math.ceil(config["model"]["valid_iter"] / config["model"]["batch_size"]))
+
         dataset = dataset.take(config["model"]["valid_iter"])
-        steps = int(tf.math.ceil(config["model"]["valid_iter"] / config["model"]["batch_size"]))
+        steps = int(tf.math.ceil(len(images) / config["model"]["batch_size"]))
 
     elif target == "test":
         dataset = dataset.take(config["model"]["test_iter"])
@@ -110,6 +115,7 @@ def build_tf_dataset(path, target="training"):
 
     dataset = dataset.batch(batch_size=config["model"]["batch_size"])
     dataset = dataset.prefetch(tf.data.AUTOTUNE)
+    dataset = dataset.repeat()
     
     return dataset, steps
 
@@ -177,7 +183,7 @@ if __name__ == "__main__":
 
     callbacks = [
         DisplayCallback(),
-        tf.keras.callbacks.LearningRateScheduler(clr),
+        # tf.keras.callbacks.LearningRateScheduler(clr),
         tf.keras.callbacks.ModelCheckpoint(f"{save_path}/weights.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True),
         tf.keras.callbacks.TensorBoard(f"{save_path}/logs", write_graph=True, write_images=True, write_steps_per_second=True, update_freq="epoch")
     ]
