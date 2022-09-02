@@ -59,7 +59,7 @@ data:
 model:
     input_shape : [120, 160, 1]
     epochs : 200
-    batch_size : 256
+    batch_size : 64
     train_iter : 50000
     valid_iter : 1000 ## 1000
     test_iter : 50 ## 200

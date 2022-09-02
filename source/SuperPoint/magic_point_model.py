@@ -2,7 +2,7 @@ import tensorflow as tf
 from model.loss import detector_loss
 from data.data_utils import box_nms
 
-def vgg_block(inputs, filters, kernel_size, padding="SAME", strides=1, kernel_reg=0.1, activation=tf.nn.relu, batch_normalization=True):
+def vgg_block(inputs, filters, kernel_size, padding="SAME", strides=1, kernel_reg=0.0001, activation=tf.nn.relu, batch_normalization=True):
     x = tf.keras.layers.Conv2D(filters=filters,
                                kernel_size=kernel_size,
                                padding=padding,
