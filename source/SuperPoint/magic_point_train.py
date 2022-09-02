@@ -4,7 +4,6 @@ import yaml
 import numpy as np
 import tensorflow as tf
 import tensorflow_addons as tfa
-import matplotlib.pyplot as plt
 
 from glob import glob
 from datetime import datetime
@@ -82,19 +81,12 @@ def build_tf_dataset(path, target="training"):
         dataset = dataset.map(lambda i, c : downsample(i, c, **config["data"]["preprocessing"]), num_parallel_calls=tf.data.AUTOTUNE)
 
     if target == "training":
-        # dataset = dataset.shuffle(config["model"]["train_iter"])
         # dataset = dataset.take(config["model"]["train_iter"])
-        # steps = int(tf.math.ceil(config["model"]["train_iter"] / config["model"]["batch_size"]))
+        steps = int(tf.math.ceil(config["model"]["train_iter"] / config["model"]["batch_size"]))
         
-        steps = int(tf.math.ceil(len(images) / config["model"]["batch_size"]))
-
     elif target == "validation":
-        # dataset = dataset.shuffle(config["model"]["valid_iter"])
-        # dataset = dataset.take(config["model"]["valid_iter"])
-        # steps = int(tf.math.ceil(config["model"]["valid_iter"] / config["model"]["batch_size"]))
-
         dataset = dataset.take(config["model"]["valid_iter"])
-        steps = int(tf.math.ceil(len(images) / config["model"]["batch_size"]))
+        steps = int(tf.math.ceil(config["model"]["valid_iter"] / config["model"]["batch_size"]))
 
     elif target == "test":
         dataset = dataset.take(config["model"]["test_iter"])
