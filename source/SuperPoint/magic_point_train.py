@@ -175,7 +175,7 @@ if __name__ == "__main__":
 
     callbacks = [
         DisplayCallback(),
-        # tf.keras.callbacks.LearningRateScheduler(clr),
+        tf.keras.callbacks.LearningRateScheduler(clr),
         tf.keras.callbacks.ModelCheckpoint(f"{save_path}/weights.h5", monitor="val_loss", verbose=1, save_best_only=True, save_weights_only=True),
         tf.keras.callbacks.TensorBoard(f"{save_path}/logs", write_graph=True, write_images=True, write_steps_per_second=True, update_freq="epoch")
     ]
@@ -188,8 +188,8 @@ if __name__ == "__main__":
             model.load_weights(config["model"]["ckpt_path"])
             print("Weight Loaded")
 
-        for index in range(len(model.layers)):
-            model.layers[index].trainable = True
+        # for index in range(len(model.layers)):
+        #     model.layers[index].trainable = True
 
         model.compile(optimizer=optimizer)
 
