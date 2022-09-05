@@ -2,12 +2,9 @@ data:
     name: 'synthetic_shapes'
     primitives: 'all'
     truncate: {draw_ellipses: 0.3, draw_stripes: 0.2, gaussian_noise: 0.1} # draw_ellipses: 0.3, draw_stripes: 0.2, gaussian_noise: 0.1
-    suffix: 'v0'
+    suffix: 'v2'
 
     generation:
-        ### v0 - 10000 : 200 : 500
-        ### v1 - 100000 : 1000 : 100
-        ### v2 - 1000000 : 2000 : 100
         split_sizes: {"training": 10000, "validation": 500, "test": 200}
         image_size: [960, 1280]
         random_seed: 0
@@ -21,8 +18,8 @@ data:
         }
 
     preprocessing:
-        resize: [120, 160]  # Should be multiples of 8
-        blur_size: 21 ## 11
+        resize: [240, 320]  # Should be multiples of 8
+        blur_size: 11 ## 21
 
     augmentation:
         photometric:
@@ -57,18 +54,18 @@ data:
             valid_border_margin: 2
 
 model:
-    input_shape : [120, 160, 1]
-    epochs : 200
-    batch_size : 64
+    input_shape : [240, 320, 1]
+    epochs : 500
+    batch_size : 32
     train_iter : 50000
     valid_iter : 1000 ## 1000
     test_iter : 50 ## 200
-    init_lr : 0.0001 ## 0.0001
+    init_lr : 0.0001
     max_lr : 0.001
     optimizer : "adam"
     summary : false
     ckpt_path : null
-    on-the-fly : true
+    on-the-fly : false
     nms_size : 4 ## [120, 160] : 2, [240, 320] : 4, [480, 640] : 8
     threshold : 0.015 ## threshold of 0.015 only to create the pseudo ground truth and 0.001 to actually train MagicPoint.
     

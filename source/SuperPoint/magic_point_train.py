@@ -73,12 +73,12 @@ def build_tf_dataset(path, target="training"):
         print(len(images), len(points))
 
         dataset = tf.data.Dataset.from_tensor_slices((images, points))
-        dataset = dataset.map(lambda image, points : (read_image(image), tf.numpy_function(read_points, [points], tf.float32)), num_parallel_calls=tf.data.AUTOTUNE)
-        dataset = dataset.map(lambda image, points : (image, tf.reshape(points, [-1, 2])), num_parallel_calls=tf.data.AUTOTUNE)
+        dataset = dataset.map(lambda image, points : (read_image(image), tf.numpy_function(read_points, [points], tf.float32)))
+        dataset = dataset.map(lambda image, points : (image, tf.reshape(points, [-1, 2])))
         
     else:
         dataset = tf.data.Dataset.from_generator(generate_shapes, (tf.float32, tf.float32), (tf.TensorShape(config["data"]["generation"]["image_size"] + [1]), tf.TensorShape([None, 2])))
-        dataset = dataset.map(lambda i, c : downsample(i, c, **config["data"]["preprocessing"]), num_parallel_calls=tf.data.AUTOTUNE)
+        dataset = dataset.map(lambda i, c : downsample(i, c, **config["data"]["preprocessing"]))
 
     if target == "training":
         # dataset = dataset.take(config["model"]["train_iter"])
@@ -93,17 +93,17 @@ def build_tf_dataset(path, target="training"):
         config["model"]["batch_size"] = 1
         steps = 0
 
-    dataset = dataset.map(lambda image, keypoints : {"image" : image, "keypoints" : keypoints}, num_parallel_calls=tf.data.AUTOTUNE)
-    dataset = dataset.map(add_dummy_valid_mask, num_parallel_calls=tf.data.AUTOTUNE)
+    dataset = dataset.map(lambda image, keypoints : {"image" : image, "keypoints" : keypoints})
+    dataset = dataset.map(add_dummy_valid_mask)
 
     if target == "training":
         if config["data"]["augmentation"]["photometric"]["enable"]:
-            dataset = dataset.map(lambda x : photometric_augmentation(x, config), num_parallel_calls=tf.data.AUTOTUNE)
+            dataset = dataset.map(lambda x : photometric_augmentation(x, config))
         if config["data"]["augmentation"]["homographic"]["enable"]:
-            dataset = dataset.map(lambda x : homographic_augmentation(x, config), num_parallel_calls=tf.data.AUTOTUNE)
+            dataset = dataset.map(lambda x : homographic_augmentation(x, config))
         
-    dataset = dataset.map(lambda x : add_keypoint_map(x), num_parallel_calls=tf.data.AUTOTUNE)
-    dataset = dataset.map(lambda d : {**d, "image" : tf.cast(d["image"], tf.float32) / 255., "keypoints" : tf.zeros([0], tf.float32)}, num_parallel_calls=tf.data.AUTOTUNE)
+    dataset = dataset.map(lambda x : add_keypoint_map(x))
+    dataset = dataset.map(lambda d : {**d, "image" : tf.cast(d["image"], tf.float32) / 255., "keypoints" : tf.zeros([0], tf.float32)})
 
     dataset = dataset.batch(batch_size=config["model"]["batch_size"])
     dataset = dataset.prefetch(tf.data.AUTOTUNE)
@@ -161,7 +161,8 @@ if __name__ == "__main__":
         os.makedirs(save_path)
 
     if config["model"]["optimizer"] == "adam":
-        optimizer = tf.keras.optimizers.Adam(learning_rate=config["model"]["init_lr"], beta_1=0.9, beta_2=0.999)
+        # optimizer = tf.keras.optimizers.Adam(learning_rate=config["model"]["init_lr"], beta_1=0.9, beta_2=0.999)
+        optimizer = tfa.optimizers.AdamW(learning_rate=config["model"]["init_lr"], weight_decay=0.0001, beta_1=0.9, beta_2=0.999)
     elif config["model"]["optimizer"] == "angular":
         optimizer = AngularGrad(method_angle="cos", learning_rate=config["model"]["init_lr"])
 

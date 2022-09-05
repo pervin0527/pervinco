@@ -2,13 +2,14 @@ import tensorflow as tf
 from model.loss import detector_loss
 from data.data_utils import box_nms
 
-def vgg_block(inputs, filters, kernel_size, padding="SAME", strides=1, kernel_reg=0.0, activation=tf.nn.relu, batch_normalization=True):
+def vgg_block(inputs, filters, kernel_size, padding="SAME", strides=1, activation=tf.nn.relu, batch_normalization=True):
     x = tf.keras.layers.Conv2D(filters=filters,
                                kernel_size=kernel_size,
                                padding=padding,
                                strides=strides,
                                activation=activation,
-                               kernel_regularizer=tf.keras.regularizers.L2(kernel_reg)
+                            #    kernel_regularizer=tf.keras.regularizers.L2(0.0),
+                            #    kernel_initializer=tf.keras.initializers.HeUniform()
                                )(inputs)
     
     if batch_normalization:
