@@ -70,7 +70,6 @@ def build_tf_dataset(path, target="training"):
     if not config["model"]["on-the-fly"]:
         images = sorted(glob(f"{path}/{target}/images/*.png"))
         points = sorted(glob(f"{path}/{target}/points/*.npy"))
-        print(len(images), len(points))
 
         dataset = tf.data.Dataset.from_tensor_slices((images, points))
         dataset = dataset.map(lambda image, points : (read_image(image), tf.numpy_function(read_points, [points], tf.float32)))
@@ -155,10 +154,18 @@ if __name__ == "__main__":
 
     save_folder = datetime.now().strftime("%Y_%m_%d-%H_%M")
     save_path = config["path"]["save_path"] + f"/{save_folder}"
+    if not os.path.isdir(save_path):
+        os.makedirs(f"{save_path}/train_samples")
     print("SAVE PATH : ", save_path)
 
-    if not os.path.isdir(save_path):
-        os.makedirs(save_path)
+    for index, train_data in enumerate(train_dataset.take(100)):
+        image = (train_data["image"][0].numpy() * 255).astype(np.int32)
+        keypoint_map = train_data["keypoint_map"][0].numpy()
+
+        sample = draw_keypoints(image[..., 0] * 255, np.where(keypoint_map), (0, 255, 0))
+        cv2.imwrite(f"{save_path}/train_samples/{index:>04}.png", sample)
+        # cv2.imshow("sample", sample)
+        # cv2.waitKey(0)
 
     if config["model"]["optimizer"] == "adam":
         # optimizer = tf.keras.optimizers.Adam(learning_rate=config["model"]["init_lr"], beta_1=0.9, beta_2=0.999)
