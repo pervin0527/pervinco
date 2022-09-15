@@ -169,7 +169,7 @@ if __name__ == "__main__":
 
     if config["model"]["optimizer"] == "adam":
         # optimizer = tf.keras.optimizers.Adam(learning_rate=config["model"]["init_lr"], beta_1=0.9, beta_2=0.999)
-        optimizer = tfa.optimizers.AdamW(learning_rate=config["model"]["init_lr"], weight_decay=0.0001, beta_1=0.9, beta_2=0.999)
+        optimizer = tfa.optimizers.AdamW(learning_rate=config["model"]["init_lr"], weight_decay=config["model"]["weight_decay"], beta_1=0.9, beta_2=0.999)
     elif config["model"]["optimizer"] == "angular":
         optimizer = AngularGrad(method_angle="cos", learning_rate=config["model"]["init_lr"])
 
