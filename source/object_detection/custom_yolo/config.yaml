@@ -1,0 +1,20 @@
+train_dataset: "/data/Datasets/SPC/full-name14/train3/train3.tfrecord"
+valid_dataset: "/data/Datasets/SPC/full-name14/valid3/valid3.tfrecord"
+classes: "/data/Datasets/SPC/Labels/labels.txt"
+
+tiny: false
+weights: "./checkpoints/yolov3.tf"
+transfer: "darknet" ## none, darknet, no_output, frozen, fine_tune
+weights_num_classes: 80
+
+size: 416
+epochs: 1000
+batch_size: 32
+learning_rate: 0.00001
+max_lr: 0.001
+num_classes: 3
+max_detections: 10
+weight_decay: 0.000001
+
+score_threshold: 0.6
+iou_threshold: 0.4
