@@ -1,0 +1,25 @@
+path:
+    train_txt_path: "/home/ubuntu/Datasets/VOCdevkit/VOC2012/detection/train-aug.txt"
+    valid_txt_path: "/home/ubuntu/Datasets/VOCdevkit/VOC2012/detection/valid.txt"
+    label_path: "/home/ubuntu/Datasets/VOCdevkit/VOC2012/detection/Labels/labels.txt"
+    save_path: "/home/ubuntu/Models/centernet"
+    model_path: null ## "/home/ubuntu/Models/centernet/unfreeze.h5"
+
+train:
+    input_shape: [512, 512]
+    backbone: "resnet50"
+    max_detection: 100
+    threshold: 0.4
+
+    freeze_train: false
+    freeze_epoch: 300
+    freeze_batch_size: 64
+
+    unfreeze_epoch: 1000
+    unfreeze_batch_size: 16
+
+    init_lr: 0.00001
+    max_lr: 0.001
+    optimizer: "adam"
+    momentum: 0.9
+    weight_decay: 0.000001
