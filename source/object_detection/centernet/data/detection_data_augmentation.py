@@ -196,9 +196,9 @@ def data_process(is_train, folder_name):
 
 
 if __name__ == "__main__":
-    ROOT_DIR = "/home/ubuntu/Datasets/VOCdevkit/VOC2012/detection"
-    FOLDER = "train"
-    STEPS = 2
+    ROOT_DIR = "/home/ubuntu/Datasets/SPC"
+    FOLDER = "full-name14"
+    STEPS = 5
     IMG_SIZE = 512
     VALID_RATIO = 0.1
     VISUAL = False
@@ -216,5 +216,5 @@ if __name__ == "__main__":
     classes = read_label_file(LABEL_DIR)
     images, annotations = get_files(IMG_DIR), get_files(ANNOT_DIR)
     
-    data_process(True, "train-aug")
-    data_process(False, "valid-aug")
+    data_process(True, "train4")
+    data_process(False, "valid4")
