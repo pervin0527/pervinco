@@ -33,17 +33,18 @@ else:
 
 
 def plot_predictions(model):
-    image = cv2.imread("./test_imgs/dog.jpg")
-    image = cv2.resize(image, config["train"]["input_shape"])
-    # image = preprocess_input(image)
-    image = np.expand_dims(image, axis=0)
-    
-    prediction = model.predict(image)[0]
-    scores = prediction[:, 4]
-    indices = np.where(scores > config["train"]["threshold"])
+    for img_path in sorted(glob("./test_imgs/*.jpg")):
+        image = cv2.imread(img_path)
+        image = cv2.resize(image, config["train"]["input_shape"])
+        # image = preprocess_input(image)
+        image = np.expand_dims(image, axis=0)
+        
+        prediction = model.predict(image)[0]
+        scores = prediction[:, 4]
+        indices = np.where(scores > config["train"]["threshold"])
 
-    if len(indices) > 0:
-        print(prediction[indices])
+        if len(indices) > 0:
+            print(prediction[indices])
 
 
 class DisplayCallback(tf.keras.callbacks.Callback):

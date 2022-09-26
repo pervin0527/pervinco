@@ -46,16 +46,16 @@ def convert_annotation(images, xmls, mode="train"):
 
 
 if __name__ == "__main__":
-    data_path = "/home/ubuntu/Datasets/VOCdevkit/VOC2012/detection"
-    label_path = "/home/ubuntu/Datasets/VOCdevkit/VOC2012/detection/Labels/labels.txt"
+    data_path = "/home/ubuntu/Datasets/SPC/full-name14"
+    label_path = "/home/ubuntu/Datasets/SPC/Labels/labels.txt"
 
     class_list = read_label_file(label_path)
     print(class_list)
 
-    train_images, train_xmls = sorted(glob(f"{data_path}/train-aug/images/*.jpg")), sorted(glob(f"{data_path}/train-aug/annotations/*.xml"))
-    valid_images, valid_xmls = sorted(glob(f"{data_path}/valid/images/*.jpg")), sorted(glob(f"{data_path}/valid/annotations/*.xml"))
+    train_images, train_xmls = sorted(glob(f"{data_path}/train4/images/*.jpg")), sorted(glob(f"{data_path}/train4/annotations/*.xml"))
+    valid_images, valid_xmls = sorted(glob(f"{data_path}/valid4/images/*.jpg")), sorted(glob(f"{data_path}/valid4/annotations/*.xml"))
     print(len(train_images), len(train_xmls))
     print(len(valid_images), len(valid_xmls))
 
-    convert_annotation(train_images, train_xmls, "train-aug")
-    convert_annotation(valid_images, valid_xmls, "valid")
+    convert_annotation(train_images, train_xmls, "train4")
+    convert_annotation(valid_images, valid_xmls, "valid4")

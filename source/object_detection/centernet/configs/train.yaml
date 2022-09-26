@@ -1,7 +1,7 @@
 path:
-    train_txt_path: "/home/ubuntu/Datasets/VOCdevkit/VOC2012/detection/train-aug.txt"
-    valid_txt_path: "/home/ubuntu/Datasets/VOCdevkit/VOC2012/detection/valid.txt"
-    label_path: "/home/ubuntu/Datasets/VOCdevkit/VOC2012/detection/Labels/labels.txt"
+    train_txt_path: "/home/ubuntu/Datasets/SPC/full-name14/train4.txt"
+    valid_txt_path: "/home/ubuntu/Datasets/SPC/full-name14/valid4.txt"
+    label_path: "/home/ubuntu/Datasets/SPC/Labels/labels.txt"
     save_path: "/home/ubuntu/Models/centernet"
     model_path: null ## "/home/ubuntu/Models/centernet/unfreeze.h5"
 
