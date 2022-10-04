@@ -58,13 +58,13 @@ def decode(hm, wh, reg, max_objects=100):
 
 def centernet(input_shape, num_classes, backbone='resnet50', max_objects=100, mode="train", num_stacks=2):
     assert backbone in ['resnet50', 'hourglass']
+    # image_input = tf.keras.Input(shape=input_shape)
+    # preprocess_input = tf.keras.layers.Lambda(lambda x : tf.cast(x, tf.float32) / 127.5 - 1)(image_input)
     image_input = tf.keras.Input(shape=input_shape)
-    # preprocess_input = tf.keras.layers.Lambda(lambda x : tf.keras.applications.resnet50.preprocess_input(x))(image_input)
-    preprocess_input = tf.keras.layers.Lambda(lambda x : tf.cast(x, tf.float32) / 127.5 - 1)(image_input)
 
     if backbone=='resnet50':
         # C5 = ResNet50(image_input)
-        resnet = tf.keras.applications.resnet_v2.ResNet50V2(include_top=False, weights="imagenet", input_tensor=preprocess_input, classes=num_classes, pooling=None, classifier_activation=None)
+        resnet = tf.keras.applications.resnet_v2.ResNet50V2(include_top=False, weights="imagenet", input_tensor=image_input, classes=num_classes, pooling=None, classifier_activation=None)
         C5 = resnet.output
         y1, y2, y3 = centernet_head(C5, num_classes)
 

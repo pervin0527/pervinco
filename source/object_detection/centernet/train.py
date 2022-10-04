@@ -71,7 +71,7 @@ if __name__ == "__main__":
     else:
         epoch = config["train"]["unfreeze_epoch"]
         batch_size = config["train"]["unfreeze_batch_size"]
-        ckpt_name = "unfreeze.h5"
+        ckpt_name = "unfreeze-test.h5"
 
     train_lines = read_txt_file(config["path"]["train_txt_path"])
     valid_lines = read_txt_file(config["path"]["valid_txt_path"])
@@ -106,15 +106,15 @@ if __name__ == "__main__":
                                             max_objects=config["train"]["max_detection"],
                                             mode="train")
 
-        if config["train"]["freeze_train"]:
-            if config["train"]["backbone"] == "resnet50":
-                freeze_layers = 171
-            elif config["train"]["backbone"] == "hourglass":
-                freeze_layers = 624
-            else:
-                raise ValueError('Unsupported backbone - `{}`, Use resnet50, hourglass.'.format(config["train"]["backbone"]))
-            for i in range(freeze_layers): base_model.layers[i].trainable = False
-            print('Freeze the first {} layers of total {} layers.'.format(freeze_layers, len(base_model.layers)))
+        # if config["train"]["freeze_train"]:
+        #     if config["train"]["backbone"] == "resnet50":
+        #         freeze_layers = 171
+        #     elif config["train"]["backbone"] == "hourglass":
+        #         freeze_layers = 624
+        #     else:
+        #         raise ValueError('Unsupported backbone - `{}`, Use resnet50, hourglass.'.format(config["train"]["backbone"]))
+        #     for i in range(freeze_layers): base_model.layers[i].trainable = False
+        #     print('Freeze the first {} layers of total {} layers.'.format(freeze_layers, len(base_model.layers)))
 
         model = get_train_model(base_model, config["train"]["input_shape"], num_classes, config["train"]["backbone"])
 

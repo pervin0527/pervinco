@@ -84,7 +84,8 @@ class DataGenerator(tf.keras.utils.Sequence):
                     batch_indices[b, i] = ct_int[1] * self.output_shape[0] + ct_int[0]
 
             # batch_images[b] = preprocess_input(image)
-            batch_images[b] = image
+            # batch_images[b] = image
+            batch_images[b] = image / 127.5 -1
 
         return [batch_images, batch_hms, batch_whs, batch_regs, batch_reg_masks, batch_indices], np.zeros((self.batch_size,))
 
