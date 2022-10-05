@@ -8,7 +8,7 @@ path:
 train:
     input_shape: [512, 512]
     backbone: "resnet50"
-    max_detection: 100
+    max_detection: 10
     threshold: 0.4
 
     freeze_train: false

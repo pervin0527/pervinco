@@ -37,14 +37,17 @@ def plot_predictions(model):
         image = cv2.imread(img_path)
         image = cv2.resize(image, config["train"]["input_shape"])
         # image = preprocess_input(image)
+        image = image / 127.5 - 1
         image = np.expand_dims(image, axis=0)
         
-        prediction = model.predict(image)[0]
-        scores = prediction[:, 4]
-        indices = np.where(scores > config["train"]["threshold"])
+        prediction = model.predict(image)
+        bboxes, classes, scores = prediction[0], prediction[1], prediction[2]
+        print(bboxes.shape, classes.shape, scores.shape)
 
-        if len(indices) > 0:
-            print(prediction[indices])
+        indices = np.where(scores > config["train"]["threshold"])
+        print(indices)
+        if indices.size > 0:
+            print(classes[0][indices], scores[0][indices])
 
 
 class DisplayCallback(tf.keras.callbacks.Callback):
@@ -71,7 +74,8 @@ if __name__ == "__main__":
     else:
         epoch = config["train"]["unfreeze_epoch"]
         batch_size = config["train"]["unfreeze_batch_size"]
-        ckpt_name = "unfreeze-test.h5"
+        # ckpt_name = "unfreeze-test.h5"
+        ckpt_name = "unfreeze_split_output.h5"
 
     train_lines = read_txt_file(config["path"]["train_txt_path"])
     valid_lines = read_txt_file(config["path"]["valid_txt_path"])

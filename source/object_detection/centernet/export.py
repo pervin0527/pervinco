@@ -57,7 +57,7 @@ def representative_data_gen():
 
 if __name__ == "__main__":
     config_path = "./configs/train.yaml"
-    weight_path = "/home/ubuntu/Models/centernet/unfreeze-test.h5"
+    weight_path = "/home/ubuntu/Models/centernet/unfreeze_split_output.h5"
 
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)

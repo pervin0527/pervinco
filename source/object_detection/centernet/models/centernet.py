@@ -48,12 +48,14 @@ def decode(hm, wh, reg, max_objects=100):
     topk_x1, topk_y1 = topk_cx - topk_wh[..., 0:1] / 2, topk_cy - topk_wh[..., 1:2] / 2
     topk_x2, topk_y2 = topk_cx + topk_wh[..., 0:1] / 2, topk_cy + topk_wh[..., 1:2] / 2
     
-    scores = tf.expand_dims(scores, axis=-1)
-    class_ids = tf.cast(tf.expand_dims(class_ids, axis=-1), tf.float32)
+    # scores = tf.expand_dims(scores, axis=-1)
+    # class_ids = tf.cast(tf.expand_dims(class_ids, axis=-1), tf.float32)
     
-    detections = tf.concat([topk_x1, topk_y1, topk_x2, topk_y2, scores, class_ids], axis=-1)
+    # detections = tf.concat([topk_x1, topk_y1, topk_x2, topk_y2, scores, class_ids], axis=-1)
+    # return detections
 
-    return detections
+    boundig_boxes = tf.concat([topk_x1, topk_y1, topk_x2, topk_y2], axis=-1)
+    return boundig_boxes, class_ids, scores
 
 
 def centernet(input_shape, num_classes, backbone='resnet50', max_objects=100, mode="train", num_stacks=2):
@@ -71,14 +73,24 @@ def centernet(input_shape, num_classes, backbone='resnet50', max_objects=100, mo
         if mode=="train":
             model = tf.keras.Model(inputs=image_input, outputs=[y1, y2, y3])
 
-            detections = tf.keras.layers.Lambda(lambda x: decode(*x, max_objects=max_objects))([y1, y2, y3])
-            prediction_model = tf.keras.Model(inputs=image_input, outputs=detections)
+            # detections = tf.keras.layers.Lambda(lambda x: decode(*x, max_objects=max_objects))([y1, y2, y3])
+            # prediction_model = tf.keras.Model(inputs=image_input, outputs=detections)
+            # return model, prediction_model
+
+            bboxes, classes, scores = tf.keras.layers.Lambda(lambda x: decode(*x, max_objects=max_objects))([y1, y2, y3])
+            prediction_model = tf.keras.Model(inputs=image_input, outputs=[bboxes, classes, scores])
+
             return model, prediction_model
 
         elif mode=="predict":
-            detections = tf.keras.layers.Lambda(lambda x: decode(*x, max_objects=max_objects))([y1, y2, y3])
-            prediction_model = tf.keras.Model(inputs=image_input, outputs=detections)
-            return prediction_model
+            # detections = tf.keras.layers.Lambda(lambda x: decode(*x, max_objects=max_objects))([y1, y2, y3])
+            # prediction_model = tf.keras.Model(inputs=image_input, outputs=detections)
+            # return prediction_model
+
+            bboxes, classes, scores = tf.keras.layers.Lambda(lambda x: decode(*x, max_objects=max_objects))([y1, y2, y3])
+            prediction_model = tf.keras.Model(inputs=image_input, outputs=[bboxes, classes, scores])
+
+            return model, prediction_model
 
         elif mode=="heatmap":
             prediction_model = tf.keras.Model(inputs=image_input, outputs=y1)
