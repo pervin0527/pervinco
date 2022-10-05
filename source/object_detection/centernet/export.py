@@ -74,9 +74,11 @@ if __name__ == "__main__":
     converter = tf.lite.TFLiteConverter.from_saved_model("/home/ubuntu/Models/centernet/saved_model")
     print("Model LOADED")
 
-    converter.experimental_new_quantizer = True
-    converter.representative_dataset = representative_data_gen
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
+    converter.experimental_new_converter = True
+    converter.experimental_new_quantizer = True
+    converter.allow_custom_ops = True
+    converter.representative_dataset = representative_data_gen
     converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8, tf.lite.OpsSet.SELECT_TF_OPS]
     converter.inference_input_type = tf.uint8
     converter.inference_output_type = tf.float32

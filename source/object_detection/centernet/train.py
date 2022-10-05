@@ -40,12 +40,10 @@ def plot_predictions(model):
         image = image / 127.5 - 1
         image = np.expand_dims(image, axis=0)
         
-        prediction = model.predict(image)
+        prediction = model.predict(image, verbose=0)
         bboxes, classes, scores = prediction[0], prediction[1], prediction[2]
-        print(bboxes.shape, classes.shape, scores.shape)
 
-        indices = np.where(scores > config["train"]["threshold"])
-        print(indices)
+        indices = np.where(scores[0] > config["train"]["threshold"])[0]
         if indices.size > 0:
             print(classes[0][indices], scores[0][indices])
 
