@@ -1,13 +1,12 @@
 import os
-import yaml
 import tensorflow as tf
-import dataset as dataset
 import tensorflow_addons as tfa
 
-from glob import glob
-from utils import freeze_all
-from IPython.display import clear_output
-from models import YoloV3, YoloV3Tiny, YoloLoss, yolo_anchors, yolo_anchor_masks,yolo_tiny_anchors, yolo_tiny_anchor_masks
+from functools import partial
+from model import yolo_base, get_train_model
+from loss import get_yolo_loss
+from data_loader import DataGenerator
+from data_utils import read_label_file, read_txt_file
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -29,113 +28,54 @@ else:
         print(e)
 
 
-def setup_model():
-    if config["tiny"]:
-        model = YoloV3Tiny(config["size"], training=True, classes=config["num_classes"], max_detections=config["max_detections"])
-        anchors = yolo_tiny_anchors
-        anchor_masks = yolo_tiny_anchor_masks
-    else:
-        model = YoloV3(config["size"], training=True, classes=config["num_classes"], max_detections=config["max_detections"])
-        anchors = yolo_anchors
-        anchor_masks = yolo_anchor_masks
+if __name__ == "__main__":
+    phi = "s"
+    epoch = 100
+    batch_size = 16
+    max_detections = 500
+    weight_decay = 5e-4
+    input_shape = [640, 640]
+    init_lr = 0.00001
+    max_lr = 0.001
 
-    # Configure the model for transfer learning
-    if config["transfer"] == 'none':
-        pass  # Nothing to do
-    elif config["transfer"] in ['darknet', 'no_output']:
-        # Darknet transfer is a special case that works
-        # with incompatible number of classes
-        # reset top layers
-        if config["tiny"]:
-            model_pretrained = YoloV3Tiny(config["size"], training=True, classes=config["weights_num_classes"] or config["num_classes"])
-        else:
-            model_pretrained = YoloV3(config["size"], training=True, classes=config["weights_num_classes"] or config["num_classes"])
-        model_pretrained.load_weights(config["weights"])
+    train_txt_path = "/data/Datasets/VOCdevkit/VOC2012/detection/train.txt"
+    valid_txt_path = "/data/Datasets/VOCdevkit/VOC2012/detection/valid.txt"
+    classes_path = "/data/Datasets/VOCdevkit/VOC2012/detection/Labels/labels.txt"
+    save_name = "/data/Models/YoloX/weights.ckpt"
 
-        if config["transfer"] == 'darknet':
-            model.get_layer('yolo_darknet').set_weights(model_pretrained.get_layer('yolo_darknet').get_weights())
-            freeze_all(model.get_layer('yolo_darknet'))
-        elif config["transfer"] == 'no_output':
-            for l in model.layers:
-                if not l.name.startswith('yolo_output'):
-                    l.set_weights(model_pretrained.get_layer(l.name).get_weights())
-                    freeze_all(l)
-    else:
-        # All other transfer require matching classes
-        model.load_weights(config["weights"])
-        if config["transfer"] == 'fine_tune':
-            # freeze darknet and fine tune other layers
-            darknet = model.get_layer('yolo_darknet')
-            freeze_all(darknet)
-        elif config["transfer"] == 'frozen':
-            # freeze everything
-            freeze_all(model)
+    class_names = read_label_file(classes_path)
+    num_classes = len(class_names)
 
-    # optimizer = tf.keras.optimizers.Adam(learning_rate=config["learning_rate"])
-    optimizer = tfa.optimizers.AdamW(learning_rate=config["learning_rate"], weight_decay=config["weight_decay"])
-    loss = [YoloLoss(anchors[mask], classes=config["num_classes"])
-            for mask in anchor_masks]
+    train_files = read_txt_file(train_txt_path)
+    valid_files = read_txt_file(valid_txt_path)
+    num_train_files = len(train_files)
+    num_valid_files = len(valid_files)
 
-    model.compile(optimizer=optimizer, loss=loss)
+    train_dataloader = DataGenerator(train_files, input_shape, batch_size, num_classes, max_detections)
+    valid_dataloader = DataGenerator(valid_files, input_shape, batch_size, num_classes, max_detections)
 
-    return model, optimizer, loss, anchors, anchor_masks
-
-
-def plot_predictions(model):
-    images = sorted(glob("./test_imgs/*.jpg"))
-    for file in images:
-        image = tf.image.decode_image(open(file, "rb").read(), channels=3)
-        image = tf.image.resize(image, (config["size"], config["size"]))
-        input_tensor = tf.expand_dims(image, axis=0)
-        input_tensor = input_tensor / 255.
-
-        predictions = model(input_tensor)
-        print(predictions)
-
-
-class DisplayCallback(tf.keras.callbacks.Callback):
-    def on_epoch_end(self, epoch, logs=None):
-        clear_output(wait=True)
-
-        if not config["tiny"]:
-            pred_model = YoloV3(classes=config["num_classes"])
-            pred_model.load_weights("/data/Models/custom_yolo/train.tf", by_name=True, skip_mismatch=True)
-        
-        plot_predictions(model=pred_model)
-
-
-if __name__ == '__main__':
-    with open("./config.yaml", "r") as f:
-        config = yaml.safe_load(f)
-
-    print('Number of devices: {}'.format(strategy.num_replicas_in_sync))
-    BATCH_SIZE = config["batch_size"] * strategy.num_replicas_in_sync
-
-    with strategy.scope():
-        model, optimizer, loss, anchors, anchor_masks = setup_model()
-
-    train_dataset = dataset.load_tfrecord_dataset(config["train_dataset"], config["classes"], config["size"], config["max_detections"])
-    train_dataset = train_dataset.shuffle(buffer_size=512)
-    train_dataset = train_dataset.batch(BATCH_SIZE)
-    train_dataset = train_dataset.map(lambda x, y: (dataset.transform_images(x, config["size"]), dataset.transform_targets(y, anchors, anchor_masks, config["size"])))
-    train_dataset = train_dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-
-    val_dataset = dataset.load_tfrecord_dataset(config["valid_dataset"], config["classes"], config["size"])
-    val_dataset = val_dataset.batch(BATCH_SIZE)
-    val_dataset = val_dataset.map(lambda x, y: (dataset.transform_images(x, config["size"]), dataset.transform_targets(y, anchors, anchor_masks, config["size"])))
-
-    clr = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=config["learning_rate"],
-                                              maximal_learning_rate=config["max_lr"],
+    optimizer = tf.keras.optimizers.Adam(learning_rate=init_lr)    
+    clr = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=init_lr,
+                                              maximal_learning_rate=max_lr,
                                               scale_fn=lambda x : 1.0,
-                                              step_size=config["epochs"] / 2)
-
+                                              step_size=epoch / 2)
     callbacks = [
-        tf.keras.callbacks.LearningRateScheduler(clr),
-        tf.keras.callbacks.ModelCheckpoint('/data/Models/custom_yolo/yolov3_train_{epoch}.tf', verbose=1, save_weights_only=True, save_best_only=True),
         # DisplayCallback(),
+        tf.keras.callbacks.LearningRateScheduler(clr),
+        tf.keras.callbacks.ModelCheckpoint(save_name, save_best_only=True, save_weights_only=True, monitor="val_loss", verbose=1)
     ]
 
-    history = model.fit(train_dataset,
-                        epochs=config["epochs"],
-                        callbacks=callbacks,
-                        validation_data=val_dataset)
+    with strategy.scope():
+        model_body  = yolo_base([None, None, 3], num_classes = num_classes, phi = phi, weight_decay=weight_decay)
+        loss = get_yolo_loss(input_shape, len(model_body.output), num_classes)
+
+        model = get_train_model(model_body, input_shape, num_classes)
+        model.compile(optimizer=optimizer, loss={"yolo_loss" : lambda y_true, y_pred : y_pred})
+        model.summary()
+
+    model.fit(train_dataloader,
+              steps_per_epoch = num_train_files // batch_size,
+              validation_data = valid_dataloader,
+              validation_steps = num_valid_files // batch_size,
+              epochs = epoch,
+              callbacks = callbacks)
