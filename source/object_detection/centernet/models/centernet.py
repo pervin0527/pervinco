@@ -57,8 +57,9 @@ def decode(hm, wh, reg, max_objects=100):
     boundig_boxes = tf.concat([topk_x1, topk_y1, topk_x2, topk_y2], axis=-1)
     class_ids = tf.cast(class_ids, tf.float32)
     scores = tf.cast(scores, tf.float32)
+    valid_detection = tf.expand_dims((max_objects), axis=0)
     
-    return boundig_boxes, class_ids, scores
+    return boundig_boxes, class_ids, scores, valid_detection
 
 
 def centernet(input_shape, num_classes, backbone='resnet50', max_objects=100, mode="train", num_stacks=2):
@@ -67,12 +68,13 @@ def centernet(input_shape, num_classes, backbone='resnet50', max_objects=100, mo
     image_input = tf.keras.Input(shape=input_shape)
 
     if backbone=='resnet50':
-        resnet = tf.keras.applications.resnet_v2.ResNet50V2(include_top=False,
-                                                            weights="imagenet",
-                                                            input_tensor=image_input, 
-                                                            classes=num_classes, 
-                                                            pooling=None, 
-                                                            classifier_activation=None)
+        preprocess_input = tf.keras.layers.Lambda(lambda x : tf.keras.applications.resnet50.preprocess_input(x))(image_input)
+        resnet = tf.keras.applications.resnet50.ResNet50(include_top=False,
+                                                         weights="imagenet",
+                                                         input_tensor=preprocess_input, 
+                                                         classes=num_classes, 
+                                                         pooling=None, 
+                                                         classifier_activation=None)
         C5 = resnet.output
         y1, y2, y3 = centernet_head(C5, num_classes)
 
@@ -83,8 +85,8 @@ def centernet(input_shape, num_classes, backbone='resnet50', max_objects=100, mo
             # prediction_model = tf.keras.Model(inputs=image_input, outputs=detections)
             # return model, prediction_model
 
-            bboxes, classes, scores = tf.keras.layers.Lambda(lambda x: decode(*x, max_objects=max_objects))([y1, y2, y3])
-            prediction_model = tf.keras.Model(inputs=image_input, outputs=[bboxes, classes, scores])
+            bboxes, classes, scores, valid_detection = tf.keras.layers.Lambda(lambda x: decode(*x, max_objects=max_objects))([y1, y2, y3])
+            prediction_model = tf.keras.Model(inputs=image_input, outputs=[bboxes, classes, scores, valid_detection])
 
             return model, prediction_model
 
@@ -93,16 +95,17 @@ def centernet(input_shape, num_classes, backbone='resnet50', max_objects=100, mo
             # prediction_model = tf.keras.Model(inputs=image_input, outputs=detections)
             # return prediction_model
 
-            bboxes, classes, scores = tf.keras.layers.Lambda(lambda x: decode(*x, max_objects=max_objects))([y1, y2, y3])
-            prediction_model = tf.keras.Model(inputs=image_input, outputs=[bboxes, classes, scores])
+            bboxes, classes, scores, valid_detection = tf.keras.layers.Lambda(lambda x: decode(*x, max_objects=max_objects))([y1, y2, y3])
+            prediction_model = tf.keras.Model(inputs=image_input, outputs=[bboxes, classes, scores, valid_detection])
 
             return prediction_model
 
 
     elif backbone == "mobilenet":
+        preprocess_input = tf.keras.layers.Lambda(lambda x : tf.keras.applications.mobilenet_v2.preprocess_input(x))(image_input)
         mobilenet = tf.keras.applications.mobilenet_v2.MobileNetV2(include_top=False,
                                                                    weights="imagenet",
-                                                                   input_tensor=image_input,
+                                                                   input_tensor=preprocess_input,
                                                                    classes=num_classes,
                                                                    pooling=None,
                                                                    classifier_activation=None)
@@ -112,14 +115,14 @@ def centernet(input_shape, num_classes, backbone='resnet50', max_objects=100, mo
         if mode=="train":
             model = tf.keras.Model(inputs=image_input, outputs=[y1, y2, y3])
 
-            bboxes, classes, scores = tf.keras.layers.Lambda(lambda x: decode(*x, max_objects=max_objects))([y1, y2, y3])
-            prediction_model = tf.keras.Model(inputs=image_input, outputs=[bboxes, classes, scores])
+            bboxes, classes, scores, valid_detection = tf.keras.layers.Lambda(lambda x: decode(*x, max_objects=max_objects))([y1, y2, y3])
+            prediction_model = tf.keras.Model(inputs=image_input, outputs=[bboxes, classes, scores, valid_detection])
 
             return model, prediction_model
 
         elif mode=="predict":
-            bboxes, classes, scores = tf.keras.layers.Lambda(lambda x: decode(*x, max_objects=max_objects))([y1, y2, y3])
-            prediction_model = tf.keras.Model(inputs=image_input, outputs=[bboxes, classes, scores])
+            bboxes, classes, scores, valid_detection = tf.keras.layers.Lambda(lambda x: decode(*x, max_objects=max_objects))([y1, y2, y3])
+            prediction_model = tf.keras.Model(inputs=image_input, outputs=[bboxes, classes, scores, valid_detection])
 
             return prediction_model
 

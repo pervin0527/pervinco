@@ -31,7 +31,7 @@ def build_model():
                       backbone=config["train"]["backbone"],
                       max_objects=config["train"]["max_detection"],
                       mode="predict")
-    model.load_weights(config["save_path"]["ckpt_name"])
+    model.load_weights(config["path"]["save_path"] + "/" + config["path"]["ckpt_name"])
     model.summary()
 
     return model
@@ -100,3 +100,22 @@ if __name__ == "__main__":
 
     detail_viewer(input_details)
     detail_viewer(output_details)
+
+    image = tf.image.decode_image(open("./test_imgs/dog.jpg", "rb").read(), channels=3)
+    image = tf.image.resize(image, (config["train"]["input_shape"]))
+    input_tensor = image / 127.5 - 1
+    input_tensor = tf.expand_dims(input_tensor, 0)
+
+    interpreter.set_tensor(input_details[0]["index"], tf.cast(input_tensor, tf.uint8))
+    interpreter.invoke()
+
+    output0 = interpreter.get_tensor(output_details[0]["index"]) # classes
+    output1 = interpreter.get_tensor(output_details[1]["index"]) # valid_detection
+    output2 = interpreter.get_tensor(output_details[2]["index"]) # bboxes
+    output3 = interpreter.get_tensor(output_details[3]["index"]) # scores
+
+    print(output0.shape, output1.shape, output2.shape, output3.shape)
+    print(output0[:3])
+    print(output1[:3])
+    print(output2[:3])
+    print(output3[:3])

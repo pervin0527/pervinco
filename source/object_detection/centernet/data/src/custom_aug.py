@@ -41,10 +41,10 @@ def crop_image(image, boxes, labels, xmin, ymin, xmax, ymax):
                     A.HueSaturationValue(hue_shift_limit=0, sat_shift_limit=(0, 0), val_shift_limit=(0, 100), p=0.5),
                 ], p=1),
 
-                A.OneOf([
-                    A.Downscale(scale_min=0.9, scale_max=0.95, p=0.3),
-                    A.MotionBlur(blur_limit=(3, 4), p=0.3)
-                ], p=0.3)
+                # A.OneOf([
+                #     A.Downscale(scale_min=0.9, scale_max=0.95, p=0.3),
+                #     A.MotionBlur(blur_limit=(3, 4), p=0.3)
+                # ], p=0.3)
             ], p=1),
         
         ], bbox_params=A.BboxParams(format='pascal_voc', label_fields=['labels']))

@@ -74,7 +74,7 @@ def data_process(is_train, folder_name):
 
                             A.OneOf([
                                 A.RandomRain(blur_value=3, brightness_coefficient=0.8, p=0.3),
-                                A.Downscale(scale_min=0.9, scale_max=0.95, p=0.3),
+                                # A.Downscale(scale_min=0.9, scale_max=0.95, p=0.3),
                                 A.GridDropout(unit_size_min=4, unit_size_max=8, random_offset=True, p=0.3),
                             ], p=1),
                         ], p=1),
@@ -136,7 +136,7 @@ def data_process(is_train, folder_name):
                             A.OneOf([
                                 # A.Equalize(mode='cv', by_channels=True, p=0.3),
                                 A.RandomRain(blur_value=4, brightness_coefficient=0.3, p=0.4),
-                                A.Downscale(scale_min=0.85, scale_max=0.95, p=0.3),
+                                # A.Downscale(scale_min=0.85, scale_max=0.95, p=0.3),
                                 A.MotionBlur(blur_limit=(3, 5), p=0.3)
                             ], p=0.3)
                         ], p=1),
@@ -196,25 +196,24 @@ def data_process(is_train, folder_name):
 
 
 if __name__ == "__main__":
-    ROOT_DIR = "/data/Datasets/SPC"
-    FOLDER = "full-name14"
-    STEPS = 5
+    ROOT_DIR = "/home/ubuntu/Datasets/VOCdevkit/VOC2012"
+    STEPS = 10
     IMG_SIZE = 512
     VALID_RATIO = 0.1
     VISUAL = False
     INCLUDE_BG = False
     BG_RATIO = 0.2
-    # BG_DIR = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012/TEST"
-    BG_DIR = "/data/Datasets/SPC/download"
-    MX_BG = "/data/Datasets/Mixup_background"
+    # BG_DIR = "/home/ubuntu/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012/TEST"
+    BG_DIR = "/home/ubuntu/Datasets/SPC/download"
+    MX_BG = "/home/ubuntu/Datasets/Mixup_background"
     
-    IMG_DIR = f"{ROOT_DIR}/{FOLDER}/images"
-    ANNOT_DIR = f"{ROOT_DIR}/{FOLDER}/annotations"
+    IMG_DIR = f"{ROOT_DIR}/JPEGImages"
+    ANNOT_DIR = f"{ROOT_DIR}/Annotations"
     LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
-    SAVE_DIR = f"{ROOT_DIR}/{FOLDER}"
+    SAVE_DIR = f"{ROOT_DIR}/Object_detection"
 
     classes = read_label_file(LABEL_DIR)
     images, annotations = get_files(IMG_DIR), get_files(ANNOT_DIR)
     
-    data_process(True, "train-mobilenet-test")
-    data_process(False, "valid-mobilenet-test")
+    data_process(True, "train2")
+    data_process(False, "valid2")

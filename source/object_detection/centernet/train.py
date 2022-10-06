@@ -36,7 +36,10 @@ def plot_predictions(model):
     for img_path in sorted(glob("./test_imgs/*.jpg")):
         image = cv2.imread(img_path)
         image = cv2.resize(image, config["train"]["input_shape"])
-        image = image / 127.5 - 1
+        if config["train"]["backbone"] == "resnet50":
+            image = tf.keras.applications.resnet50.preprocess_input(image)
+        elif config["train"]["backbone"] == "mobilenet":
+            image = tf.keras.applications.mobilenet_v2.preprocess_input(image)
         image = np.expand_dims(image, axis=0)
         
         prediction = model.predict(image, verbose=0)

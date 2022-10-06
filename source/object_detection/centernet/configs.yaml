@@ -1,21 +1,21 @@
 path:
-    train_txt_path: "/home/ubuntu/Datasets/VOCdevkit/VOC2012/detection-test/train.txt"
-    valid_txt_path: "/home/ubuntu/Datasets/VOCdevkit/VOC2012/detection-test/valid.txt"
-    label_path: "/home/ubuntu/Datasets/VOCdevkit/VOC2012/detection-test/Labels/labels.txt"
+    train_txt_path: "/home/ubuntu/Datasets/VOCdevkit/VOC2012/Object_detection/train.txt"
+    valid_txt_path: "/home/ubuntu/Datasets/VOCdevkit/VOC2012/Object_detection/valid.txt"
+    label_path: "/home/ubuntu/Datasets/VOCdevkit/VOC2012/Object_detection/Labels/labels.txt"
     save_path: "/home/ubuntu/Models/centernet"
-    ckpt_name: "CenterNet_MobileNetV2.h5"
+    ckpt_name: "CenterNet_ResNet50.h5"
     model_path: null ## "/home/ubuntu/Models/centernet/unfreeze.h5"
     representative_data_path: "/home/ubuntu/Datasets/VOCdevkit/VOC2012/JPEGImages"
 
 train:
     input_shape: [512, 512]
-    backbone: "mobilenet"
+    backbone: "resnet50"
     max_detection: 100
     threshold: 0.4
     epoch: 1000
     batch_size: 16
 
-    init_lr: 0.0001
+    init_lr: 0.00001
     max_lr: 0.001
     optimizer: "adam"
     momentum: 0.9
