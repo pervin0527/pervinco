@@ -46,16 +46,16 @@ def convert_annotation(images, xmls, mode="train"):
 
 
 if __name__ == "__main__":
-    data_path = "/home/ubuntu/Datasets/SPC/full-name14"
-    label_path = "/home/ubuntu/Datasets/SPC/Labels/labels.txt"
+    data_path = "/data/Datasets/SPC/full-name14"
+    label_path = "/data/Datasets/SPC/Labels/labels.txt"
 
     class_list = read_label_file(label_path)
     print(class_list)
 
-    train_images, train_xmls = sorted(glob(f"{data_path}/train4/images/*.jpg")), sorted(glob(f"{data_path}/train4/annotations/*.xml"))
-    valid_images, valid_xmls = sorted(glob(f"{data_path}/valid4/images/*.jpg")), sorted(glob(f"{data_path}/valid4/annotations/*.xml"))
+    train_images, train_xmls = sorted(glob(f"{data_path}/train-mobilenet-test/images/*.jpg")), sorted(glob(f"{data_path}/train-mobilenet-test/annotations/*.xml"))
+    valid_images, valid_xmls = sorted(glob(f"{data_path}/valid-mobilenet-test/images/*.jpg")), sorted(glob(f"{data_path}/valid-mobilenet-test/annotations/*.xml"))
     print(len(train_images), len(train_xmls))
     print(len(valid_images), len(valid_xmls))
 
-    convert_annotation(train_images, train_xmls, "train4")
-    convert_annotation(valid_images, valid_xmls, "valid4")
+    convert_annotation(train_images, train_xmls, "train-mobilenet-test")
+    convert_annotation(valid_images, valid_xmls, "valid-mobilenet-test")

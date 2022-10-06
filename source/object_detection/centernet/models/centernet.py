@@ -60,14 +60,17 @@ def decode(hm, wh, reg, max_objects=100):
 
 
 def centernet(input_shape, num_classes, backbone='resnet50', max_objects=100, mode="train", num_stacks=2):
-    assert backbone in ['resnet50', 'hourglass']
-    # image_input = tf.keras.Input(shape=input_shape)
-    # preprocess_input = tf.keras.layers.Lambda(lambda x : tf.cast(x, tf.float32) / 127.5 - 1)(image_input)
+    assert backbone in ['resnet50', 'mobilenet']
+
     image_input = tf.keras.Input(shape=input_shape)
 
     if backbone=='resnet50':
-        # C5 = ResNet50(image_input)
-        resnet = tf.keras.applications.resnet_v2.ResNet50V2(include_top=False, weights="imagenet", input_tensor=image_input, classes=num_classes, pooling=None, classifier_activation=None)
+        resnet = tf.keras.applications.resnet_v2.ResNet50V2(include_top=False,
+                                                            weights="imagenet",
+                                                            input_tensor=image_input, 
+                                                            classes=num_classes, 
+                                                            pooling=None, 
+                                                            classifier_activation=None)
         C5 = resnet.output
         y1, y2, y3 = centernet_head(C5, num_classes)
 
@@ -93,31 +96,29 @@ def centernet(input_shape, num_classes, backbone='resnet50', max_objects=100, mo
 
             return prediction_model
 
-        elif mode=="heatmap":
-            prediction_model = tf.keras.Model(inputs=image_input, outputs=y1)
-            return prediction_model
 
-    else:
-        outs = HourglassNetwork(image_input,num_stacks,num_classes)
+    elif backbone == "mobilenet":
+        mobilenet = tf.keras.applications.mobilenet_v2.MobileNetV2(include_top=False,
+                                                                   weights="imagenet",
+                                                                   input_tensor=image_input,
+                                                                   classes=num_classes,
+                                                                   pooling=None,
+                                                                   classifier_activation=None)
+        C5 = mobilenet.output
+        y1, y2, y3 = centernet_head(C5, num_classes)
+
         if mode=="train":
-            temp_outs = []
-            for out in outs:
-                temp_outs += out
-            model = tf.keras.Model(inputs=image_input, outputs=temp_outs)
-            y1, y2, y3 = outs[-1]
-            detections = tf.keras.layers.Lambda(lambda x: decode(*x, max_objects=max_objects))([y1, y2, y3])
-            prediction_model = tf.keras.Model(inputs=image_input, outputs=[detections])
-            return model, prediction_model
-        
-        elif mode=="predict":
-            y1, y2, y3 = outs[-1]
-            detections = tf.keras.layers.Lambda(lambda x: decode(*x, max_objects=max_objects))([y1, y2, y3])
-            prediction_model = tf.keras.Model(inputs=image_input, outputs=[detections])
-            return prediction_model
+            model = tf.keras.Model(inputs=image_input, outputs=[y1, y2, y3])
 
-        elif mode=="heatmap":
-            y1, y2, y3 = outs[-1]
-            prediction_model = tf.keras.Model(inputs=image_input, outputs=y1)
+            bboxes, classes, scores = tf.keras.layers.Lambda(lambda x: decode(*x, max_objects=max_objects))([y1, y2, y3])
+            prediction_model = tf.keras.Model(inputs=image_input, outputs=[bboxes, classes, scores])
+
+            return model, prediction_model
+
+        elif mode=="predict":
+            bboxes, classes, scores = tf.keras.layers.Lambda(lambda x: decode(*x, max_objects=max_objects))([y1, y2, y3])
+            prediction_model = tf.keras.Model(inputs=image_input, outputs=[bboxes, classes, scores])
+
             return prediction_model
 
 

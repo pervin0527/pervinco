@@ -1,14 +1,14 @@
 path:
-    train_txt_path: "/home/ubuntu/Datasets/SPC/full-name14/train4.txt"
-    valid_txt_path: "/home/ubuntu/Datasets/SPC/full-name14/valid4.txt"
-    label_path: "/home/ubuntu/Datasets/SPC/Labels/labels.txt"
-    save_path: "/home/ubuntu/Models/centernet"
-    model_path: null ## "/home/ubuntu/Models/centernet/unfreeze.h5"
+    train_txt_path: "/data/Datasets/SPC/full-name14/train-mobilenet-test.txt"
+    valid_txt_path: "/data/Datasets/SPC/full-name14/valid-mobilenet-test.txt"
+    label_path: "/data/Datasets/SPC/Labels/labels.txt"
+    save_path: "/data/Models/centernet"
+    model_path: null ## "/data/Models/centernet/unfreeze.h5"
 
 train:
     input_shape: [512, 512]
-    backbone: "resnet50"
-    max_detection: 100
+    backbone: "mobilenet"
+    max_detection: 10
     threshold: 0.4
 
     freeze_train: false
