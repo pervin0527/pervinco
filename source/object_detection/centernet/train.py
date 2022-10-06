@@ -55,8 +55,7 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 
 if __name__ == "__main__":
-    config_path = "./configs/train.yaml"
-    with open(config_path, "r") as f:
+    with open("configs.yaml", "r") as f:
         config = yaml.safe_load(f)
 
     class_names = read_label_file(config["path"]["label_path"])
