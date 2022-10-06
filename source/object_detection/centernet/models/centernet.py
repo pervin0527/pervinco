@@ -55,6 +55,8 @@ def decode(hm, wh, reg, max_objects=100):
     # return detections
 
     boundig_boxes = tf.concat([topk_x1, topk_y1, topk_x2, topk_y2], axis=-1)
+    class_ids = tf.cast(class_ids, tf.float32)
+    scores = tf.cast(scores, tf.float32)
     
     return boundig_boxes, tf.cast(class_ids, tf.float32), tf.cast(scores, tf.float32)
 
