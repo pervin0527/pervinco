@@ -45,7 +45,7 @@ def plot_predictions(model):
 
         indices = np.where(scores[0] > config["train"]["threshold"])[0]
         if indices.size > 0:
-            print(classes[0][indices], scores[0][indices])
+            print(class_names[int(classes[0][indices][0])], scores[0][indices][0])
 
 
 class DisplayCallback(tf.keras.callbacks.Callback):
@@ -107,16 +107,6 @@ if __name__ == "__main__":
                                             backbone=config["train"]["backbone"],
                                             max_objects=config["train"]["max_detection"],
                                             mode="train")
-
-        # if config["train"]["freeze_train"]:
-        #     if config["train"]["backbone"] == "resnet50":
-        #         freeze_layers = 171
-        #     elif config["train"]["backbone"] == "hourglass":
-        #         freeze_layers = 624
-        #     else:
-        #         raise ValueError('Unsupported backbone - `{}`, Use resnet50, hourglass.'.format(config["train"]["backbone"]))
-        #     for i in range(freeze_layers): base_model.layers[i].trainable = False
-        #     print('Freeze the first {} layers of total {} layers.'.format(freeze_layers, len(base_model.layers)))
 
         model = get_train_model(base_model, config["train"]["input_shape"], num_classes, config["train"]["backbone"])
 

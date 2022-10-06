@@ -49,7 +49,7 @@ def preprocess_image(images):
 def representative_data_gen():
     images = sorted(glob("/home/ubuntu/Datasets/COCO2017/images/*"))
     idx = 0
-    for input_value in tf.data.Dataset.from_tensor_slices(images).map(preprocess_image).batch(1).take(100):
+    for input_value in tf.data.Dataset.from_tensor_slices(images).map(preprocess_image).batch(1).take(2000):
         idx += 1
         
         yield [input_value]

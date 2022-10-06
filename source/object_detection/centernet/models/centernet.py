@@ -55,7 +55,8 @@ def decode(hm, wh, reg, max_objects=100):
     # return detections
 
     boundig_boxes = tf.concat([topk_x1, topk_y1, topk_x2, topk_y2], axis=-1)
-    return boundig_boxes, class_ids, scores
+    
+    return boundig_boxes, tf.cast(class_ids, tf.float32), tf.cast(scores, tf.float32)
 
 
 def centernet(input_shape, num_classes, backbone='resnet50', max_objects=100, mode="train", num_stacks=2):
@@ -90,7 +91,7 @@ def centernet(input_shape, num_classes, backbone='resnet50', max_objects=100, mo
             bboxes, classes, scores = tf.keras.layers.Lambda(lambda x: decode(*x, max_objects=max_objects))([y1, y2, y3])
             prediction_model = tf.keras.Model(inputs=image_input, outputs=[bboxes, classes, scores])
 
-            return model, prediction_model
+            return prediction_model
 
         elif mode=="heatmap":
             prediction_model = tf.keras.Model(inputs=image_input, outputs=y1)
