@@ -3,29 +3,20 @@ path:
     valid_txt_path: "/home/ubuntu/Datasets/VOCdevkit/VOC2012/detection-test/valid.txt"
     label_path: "/home/ubuntu/Datasets/VOCdevkit/VOC2012/detection-test/Labels/labels.txt"
     save_path: "/home/ubuntu/Models/centernet"
+    ckpt_name: "CenterNet_MobileNetV2.h5"
     model_path: null ## "/home/ubuntu/Models/centernet/unfreeze.h5"
+    representative_data_path: "/home/ubuntu/Datasets/VOCdevkit/VOC2012/JPEGImages"
 
 train:
     input_shape: [512, 512]
     backbone: "mobilenet"
     max_detection: 100
     threshold: 0.4
-
-    freeze_train: false
-    freeze_epoch: 300
-    freeze_batch_size: 64
-
-    unfreeze_epoch: 1000
-    unfreeze_batch_size: 16
+    epoch: 1000
+    batch_size: 16
 
     init_lr: 0.0001
     max_lr: 0.001
     optimizer: "adam"
     momentum: 0.9
     weight_decay: 0.000001
-
-export:
-    ckpt_path: "/home/ubuntu/Models/centernet/unfreeze_MBV2.h5"
-    representative_data_path: "/home/ubuntu/Datasets/VOCdevkit/VOC2012/JPEGImages"
-    saved_model_path: "/data/Models/centernet/saved_model"
-    tflite_file_name: "CenterNet.tflite"

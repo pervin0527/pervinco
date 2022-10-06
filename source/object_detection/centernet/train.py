@@ -9,7 +9,7 @@ from glob import glob
 from IPython.display import clear_output
 from data.dataloader import DataGenerator
 from models.centernet import centernet, get_train_model
-from data.data_utils import read_label_file, read_txt_file, preprocess_input
+from data.data_utils import read_label_file, read_txt_file
 
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -36,7 +36,6 @@ def plot_predictions(model):
     for img_path in sorted(glob("./test_imgs/*.jpg")):
         image = cv2.imread(img_path)
         image = cv2.resize(image, config["train"]["input_shape"])
-        # image = preprocess_input(image)
         image = image / 127.5 - 1
         image = np.expand_dims(image, axis=0)
         
@@ -64,15 +63,8 @@ if __name__ == "__main__":
     if not os.path.isdir(config["path"]["save_path"]):
         os.makedirs(config["path"]["save_path"])
 
-    if config["train"]["freeze_train"]:
-        epoch = config["train"]["freeze_epoch"]
-        batch_size = config["train"]["freeze_batch_size"]
-        ckpt_name = "freeze.h5"
-    else:
-        epoch = config["train"]["unfreeze_epoch"]
-        batch_size = config["train"]["unfreeze_batch_size"]
-        # ckpt_name = "unfreeze-test.h5"
-        ckpt_name = "unfreeze_split_output.h5"
+    epoch = config["train"]["epoch"]
+    batch_size = config["train"]["batch_size"] * strategy.num_replicas_in_sync
 
     train_lines = read_txt_file(config["path"]["train_txt_path"])
     valid_lines = read_txt_file(config["path"]["valid_txt_path"])
@@ -90,7 +82,7 @@ if __name__ == "__main__":
     callbacks = [
         DisplayCallback(),
         tf.keras.callbacks.LearningRateScheduler(clr),
-        tf.keras.callbacks.ModelCheckpoint(config["path"]["save_path"] + '/' + ckpt_name, save_best_only=True, save_weights_only=True, monitor="val_loss", verbose=1)
+        tf.keras.callbacks.ModelCheckpoint(config["path"]["save_path"] + '/' + config["path"]["ckpt_name"], save_best_only=True, save_weights_only=True, monitor="val_loss", verbose=1)
     ]
 
     if config["train"]["optimizer"] == "adam":

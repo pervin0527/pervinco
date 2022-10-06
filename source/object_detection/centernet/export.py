@@ -31,7 +31,7 @@ def build_model():
                       backbone=config["train"]["backbone"],
                       max_objects=config["train"]["max_detection"],
                       mode="predict")
-    model.load_weights(config["export"]["ckpt_path"])
+    model.load_weights(config["save_path"]["ckpt_name"])
     model.summary()
 
     return model
@@ -47,7 +47,7 @@ def preprocess_image(images):
     return image
 
 def representative_data_gen():
-    data_path = config["export"]["representative_data_path"]
+    data_path = config["path"]["representative_data_path"]
     images = sorted(glob(data_path + "/*"))
     idx = 0
     for input_value in tf.data.Dataset.from_tensor_slices(images).map(preprocess_image).batch(1).take(100):
@@ -72,10 +72,10 @@ if __name__ == "__main__":
 
     run_model = tf.function(lambda x : model(x))
     concrete_func = run_model.get_concrete_function(tf.TensorSpec([1, config["train"]["input_shape"][0], config["train"]["input_shape"][1], 3], model.inputs[0].dtype))
-    tf.saved_model.save(model, config["export"]["saved_model_path"], signatures=concrete_func)
+    tf.saved_model.save(model, config["path"]["save_path"] + '/saved_model', signatures=concrete_func)
     print("Model SAVED")
 
-    converter = tf.lite.TFLiteConverter.from_saved_model(config["export"]["saved_model_path"])
+    converter = tf.lite.TFLiteConverter.from_saved_model(config["path"]["save_path"] + '/saved_model')
     print("Model LOADED")
 
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
@@ -87,7 +87,7 @@ if __name__ == "__main__":
     converter.inference_output_type = tf.float32
     tflite_model = converter.convert()
 
-    tflite_save_path = config["path"]["save_path"] + "/" + config["export"]["tflite_file_name"]
+    tflite_save_path = config["path"]["save_path"] + "/CenterNet.tflite"
     with open(tflite_save_path, "wb") as f:
         f.write(tflite_model)
     print("Model CONVERTED")

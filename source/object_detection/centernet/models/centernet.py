@@ -58,7 +58,7 @@ def decode(hm, wh, reg, max_objects=100):
     class_ids = tf.cast(class_ids, tf.float32)
     scores = tf.cast(scores, tf.float32)
     
-    return boundig_boxes, tf.cast(class_ids, tf.float32), tf.cast(scores, tf.float32)
+    return boundig_boxes, class_ids, scores
 
 
 def centernet(input_shape, num_classes, backbone='resnet50', max_objects=100, mode="train", num_stacks=2):
@@ -132,20 +132,9 @@ def get_train_model(model_body, input_shape, num_classes, backbone='resnet50', m
     reg_mask_input = tf.keras.Input(shape=(max_objects,))
     index_input = tf.keras.Input(shape=(max_objects,))
 
-    if backbone=='resnet50':
+    if backbone == 'resnet50' or backbone == "mobilenet":
         y1, y2, y3 = model_body.output
         loss_ = tf.keras.layers.Lambda(loss, output_shape = (1, ),name='centernet_loss')([y1, y2, y3, hm_input, wh_input, reg_input, reg_mask_input, index_input])
         model = tf.keras.Model(inputs=[model_body.input, hm_input, wh_input, reg_input, reg_mask_input, index_input], outputs=[loss_])
-    
-    else:
-        outs = model_body.output
-        loss_all = []
-        for i in range(len(outs) // 3):  
-            y1, y2, y3 = outs[0 + i * 3], outs[1 + i * 3], outs[2 + i * 3]
-            loss_ = tf.keras.layers.Lambda(loss)([y1, y2, y3, hm_input, wh_input, reg_input, reg_mask_input, index_input])
-            loss_all.append(loss_)
-        loss_all = tf.keras.layers.Lambda(tf.reduce_mean, output_shape = (1, ),name='centernet_loss')(loss_)
-
-        model = tf.keras.Model(inputs=[model_body.input, hm_input, wh_input, reg_input, reg_mask_input, index_input], outputs=[loss_all])
         
     return model
