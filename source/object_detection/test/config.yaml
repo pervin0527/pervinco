@@ -1,0 +1,18 @@
+train_data_path : "/home/ubuntu/Datasets/SPC/full-name14/train.txt"
+valid_data_path : "/home/ubuntu/Datasets/SPC/full-name14/valid.txt"
+classes_path : "/home/ubuntu/Datasets/SPC/Labels/labels.txt"
+save_path : "/home/ubuntu/Models/yolox"
+ckpt_path : null ## "/home/ubuntu/Models/yolox/weights.h5"
+
+epochs : 1000
+batch_size : 32
+input_shape : [512, 512]
+phi : 's'
+max_detections: 100
+init_lr : 0.00001
+max_lr : 0.001
+optimizer : "adam"
+weight_decay : 0.000001
+
+score_threshold : 0.4
+iou_threshold : 0.45

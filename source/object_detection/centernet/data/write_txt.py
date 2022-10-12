@@ -46,8 +46,8 @@ def convert_annotation(images, xmls, mode="train"):
 
 
 if __name__ == "__main__":
-    data_path = "/home/ubuntu/Datasets/VOCdevkit/VOC2012/Object_detection"
-    label_path = "/home/ubuntu/Datasets/VOCdevkit/VOC2012/Labels/labels.txt"
+    data_path = "/home/ubuntu/Datasets/SPC/full-name14"
+    label_path = "/home/ubuntu/Datasets/SPC/Labels/labels.txt"
 
     class_list = read_label_file(label_path)
     print(class_list)
