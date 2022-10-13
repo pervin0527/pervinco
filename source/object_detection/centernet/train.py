@@ -36,8 +36,13 @@ def plot_predictions(model):
     for img_path in sorted(glob("./test_imgs/*.jpg")):
         image = cv2.imread(img_path)
         image = cv2.resize(image, config["train"]["input_shape"])
+        
         if config["train"]["backbone"] == "resnet50":
             image = tf.keras.applications.resnet50.preprocess_input(image)
+
+        elif config["train"]["backbone"] == "resnet101":
+            image = tf.keras.applications.resnet50.preprocess_input(image)
+
         elif config["train"]["backbone"] == "mobilenet":
             image = tf.keras.applications.mobilenet_v2.preprocess_input(image)
         image = np.expand_dims(image, axis=0)
@@ -96,13 +101,17 @@ if __name__ == "__main__":
         optimizer = tf.keras.optimizers.SGD(learning_rate=config["train"]["init_lr"])
 
     with strategy.scope():
-        base_model, pred_model = centernet([config["train"]["input_shape"][0], config["train"]["input_shape"][1], 3],
-                                            num_classes,
-                                            backbone=config["train"]["backbone"],
-                                            max_objects=config["train"]["max_detection"],
-                                            mode="train")
+        base_model, pred_model = centernet(input_shape=[config["train"]["input_shape"][0], config["train"]["input_shape"][1], 3],
+                                           num_classes=num_classes,
+                                           backbone=config["train"]["backbone"],
+                                           max_objects=config["train"]["max_detection"],
+                                           weights=config["train"]["pretrained_weights"],
+                                           mode="train")
 
-        model = get_train_model(base_model, config["train"]["input_shape"], num_classes, config["train"]["backbone"])
+        model = get_train_model(base_model=base_model,
+                                input_shape=config["train"]["input_shape"],
+                                num_classes=num_classes,
+                                max_objects=config["train"]["max_detection"])
 
         if config["path"]["model_path"]:
             model.load_weights(config["path"]["model_path"], by_name=True, skip_mismatch=True)

@@ -62,15 +62,15 @@ def decode(hm, wh, reg, max_objects=100):
     return boundig_boxes, class_ids, scores, valid_detection
 
 
-def centernet(input_shape, num_classes, backbone='resnet50', max_objects=100, mode="train", num_stacks=2):
-    assert backbone in ['resnet50', 'mobilenet']
+def centernet(input_shape, num_classes, backbone='resnet50', max_objects=100, weights="imagenet", mode="train"):
+    assert backbone in ['resnet50', 'resnet101', 'mobilenet']
 
     image_input = tf.keras.Input(shape=input_shape)
 
     if backbone=='resnet50':
         preprocess_input = tf.keras.layers.Lambda(lambda x : tf.keras.applications.resnet50.preprocess_input(x))(image_input)
         resnet = tf.keras.applications.resnet50.ResNet50(include_top=False,
-                                                         weights="imagenet",
+                                                         weights=weights,
                                                          input_tensor=preprocess_input, 
                                                          classes=num_classes, 
                                                          pooling=None, 
@@ -101,10 +101,36 @@ def centernet(input_shape, num_classes, backbone='resnet50', max_objects=100, mo
             return prediction_model
 
 
+    elif backbone=='resnet101':
+        preprocess_input = tf.keras.layers.Lambda(lambda x : tf.keras.applications.resnet50.preprocess_input(x))(image_input)
+        resnet = tf.keras.applications.resnet.ResNet101(include_top=False,
+                                                        weights=weights,
+                                                        input_tensor=preprocess_input, 
+                                                        classes=num_classes, 
+                                                        pooling=None, 
+                                                        classifier_activation=None)
+        C5 = resnet.output
+        y1, y2, y3 = centernet_head(C5, num_classes)
+
+        if mode=="train":
+            model = tf.keras.Model(inputs=image_input, outputs=[y1, y2, y3])
+
+            bboxes, classes, scores, valid_detection = tf.keras.layers.Lambda(lambda x: decode(*x, max_objects=max_objects))([y1, y2, y3])
+            prediction_model = tf.keras.Model(inputs=image_input, outputs=[bboxes, classes, scores, valid_detection])
+
+            return model, prediction_model
+
+        elif mode=="predict":
+            bboxes, classes, scores, valid_detection = tf.keras.layers.Lambda(lambda x: decode(*x, max_objects=max_objects))([y1, y2, y3])
+            prediction_model = tf.keras.Model(inputs=image_input, outputs=[bboxes, classes, scores, valid_detection])
+
+            return prediction_model
+
+
     elif backbone == "mobilenet":
         preprocess_input = tf.keras.layers.Lambda(lambda x : tf.keras.applications.mobilenet_v2.preprocess_input(x))(image_input)
         mobilenet = tf.keras.applications.mobilenet_v2.MobileNetV2(include_top=False,
-                                                                   weights="imagenet",
+                                                                   weights=weights,
                                                                    input_tensor=preprocess_input,
                                                                    classes=num_classes,
                                                                    pooling=None,
@@ -127,7 +153,7 @@ def centernet(input_shape, num_classes, backbone='resnet50', max_objects=100, mo
             return prediction_model
 
 
-def get_train_model(model_body, input_shape, num_classes, backbone='resnet50', max_objects=100):
+def get_train_model(base_model, input_shape, num_classes, max_objects=100):
     output_size = input_shape[0] // 4
     hm_input = tf.keras.Input(shape=(output_size, output_size, num_classes))
     wh_input = tf.keras.Input(shape=(max_objects, 2))
@@ -135,9 +161,8 @@ def get_train_model(model_body, input_shape, num_classes, backbone='resnet50', m
     reg_mask_input = tf.keras.Input(shape=(max_objects,))
     index_input = tf.keras.Input(shape=(max_objects,))
 
-    if backbone == 'resnet50' or backbone == "mobilenet":
-        y1, y2, y3 = model_body.output
-        loss_ = tf.keras.layers.Lambda(loss, output_shape = (1, ),name='centernet_loss')([y1, y2, y3, hm_input, wh_input, reg_input, reg_mask_input, index_input])
-        model = tf.keras.Model(inputs=[model_body.input, hm_input, wh_input, reg_input, reg_mask_input, index_input], outputs=[loss_])
+    y1, y2, y3 = base_model.output
+    loss_ = tf.keras.layers.Lambda(loss, output_shape = (1, ),name='centernet_loss')([y1, y2, y3, hm_input, wh_input, reg_input, reg_mask_input, index_input])
+    model = tf.keras.Model(inputs=[base_model.input, hm_input, wh_input, reg_input, reg_mask_input, index_input], outputs=[loss_])
         
     return model

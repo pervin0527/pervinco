@@ -1,19 +1,20 @@
 path:
-    train_txt_path: "/home/ubuntu/Datasets/VOCdevkit/VOC2012/Object_detection/train3.txt"
-    valid_txt_path: "/home/ubuntu/Datasets/VOCdevkit/VOC2012/Object_detection/valid3.txt"
-    label_path: "/home/ubuntu/Datasets/VOCdevkit/VOC2012/Object_detection/Labels/labels.txt"
-    save_path: "/home/ubuntu/Models/centernet"
-    ckpt_name: "CenterNet_MobileNetV2.h5"
+    train_txt_path: "/data/Datasets/SPC/full-name14/train.txt"
+    valid_txt_path: "/data/Datasets/SPC/full-name14/valid.txt"
+    label_path: "/data/Datasets/SPC/Labels/labels.txt"
+    save_path: "/home/ubuntu/Models/CenterNet"
+    ckpt_name: "SPC-CenterNet-ResNet101.h5"
     model_path: null ## "/home/ubuntu/Models/centernet/unfreeze.h5"
-    representative_data_path: "/home/ubuntu/Datasets/VOCdevkit/VOC2012/JPEGImages"
+    representative_data_path: null
 
 train:
-    input_shape: [512, 512]
-    backbone: "mobilenet"
-    max_detection: 100
-    threshold: 0.4
+    input_shape: [384, 384]
+    backbone: "resnet101"
     epoch: 1000
     batch_size: 16
+    threshold: 0.4
+    max_detection: 10
+    pretrained_weights: null
 
     init_lr: 0.00001
     max_lr: 0.001
