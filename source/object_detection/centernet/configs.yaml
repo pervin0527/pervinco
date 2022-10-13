@@ -2,22 +2,22 @@ path:
     train_txt_path: "/data/Datasets/SPC/full-name14/train.txt"
     valid_txt_path: "/data/Datasets/SPC/full-name14/valid.txt"
     label_path: "/data/Datasets/SPC/Labels/labels.txt"
-    save_path: "/home/ubuntu/Models/CenterNet"
+    save_path: "/data/Models/CenterNet"
     ckpt_name: "SPC-CenterNet-ResNet101.h5"
-    model_path: null ## "/home/ubuntu/Models/centernet/unfreeze.h5"
+    ckpt_path: null
     representative_data_path: null
 
 train:
     input_shape: [384, 384]
     backbone: "resnet101"
-    epoch: 1000
+    epoch: 300
     batch_size: 16
     threshold: 0.4
     max_detection: 10
-    pretrained_weights: null
-
-    init_lr: 0.00001
-    max_lr: 0.001
-    optimizer: "adam"
+    optimizer: "sgd"
     momentum: 0.9
-    weight_decay: 0.000001
+    weight_decay: 0.0005
+    imagenet_weight: null
+
+    init_lr: 0.01
+    warmup_steps: 5

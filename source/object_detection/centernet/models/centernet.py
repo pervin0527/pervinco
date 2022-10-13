@@ -1,7 +1,6 @@
 import tensorflow as tf
 from models.losses import loss
-from models.hourglass import HourglassNetwork
-from models.resnet import ResNet50, centernet_head
+from models.resnet import centernet_head
 
 
 def nms(heat, kernel=3):
