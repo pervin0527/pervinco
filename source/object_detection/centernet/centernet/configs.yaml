@@ -1,0 +1,38 @@
+path:
+<<<<<<< HEAD
+    train_txt_path: "/data/Datasets/SPC/full-name14/train.txt"
+    valid_txt_path: "/data/Datasets/SPC/full-name14/valid.txt"
+    label_path: "/data/Datasets/SPC/Labels/labels.txt"
+    
+    save_path: "/data/Models/CenterNet"
+    ckpt_name: "SPC-CenterNet-ResNet101.h5"
+=======
+    train_txt_path: "/home/ubuntu/Datasets/VOCdevkit/VOC2012/Object_detection/train3.txt"
+    valid_txt_path: "/home/ubuntu/Datasets/VOCdevkit/VOC2012/Object_detection/valid3.txt"
+    label_path: "/home/ubuntu/Datasets/VOCdevkit/VOC2012/Object_detection/Labels/labels.txt"
+    save_path: "/home/ubuntu/Models/centernet"
+    ckpt_name: "CenterNet_MobileNetV2.h5"
+>>>>>>> b53fbcb6d54e0490893a7d491c78e947c606e4d9
+    model_path: null ## "/home/ubuntu/Models/centernet/unfreeze.h5"
+    representative_data_path: null ## ""
+
+train:
+<<<<<<< HEAD
+    input_shape: [320, 320]
+    backbone: "resnet101"
+    max_detection: 10
+=======
+    input_shape: [512, 512]
+    backbone: "mobilenet"
+    max_detection: 100
+>>>>>>> b53fbcb6d54e0490893a7d491c78e947c606e4d9
+    threshold: 0.4
+    epoch: 1000
+    batch_size: 16
+    pretrained_weight: null
+
+    init_lr: 0.00001
+    max_lr: 0.001
+    optimizer: "adam"
+    momentum: 0.9
+    weight_decay: 0.000001
