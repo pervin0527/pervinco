@@ -196,17 +196,17 @@ def data_process(is_train, folder_name):
 
 
 if __name__ == "__main__":
-    ROOT_DIR = "/data/Datasets/SPC"
+    ROOT_DIR = "/home/ubuntu/Datasets/SPC"
     FOLDER = "full-name14"
-    STEPS = 1
+    STEPS = 3
     IMG_SIZE = 384
     VALID_RATIO = 0.1
     VISUAL = False
     INCLUDE_BG = False
     BG_RATIO = 0.2
-    # BG_DIR = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012/TEST"
-    BG_DIR = "/data/Datasets/SPC/download"
-    MX_BG = "/data/Datasets/Mixup_background"
+    # BG_DIR = "/home/ubuntu/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012/TEST"
+    BG_DIR = "/home/ubuntu/Datasets/SPC/download"
+    MX_BG = "/home/ubuntu/Datasets/Mixup_background"
     
     IMG_DIR = f"{ROOT_DIR}/{FOLDER}/images"
     ANNOT_DIR = f"{ROOT_DIR}/{FOLDER}/annotations"
@@ -216,5 +216,5 @@ if __name__ == "__main__":
     classes = read_label_file(LABEL_DIR)
     images, annotations = get_files(IMG_DIR), get_files(ANNOT_DIR)
     
-    data_process(True, "train")
-    data_process(False, "valid")
+    data_process(True, "train5")
+    data_process(False, "valid5")

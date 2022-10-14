@@ -92,30 +92,21 @@ def cosine_decay_with_warmup(global_step,
     """
 
     if total_steps < warmup_steps:
-        raise ValueError('total_steps must be larger or equal to '
-                         'warmup_steps.')
-    learning_rate = 0.5 * learning_rate_base * (1 + np.cos(
-        np.pi *
-        (global_step - warmup_steps - hold_base_rate_steps
-         ) / float(total_steps - warmup_steps - hold_base_rate_steps)))
+        raise ValueError('total_steps must be larger or equal to warmup_steps.')
+    learning_rate = 0.5 * learning_rate_base * (1 + np.cos(np.pi * (global_step - warmup_steps - hold_base_rate_steps) / float(total_steps - warmup_steps - hold_base_rate_steps)))
     if hold_base_rate_steps > 0:
-        learning_rate = np.where(global_step > warmup_steps + hold_base_rate_steps,
-                                 learning_rate, learning_rate_base)
+        learning_rate = np.where(global_step > warmup_steps + hold_base_rate_steps, learning_rate, learning_rate_base)
     if warmup_steps > 0:
         if learning_rate_base < warmup_learning_rate:
-            raise ValueError('learning_rate_base must be larger or equal to '
-                             'warmup_learning_rate.')
+            raise ValueError('learning_rate_base must be larger or equal to warmup_learning_rate.')
         slope = (learning_rate_base - warmup_learning_rate) / warmup_steps
         warmup_rate = slope * global_step + warmup_learning_rate
-        learning_rate = np.where(global_step < warmup_steps, warmup_rate,
-                                 learning_rate)
+        learning_rate = np.where(global_step < warmup_steps, warmup_rate, learning_rate)
     return np.where(global_step > total_steps, 0.0, learning_rate)
 
 
 class WarmUpCosineDecayScheduler(tf.keras.callbacks.Callback):
-    """Cosine decay with warmup learning rate scheduler
-    """
-
+    """Cosine decay with warmup learning rate scheduler"""
     def __init__(self,
                  learning_rate_base,
                  total_steps,
@@ -147,12 +138,12 @@ class WarmUpCosineDecayScheduler(tf.keras.callbacks.Callback):
         self.verbose = verbose
         self.learning_rates = []
 
-    def on_batch_end(self, batch, logs=None):
+    def on_train_batch_end(self, batch, logs=None):
         self.global_step = self.global_step + 1
         lr = K.get_value(self.model.optimizer.lr)
         self.learning_rates.append(lr)
 
-    def on_batch_begin(self, batch, logs=None):
+    def on_train_batch_begin(self, batch, logs=None):
         lr = cosine_decay_with_warmup(global_step=self.global_step,
                                       learning_rate_base=self.learning_rate_base,
                                       total_steps=self.total_steps,
@@ -160,13 +151,21 @@ class WarmUpCosineDecayScheduler(tf.keras.callbacks.Callback):
                                       warmup_steps=self.warmup_steps,
                                       hold_base_rate_steps=self.hold_base_rate_steps)
         K.set_value(self.model.optimizer.lr, lr)
-        if self.verbose > 0:
-            print('\nBatch %05d: setting learning '
-                  'rate to %s.' % (self.global_step + 1, lr))
+        # print('\n Batch %05d: setting learning rate to %s.' % (self.global_step, lr))
 
     def on_epoch_begin(self, epoch, logs=None):
-        lr = K.get_value(self.model.optimizer.lr)
-        print('\nBatch %05d: setting learning rate to %s.' % (self.global_step + 1, lr))
+        print(f'Epoch {epoch+1:>05} Start LR : {K.get_value(self.model.optimizer.lr)}')
+
+    # def on_epoch_end(self, epoch, logs=None):
+    #     print(f'Epoch {epoch:>05} End LR : {K.get_value(self.model.optimizer.lr)}')
+
+# class LossAndLrPrintingCallback(tf.keras.callbacks.Callback):
+#     def on_train_batch_end(self, batch, logs=None):
+#         print(f'\r Train Step {batch} -  Loss : {logs["loss"]:.3f} -  LR : {K.get_value(self.model.optimizer.lr):.7f}', end="")
+
+#     def on_test_batch_end(self, batch, logs=None):
+#         print(f'\r Valid Step {batch} -  Loss : {logs["loss"]:.3f} -  LR : {K.get_value(self.model.optimizer.lr):.7f}', end="")
+
 
 
 if __name__ == "__main__":
@@ -175,6 +174,7 @@ if __name__ == "__main__":
 
     batch_size = config["train"]["batch_size"] * strategy.num_replicas_in_sync
     init_lr = config["train"]["init_lr"] * batch_size / 64
+    print(f"Batch_size : {batch_size}, Init_lr : {init_lr}")
 
     class_names = read_label_file(config["path"]["label_path"])
     num_classes = len(class_names)
@@ -191,34 +191,31 @@ if __name__ == "__main__":
     train_dataloader = DataGenerator(train_lines, config["train"]["input_shape"], batch_size, num_classes, is_train = True, max_detections=config["train"]["max_detection"])
     val_dataloader = DataGenerator(valid_lines, config["train"]["input_shape"], batch_size, num_classes, is_train = False, max_detections=config["train"]["max_detection"])
 
-    # clr = tfa.optimizers.CyclicalLearningRate(initial_learning_rate=config["train"]["init_lr"],
-    #                                           maximal_learning_rate=config["train"]["max_lr"],
-    #                                           scale_fn=lambda x : 1.0,
-    #                                           step_size=epoch / 2)
-
     callbacks = [
         DisplayCallback(),
-        # tf.keras.callbacks.LearningRateScheduler(clr),
+        #  LossAndLrPrintingCallback(),
         WarmUpCosineDecayScheduler(learning_rate_base=init_lr,
-                                   total_steps=train_steps * config["train"]["epoch"],
-                                   global_step_init=0,
-                                   warmup_learning_rate=0.0,
-                                   warmup_steps=train_steps * config["train"]["warmup_steps"],
+                                   total_steps=int(config["train"]["epoch"] * len(train_lines) / batch_size),
+                                   warmup_learning_rate=config["train"]["warmup_lr"],
+                                   warmup_steps=int(config["train"]["warmup_epoch"] * len(train_lines) / batch_size),
                                    hold_base_rate_steps=0),
         tf.keras.callbacks.ModelCheckpoint(config["path"]["save_path"] + '/' + config["path"]["ckpt_name"],
                                            save_best_only=True, 
                                            save_weights_only=True, 
                                            monitor="val_loss", 
-                                           verbose=1)
+                                           verbose=1),
+        tf.keras.callbacks.TensorBoard(config["path"]["save_path"] + "/logs",
+                                       write_graph=True,
+                                       write_images=True, 
+                                       write_steps_per_second=True, 
+                                       update_freq="epoch")
     ]
 
     if config["train"]["optimizer"] == "adam":
-        # optimizer = tf.keras.optimizers.Adam(learning_rate=init_lr)
-        optimizer = tfa.optimizers.AdamW(learning_rate=init_lr, weight_decay=config["train"]["weight_decay"], beta_1=0.9, beta_2=0.999)
+        optimizer = tfa.optimizers.AdamW(weight_decay=config["train"]["weight_decay"], beta_1=0.9, beta_2=0.999)
 
     elif config["train"]["optimizer"] == "sgd":
-        # optimizer = tf.keras.optimizers.SGD(learning_rate=init_lr)
-        optimizer = tfa.optimizers.SGDW(learning_rate=init_lr, weight_decay=config["train"]["weight_decay"], momentum=config["train"]["momentum"])
+        optimizer = tfa.optimizers.SGDW(weight_decay=config["train"]["weight_decay"], momentum=config["train"]["momentum"])
 
     with strategy.scope():
         base_model, pred_model = centernet(input_shape=[config["train"]["input_shape"][0], config["train"]["input_shape"][1], 3],
@@ -244,4 +241,5 @@ if __name__ == "__main__":
               validation_data=val_dataloader,
               validation_steps=validation_steps,
               epochs=config["train"]["epoch"],
-              callbacks=callbacks)
+              callbacks=callbacks,
+              verbose=1)

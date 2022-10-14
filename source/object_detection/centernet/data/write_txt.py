@@ -46,16 +46,16 @@ def convert_annotation(images, xmls, mode="train"):
 
 
 if __name__ == "__main__":
-    data_path = "/data/Datasets/SPC/full-name14"
-    label_path = "/data/Datasets/SPC/Labels/labels.txt"
+    data_path = "/home/ubuntu/Datasets/SPC/full-name14"
+    label_path = "/home/ubuntu/Datasets/SPC/Labels/labels.txt"
 
     class_list = read_label_file(label_path)
     print(class_list)
 
-    train_images, train_xmls = sorted(glob(f"{data_path}/train/images/*.jpg")), sorted(glob(f"{data_path}/train/annotations/*.xml"))
-    valid_images, valid_xmls = sorted(glob(f"{data_path}/valid/images/*.jpg")), sorted(glob(f"{data_path}/valid/annotations/*.xml"))
+    train_images, train_xmls = sorted(glob(f"{data_path}/train5/images/*.jpg")), sorted(glob(f"{data_path}/train5/annotations/*.xml"))
+    valid_images, valid_xmls = sorted(glob(f"{data_path}/valid5/images/*.jpg")), sorted(glob(f"{data_path}/valid5/annotations/*.xml"))
     print(len(train_images), len(train_xmls))
     print(len(valid_images), len(valid_xmls))
 
-    convert_annotation(train_images, train_xmls, "train")
-    convert_annotation(valid_images, valid_xmls, "valid")
+    convert_annotation(train_images, train_xmls, "train5")
+    convert_annotation(valid_images, valid_xmls, "valid5")

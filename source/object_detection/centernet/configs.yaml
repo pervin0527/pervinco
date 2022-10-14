@@ -1,8 +1,8 @@
 path:
-    train_txt_path: "/data/Datasets/SPC/full-name14/train.txt"
-    valid_txt_path: "/data/Datasets/SPC/full-name14/valid.txt"
-    label_path: "/data/Datasets/SPC/Labels/labels.txt"
-    save_path: "/data/Models/CenterNet"
+    train_txt_path: "/home/ubuntu/Datasets/SPC/full-name14/train5.txt"
+    valid_txt_path: "/home/ubuntu/Datasets/SPC/full-name14/valid5.txt"
+    label_path: "/home/ubuntu/Datasets/SPC/Labels/labels.txt"
+    save_path: "/home/ubuntu/Models/CenterNet"
     ckpt_name: "SPC-CenterNet-ResNet101.h5"
     ckpt_path: null
     representative_data_path: null
@@ -11,7 +11,7 @@ train:
     input_shape: [384, 384]
     backbone: "resnet101"
     epoch: 300
-    batch_size: 16
+    batch_size: 32
     threshold: 0.4
     max_detection: 10
     optimizer: "sgd"
@@ -20,4 +20,5 @@ train:
     imagenet_weight: null
 
     init_lr: 0.01
-    warmup_steps: 5
+    warmup_epoch: 5
+    warmup_lr: 0.0
