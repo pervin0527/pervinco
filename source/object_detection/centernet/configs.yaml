@@ -1,6 +1,6 @@
 path:
-    train_txt_path: "/home/ubuntu/Datasets/SPC/full-name14/train5.txt"
-    valid_txt_path: "/home/ubuntu/Datasets/SPC/full-name14/valid5.txt"
+    train_txt_path: "/home/ubuntu/Datasets/SPC/full-name14/train.txt"
+    valid_txt_path: "/home/ubuntu/Datasets/SPC/full-name14/valid.txt"
     label_path: "/home/ubuntu/Datasets/SPC/Labels/labels.txt"
     save_path: "/home/ubuntu/Models/CenterNet"
     ckpt_name: "SPC-CenterNet-ResNet101.h5"
@@ -11,13 +11,13 @@ train:
     input_shape: [384, 384]
     backbone: "resnet101"
     epoch: 300
-    batch_size: 32
+    batch_size: 64
     threshold: 0.4
     max_detection: 10
     optimizer: "sgd"
     momentum: 0.9
-    weight_decay: 0.0005
-    imagenet_weight: null
+    weight_decay: 0.00001
+    imagenet_weight: "imagenet"
 
     init_lr: 0.01
     warmup_epoch: 5

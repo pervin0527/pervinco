@@ -15,8 +15,8 @@ def yolo2voc(class_id, width, height, x, y, w, h):
 
 if __name__ == "__main__":
     FOLDERS = ["train", "valid"]
-    ROOT_DIR = "/data/Datasets/SPC/full-name14"
-    LABEL_DIR = "/data/Datasets/SPC/Labels/labels.txt"
+    ROOT_DIR = "/home/ubuntu/Datasets/BR/set1"
+    LABEL_DIR = "/home/ubuntu/Datasets/BR/Labels/labels.txt"
 
     classes = read_label_file(LABEL_DIR)
     print(classes)
@@ -27,6 +27,7 @@ if __name__ == "__main__":
 
         if not os.path.isdir(f"{ROOT_DIR}/{folder}/v4set"):
             os.makedirs(f"{ROOT_DIR}/{folder}/v4set")
+            os.makedirs(f"{ROOT_DIR}/{folder}/draw")
 
         print(f"{ROOT_DIR}/{folder}")
         for annot in annotations:

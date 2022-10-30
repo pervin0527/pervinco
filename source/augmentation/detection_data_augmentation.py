@@ -17,11 +17,11 @@ def background_process(save_dir):
     folders = sorted(glob(f"{BG_DIR}/*"))
     for folder in folders:
         files = glob(f"{folder}/*")
-        random.shuffle(files)
+        # random.shuffle(files)
         if len(files) > int(ratio / len(folders)):
             files = random.sample(files, int(ratio / len(folders)))
 
-        print(folder, len(files))    
+        # print(folder, len(files))    
         bg_files.extend(files)        
 
     for idx, file in enumerate(bg_files):
@@ -32,7 +32,7 @@ def background_process(save_dir):
             write_xml(f"{save_dir}/annotations", None, None, f"bg_{idx}", bg_image.shape[0], bg_image.shape[1], 'pascal_voc')
 
         except:
-            pass
+            print(f"{file} is broken")
     
     total = len(glob(f"{save_dir}/images/*"))
     print(f"Background Images {total} Added")
@@ -56,7 +56,7 @@ def data_process(is_train, folder_name):
                     if len(dataset) < 4:
                         rebuild_count += 1
                         dataset.extend(list(zip(images, annotations)))
-                        random.shuffle(dataset)
+                        # random.shuffle(dataset)
                     
                     pieces = random.sample(dataset, 4)
                     image, bboxes, labels = mosaic(pieces, IMG_SIZE, classes)
@@ -83,7 +83,7 @@ def data_process(is_train, folder_name):
                     if len(dataset) < 1:
                         rebuild_count += 1
                         dataset.extend(list(zip(images, annotations)))
-                        random.shuffle(dataset)
+                        # random.shuffle(dataset)
 
                     item = random.sample(dataset, 1)[0]
                     image, annot = item
@@ -91,6 +91,13 @@ def data_process(is_train, folder_name):
 
                     image = cv2.imread(image)
                     bboxes, labels = read_xml(annot, classes, 'pascal_voc')
+                    
+                    # for bbox in bboxes:
+                    #     if bbox[0] < 0:
+                    #         bbox[0] = 0
+                    #     elif bbox[1] < 0:
+                    #         bbox[1] = 0
+
                     transformed = just_image_transform(image=image)
                     image = transformed['image']
 
@@ -107,7 +114,7 @@ def data_process(is_train, folder_name):
                     if len(dataset) < 1:
                         rebuild_count += 1
                         dataset.extend(list(zip(images, annotations)))
-                        random.shuffle(dataset)
+                        # random.shuffle(dataset)
 
                     item = random.sample(dataset, 1)[0]
                     image, annot = item
@@ -147,11 +154,12 @@ def data_process(is_train, folder_name):
                     if len(dataset) < 1:
                         rebuild_count += 1
                         dataset.extend(list(zip(images, annotations)))
-                        random.shuffle(dataset)
+                        # random.shuffle(dataset)
 
                     item = random.sample(dataset, 1)[0]
                     image, annot = item
                     dataset.pop(dataset.index(item))
+
                     image = cv2.imread(image)
                     bboxes, labels = read_xml(annot, classes, 'pascal_voc')
                     transformed = normal_transform(image=image, bboxes=bboxes, labels=labels)
@@ -168,7 +176,7 @@ def data_process(is_train, folder_name):
                 
     else:
         dataset = list(zip(images, annotations))
-        random.shuffle(dataset)
+        # random.shuffle(dataset)
         save_dir = f"{SAVE_DIR}/{folder_name}"
         make_save_dir(save_dir)
 
@@ -183,6 +191,7 @@ def data_process(is_train, folder_name):
             ], bbox_params=A.BboxParams(format='pascal_voc', min_area=0.5, min_visibility=0.2, label_fields=['labels']))
 
             image, annot = dataset[idx]
+
             image = cv2.imread(image)
             bboxes, labels = read_xml(annot, classes, 'pascal_voc')
             transformed = valid_transform(image=image, bboxes=bboxes, labels=labels)
@@ -195,26 +204,34 @@ def data_process(is_train, folder_name):
                 visualize(image, bboxes, labels, 'pascal_voc', False)
 
 
+def make_file_list(data_list):
+    image_files, xml_files = [], []
+    for path in data_list:
+        images = sorted(glob(f"{path}/JPEGImages/*"))
+        xmls = sorted(glob(f"{path}/Annotations/*"))
+        print(len(images), len(xmls))
+
+        image_files.extend(images)
+        xml_files.extend(xmls)
+
+    return image_files, xml_files
+
+
 if __name__ == "__main__":
-    ROOT_DIR = "/data/Datasets/VOCdevkit/VOC2012"
-    FOLDER = ""
-    STEPS = 1
-    IMG_SIZE = 640
+    DATA_LIST = ["/home/ubuntu/Datasets/BR/set1"]
+    STEPS = 3
+    IMG_SIZE = 416
     VALID_RATIO = 0.1
     VISUAL = False
-    INCLUDE_BG = False
+    INCLUDE_BG = True
     BG_RATIO = 0.2
-    # BG_DIR = "/data/Datasets/VOCtrainval_11-May-2012/VOCdevkit/VOC2012/TEST"
-    BG_DIR = "/data/Datasets/SPC/download"
-    MX_BG = "/data/Datasets/Mixup_background"
+    BG_DIR = "/home/ubuntu/Datasets/SPC/download"
+    MX_BG = "/home/ubuntu/Datasets/Mixup_background"
+    SAVE_DIR = "/home/ubuntu/Datasets/BR/set1"
     
-    IMG_DIR = f"{ROOT_DIR}/JPEGImages"
-    ANNOT_DIR = f"{ROOT_DIR}/Annotations"
-    LABEL_DIR = f"{ROOT_DIR}/Labels/labels.txt"
-    SAVE_DIR = f"{ROOT_DIR}/detection-test"
-
-    classes = read_label_file(LABEL_DIR)
-    images, annotations = get_files(IMG_DIR), get_files(ANNOT_DIR)
+    
+    classes = ["Baskin_robbins"]
+    images, annotations = make_file_list(DATA_LIST)
     
     data_process(True, "train")
     data_process(False, "valid")

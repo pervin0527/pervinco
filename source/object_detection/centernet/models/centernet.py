@@ -63,6 +63,7 @@ def decode(hm, wh, reg, max_objects=100):
 
 def centernet(input_shape, num_classes, backbone='resnet50', max_objects=100, weights="imagenet", mode="train"):
     assert backbone in ['resnet50', 'resnet101', 'mobilenet']
+    print(weights)
 
     image_input = tf.keras.Input(shape=input_shape)
 

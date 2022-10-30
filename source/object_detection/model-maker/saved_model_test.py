@@ -1,7 +1,10 @@
 import os
 import cv2
 import numpy as np
+import pandas as pd
 import tensorflow as tf
+from glob import glob
+from tqdm import tqdm
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -22,32 +25,72 @@ else:
     except RuntimeError as e:
         print(e)
 
+def preprocess_input(image):
+    image = image.astype(np.float32)
+    image /= 255
+    # image /= 255.0
+    # image -= np.array([0.485, 0.456, 0.406])
+    # image /= np.array([0.229, 0.224, 0.225])
+    return image
+
+
+def inference(dataset_path, model_path):
+    model = tf.saved_model.load(model_path)
+    print("Model Loaded")
+
+    folders = sorted(glob(f"{dataset_path}/*"))
+    detection_result = []
+    for folder in folders:
+        print(folder)
+        spot_name = folder.split('/')[-1].split('.')[0]
+        frames = sorted(glob(f"{folder}/*.jpg"))
+
+        acc = 0
+        for index in tqdm(range(len(frames))):
+            image = cv2.imread(frames[index])
+            image = cv2.resize(image, input_shape)
+            input_tensor = np.expand_dims(image, axis=0)
+            # input_tensor = np.expand_dims(preprocess_input(image), axis=0).astype(np.uint8)
+
+            prediction = model(input_tensor)
+            boxes, scores, class_ids = prediction[0][0].numpy(), prediction[1][0].numpy(), prediction[2][0].numpy()
+
+            indices = np.where(scores > threshold)[0]
+            if indices.size > 0:
+                bbox = boxes[indices]
+                score = scores[indices]
+                class_id = class_ids[indices]
+
+                if len(class_id) == 1:
+                    if class_id == 1:
+                        detection_result.append([f"{spot_name}", f"{index:>06}.jpg", "O"])
+                        acc+=1
+                    else:
+                        detection_result.append([f"{spot_name}", f"{index:>06}.jpg", "X"])
+                
+                elif len(class_id) > 1:
+                    if 1 in class_id:
+                        detection_result.append([f"{spot_name}", f"{index:>06}.jpg", "O"])
+                        acc += 1
+                    else:
+                        detection_result.append([f"{spot_name}", f"{index:>06}.jpg", "X"])
+            else:
+                detection_result.append([f"{spot_name}", f"{index:>06}.jpg", "X"])
+            
+        print(acc, acc / len(frames) * 100)
+
+    df = pd.DataFrame(detection_result)
+    df.to_csv("/data/Datasets/BR/result.csv", index=False, header=["spot_name", "filename", "is_correct"])
+
+
 if __name__ == "__main__":
-    img_path = "/data/Datasets/SPC/Testset/Normal/images/0002.jpg"
-    image = cv2.imread(img_path)
-    image = cv2.resize(image, (384, 384))
-    result_img = image.copy()
-    input_tensor = np.expand_dims(image, axis=0)
+    pb_path = "/data/Models/efficientdet_lite/SPC-full-name14-d1-300/saved_model"
+    frame_path = "/data/Datasets/BR/frames"
+    save_path = "/data/Datasets/BR/effdet-d1-lite"
+    input_shape = (384, 384)
+    threshold = 0.4
 
-    pb_path = "/data/Models/efficientdet_lite/full-name13-GAP6-300/saved_model"
-    model = tf.saved_model.load(pb_path)
+    mean_rgb = [0.485 * 255, 0.456 * 255, 0.406 * 255]
+    stddev_rgb = [0.229 * 255, 0.224 * 255, 0.225 * 255]
 
-    output = model(input_tensor)
-    # print(output)
-
-    bboxes = output[0].numpy()
-    scores = output[1].numpy()
-    classes = output[2].numpy()
-    print(bboxes.shape)
-    print(scores.shape)
-    print(classes.shape)
-
-    for idx, score in enumerate(scores[0]):
-        if score > 0.7:
-            bbox = bboxes[0][idx]
-            label = classes[0][idx]
-
-            cv2.rectangle(result_img, (int(bbox[1]), int(bbox[0])), (int(bbox[3]), int(bbox[2])), color=(0, 0, 255), thickness=3)
-
-    cv2.imshow("result", result_img)
-    cv2.waitKey(0)        
+    total_matched = inference(frame_path, pb_path)

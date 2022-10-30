@@ -43,7 +43,7 @@ def crop_image(image, boxes, labels, xmin, ymin, xmax, ymax):
 
                 A.OneOf([
                     A.Downscale(scale_min=0.9, scale_max=0.95, p=0.3),
-                    A.MotionBlur(blur_limit=(3, 4), p=0.3)
+                    A.MotionBlur(p=0.3)
                 ], p=0.3)
             ], p=1),
         
