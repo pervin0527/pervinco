@@ -1,14 +1,10 @@
-import os
 import cv2
 import random
-import numpy as np
-import pandas as pd
 import albumentations as A
 
 from glob import glob
 from tqdm import tqdm
-from src.custom_aug import mosaic, mixup
-from src.utils import read_label_file, read_xml, get_files, visualize, make_save_dir, write_xml
+from utils import read_xml, visualize, make_save_dir, write_xml, mosaic, mixup
 
 def background_process(save_dir):
     bg_files = []
@@ -56,7 +52,7 @@ def data_process(is_train, folder_name):
                     if len(dataset) < 4:
                         rebuild_count += 1
                         dataset.extend(list(zip(images, annotations)))
-                        # random.shuffle(dataset)
+                        random.shuffle(dataset)
                     
                     pieces = random.sample(dataset, 4)
                     image, bboxes, labels = mosaic(pieces, IMG_SIZE, classes)
@@ -83,7 +79,7 @@ def data_process(is_train, folder_name):
                     if len(dataset) < 1:
                         rebuild_count += 1
                         dataset.extend(list(zip(images, annotations)))
-                        # random.shuffle(dataset)
+                        random.shuffle(dataset)
 
                     item = random.sample(dataset, 1)[0]
                     image, annot = item
@@ -91,12 +87,6 @@ def data_process(is_train, folder_name):
 
                     image = cv2.imread(image)
                     bboxes, labels = read_xml(annot, classes, 'pascal_voc')
-                    
-                    # for bbox in bboxes:
-                    #     if bbox[0] < 0:
-                    #         bbox[0] = 0
-                    #     elif bbox[1] < 0:
-                    #         bbox[1] = 0
 
                     transformed = just_image_transform(image=image)
                     image = transformed['image']
@@ -114,7 +104,7 @@ def data_process(is_train, folder_name):
                     if len(dataset) < 1:
                         rebuild_count += 1
                         dataset.extend(list(zip(images, annotations)))
-                        # random.shuffle(dataset)
+                        random.shuffle(dataset)
 
                     item = random.sample(dataset, 1)[0]
                     image, annot = item
@@ -154,7 +144,7 @@ def data_process(is_train, folder_name):
                     if len(dataset) < 1:
                         rebuild_count += 1
                         dataset.extend(list(zip(images, annotations)))
-                        # random.shuffle(dataset)
+                        random.shuffle(dataset)
 
                     item = random.sample(dataset, 1)[0]
                     image, annot = item
@@ -176,7 +166,7 @@ def data_process(is_train, folder_name):
                 
     else:
         dataset = list(zip(images, annotations))
-        # random.shuffle(dataset)
+        random.shuffle(dataset)
         save_dir = f"{SAVE_DIR}/{folder_name}"
         make_save_dir(save_dir)
 
@@ -204,34 +194,21 @@ def data_process(is_train, folder_name):
                 visualize(image, bboxes, labels, 'pascal_voc', False)
 
 
-def make_file_list(data_list):
-    image_files, xml_files = [], []
-    for path in data_list:
-        images = sorted(glob(f"{path}/JPEGImages/*"))
-        xmls = sorted(glob(f"{path}/Annotations/*"))
-        print(len(images), len(xmls))
-
-        image_files.extend(images)
-        xml_files.extend(xmls)
-
-    return image_files, xml_files
-
-
 if __name__ == "__main__":
-    DATA_LIST = ["/home/ubuntu/Datasets/BR/set1"]
+    DATA_DIR = "/data/Datasets/BR/set1"
     STEPS = 3
     IMG_SIZE = 416
     VALID_RATIO = 0.1
-    VISUAL = False
-    INCLUDE_BG = True
+    VISUAL = True
+    INCLUDE_BG = False
     BG_RATIO = 0.2
-    BG_DIR = "/home/ubuntu/Datasets/SPC/download"
-    MX_BG = "/home/ubuntu/Datasets/Mixup_background"
-    SAVE_DIR = "/home/ubuntu/Datasets/BR/set1"
-    
+    BG_DIR = "/data/Datasets/SPC/download"
+    MX_BG = "/data/Datasets/Mixup_background"
+    SAVE_DIR = "/data/Datasets/BR/set1"
     
     classes = ["Baskin_robbins"]
-    images, annotations = make_file_list(DATA_LIST)
+    images = sorted(glob(f"{DATA_DIR}/images/*"))
+    annotations = sorted(glob(f"{DATA_DIR}/annotations/*"))
     
     data_process(True, "train")
     data_process(False, "valid")
