@@ -157,6 +157,11 @@ def data_process(is_train, folder_name):
 
                 cv2.imwrite(f"{save_dir}/images/{folder_name}_{step}_{idx}.jpg", image)
                 write_xml(f"{save_dir}/annotations", bboxes, labels, f"{folder_name}_{step}_{idx}", image.shape[0], image.shape[1], 'pascal_voc')
+
+                result = image.copy()
+                for bbox in bboxes:
+                    cv2.rectangle(result, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), (0, 0, 255), 2)
+                cv2.imwrite(f"{save_dir}/result/{folder_name}_{step}_{idx}.jpg", result)
                 
                 if VISUAL:
                     # print(opt)
@@ -195,20 +200,21 @@ def data_process(is_train, folder_name):
 
 
 if __name__ == "__main__":
-    DATA_DIR = "/data/Datasets/BR/set1"
+    DATA_DIR = "/home/ubuntu/Datasets/BR/set2"
     STEPS = 3
-    IMG_SIZE = 416
+    IMG_SIZE = 384
     VALID_RATIO = 0.1
-    VISUAL = True
-    INCLUDE_BG = False
+    VISUAL = False
+    INCLUDE_BG = True
     BG_RATIO = 0.2
-    BG_DIR = "/data/Datasets/SPC/download"
-    MX_BG = "/data/Datasets/Mixup_background"
-    SAVE_DIR = "/data/Datasets/BR/set1"
+    BG_DIR = "/home/ubuntu/Datasets/SPC/download"
+    MX_BG = "/home/ubuntu/Datasets/Mixup_background"
+    SAVE_DIR = DATA_DIR.copy()
     
     classes = ["Baskin_robbins"]
     images = sorted(glob(f"{DATA_DIR}/images/*"))
     annotations = sorted(glob(f"{DATA_DIR}/annotations/*"))
+    print(len(images), len(annotations))
     
     data_process(True, "train")
     data_process(False, "valid")

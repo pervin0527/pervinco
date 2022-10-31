@@ -1,8 +1,9 @@
 import os
 import cv2
 from glob import glob
+from tqdm import tqdm
 from shutil import copytree
-from src.utils import read_label_file, read_xml, get_files
+from utils import read_label_file, read_xml
 
 def yolo2voc(class_id, width, height, x, y, w, h):
     xmin = int((x*width) - (w * width)/2.0)
@@ -22,15 +23,16 @@ if __name__ == "__main__":
     print(classes)
 
     for folder in FOLDERS:
-        images = get_files(f"{ROOT_DIR}/{folder}/images")
-        annotations = get_files(f"{ROOT_DIR}/{folder}/annotations")
+        images = sorted(glob(f"{ROOT_DIR}/{folder}/images/*"))
+        annotations = sorted(glob(f"{ROOT_DIR}/{folder}/annotations/*"))
 
         if not os.path.isdir(f"{ROOT_DIR}/{folder}/v4set"):
             os.makedirs(f"{ROOT_DIR}/{folder}/v4set")
             os.makedirs(f"{ROOT_DIR}/{folder}/draw")
 
         print(f"{ROOT_DIR}/{folder}")
-        for annot in annotations:
+        for idx in tqdm(range(len(annotations))):
+            annot = annotations[idx]
             file_name = annot.split('/')[-1].split('.')[0]
             image = cv2.imread(f"{ROOT_DIR}/{folder}/images/{file_name}.jpg")
             cv2.imwrite(f"{ROOT_DIR}/{folder}/v4set/{file_name}.jpg", image)

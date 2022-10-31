@@ -29,12 +29,12 @@ def augmentation(total_files):
             print(f"{img_file}, {annot_file}")
 
 if __name__ == "__main__":
-    dataset1_dir = "/data/Datasets/SPC/Cvat/Baskin_robbins"
-    dataset2_dir = "/data/Datasets/BR/cvat"
-    label_dir = "/data/Datasets/BR/Labels/labels.txt"
-    save_dir = "/data/Datasets/BR/set1"
+    dataset1_dir = "/home/ubuntu/Datasets/SPC/Cvat/Baskin_robbins"
+    dataset2_dir = "/home/ubuntu/Datasets/BR/cvat"
+    label_dir = "/home/ubuntu/Datasets/BR/Labels/labels.txt"
+    save_dir = "/home/ubuntu/Datasets/BR/set2"
 
-    img_size = 416
+    img_size = 384
     transform = A.Compose([
         A.Resize(img_size, img_size, p=1)
     ], bbox_params=A.BboxParams(format="pascal_voc", label_fields=["labels"]))

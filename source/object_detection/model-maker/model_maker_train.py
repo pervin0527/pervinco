@@ -27,9 +27,9 @@ else:
 
 
 if __name__ == "__main__":
-    ROOT_DIR = "/data/Datasets/SPC"
-    TRAIN_DIR = f"{ROOT_DIR}/full-name14/train"
-    VALID_DIR = f"{ROOT_DIR}/full-name14/valid"
+    ROOT_DIR = "/home/ubuntu/Datasets/BR"
+    TRAIN_DIR = f"{ROOT_DIR}/set2/train"
+    VALID_DIR = f"{ROOT_DIR}/set2/valid"
 
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
     LABEL_FILE = pd.read_csv(LABEL_FILE, sep=',', index_col=False, header=None)
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     # CLASSES = CLASSES[:-1]
     print(CLASSES)
     
-    EPOCHS = 100
+    EPOCHS = 300
     BATCH_SIZE = 64
     MAX_DETECTIONS = 10
 
