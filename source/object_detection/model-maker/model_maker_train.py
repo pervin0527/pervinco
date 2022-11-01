@@ -37,7 +37,7 @@ if __name__ == "__main__":
     # CLASSES = CLASSES[:-1]
     print(CLASSES)
     
-    EPOCHS = 5
+    EPOCHS = 100
     BATCH_SIZE = 64
     MAX_DETECTIONS = 10
 
@@ -68,7 +68,7 @@ if __name__ == "__main__":
                                                                  label_map=CLASSES)
 
     spec = object_detector.EfficientDetLite1Spec(verbose=1,
-                                                 strategy=None, # 'gpus'
+                                                 strategy="gpus", # 'gpus', None
                                                  hparams=HPARAMS,
                                                  tflite_max_detections=MAX_DETECTIONS,
                                                  model_dir=f'{SAVE_PATH}/{MODEL_FILE}')

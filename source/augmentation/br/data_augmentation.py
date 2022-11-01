@@ -1,4 +1,5 @@
 import cv2
+import copy
 import random
 import numpy as np
 import albumentations as A
@@ -8,10 +9,9 @@ from glob import glob
 from utils import make_file_list, load_annot_data, make_save_dir, annot_write
 
 
-def basic_augmentation(files):
-    idx = random.randint(0, len(files)-1)
-    image_file, annot_file = files[idx]
-    del files[idx]
+def basic_augmentation(current_files):
+    idx = random.randint(0, len(current_files)-1)
+    image_file, annot_file = current_files[idx]
     image = cv2.imread(image_file)
     bboxes, labels = load_annot_data(annot_file)
 
@@ -36,8 +36,8 @@ def adjust_coordinates(bboxes):
 def get_background_image(dirs):
     mixup_file_list = []
     for dir in dirs:
-        files = glob(f"{dir}/*.jpg")
-        mixup_file_list.extend(files)
+        mixup_files = glob(f"{dir}/*.jpg")
+        mixup_file_list.extend(mixup_files)
         
     idx = random.randint(0, len(mixup_file_list)-1)
     background_image = cv2.imread(mixup_file_list[idx])
@@ -103,16 +103,15 @@ def crop_image(image, bboxes, labels, coordinates):
     return crop_image, np.array(crop_bboxes), crop_labels
 
 
-def mosaic_augmentation(files):
+def mosaic_augmentation(current_files):
     mosaic_image = np.full((img_size, img_size, 3), 128, dtype=np.uint8)
     mosaic_boxes, mosaic_labels = [], []
 
     xc = int(random.uniform(img_size * 0.25, img_size * 0.75))
     yc = int(random.uniform(img_size * 0.25, img_size * 0.75))
-    indices = [random.randint(0, len(files)-1) for _ in range(4)]
+    indices = [random.randint(0, len(current_files)-1) for _ in range(4)]
     for i, index in enumerate(indices):
-        image_file, annotation_file = files[index]
-        del files[index]
+        image_file, annotation_file = current_files[index]
         image = cv2.imread(image_file)
         bboxes, labels = load_annot_data(annotation_file)
         # bboxes = adjust_coordinates(bboxes)
@@ -158,42 +157,59 @@ def mosaic_augmentation(files):
     return mosaic_image, mosaic_boxes, mosaic_labels
 
         
-def augmentation(files):
-    make_save_dir(save_dir)
+def train_augmentation(files):
+    save_path = f"{save_dir}/train"
+    make_save_dir(save_path)
 
-    current_files = files.copy()
     for number in tqdm(range(total_steps)):
-        if len(current_files) <= 3:
-            current_files = files.copy()
-
         if mosaic and random.random() < mosaic_prob:
-            result_image, result_bboxes, result_labels = mosaic_augmentation(current_files)
+            result_image, result_bboxes, result_labels = mosaic_augmentation(files)
         else:
-            result_image, result_bboxes, result_labels = basic_augmentation(current_files)
+            result_image, result_bboxes, result_labels = basic_augmentation(files)
 
         if mixup and random.random() < mixup_prob:
             result_image = mixup_augmentation(result_image, mixup_min, mixup_max)
 
-        cv2.imwrite(f"{save_dir}/JPEGImages/{number:>06}.jpg", result_image)
-        annot_write(f"{save_dir}/Annotations/{number:>06}.xml", result_bboxes, result_labels, result_image.shape[:2])
+        cv2.imwrite(f"{save_path}/JPEGImages/{number:>09}.jpg", result_image)
+        annot_write(f"{save_path}/Annotations/{number:>09}.xml", result_bboxes, result_labels, result_image.shape[:2])
 
         sample = result_image.copy()
         for bbox in result_bboxes:
             xmin, ymin, xmax, ymax = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
             cv2.rectangle(sample, (xmin, ymin), (xmax, ymax), (0, 0, 255), 2)
-        cv2.imwrite(f"{save_dir}/Results/{number:>06}.jpg", sample)
+        cv2.imwrite(f"{save_path}/Results/{number:>09}.jpg", sample)
 
-        cv2.imshow("sample", sample)
-        cv2.waitKey(0)
+        # cv2.imshow("sample", sample)
+        # cv2.waitKey(0)
 
+def valid_augmentation(files):
+    save_path = f"{save_dir}/valid"
+    make_save_dir(save_path)
+
+    for idx in tqdm(range(len(files))):
+        image_file, annot_file = files[idx]
+        image = cv2.imread(image_file)
+        bboxes, labels = load_annot_data(annot_file)
+
+        val_transformed = valid_transform(image=image, bboxes=bboxes, labels=labels)
+        val_image, val_bboxes, val_labels = val_transformed["image"], val_transformed["bboxes"], val_transformed["labels"]
+
+        cv2.imwrite(f"{save_path}/JPEGImages/{idx:>09}.jpg", val_image)
+        annot_write(f"{save_path}/Annotations/{idx:>09}.xml", val_bboxes, val_labels, val_image.shape[:2])
+
+        sample = val_image.copy()
+        for bbox in val_bboxes:
+            xmin, ymin, xmax, ymax = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
+            cv2.rectangle(sample, (xmin, ymin), (xmax, ymax), (0, 0, 255), 2)
+        cv2.imwrite(f"{save_path}/Results/{idx:>09}.jpg", sample)
 
 if __name__ == "__main__":
     data_dir = ["/home/ubuntu/Datasets/BR/Seeds"]
     save_dir = "/home/ubuntu/Datasets/BR/set0"
-    total_steps = 50000
+    total_steps = 100000
     num_valid = 100
 
-    img_size = 640
+    img_size = 384
     mosaic = True
     mosaic_prob = 0.4
     mixup = True
@@ -221,5 +237,10 @@ if __name__ == "__main__":
 
     ], bbox_params=A.BboxParams(format="pascal_voc", label_fields=["labels"]))
 
+    valid_transform = A.Compose([
+        A.Resize(img_size, img_size, p=1),
+    ], bbox_params=A.BboxParams(format="pascal_voc", label_fields=["labels"]))
+
     train_files, valid_files = make_file_list(data_dir, num_valid)
-    augmentation(train_files)
+    train_augmentation(train_files)
+    valid_augmentation(valid_files)

@@ -75,7 +75,7 @@ def save_detection_result(path):
             frame_resized = cv2.resize(frame_rgb, (width, height))
             darknet.copy_image_from_bytes(darknet_image, frame_resized.tobytes())
 
-            detections = darknet.detect_image(network, class_names, darknet_image, thresh=thresh_hold, hier_thresh=.5, nms=.2)
+            detections = darknet.detect_image(network, class_names, darknet_image, thresh=thresh_hold, hier_thresh=.5, nms=.45)
             just_show = frame_resized.copy()
             image = darknet.draw_boxes(detections, just_show, class_colors)
 
