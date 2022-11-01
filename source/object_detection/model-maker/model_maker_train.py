@@ -37,7 +37,7 @@ if __name__ == "__main__":
     # CLASSES = CLASSES[:-1]
     print(CLASSES)
     
-    EPOCHS = 300
+    EPOCHS = 5
     BATCH_SIZE = 64
     MAX_DETECTIONS = 10
 

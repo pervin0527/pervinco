@@ -187,8 +187,8 @@ def augmentation(files):
 
 
 if __name__ == "__main__":
-    data_dir = ["/data/Datasets/BR/Seeds"]
-    save_dir = "/data/Datasets/BR/set0"
+    data_dir = ["/home/ubuntu/Datasets/BR/Seeds"]
+    save_dir = "/home/ubuntu/Datasets/BR/set0"
     total_steps = 50000
     num_valid = 100
 
@@ -197,7 +197,7 @@ if __name__ == "__main__":
     mosaic_prob = 0.4
     mixup = True
     mixup_prob = 0.4
-    mixup_data_dir = ["/data/Datasets/VOCdevkit/VOC2012/JPEGImages", "/data/Datasets/SPC/Background"]
+    mixup_data_dir = ["/home/ubuntu/Datasets/VOCdevkit/VOC2012/JPEGImages", "/home/ubuntu/Datasets/SPC/Background"]
 
     basic_transform = A.Compose([
         A.Resize(img_size, img_size, p=1),

@@ -29,8 +29,8 @@ def make_seed_set(files):
             print(image_file)
 
 if __name__ == "__main__":
-    data_dir = ["/data/Datasets/BR/cvat/*", "/data/Datasets/SPC/Cvat/Baskin_robbins/*"]
-    save_dir = "/data/Datasets/BR/Seeds"
+    data_dir = ["/home/ubuntu/Datasets/BR/cvat/*", "/home/ubuntu/Datasets/SPC/Cvat/Baskin_robbins/*"]
+    save_dir = "/home/ubuntu/Datasets/BR/Seeds"
 
     img_size = 640
     transform = A.Compose([
