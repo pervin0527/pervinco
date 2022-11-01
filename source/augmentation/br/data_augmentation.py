@@ -98,7 +98,7 @@ def crop_image(image, bboxes, labels, coordinates):
     crop_image, crop_bboxes, crop_labels = cropped["image"], cropped["bboxes"], cropped["labels"]
 
     if mixup and random.random() < mixup_prob:
-        crop_image = mixup_augmentation(crop_image, min=0.1, max=0.3)  
+        crop_image = mixup_augmentation(crop_image, min=mixup_min, max=mixup_max)  
 
     return crop_image, np.array(crop_bboxes), crop_labels
 
@@ -172,7 +172,7 @@ def augmentation(files):
             result_image, result_bboxes, result_labels = basic_augmentation(current_files)
 
         if mixup and random.random() < mixup_prob:
-            result_image = mixup_augmentation(result_image)
+            result_image = mixup_augmentation(result_image, mixup_min, mixup_max)
 
         cv2.imwrite(f"{save_dir}/JPEGImages/{number:>06}.jpg", result_image)
         annot_write(f"{save_dir}/Annotations/{number:>06}.xml", result_bboxes, result_labels, result_image.shape[:2])
@@ -181,9 +181,10 @@ def augmentation(files):
         for bbox in result_bboxes:
             xmin, ymin, xmax, ymax = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
             cv2.rectangle(sample, (xmin, ymin), (xmax, ymax), (0, 0, 255), 2)
-        # cv2.imshow("sample", sample)
-        # cv2.waitKey(0)
         cv2.imwrite(f"{save_dir}/Results/{number:>06}.jpg", sample)
+
+        cv2.imshow("sample", sample)
+        cv2.waitKey(0)
 
 
 if __name__ == "__main__":
@@ -197,6 +198,8 @@ if __name__ == "__main__":
     mosaic_prob = 0.4
     mixup = True
     mixup_prob = 0.4
+    mixup_min = 0.1
+    mixup_max = 0.3
     mixup_data_dir = ["/home/ubuntu/Datasets/VOCdevkit/VOC2012/JPEGImages", "/home/ubuntu/Datasets/SPC/Background"]
 
     basic_transform = A.Compose([
