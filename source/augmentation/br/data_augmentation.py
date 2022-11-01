@@ -5,12 +5,13 @@ import albumentations as A
 
 from tqdm import tqdm
 from glob import glob
-from utils import make_file_list, load_annot_data
+from utils import make_file_list, load_annot_data, make_save_dir, annot_write
 
 
 def basic_augmentation(files):
     idx = random.randint(0, len(files)-1)
     image_file, annot_file = files[idx]
+    del files[idx]
     image = cv2.imread(image_file)
     bboxes, labels = load_annot_data(annot_file)
 
@@ -48,13 +49,19 @@ def mixup_augmentation(fg_image, min=0.4, max=0.5, alpha=1.0):
     background_transform = A.Compose([
         A.Resize(height=fg_image.shape[0], width=fg_image.shape[1], p=1),
 
-        A.RandomBrightnessContrast(brightness_limit=(-0.3, 0.3), p=0.5),
-        A.HueSaturationValue(hue_shift_limit=0, sat_shift_limit=(0, 0), val_shift_limit=(0, 100), p=0.5),
-
+        A.OneOf([
+            A.RandomBrightnessContrast(brightness_limit=(-0.3, 0.3), p=0.8),
+            A.HueSaturationValue(hue_shift_limit=0, sat_shift_limit=(0, 0), val_shift_limit=(0, 100), p=0.8),
+        ], p=0.7),
+        
         A.OneOf([
             A.HorizontalFlip(p=0.3),
             A.VerticalFlip(p=0.3),
-        ], p=0.6),
+        ], p=0.3),
+
+        A.ChannelShuffle(p=0.3),
+        A.MotionBlur(blur_limit=(3, 7), p=0.3),
+        A.RGBShift(p=0.3),
     ])
 
     lam = np.clip(np.random.beta(alpha, alpha), min, max)
@@ -72,16 +79,26 @@ def crop_image(image, bboxes, labels, coordinates):
     crop_transform = A.Compose([
         A.Resize(height=coordinates[3]-coordinates[1], width=coordinates[2]-coordinates[0], p=1),
 
-        A.RandomBrightnessContrast(brightness_limit=(-0.3, 0.3), contrast_limit=(-0.3, 0.3), p=0.5),
-        A.HueSaturationValue(hue_shift_limit=0, sat_shift_limit=(0, 0), val_shift_limit=(0, 100), p=0.5),
+        A.OneOf([
+            A.RandomBrightnessContrast(brightness_limit=(-0.3, 0.3), p=0.8),
+            A.HueSaturationValue(hue_shift_limit=0, sat_shift_limit=(0, 0), val_shift_limit=(0, 100), p=0.8),
+        ], p=0.7),
+        
+        A.OneOf([
+            A.HorizontalFlip(p=0.3),
+            A.VerticalFlip(p=0.3),
+        ], p=0.3),
 
-        A.MotionBlur(p=0.3)
+        A.ChannelShuffle(p=0.3),
+        A.MotionBlur(blur_limit=(3, 7), p=0.3),
+        A.RGBShift(p=0.3),
+
     ], bbox_params=A.BboxParams(format="pascal_voc", label_fields=["labels"]))
     cropped = crop_transform(image=image, bboxes=bboxes, labels=labels)
     crop_image, crop_bboxes, crop_labels = cropped["image"], cropped["bboxes"], cropped["labels"]
 
     if mixup and random.random() < mixup_prob:
-        crop_image = mixup_augmentation(crop_image)  
+        crop_image = mixup_augmentation(crop_image, min=0.1, max=0.3)  
 
     return crop_image, np.array(crop_bboxes), crop_labels
 
@@ -95,6 +112,7 @@ def mosaic_augmentation(files):
     indices = [random.randint(0, len(files)-1) for _ in range(4)]
     for i, index in enumerate(indices):
         image_file, annotation_file = files[index]
+        del files[index]
         image = cv2.imread(image_file)
         bboxes, labels = load_annot_data(annotation_file)
         # bboxes = adjust_coordinates(bboxes)
@@ -141,6 +159,8 @@ def mosaic_augmentation(files):
 
         
 def augmentation(files):
+    make_save_dir(save_dir)
+
     current_files = files.copy()
     for number in tqdm(range(total_steps)):
         if len(current_files) <= 3:
@@ -154,29 +174,48 @@ def augmentation(files):
         if mixup and random.random() < mixup_prob:
             result_image = mixup_augmentation(result_image)
 
-        # sample = result_image.copy()
-        # for bbox in result_bboxes:
-        #     xmin, ymin, xmax, ymax = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
-        #     cv2.rectangle(sample, (xmin, ymin), (xmax, ymax), (0, 0, 255), 2)
+        cv2.imwrite(f"{save_dir}/JPEGImages/{number:>06}.jpg", result_image)
+        annot_write(f"{save_dir}/Annotations/{number:>06}.xml", result_bboxes, result_labels, result_image.shape[:2])
+
+        sample = result_image.copy()
+        for bbox in result_bboxes:
+            xmin, ymin, xmax, ymax = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
+            cv2.rectangle(sample, (xmin, ymin), (xmax, ymax), (0, 0, 255), 2)
         # cv2.imshow("sample", sample)
         # cv2.waitKey(0)
+        cv2.imwrite(f"{save_dir}/Results/{number:>06}.jpg", sample)
 
 
 if __name__ == "__main__":
-    data_dir = ["/home/ubuntu/Datasets/BR/cvat", "/home/ubuntu/Datasets/SPC/Cvat/Baskin_robbins"]
-    save_dir = "/home/ubuntu/object-detection/set0"
-    total_steps = 10000
+    data_dir = ["/data/Datasets/BR/Seeds"]
+    save_dir = "/data/Datasets/BR/set0"
+    total_steps = 50000
     num_valid = 100
 
     img_size = 640
     mosaic = True
-    mosaic_prob = 0.6
+    mosaic_prob = 0.4
     mixup = True
-    mixup_prob = 0.6
-    mixup_data_dir = ["/home/ubuntu/Datasets/VOCdevkit/VOC2012", "/"]
+    mixup_prob = 0.4
+    mixup_data_dir = ["/data/Datasets/VOCdevkit/VOC2012/JPEGImages", "/data/Datasets/SPC/Background"]
 
     basic_transform = A.Compose([
-        A.Resize(img_size, img_size, p=1)
+        A.Resize(img_size, img_size, p=1),
+
+        A.OneOf([
+            A.RandomBrightnessContrast(brightness_limit=(-0.3, 0.3), p=0.8),
+            A.HueSaturationValue(hue_shift_limit=0, sat_shift_limit=(0, 0), val_shift_limit=(0, 100), p=0.8),
+        ], p=0.7),
+        
+        A.OneOf([
+            A.HorizontalFlip(p=0.3),
+            A.VerticalFlip(p=0.3),
+        ], p=0.3),
+
+        A.ChannelShuffle(p=0.3),
+        A.MotionBlur(blur_limit=(3, 7), p=0.3),
+        A.RGBShift(p=0.3),
+
     ], bbox_params=A.BboxParams(format="pascal_voc", label_fields=["labels"]))
 
     train_files, valid_files = make_file_list(data_dir, num_valid)

@@ -3,7 +3,7 @@ import pandas as pd
 import tensorflow as tf
 
 from tflite_model_maker import object_detector
-from tflite_model_maker.config import ExportFormat
+from tflite_model_maker.config import ExportFormat, QuantizationConfig
 
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -51,9 +51,10 @@ if __name__ == "__main__":
                "aspect_ratios" : [8.0, 4.0, 2.0, 1.0, 0.5],
                "num_scales" : 5,
                "alpha" : 0.25,
-               "gamma" : 2}
+               "gamma" : 2,
+               "first_lr_drop_epoch" : EPOCHS * (2/3)}
 
-    SAVE_PATH = "/data/Models/efficientdet_lite"
+    SAVE_PATH = "/home/ubuntu/Models/efficientdet_lite"
     PROJECT = ROOT_DIR.split('/')[-1]
     DS_NAME = TRAIN_DIR.split('/')[-2]
     MODEL_FILE = f"{PROJECT}-{DS_NAME}-{EPOCHS}"
@@ -78,10 +79,16 @@ if __name__ == "__main__":
                                    batch_size=BATCH_SIZE,
                                    validation_data=validation_data,
                                    do_train=True,
-                                   train_whole_model=True,)                                 
+                                   train_whole_model=True,)
+
+    config = QuantizationConfig.for_float16()
+    model.export(export_dir=f"{SAVE_PATH}/{MODEL_FILE}/FLOAT16",
+                 quantization_config=config,
+                 saved_model_filename=f"{SAVE_PATH}/{MODEL_FILE}/FLOAT16/saved_model",
+                 export_format=[ExportFormat.SAVED_MODEL])                   
 
     model.export(export_dir=f"{SAVE_PATH}/{MODEL_FILE}",
                  label_filename=f'{SAVE_PATH}/label_map.txt',
                  tflite_filename=f'{MODEL_FILE}.tflite',
                  saved_model_filename=f'{SAVE_PATH}/{MODEL_FILE}/saved_model',
-                 export_format=[ExportFormat.TFLITE, ExportFormat.SAVED_MODEL],)
+                 export_format=[ExportFormat.TFLITE, ExportFormat.SAVED_MODEL])

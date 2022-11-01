@@ -1,29 +1,34 @@
 import os
 import random
 import xml.etree.ElementTree as ET
+from lxml.etree import Element, SubElement
 
 from glob import glob
 
-def make_file_list(dirs, num_valid):
+def make_file_list(dirs, num_valid=0):
     total_files = []
     for dir in dirs:
-        images = sorted(glob(f"{dir}/*/JPEGImages/*"))
-        annotations = sorted(glob(f"{dir}/*/Annotations/*"))
+        images = sorted(glob(f"{dir}/JPEGImages/*"))
+        annotations = sorted(glob(f"{dir}/Annotations/*"))
         print(f"{dir} - image_files : {len(images)},  annot_files : {len(annotations)}")
 
         total_files.extend(list(zip(images, annotations)))
 
     print(f"total_files : {len(total_files)}")
-    random.shuffle(total_files)
 
-    train_files = total_files[:-num_valid]
-    valid_files = total_files[-num_valid:]
-    print(f"Train files : {len(train_files)}")
-    print(f"Valid files : {len(valid_files)}")
+    if num_valid > 0:
+        random.shuffle(total_files)
+        train_files = total_files[:-num_valid]
+        valid_files = total_files[-num_valid:]
+        print(f"Train files : {len(train_files)}")
+        print(f"Valid files : {len(valid_files)}")
 
-    return train_files, valid_files
+        return train_files, valid_files
 
-def make_save_Dir(dir):
+    else:
+        return total_files
+
+def make_save_dir(dir):
     if not os.path.isdir(dir):
         os.makedirs(f"{dir}/JPEGImages")
         os.makedirs(f"{dir}/Annotations")
@@ -31,6 +36,9 @@ def make_save_Dir(dir):
 
 def load_annot_data(annot_file):
     target = ET.parse(annot_file).getroot()
+
+    height = int(target.find('size').find('height').text)
+    width = int(target.find('size').find('width').text)
 
     bboxes, labels = [], []
     for obj in target.iter("object"):
@@ -41,7 +49,56 @@ def load_annot_data(annot_file):
         bbox = []
         for current in ["xmin", "ymin", "xmax", "ymax"]:
             coordinate = int(float(bndbox.find(current).text))
+            if current == "xmin" and coordinate < 0:
+                coordinate = 0
+            elif current == "ymin" and coordinate < 0:
+                coordinate = 0
+            elif current == "xmax" and coordinate > width:
+                coordinate = width
+            elif current == "ymax" and coordinate > height:
+                coordinate = height
             bbox.append(coordinate)
         bboxes.append(bbox)
 
     return bboxes, labels
+
+def annot_write(dst, bboxes, labels, img_size):
+    root = Element("annotations")
+    folder = SubElement(root, "folder")
+    folder.text = "JPEGImages"
+    filename = SubElement(root, "filename")
+    filename.text = dst.split('/')[-1].split('.')[0] + ".jpg"
+
+    size = SubElement(root, "size")
+    h = SubElement(size, "height")
+    h.text = str(img_size[0])
+    w = SubElement(size, "width")
+    w.text = str(img_size[1])
+    depth = SubElement(size, "depth")
+    depth.text = "3"
+
+    if labels:
+        for label, bbox in zip(labels, bboxes):
+            obj = SubElement(root, 'object')
+            name = SubElement(obj, 'name')
+            name.text = label[0]
+            pose = SubElement(obj, 'pose')
+            pose.text = 'Unspecified'
+            truncated = SubElement(obj, 'truncated')
+            truncated.text = '0'
+            difficult = SubElement(obj, 'difficult')
+            difficult.text = '0'
+            bndbox = SubElement(obj, 'bndbox')
+            xmin, ymin, xmax, ymax = bbox[0], bbox[1], bbox[2], bbox[3]
+
+            node_xmin = SubElement(bndbox, 'xmin')
+            node_xmin.text = str(int(xmin))
+            node_ymin = SubElement(bndbox, 'ymin')
+            node_ymin.text = str(int(ymin))
+            node_xmax = SubElement(bndbox, 'xmax')
+            node_xmax.text = str(int(xmax))
+            node_ymax = SubElement(bndbox, 'ymax')
+            node_ymax.text = str(int(ymax))
+    
+    tree = ET.ElementTree(root)    
+    tree.write(dst)
