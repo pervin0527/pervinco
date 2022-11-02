@@ -2,8 +2,7 @@ import os
 import cv2
 from glob import glob
 from tqdm import tqdm
-from shutil import copytree
-from utils import read_label_file, read_xml
+from utils import load_annot_data
 
 def yolo2voc(class_id, width, height, x, y, w, h):
     xmin = int((x*width) - (w * width)/2.0)
@@ -15,30 +14,26 @@ def yolo2voc(class_id, width, height, x, y, w, h):
     return (class_id, xmin, ymin, xmax, ymax)
 
 if __name__ == "__main__":
-    FOLDERS = ["train", "valid"]
-    ROOT_DIR = "/home/ubuntu/Datasets/BR/set1"
+    FOLDERS = ["Seeds"]
+    ROOT_DIR = "/home/ubuntu/Datasets/BR"
     LABEL_DIR = "/home/ubuntu/Datasets/BR/Labels/labels.txt"
-
-    classes = read_label_file(LABEL_DIR)
-    print(classes)
+    classes = ["Baskin_robbins"]
 
     for folder in FOLDERS:
-        images = sorted(glob(f"{ROOT_DIR}/{folder}/images/*"))
-        annotations = sorted(glob(f"{ROOT_DIR}/{folder}/annotations/*"))
+        annotations = sorted(glob(f"{ROOT_DIR}/{folder}/Annotations/*"))
 
         if not os.path.isdir(f"{ROOT_DIR}/{folder}/v4set"):
             os.makedirs(f"{ROOT_DIR}/{folder}/v4set")
-            os.makedirs(f"{ROOT_DIR}/{folder}/draw")
 
         print(f"{ROOT_DIR}/{folder}")
         for idx in tqdm(range(len(annotations))):
             annot = annotations[idx]
             file_name = annot.split('/')[-1].split('.')[0]
-            image = cv2.imread(f"{ROOT_DIR}/{folder}/images/{file_name}.jpg")
+            image = cv2.imread(f"{ROOT_DIR}/{folder}/JPEGImages/{file_name}.jpg")
             cv2.imwrite(f"{ROOT_DIR}/{folder}/v4set/{file_name}.jpg", image)
 
             with open(f"{ROOT_DIR}/{folder}/v4set/{file_name}.txt", "w") as f:
-                bboxes, labels = read_xml(annot, classes, format="yolo")
+                bboxes, labels = load_annot_data(annot)
                 for bbox, label in zip(bboxes, labels):
                     f.write(str(label) + " " + " ".join([("%.6f" % a) for a in bbox]) + '\n')
                 f.close()

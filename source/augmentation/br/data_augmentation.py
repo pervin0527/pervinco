@@ -47,14 +47,13 @@ def get_background_image(dirs):
 
 def mixup_augmentation(fg_image, min=0.4, max=0.5, alpha=1.0):
     background_transform = A.Compose([
-        A.Resize(height=fg_image.shape[0], width=fg_image.shape[1], p=1),
-
         A.OneOf([
             A.RandomBrightnessContrast(brightness_limit=(-0.3, 0.3), p=0.8),
             A.HueSaturationValue(hue_shift_limit=0, sat_shift_limit=(0, 0), val_shift_limit=(0, 100), p=0.8),
         ], p=0.7),
         
         A.OneOf([
+            A.RandomRotate90(p=0.4),
             A.HorizontalFlip(p=0.3),
             A.VerticalFlip(p=0.3),
         ], p=0.3),
@@ -62,6 +61,8 @@ def mixup_augmentation(fg_image, min=0.4, max=0.5, alpha=1.0):
         A.ChannelShuffle(p=0.3),
         A.MotionBlur(blur_limit=(3, 7), p=0.3),
         A.RGBShift(p=0.3),
+
+        A.Resize(height=fg_image.shape[0], width=fg_image.shape[1], p=1),
     ])
 
     lam = np.clip(np.random.beta(alpha, alpha), min, max)
@@ -77,14 +78,13 @@ def mixup_augmentation(fg_image, min=0.4, max=0.5, alpha=1.0):
 
 def crop_image(image, bboxes, labels, coordinates):
     crop_transform = A.Compose([
-        A.Resize(height=coordinates[3]-coordinates[1], width=coordinates[2]-coordinates[0], p=1),
-
         A.OneOf([
             A.RandomBrightnessContrast(brightness_limit=(-0.3, 0.3), p=0.8),
             A.HueSaturationValue(hue_shift_limit=0, sat_shift_limit=(0, 0), val_shift_limit=(0, 100), p=0.8),
         ], p=0.7),
         
         A.OneOf([
+            A.RandomRotate90(p=0.4),
             A.HorizontalFlip(p=0.3),
             A.VerticalFlip(p=0.3),
         ], p=0.3),
@@ -92,6 +92,8 @@ def crop_image(image, bboxes, labels, coordinates):
         A.ChannelShuffle(p=0.3),
         A.MotionBlur(blur_limit=(3, 7), p=0.3),
         A.RGBShift(p=0.3),
+
+        A.Resize(height=coordinates[3]-coordinates[1], width=coordinates[2]-coordinates[0], p=1),
 
     ], bbox_params=A.BboxParams(format="pascal_voc", label_fields=["labels"]))
     cropped = crop_transform(image=image, bboxes=bboxes, labels=labels)
@@ -179,8 +181,8 @@ def train_augmentation(files):
             cv2.rectangle(sample, (xmin, ymin), (xmax, ymax), (0, 0, 255), 2)
         cv2.imwrite(f"{save_path}/Results/{number:>09}.jpg", sample)
 
-        # cv2.imshow("sample", sample)
-        # cv2.waitKey(0)
+        cv2.imshow("sample", sample)
+        cv2.waitKey(0)
 
 def valid_augmentation(files):
     save_path = f"{save_dir}/valid"
@@ -220,6 +222,13 @@ if __name__ == "__main__":
 
     basic_transform = A.Compose([
         A.Resize(img_size, img_size, p=1),
+        # A.RandomSizedBBoxSafeCrop(img_size, img_size, p=1),
+        # A.RandomCrop(img_size, img_size, p=1),
+        A.CropAndPad(percent=0.2, pad_mode=0, keep_size=True),
+
+        A.OneOf([
+            
+        ], p=1),
 
         A.OneOf([
             A.RandomBrightnessContrast(brightness_limit=(-0.3, 0.3), p=0.8),
