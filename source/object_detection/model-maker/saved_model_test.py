@@ -91,46 +91,51 @@ def inference2(dataset_path, model_path):
     files = sorted(glob(f"{frame_path}/*/JPEGImages/*"))
     print(len(files))
     for idx in tqdm(range(len(files))):
-        file = files[idx]
-        file_name = file.split('/')[-1].split('.')[0]
-        image = cv2.imread(file)
-        image = cv2.resize(image, input_shape)
-        input_tensor = np.expand_dims(image, axis=0)
-        
-        prediction = model(input_tensor)
-        boxes, scores, class_ids = prediction[0][0].numpy(), prediction[1][0].numpy(), prediction[2][0].numpy()
-
-        indices = np.where(scores > threshold)[0]
-        if indices.size > 0:
-            bbox = boxes[indices]
-            score = scores[indices]
-            class_id = class_ids[indices]
-
-            if len(class_id) == 1:
-                if class_id == 1:
-                    detection_result.append([f"{file_name}", "O"])
-                else:
-                    detection_result.append([f"{file_name}", "X"])
+        try:
+            file = files[idx]
+            file_name = file.split('/')[-1].split('.')[0]
+            image = cv2.imread(file)
+            image = cv2.resize(image, input_shape)
+            input_tensor = np.expand_dims(image, axis=0)
             
-            elif len(class_id) > 1:
-                if 1 in class_id:
-                    detection_result.append([f"{file_name}", "O"])
-                else:
-                    detection_result.append([f"{file_name}", "X"])
-        else:
-            detection_result.append([f"{file_name}", "X"])
+            prediction = model(input_tensor)
+            boxes, scores, class_ids = prediction[0][0].numpy(), prediction[1][0].numpy(), prediction[2][0].numpy()
+
+            indices = np.where(scores > threshold)[0]
+            if indices.size > 0:
+                bbox = boxes[indices]
+                score = scores[indices]
+                class_id = class_ids[indices]
+
+                if len(class_id) == 1:
+                    if class_id == 1:
+                        detection_result.append([f"{file_name}", "O"])
+                    else:
+                        detection_result.append([f"{file_name}", "X"])
+                
+                elif len(class_id) > 1:
+                    if 1 in class_id:
+                        detection_result.append([f"{file_name}", "O"])
+                    else:
+                        detection_result.append([f"{file_name}", "X"])
+            else:
+                detection_result.append([f"{file_name}", "X"])
+
+        except:
+            pass
             
     df = pd.DataFrame(detection_result)
-    df.to_csv("/data/result.csv", index=False, header=["file_name", "is_correct"])
+    df.to_csv(save_path, index=False, header=["file_name", "is_correct"])
 
 
 if __name__ == "__main__":
     pb_path = "/data/Models/efficientdet_lite/BR-set2-100/saved_model"
-    frame_path = "/data/Datasets/SPC/Cvat/Baskin_robbins"
+    frame_path = "/data/Datasets/BR/frames"
+    save_path = "/data/result2.csv"
     input_shape = (384, 384)
     threshold = 0.4
 
     mean_rgb = [0.485 * 255, 0.456 * 255, 0.406 * 255]
     stddev_rgb = [0.229 * 255, 0.224 * 255, 0.225 * 255]
 
-    total_matched = inference2(frame_path, pb_path)
+    total_matched = inference(frame_path, pb_path)
