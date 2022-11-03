@@ -25,13 +25,14 @@ else:
     except RuntimeError as e:
         print(e)
 
-def preprocess_input(image):
-    image = image.astype(np.float32)
-    image /= 255
-    # image /= 255.0
-    # image -= np.array([0.485, 0.456, 0.406])
-    # image /= np.array([0.229, 0.224, 0.225])
-    return image
+
+# def preprocess_input(image):
+#     image = image.astype(np.float32)
+#     image /= 255.0
+#     image -= np.array([0.485, 0.456, 0.406])
+#     image /= np.array([0.229, 0.224, 0.225])
+
+#     return image
 
 
 def inference(dataset_path, model_path):
@@ -50,7 +51,6 @@ def inference(dataset_path, model_path):
             image = cv2.imread(frames[index])
             image = cv2.resize(image, input_shape)
             input_tensor = np.expand_dims(image, axis=0)
-            # input_tensor = np.expand_dims(preprocess_input(image), axis=0).astype(np.uint8)
 
             prediction = model(input_tensor)
             boxes, scores, class_ids = prediction[0][0].numpy(), prediction[1][0].numpy(), prediction[2][0].numpy()
@@ -80,17 +80,57 @@ def inference(dataset_path, model_path):
         print(acc, acc / len(frames) * 100)
 
     df = pd.DataFrame(detection_result)
-    df.to_csv("/data/Datasets/BR/result.csv", index=False, header=["spot_name", "filename", "is_correct"])
+    df.to_csv("/data/result.csv", index=False, header=["spot_name", "filename", "is_correct"])
+
+
+def inference2(dataset_path, model_path):
+    model = tf.saved_model.load(model_path)
+    print("Model Loaded")
+
+    detection_result = []
+    files = sorted(glob(f"{frame_path}/*/JPEGImages/*"))
+    print(len(files))
+    for idx in tqdm(range(len(files))):
+        file = files[idx]
+        file_name = file.split('/')[-1].split('.')[0]
+        image = cv2.imread(file)
+        image = cv2.resize(image, input_shape)
+        input_tensor = np.expand_dims(image, axis=0)
+        
+        prediction = model(input_tensor)
+        boxes, scores, class_ids = prediction[0][0].numpy(), prediction[1][0].numpy(), prediction[2][0].numpy()
+
+        indices = np.where(scores > threshold)[0]
+        if indices.size > 0:
+            bbox = boxes[indices]
+            score = scores[indices]
+            class_id = class_ids[indices]
+
+            if len(class_id) == 1:
+                if class_id == 1:
+                    detection_result.append([f"{file_name}", "O"])
+                else:
+                    detection_result.append([f"{file_name}", "X"])
+            
+            elif len(class_id) > 1:
+                if 1 in class_id:
+                    detection_result.append([f"{file_name}", "O"])
+                else:
+                    detection_result.append([f"{file_name}", "X"])
+        else:
+            detection_result.append([f"{file_name}", "X"])
+            
+    df = pd.DataFrame(detection_result)
+    df.to_csv("/data/result.csv", index=False, header=["file_name", "is_correct"])
 
 
 if __name__ == "__main__":
-    pb_path = "/data/Models/efficientdet_lite/SPC-full-name14-d1-300/saved_model"
-    frame_path = "/data/Datasets/BR/frames"
-    save_path = "/data/Datasets/BR/effdet-d1-lite"
+    pb_path = "/data/Models/efficientdet_lite/BR-set2-100/saved_model"
+    frame_path = "/data/Datasets/SPC/Cvat/Baskin_robbins"
     input_shape = (384, 384)
     threshold = 0.4
 
     mean_rgb = [0.485 * 255, 0.456 * 255, 0.406 * 255]
     stddev_rgb = [0.229 * 255, 0.224 * 255, 0.225 * 255]
 
-    total_matched = inference(frame_path, pb_path)
+    total_matched = inference2(frame_path, pb_path)

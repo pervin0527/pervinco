@@ -93,6 +93,12 @@ def crop_image(image, bboxes, labels, coordinates):
         A.MotionBlur(blur_limit=(3, 7), p=0.3),
         A.RGBShift(p=0.3),
 
+        A.OneOf([
+            A.RandomSizedBBoxSafeCrop(img_size, img_size, p=0.4),
+            A.CropAndPad(percent=0.2, pad_mode=0, keep_size=True, p=0.4),
+            # A.RandomCrop(img_size, img_size, p=0.2),
+        ],p=0.6),
+
         A.Resize(height=coordinates[3]-coordinates[1], width=coordinates[2]-coordinates[0], p=1),
 
     ], bbox_params=A.BboxParams(format="pascal_voc", label_fields=["labels"]))
@@ -208,7 +214,7 @@ def valid_augmentation(files):
 if __name__ == "__main__":
     data_dir = ["/home/ubuntu/Datasets/BR/Seeds"]
     save_dir = "/home/ubuntu/Datasets/BR/set0"
-    total_steps = 100000
+    total_steps = 100
     num_valid = 100
 
     img_size = 384
@@ -222,9 +228,12 @@ if __name__ == "__main__":
 
     basic_transform = A.Compose([
         A.Resize(img_size, img_size, p=1),
-        # A.RandomSizedBBoxSafeCrop(img_size, img_size, p=1),
-        # A.RandomCrop(img_size, img_size, p=1),
-        A.CropAndPad(percent=0.2, pad_mode=0, keep_size=True),
+        
+        A.OneOf([
+            A.RandomSizedBBoxSafeCrop(img_size, img_size, p=0.4),
+            A.CropAndPad(percent=0.2, pad_mode=0, keep_size=True, p=0.4),
+            # A.RandomCrop(img_size, img_size, p=0.2),
+        ],p=0.4),
 
         A.OneOf([
             
@@ -233,7 +242,7 @@ if __name__ == "__main__":
         A.OneOf([
             A.RandomBrightnessContrast(brightness_limit=(-0.3, 0.3), p=0.8),
             A.HueSaturationValue(hue_shift_limit=0, sat_shift_limit=(0, 0), val_shift_limit=(0, 100), p=0.8),
-        ], p=0.7),
+        ], p=0.5),
         
         A.OneOf([
             A.HorizontalFlip(p=0.3),
