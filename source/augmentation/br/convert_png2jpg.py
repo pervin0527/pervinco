@@ -6,13 +6,17 @@ from utils import make_file_list, make_save_dir, load_annot_data, annot_write
 
 def make_seed_set(files):
     make_save_dir(save_dir)
+    label_check = set()
 
     for idx in tqdm(range(len(files))):
         image_file, annot_file = files[idx]
         image = cv2.imread(image_file)
-        bboxes, labels = load_annot_data(annot_file)
+        bboxes, labels = load_annot_data(annot_file, target_classes=classes)
 
         try:
+            for label in labels:
+                label_check.update(label)
+
             transformed = transform(image=image, bboxes=bboxes, labels=labels)
             t_image, t_bboxes, t_labels = transformed["image"], transformed["bboxes"], transformed["labels"]
 
@@ -27,12 +31,15 @@ def make_seed_set(files):
 
         except:
             print(image_file)
+    
+    print(label_check)
 
 if __name__ == "__main__":
-    data_dir = ["/home/ubuntu/Datasets/BR/cvat/*"]
-    save_dir = "/home/ubuntu/Datasets/BR/Seeds"
+    data_dir = ["/home/ubuntu/Datasets/BR/cvat/*", "/home/ubuntu/Datasets/BR/O/*", "/home/ubuntu/Datasets/BR/X/*", "/home/ubuntu/Datasets/SPC/Cvat/Baskin_robbins/*"]
+    save_dir = "/home/ubuntu/Datasets/BR/Seeds2"
+    classes = ["Baskin_robbins"]
 
-    img_size = 640
+    img_size = 384
     transform = A.Compose([
         A.Resize(img_size, img_size, p=1),
     ], bbox_params=A.BboxParams(format="pascal_voc", label_fields=["labels"]))

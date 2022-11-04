@@ -28,16 +28,15 @@ else:
 
 if __name__ == "__main__":
     ROOT_DIR = "/home/ubuntu/Datasets/BR"
-    TRAIN_DIR = f"{ROOT_DIR}/set2/train"
-    VALID_DIR = f"{ROOT_DIR}/set2/valid"
+    TRAIN_DIR = f"{ROOT_DIR}/set1_384/train"
+    VALID_DIR = f"{ROOT_DIR}/set1_384/valid"
 
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
     LABEL_FILE = pd.read_csv(LABEL_FILE, sep=',', index_col=False, header=None)
     CLASSES = LABEL_FILE[0].tolist()
-    # CLASSES = CLASSES[:-1]
     print(CLASSES)
     
-    EPOCHS = 300
+    EPOCHS = 10
     BATCH_SIZE = 64
     MAX_DETECTIONS = 10
 
@@ -46,9 +45,10 @@ if __name__ == "__main__":
                "lr_decay_method" : "cosine",
                "learning_rate" : 0.008,
                "lr_warmup_init" : 0.0008,
+               
                "lr_warmup_epoch" : 1.0, ## default : 1.0
-               "anchor_scale" : 7.0,
-               "aspect_ratios" : [8.0, 4.0, 2.0, 1.0, 0.5],
+               "anchor_scale" : 3.0, ## 4.0
+               "aspect_ratios" : [8.85, 4.06, 1.67, 0.53], ##[8.0, 4.0, 2.0, 1.0, 0.5],
                "num_scales" : 5,
                "alpha" : 0.25,
                "gamma" : 2,
@@ -59,12 +59,12 @@ if __name__ == "__main__":
     DS_NAME = TRAIN_DIR.split('/')[-2]
     MODEL_FILE = f"{PROJECT}-{DS_NAME}-{EPOCHS}"
 
-    train_data = object_detector.DataLoader.from_pascal_voc(images_dir=f"{TRAIN_DIR}/images",
-                                                            annotations_dir=f"{TRAIN_DIR}/annotations", 
+    train_data = object_detector.DataLoader.from_pascal_voc(images_dir=f"{TRAIN_DIR}/JPEGImages",
+                                                            annotations_dir=f"{TRAIN_DIR}/Annotations", 
                                                             label_map=CLASSES)
 
-    validation_data = object_detector.DataLoader.from_pascal_voc(images_dir=f'{VALID_DIR}/images',
-                                                                 annotations_dir=f'{VALID_DIR}/annotations',
+    validation_data = object_detector.DataLoader.from_pascal_voc(images_dir=f'{VALID_DIR}/JPEGImages',
+                                                                 annotations_dir=f'{VALID_DIR}/Annotations',
                                                                  label_map=CLASSES)
 
     spec = object_detector.EfficientDetLite1Spec(verbose=1,
@@ -81,11 +81,13 @@ if __name__ == "__main__":
                                    do_train=True,
                                    train_whole_model=True,)
 
-    config = QuantizationConfig.for_float16()
-    model.export(export_dir=f"{SAVE_PATH}/{MODEL_FILE}/FLOAT16",
-                 quantization_config=config,
-                 saved_model_filename=f"{SAVE_PATH}/{MODEL_FILE}/FLOAT16/saved_model",
-                 export_format=[ExportFormat.SAVED_MODEL])                   
+    tf.saved_model.save(model, f"{SAVE_PATH}/{MODEL_FILE}/FLOAT32/saved_model")
+
+    # config = QuantizationConfig.for_float16()
+    # model.export(export_dir=f"{SAVE_PATH}/{MODEL_FILE}/FLOAT16",
+    #              quantization_config=config,
+    #              saved_model_filename=f"{SAVE_PATH}/{MODEL_FILE}/FLOAT16/saved_model",
+    #              export_format=[ExportFormat.SAVED_MODEL])                   
 
     model.export(export_dir=f"{SAVE_PATH}/{MODEL_FILE}",
                  label_filename=f'{SAVE_PATH}/label_map.txt',

@@ -1,5 +1,4 @@
 import cv2
-import copy
 import random
 import numpy as np
 import albumentations as A
@@ -13,7 +12,7 @@ def basic_augmentation(current_files):
     idx = random.randint(0, len(current_files)-1)
     image_file, annot_file = current_files[idx]
     image = cv2.imread(image_file)
-    bboxes, labels = load_annot_data(annot_file)
+    bboxes, labels = load_annot_data(annot_file, target_classes=classes)
 
     transformed = basic_transform(image=image, bboxes=bboxes, labels=labels)
     aug_image, aug_bboxes, aug_labels = transformed["image"], transformed["bboxes"], transformed["labels"]
@@ -105,8 +104,8 @@ def crop_image(image, bboxes, labels, coordinates):
     cropped = crop_transform(image=image, bboxes=bboxes, labels=labels)
     crop_image, crop_bboxes, crop_labels = cropped["image"], cropped["bboxes"], cropped["labels"]
 
-    if mixup and random.random() < mixup_prob:
-        crop_image = mixup_augmentation(crop_image, min=mixup_min, max=mixup_max)  
+    # if mixup and random.random() < mixup_prob:
+    #     crop_image = mixup_augmentation(crop_image, min=mixup_min, max=mixup_max)  
 
     return crop_image, np.array(crop_bboxes), crop_labels
 
@@ -121,7 +120,7 @@ def mosaic_augmentation(current_files):
     for i, index in enumerate(indices):
         image_file, annotation_file = current_files[index]
         image = cv2.imread(image_file)
-        bboxes, labels = load_annot_data(annotation_file)
+        bboxes, labels = load_annot_data(annotation_file, target_classes=classes)
         # bboxes = adjust_coordinates(bboxes)
         bboxes = np.array(bboxes)
 
@@ -187,8 +186,8 @@ def train_augmentation(files):
             cv2.rectangle(sample, (xmin, ymin), (xmax, ymax), (0, 0, 255), 2)
         cv2.imwrite(f"{save_path}/Results/{number:>09}.jpg", sample)
 
-        cv2.imshow("sample", sample)
-        cv2.waitKey(0)
+        # cv2.imshow("sample", sample)
+        # cv2.waitKey(0)
 
 def valid_augmentation(files):
     save_path = f"{save_dir}/valid"
@@ -197,7 +196,7 @@ def valid_augmentation(files):
     for idx in tqdm(range(len(files))):
         image_file, annot_file = files[idx]
         image = cv2.imread(image_file)
-        bboxes, labels = load_annot_data(annot_file)
+        bboxes, labels = load_annot_data(annot_file, target_classes=classes)
 
         val_transformed = valid_transform(image=image, bboxes=bboxes, labels=labels)
         val_image, val_bboxes, val_labels = val_transformed["image"], val_transformed["bboxes"], val_transformed["labels"]
@@ -212,10 +211,11 @@ def valid_augmentation(files):
         cv2.imwrite(f"{save_path}/Results/{idx:>09}.jpg", sample)
 
 if __name__ == "__main__":
-    data_dir = ["/home/ubuntu/Datasets/BR/Seeds"]
-    save_dir = "/home/ubuntu/Datasets/BR/set0"
-    total_steps = 100
+    data_dir = ["/home/ubuntu/Datasets/BR/Seeds2"]
+    save_dir = "/home/ubuntu/Datasets/BR/set1_384"
+    total_steps = 150000
     num_valid = 100
+    classes = ["Baskin_robbins"]
 
     img_size = 384
     mosaic = True

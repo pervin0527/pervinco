@@ -3,6 +3,7 @@ import random
 import xml.etree.ElementTree as ET
 from lxml.etree import Element, SubElement
 
+from tqdm import tqdm
 from glob import glob
 
 def make_file_list(dirs, num_valid=0):
@@ -34,7 +35,7 @@ def make_save_dir(dir):
         os.makedirs(f"{dir}/Annotations")
         os.makedirs(f"{dir}/Results")
 
-def load_annot_data(annot_file):
+def load_annot_data(annot_file, target_classes):
     target = ET.parse(annot_file).getroot()
 
     height = int(target.find('size').find('height').text)
@@ -43,27 +44,28 @@ def load_annot_data(annot_file):
     bboxes, labels = [], []
     for obj in target.iter("object"):
         label = obj.find("name").text.strip()
-        labels.append([label])
+        if label in target_classes:
+            labels.append([label])
 
-        bndbox = obj.find("bndbox")
-        bbox = []
-        for current in ["xmin", "ymin", "xmax", "ymax"]:
-            coordinate = int(float(bndbox.find(current).text))
-            if current == "xmin" and coordinate < 0:
-                coordinate = 0
-            elif current == "ymin" and coordinate < 0:
-                coordinate = 0
-            elif current == "xmax" and coordinate > width:
-                coordinate = width
-            elif current == "ymax" and coordinate > height:
-                coordinate = height
-            bbox.append(coordinate)
-        bboxes.append(bbox)
+            bndbox = obj.find("bndbox")
+            bbox = []
+            for current in ["xmin", "ymin", "xmax", "ymax"]:
+                coordinate = int(float(bndbox.find(current).text))
+                if current == "xmin" and coordinate < 0:
+                    coordinate = 0
+                elif current == "ymin" and coordinate < 0:
+                    coordinate = 0
+                elif current == "xmax" and coordinate > width:
+                    coordinate = width
+                elif current == "ymax" and coordinate > height:
+                    coordinate = height
+                bbox.append(coordinate)
+            bboxes.append(bbox)
 
     return bboxes, labels
 
 def annot_write(dst, bboxes, labels, img_size):
-    root = Element("annotations")
+    root = Element("annotation")
     folder = SubElement(root, "folder")
     folder.text = "JPEGImages"
     filename = SubElement(root, "filename")
@@ -102,3 +104,26 @@ def annot_write(dst, bboxes, labels, img_size):
     
     tree = ET.ElementTree(root)    
     tree.write(dst)
+
+if __name__ == "__main__":
+    annotation_path = "/home/ubuntu/Datasets/BR/set1_384"
+    folders = ["train", "valid"]
+    classes = ["Baskin_robbins"]
+
+    check = 0
+    for folder in folders:
+        xml_files = sorted(glob(f"{annotation_path}/{folder}/Annotations/*.xml"))
+        for idx in tqdm(range(len(xml_files))):
+            xml_file = xml_files[idx]
+            bboxes, labels = load_annot_data(xml_file)
+
+            for label in labels:
+                if not label in classes:
+                    filename = xml_file.split('/')[-1].split('.')[0]
+                    os.remove(f"{annotation_path}/{folder}/JPEGImages/{filename}.jpg")
+                    os.remove(xml_file)
+                    check += 1
+            # annot_write(xml_file, bboxes, labels, (384, 384))
+
+    xml_files = sorted(glob(f"{annotation_path}/{folder}/Annotations/*.xml"))
+    print(len(xml_files))
