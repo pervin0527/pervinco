@@ -194,6 +194,7 @@ def valid_augmentation(files):
     make_save_dir(save_path)
 
     for idx in tqdm(range(len(files))):
+        random.shuffle(files)
         image_file, annot_file = files[idx]
         image = cv2.imread(image_file)
         bboxes, labels = load_annot_data(annot_file, target_classes=classes)
@@ -211,11 +212,11 @@ def valid_augmentation(files):
         cv2.imwrite(f"{save_path}/Results/{idx:>09}.jpg", sample)
 
 if __name__ == "__main__":
-    data_dir = ["/home/ubuntu/Datasets/BR/Seeds2"]
-    save_dir = "/home/ubuntu/Datasets/BR/set1_384"
-    total_steps = 150000
+    data_dir = ["/home/ubuntu/Datasets/BR/seed0_384"]
+    save_dir = "/home/ubuntu/Datasets/BR/set0_384"
+    total_steps = 100000
     num_valid = 100
-    classes = ["Baskin_robbins"]
+    classes = ["Baskin_robbins"] # Baskin_robbins
 
     img_size = 384
     mosaic = True
@@ -260,5 +261,5 @@ if __name__ == "__main__":
     ], bbox_params=A.BboxParams(format="pascal_voc", label_fields=["labels"]))
 
     train_files, valid_files = make_file_list(data_dir, num_valid)
-    train_augmentation(train_files)
+    train_augmentation(train_files[:1000])
     valid_augmentation(valid_files)

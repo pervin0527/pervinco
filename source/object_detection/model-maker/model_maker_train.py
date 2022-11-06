@@ -1,9 +1,12 @@
 import os
 import pandas as pd
 import tensorflow as tf
+import xml.etree.ElementTree as ET
 
+from tqdm import tqdm
+from glob import glob
 from tflite_model_maker import object_detector
-from tflite_model_maker.config import ExportFormat, QuantizationConfig
+from tflite_model_maker.config import ExportFormat
 
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -26,71 +29,114 @@ else:
         print(e)
 
 
+def load_annot_data(annot_file, target_classes):
+    target = ET.parse(annot_file).getroot()
+
+    height = int(target.find('size').find('height').text)
+    width = int(target.find('size').find('width').text)
+
+    bboxes, labels = [], []
+    for obj in target.iter("object"):
+        label = obj.find("name").text.strip()
+        if label in target_classes:
+            labels.append([label])
+
+            bndbox = obj.find("bndbox")
+            bbox = []
+            for current in ["xmin", "ymin", "xmax", "ymax"]:
+                coordinate = int(float(bndbox.find(current).text))
+                if current == "xmin" and coordinate < 0:
+                    coordinate = 0
+                elif current == "ymin" and coordinate < 0:
+                    coordinate = 0
+                elif current == "xmax" and coordinate > width:
+                    coordinate = width
+                elif current == "ymax" and coordinate > height:
+                    coordinate = height
+                bbox.append(coordinate)
+            bboxes.append(bbox)
+
+    return bboxes, labels
+
+
+def label_check(dir):
+    files = sorted(glob(f"{dir}/Annotations/*.xml"))
+    targets = set()
+    for idx in tqdm(range(len(files))):
+        file = files[idx]
+        bboxes, labels = load_annot_data(file, CLASSES)
+        for label in labels:
+            targets.add(label[0])
+            if not label[0] in CLASSES:
+                print(file, label)
+                return False
+
+    print(targets)
+    return True
+
 if __name__ == "__main__":
     ROOT_DIR = "/home/ubuntu/Datasets/BR"
-    TRAIN_DIR = f"{ROOT_DIR}/set1_384/train"
-    VALID_DIR = f"{ROOT_DIR}/set1_384/valid"
+    TRAIN_DIR = f"{ROOT_DIR}/set0_384/train"
+    VALID_DIR = f"{ROOT_DIR}/set0_384/valid"
 
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
     LABEL_FILE = pd.read_csv(LABEL_FILE, sep=',', index_col=False, header=None)
     CLASSES = LABEL_FILE[0].tolist()
     print(CLASSES)
+
+    train_check = label_check(TRAIN_DIR)
+    valid_check = label_check(VALID_DIR)
     
-    EPOCHS = 10
-    BATCH_SIZE = 64
-    MAX_DETECTIONS = 10
+    if train_check and valid_check:
+        EPOCHS = 100
+        BATCH_SIZE = 64
+        MAX_DETECTIONS = 10
+        HPARAMS = {"optimizer" : "sgd",
+                "momentum" : 0.9, ## default : 0.9
+                "lr_decay_method" : "cosine",
+                "learning_rate" : 0.008,
+                "lr_warmup_init" : 0.0008,
+                "lr_warmup_epoch" : 1.0, ## default : 1.0
+                "anchor_scale" : 4.0, ## 4.0
+                "aspect_ratios" : [8.85, 4.06, 1.67, 0.53], ## [8.0, 4.0, 2.0, 1.0, 0.5]
+                "num_scales" : 5,
+                "alpha" : 0.25,
+                "gamma" : 2,
+                "first_lr_drop_epoch" : EPOCHS * (2/3),}
 
-    HPARAMS = {"optimizer" : "sgd",
-               "momentum" : 0.9, ## default : 0.9
-               "lr_decay_method" : "cosine",
-               "learning_rate" : 0.008,
-               "lr_warmup_init" : 0.0008,
-               
-               "lr_warmup_epoch" : 1.0, ## default : 1.0
-               "anchor_scale" : 3.0, ## 4.0
-               "aspect_ratios" : [8.85, 4.06, 1.67, 0.53], ##[8.0, 4.0, 2.0, 1.0, 0.5],
-               "num_scales" : 5,
-               "alpha" : 0.25,
-               "gamma" : 2,
-               "first_lr_drop_epoch" : EPOCHS * (2/3)}
+        SAVE_PATH = "/home/ubuntu/Models/efficientdet_lite"
+        PROJECT = ROOT_DIR.split('/')[-1]
+        DS_NAME = TRAIN_DIR.split('/')[-2]
+        MODEL_FILE = f"{PROJECT}-{DS_NAME}-{EPOCHS}"
 
-    SAVE_PATH = "/home/ubuntu/Models/efficientdet_lite"
-    PROJECT = ROOT_DIR.split('/')[-1]
-    DS_NAME = TRAIN_DIR.split('/')[-2]
-    MODEL_FILE = f"{PROJECT}-{DS_NAME}-{EPOCHS}"
+        train_data = object_detector.DataLoader.from_pascal_voc(images_dir=f"{TRAIN_DIR}/JPEGImages",
+                                                                annotations_dir=f"{TRAIN_DIR}/Annotations", 
+                                                                label_map=CLASSES)
 
-    train_data = object_detector.DataLoader.from_pascal_voc(images_dir=f"{TRAIN_DIR}/JPEGImages",
-                                                            annotations_dir=f"{TRAIN_DIR}/Annotations", 
-                                                            label_map=CLASSES)
+        validation_data = object_detector.DataLoader.from_pascal_voc(images_dir=f'{VALID_DIR}/JPEGImages',
+                                                                    annotations_dir=f'{VALID_DIR}/Annotations',
+                                                                    label_map=CLASSES)
 
-    validation_data = object_detector.DataLoader.from_pascal_voc(images_dir=f'{VALID_DIR}/JPEGImages',
-                                                                 annotations_dir=f'{VALID_DIR}/Annotations',
-                                                                 label_map=CLASSES)
+        spec = object_detector.EfficientDetLite1Spec(verbose=1,
+                                                    strategy="gpus", # 'gpus', None
+                                                    hparams=HPARAMS,
+                                                    tflite_max_detections=MAX_DETECTIONS,
+                                                    model_dir=f'{SAVE_PATH}/{MODEL_FILE}')
 
-    spec = object_detector.EfficientDetLite1Spec(verbose=1,
-                                                 strategy="gpus", # 'gpus', None
-                                                 hparams=HPARAMS,
-                                                 tflite_max_detections=MAX_DETECTIONS,
-                                                 model_dir=f'{SAVE_PATH}/{MODEL_FILE}')
+        model = object_detector.create(train_data,
+                                    model_spec=spec,
+                                    epochs=EPOCHS,
+                                    batch_size=BATCH_SIZE,
+                                    validation_data=validation_data,
+                                    do_train=True,
+                                    train_whole_model=True,)
 
-    model = object_detector.create(train_data,
-                                   model_spec=spec,
-                                   epochs=EPOCHS,
-                                   batch_size=BATCH_SIZE,
-                                   validation_data=validation_data,
-                                   do_train=True,
-                                   train_whole_model=True,)
+        # tf.saved_model.save(model, f"{SAVE_PATH}/{MODEL_FILE}/FLOAT32/saved_model")
+        # print("float32 saved")              
 
-    tf.saved_model.save(model, f"{SAVE_PATH}/{MODEL_FILE}/FLOAT32/saved_model")
-
-    # config = QuantizationConfig.for_float16()
-    # model.export(export_dir=f"{SAVE_PATH}/{MODEL_FILE}/FLOAT16",
-    #              quantization_config=config,
-    #              saved_model_filename=f"{SAVE_PATH}/{MODEL_FILE}/FLOAT16/saved_model",
-    #              export_format=[ExportFormat.SAVED_MODEL])                   
-
-    model.export(export_dir=f"{SAVE_PATH}/{MODEL_FILE}",
-                 label_filename=f'{SAVE_PATH}/label_map.txt',
-                 tflite_filename=f'{MODEL_FILE}.tflite',
-                 saved_model_filename=f'{SAVE_PATH}/{MODEL_FILE}/saved_model',
-                 export_format=[ExportFormat.TFLITE, ExportFormat.SAVED_MODEL])
+        model.export(export_dir=f"{SAVE_PATH}/{MODEL_FILE}",
+                    label_filename=f'{SAVE_PATH}/label_map.txt',
+                    tflite_filename=f'{MODEL_FILE}.tflite',
+                    saved_model_filename=f'{SAVE_PATH}/{MODEL_FILE}/saved_model',
+                    export_format=[ExportFormat.TFLITE, ExportFormat.SAVED_MODEL])
+        print("exported")

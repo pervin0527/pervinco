@@ -106,24 +106,28 @@ def annot_write(dst, bboxes, labels, img_size):
     tree.write(dst)
 
 if __name__ == "__main__":
-    annotation_path = "/home/ubuntu/Datasets/BR/set1_384"
+    annotation_path = "/home/ubuntu/Datasets/BR/set3_384"
     folders = ["train", "valid"]
-    classes = ["Baskin_robbins"]
+    classes = ["Baskin_robbins"] # Baskin_robbins
 
     check = 0
     for folder in folders:
         xml_files = sorted(glob(f"{annotation_path}/{folder}/Annotations/*.xml"))
         for idx in tqdm(range(len(xml_files))):
             xml_file = xml_files[idx]
-            bboxes, labels = load_annot_data(xml_file)
+            bboxes, labels = load_annot_data(xml_file, classes)
 
             for label in labels:
-                if not label in classes:
-                    filename = xml_file.split('/')[-1].split('.')[0]
-                    os.remove(f"{annotation_path}/{folder}/JPEGImages/{filename}.jpg")
-                    os.remove(xml_file)
-                    check += 1
-            # annot_write(xml_file, bboxes, labels, (384, 384))
+                if not label[0] in classes:
+                    print(label)
 
-    xml_files = sorted(glob(f"{annotation_path}/{folder}/Annotations/*.xml"))
-    print(len(xml_files))
+    #         for label in labels:
+    #             if not label in classes:
+    #                 filename = xml_file.split('/')[-1].split('.')[0]
+    #                 os.remove(f"{annotation_path}/{folder}/JPEGImages/{filename}.jpg")
+    #                 os.remove(xml_file)
+    #                 check += 1
+    #         # annot_write(xml_file, bboxes, labels, (384, 384))
+
+    # xml_files = sorted(glob(f"{annotation_path}/{folder}/Annotations/*.xml"))
+    # print(len(xml_files))
