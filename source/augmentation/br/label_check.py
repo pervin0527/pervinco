@@ -146,4 +146,4 @@ if __name__ == "__main__":
         os.makedirs(f"{path}/Results")
 
     random.shuffle(txt_files)
-    record_xml_process(path, txt_files[:150000])
+    record_xml_process(path, txt_files)

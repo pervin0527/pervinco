@@ -96,9 +96,9 @@ def kmeans_aspect_ratios(bboxes, kmeans_max_iter, num_aspect_ratios):
   return aspect_ratios, avg_iou_perc
 
 if __name__ == "__main__":
-    annot_path = "/home/ubuntu/Datasets/BR/set1_384/train/Annotations"
-    aspect_ratios = 4 ## can be [2, 3, 4, 5, 6]
-    kmeans_max_iter = 500
+    annot_path = "/home/ubuntu/Datasets/BR/set0_384/train/Annotations"
+    aspect_ratios = 5 ## can be [2, 3, 4, 5, 6]
+    kmeans_max_iter = 100000
     height, width = 384, 384
 
     bboxes = xml_to_boxes(path=annot_path)

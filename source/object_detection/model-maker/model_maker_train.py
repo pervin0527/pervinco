@@ -92,17 +92,15 @@ if __name__ == "__main__":
         BATCH_SIZE = 64
         MAX_DETECTIONS = 10
         HPARAMS = {"optimizer" : "sgd",
-                "momentum" : 0.9, ## default : 0.9
-                "lr_decay_method" : "cosine",
-                "learning_rate" : 0.008,
-                "lr_warmup_init" : 0.0008,
-                "lr_warmup_epoch" : 1.0, ## default : 1.0
-                "anchor_scale" : 4.0, ## 4.0
-                "aspect_ratios" : [8.85, 4.06, 1.67, 0.53], ## [8.0, 4.0, 2.0, 1.0, 0.5]
-                "num_scales" : 5,
-                "alpha" : 0.25,
-                "gamma" : 2,
-                "first_lr_drop_epoch" : EPOCHS * (2/3),}
+                   "momentum" : 0.9, ## default : 0.9
+                   "lr_decay_method" : "cosine",
+                   "learning_rate" : 0.008,
+                   "lr_warmup_init" : 0.0008,
+                   "lr_warmup_epoch" : 1.0, ## default : 1.0
+                   "aspect_ratios" : [8.69, 3.89, 1.52, 0.41], ## [8.0, 4.0, 2.0, 1.0, 0.5], [9.44, 4.73, 2.32, 0.96, 0.22]
+                   "alpha" : 0.25,
+                   "gamma" : 2,
+                   "first_lr_drop_epoch" : EPOCHS * (2/3),}
 
         SAVE_PATH = "/home/ubuntu/Models/efficientdet_lite"
         PROJECT = ROOT_DIR.split('/')[-1]
@@ -114,29 +112,25 @@ if __name__ == "__main__":
                                                                 label_map=CLASSES)
 
         validation_data = object_detector.DataLoader.from_pascal_voc(images_dir=f'{VALID_DIR}/JPEGImages',
-                                                                    annotations_dir=f'{VALID_DIR}/Annotations',
-                                                                    label_map=CLASSES)
+                                                                     annotations_dir=f'{VALID_DIR}/Annotations',
+                                                                     label_map=CLASSES)
 
         spec = object_detector.EfficientDetLite1Spec(verbose=1,
-                                                    strategy="gpus", # 'gpus', None
-                                                    hparams=HPARAMS,
-                                                    tflite_max_detections=MAX_DETECTIONS,
-                                                    model_dir=f'{SAVE_PATH}/{MODEL_FILE}')
+                                                     strategy="gpus", # 'gpus', None
+                                                     hparams=HPARAMS,
+                                                     tflite_max_detections=MAX_DETECTIONS,
+                                                     model_dir=f'{SAVE_PATH}/{MODEL_FILE}')
 
         model = object_detector.create(train_data,
-                                    model_spec=spec,
-                                    epochs=EPOCHS,
-                                    batch_size=BATCH_SIZE,
-                                    validation_data=validation_data,
-                                    do_train=True,
-                                    train_whole_model=True,)
-
-        # tf.saved_model.save(model, f"{SAVE_PATH}/{MODEL_FILE}/FLOAT32/saved_model")
-        # print("float32 saved")              
+                                       model_spec=spec,
+                                       epochs=EPOCHS,
+                                       batch_size=BATCH_SIZE,
+                                       validation_data=validation_data,
+                                       do_train=True,
+                                       train_whole_model=True,)
 
         model.export(export_dir=f"{SAVE_PATH}/{MODEL_FILE}",
-                    label_filename=f'{SAVE_PATH}/label_map.txt',
-                    tflite_filename=f'{MODEL_FILE}.tflite',
-                    saved_model_filename=f'{SAVE_PATH}/{MODEL_FILE}/saved_model',
-                    export_format=[ExportFormat.TFLITE, ExportFormat.SAVED_MODEL])
+                     tflite_filename=f'{MODEL_FILE}.tflite',
+                     saved_model_filename=f'{SAVE_PATH}/{MODEL_FILE}/saved_model',
+                     export_format=[ExportFormat.TFLITE, ExportFormat.SAVED_MODEL])
         print("exported")
