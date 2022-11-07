@@ -92,12 +92,12 @@ if __name__ == "__main__":
         BATCH_SIZE = 64
         MAX_DETECTIONS = 10
         HPARAMS = {"optimizer" : "sgd",
-                   "momentum" : 0.9, ## default : 0.9
+                   "momentum" : 0.9,
                    "lr_decay_method" : "cosine",
                    "learning_rate" : 0.008,
                    "lr_warmup_init" : 0.0008,
-                   "lr_warmup_epoch" : 1.0, ## default : 1.0
-                   "aspect_ratios" : [8.69, 3.89, 1.52, 0.41], ## [8.0, 4.0, 2.0, 1.0, 0.5], [9.44, 4.73, 2.32, 0.96, 0.22]
+                   "lr_warmup_epoch" : 1.0,
+                   "aspect_ratios" : [8.69, 3.89, 1.52, 0.41], ## [9.44, 4.73, 2.32, 0.96, 0.22], [8.41, 4.38, 2.25, 1.0, 0.25]
                    "alpha" : 0.25,
                    "gamma" : 2,
                    "first_lr_drop_epoch" : EPOCHS * (2/3),}
