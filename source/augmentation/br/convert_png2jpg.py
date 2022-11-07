@@ -39,7 +39,7 @@ if __name__ == "__main__":
     data_dir = ["/home/ubuntu/Datasets/BR/cvat/*",
                 "/home/ubuntu/Datasets/SPC/Cvat/Baskin_robbins/*", 
                 "/home/ubuntu/Datasets/BR/total"]
-    save_dir = "/home/ubuntu/Datasets/BR/seed0_384"
+    save_dir = "/home/ubuntu/Datasets/BR/seed1_384"
     classes = ["Baskin_robbins"]
 
     img_size = 384

@@ -2,8 +2,22 @@ import sys
 import os
 import numpy as np
 import xml.etree.ElementTree as ET
-
 from sklearn.cluster import KMeans
+
+def check_file_crash(path):
+    filenames = os.listdir(os.path.join(path))
+    filenames = [os.path.join(path, f) for f in filenames if (f.endswith('.xml'))]
+    
+    for xml_file in filenames:
+        try:
+            tree = ET.parse(xml_file)
+        except:
+            print(xml_file)
+            filename = xml_file.split('/')[-1].split('.')[0]
+
+            os.remove(f"{annot_path}/{filename}.xml")
+            os.remove(f"{image_path}/{filename}.jpg")
+
 
 def xml_to_boxes(path, rescale_width=None, rescale_height=None):
     xml_list = []
@@ -60,11 +74,13 @@ def kmeans_aspect_ratios(bboxes, kmeans_max_iter, num_aspect_ratios):
 
 
 if __name__ == "__main__":
-    annot_path = "/home/ubuntu/Datasets/BR/set0_384/train/Annotations"
-    aspect_ratios = 5 ## can be [2, 3, 4, 5, 6]
+    annot_path = "/home/ubuntu/Datasets/BR/set1_384/train/Annotations"
+    image_path = "/home/ubuntu/Datasets/BR/set1_384/train/JPEGImages"
+    aspect_ratios = 4 ## can be [2, 3, 4, 5, 6]
     kmeans_max_iter = 100000
     height, width = 384, 384
 
+    check_file_crash(annot_path)
     bboxes = xml_to_boxes(path=annot_path)
 
     aspect_ratios, avg_iou_perc =  kmeans_aspect_ratios(bboxes=bboxes,

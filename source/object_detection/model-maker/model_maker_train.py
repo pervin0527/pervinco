@@ -76,8 +76,8 @@ def label_check(dir):
 
 if __name__ == "__main__":
     ROOT_DIR = "/home/ubuntu/Datasets/BR"
-    TRAIN_DIR = f"{ROOT_DIR}/set0_384/train"
-    VALID_DIR = f"{ROOT_DIR}/set0_384/valid"
+    TRAIN_DIR = f"{ROOT_DIR}/set1_384/train"
+    VALID_DIR = f"{ROOT_DIR}/set1_384/valid"
 
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
     LABEL_FILE = pd.read_csv(LABEL_FILE, sep=',', index_col=False, header=None)
@@ -91,16 +91,19 @@ if __name__ == "__main__":
         EPOCHS = 100
         BATCH_SIZE = 64
         MAX_DETECTIONS = 10
-        HPARAMS = {"optimizer" : "sgd",
-                   "momentum" : 0.9,
-                   "lr_decay_method" : "cosine",
-                   "learning_rate" : 0.008,
-                   "lr_warmup_init" : 0.0008,
-                   "lr_warmup_epoch" : 1.0,
-                   "aspect_ratios" : [8.69, 3.89, 1.52, 0.41], ## [9.44, 4.73, 2.32, 0.96, 0.22], [8.41, 4.38, 2.25, 1.0, 0.25]
-                   "alpha" : 0.25,
-                   "gamma" : 2,
-                   "first_lr_drop_epoch" : EPOCHS * (2/3),}
+        HPARAMS = {
+            "optimizer" : "sgd",
+            "momentum" : 0.9,
+            "lr_decay_method" : "cosine",
+            "learning_rate" : 0.008,
+            "lr_warmup_init" : 0.0008,
+            "lr_warmup_epoch" : 1.0,
+            "aspect_ratios" : [8.69, 3.89, 1.52, 0.41], ## [9.44, 4.73, 2.32, 0.96, 0.22], [8.41, 4.38, 2.25, 1.0, 0.25]
+            "alpha" : 0.25,
+            "gamma" : 2,
+            "first_lr_drop_epoch" : EPOCHS * (2/3),
+            "second_lr_drop_epoch" : EPOCHS * (6/5)
+        }
 
         SAVE_PATH = "/home/ubuntu/Models/efficientdet_lite"
         PROJECT = ROOT_DIR.split('/')[-1]

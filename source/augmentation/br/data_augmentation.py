@@ -212,10 +212,10 @@ def valid_augmentation(files):
         cv2.imwrite(f"{save_path}/Results/{idx:>09}.jpg", sample)
 
 if __name__ == "__main__":
-    data_dir = ["/home/ubuntu/Datasets/BR/seed0_384"]
-    save_dir = "/home/ubuntu/Datasets/BR/set0_384"
-    total_steps = 100000
-    num_valid = 100
+    data_dir = ["/home/ubuntu/Datasets/BR/seed1_384"]
+    save_dir = "/home/ubuntu/Datasets/BR/set1_384"
+    total_steps = 250000
+    num_valid = 1000
     classes = ["Baskin_robbins"] # Baskin_robbins
 
     img_size = 384
