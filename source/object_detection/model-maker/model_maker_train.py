@@ -70,8 +70,6 @@ def label_check(dir):
             if not label[0] in CLASSES:
                 print(file, label)
                 return False
-
-    print(targets)
     return True
 
 if __name__ == "__main__":
@@ -88,8 +86,8 @@ if __name__ == "__main__":
     valid_check = label_check(VALID_DIR)
     
     if train_check and valid_check:
-        EPOCHS = 100
-        BATCH_SIZE = 64
+        EPOCHS = 200
+        BATCH_SIZE = 16 * len(gpus)
         MAX_DETECTIONS = 10
         HPARAMS = {
             "optimizer" : "sgd",
@@ -98,7 +96,7 @@ if __name__ == "__main__":
             "learning_rate" : 0.008,
             "lr_warmup_init" : 0.0008,
             "lr_warmup_epoch" : 1.0,
-            "aspect_ratios" : [8.69, 3.89, 1.52, 0.41], ## [9.44, 4.73, 2.32, 0.96, 0.22], [8.41, 4.38, 2.25, 1.0, 0.25]
+            "aspect_ratios" : [8.69, 3.89, 1.52, 0.41], ## [0.94, 2.79, 6.91], [8.69, 3.89, 1.52, 0.41]
             "alpha" : 0.25,
             "gamma" : 2,
             "first_lr_drop_epoch" : EPOCHS * (2/3),
