@@ -77,7 +77,7 @@ if __name__ == "__main__":
     annot_path = "/home/ubuntu/Datasets/BR/set1_384/train/Annotations"
     image_path = "/home/ubuntu/Datasets/BR/set1_384/train/JPEGImages"
     aspect_ratios = 4 ## can be [2, 3, 4, 5, 6]
-    kmeans_max_iter = 100000
+    kmeans_max_iter = 10000
     height, width = 384, 384
 
     check_file_crash(annot_path)
