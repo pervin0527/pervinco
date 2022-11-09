@@ -1,13 +1,10 @@
 import os
-import cv2
-import random
 import pandas as pd
 import tensorflow as tf
 import xml.etree.ElementTree as ET
 
 from tqdm import tqdm
 from glob import glob
-from lxml.etree import Element, SubElement
 from tflite_model_maker import object_detector
 from tflite_model_maker.config import ExportFormat
 
@@ -30,25 +27,6 @@ else:
         strategy = tf.distribute.experimental.CentralStorageStrategy()
     except RuntimeError as e:
         print(e)
-
-
-def annot_write(dst, img_size):
-    root = Element("annotation")
-    folder = SubElement(root, "folder")
-    folder.text = "JPEGImages"
-    filename = SubElement(root, "filename")
-    filename.text = dst.split('/')[-1].split('.')[0] + ".jpg"
-
-    size = SubElement(root, "size")
-    h = SubElement(size, "height")
-    h.text = str(img_size[0])
-    w = SubElement(size, "width")
-    w.text = str(img_size[1])
-    depth = SubElement(size, "depth")
-    depth.text = "3"
-    
-    tree = ET.ElementTree(root)    
-    tree.write(dst)
 
 
 def load_annot_data(annot_file, target_classes):
@@ -96,54 +74,23 @@ def label_check(dir):
     return True, len(files)
 
 
-def add_negative_false(path, total_files):
-    nf_files = []
-    total_nf = int(NF_RATIO * total_files)
-    folders = sorted(glob(f"{path}/*"))
-    for folder in folders:
-        files = glob(f"{folder}/*")
-        if len(files) > int(total_nf / len(folders)):
-            files = random.sample(files, int(total_nf / len(folders)))
-
-        # print(folder, len(files))    
-        nf_files.extend(files)
-
-    for idx in tqdm(range(len(nf_files))):
-        file = nf_files[idx]
-        try:
-            nf_image = cv2.imread(file)
-            nf_image = cv2.resize(nf_image, (IMG_SIZE, IMG_SIZE))
-            cv2.imwrite(f"{TRAIN_DIR}/JPEGImages/NF_{idx}.jpg", nf_image)
-            annot_write(f"{TRAIN_DIR}/Annotations/NF_{idx}.xml", (IMG_SIZE, IMG_SIZE))
-        except:
-            os.remove(file)
-
-    return True
-
 if __name__ == "__main__":
-    ROOT_DIR = "/home/ubuntu/Datasets/BR"
-    TRAIN_DIR = f"{ROOT_DIR}/set1_384/train"
-    VALID_DIR = f"{ROOT_DIR}/set1_384/valid"
+    ROOT_DIR = "/data/Datasets/BR"
+    TRAIN_DIR = f"{ROOT_DIR}/set0_384/train"
+    VALID_DIR = f"{ROOT_DIR}/set0_384/valid"
+    SAVE_PATH = "/data/Models/efficientdet_lite"
 
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
     LABEL_FILE = pd.read_csv(LABEL_FILE, sep=',', index_col=False, header=None)
     CLASSES = LABEL_FILE[0].tolist()
     print(CLASSES)
 
-    IMG_SIZE = 384
-    NF_DIR = "/home/ubuntu/Datasets/SPC/download"
-    NF_RATIO = 0.1
-    ADD_NF = False
-
     train_check, train_files = label_check(TRAIN_DIR)
     valid_check, valid_files = label_check(VALID_DIR)
-
-    if os.path.isfile(f"{TRAIN_DIR}/Annotations/NF_0.xml") and ADD_NF:
-        add_negative_false(NF_DIR, train_files)
     
     if train_check and valid_check:
-        EPOCHS = 100
-        BATCH_SIZE = 32 * len(gpus)
+        EPOCHS = 50
+        BATCH_SIZE = 16 * len(gpus)
         MAX_DETECTIONS = 10
         HPARAMS = {
             "optimizer" : "sgd",
@@ -152,14 +99,13 @@ if __name__ == "__main__":
             "learning_rate" : 0.008,
             "lr_warmup_init" : 0.0008,
             "lr_warmup_epoch" : 1.0,
-            "aspect_ratios" : [8.69, 3.89, 1.52, 0.41], ## [0.94, 2.79, 6.91], [8.69, 3.89, 1.52, 0.41]
+            "aspect_ratios" : [0.94, 2.79, 6.91], ## [0.94, 2.79, 6.91], [8.69, 3.89, 1.52, 0.41]
             "alpha" : 0.25,
             "gamma" : 2,
             "first_lr_drop_epoch" : EPOCHS * (2/3),
             "second_lr_drop_epoch" : EPOCHS * (6/5)
         }
 
-        SAVE_PATH = "/home/ubuntu/Models/efficientdet_lite"
         PROJECT = ROOT_DIR.split('/')[-1]
         DS_NAME = TRAIN_DIR.split('/')[-2]
         MODEL_FILE = f"{PROJECT}-{DS_NAME}-{EPOCHS}"
@@ -173,7 +119,7 @@ if __name__ == "__main__":
                                                                      label_map=CLASSES)
 
         spec = object_detector.EfficientDetLite1Spec(verbose=1,
-                                                     strategy="gpus", # 'gpus', None
+                                                     strategy=None, # 'gpus', None
                                                      hparams=HPARAMS,
                                                      tflite_max_detections=MAX_DETECTIONS,
                                                      model_dir=f'{SAVE_PATH}/{MODEL_FILE}')

@@ -1,3 +1,4 @@
+import os
 import cv2
 import random
 import numpy as np
@@ -211,11 +212,32 @@ def valid_augmentation(files):
             cv2.rectangle(sample, (xmin, ymin), (xmax, ymax), (0, 0, 255), 2)
         cv2.imwrite(f"{save_path}/Results/{idx:>09}.jpg", sample)
 
+
+def add_nf_data(path):
+    save_path = f"{save_dir}/train"
+
+    files = glob(f"{path}/*/*")
+    for idx in tqdm(range(int(total_steps * nf_ratio))):
+        random.shuffle(files)
+        try:
+            nf_image = cv2.imread(files[idx])
+            nf_image = cv2.resize(nf_image, (img_size, img_size))
+            del files[idx]
+
+            cv2.imwrite(f"{save_path}/JPEGImages/NF_{idx}.jpg", nf_image)
+            annot_write(f"{save_path}/Annotations/NF_{idx}.xml", None, None, (img_size, img_size))
+
+        except:
+            os.remove(files[idx])
+
+
+
+
 if __name__ == "__main__":
-    data_dir = ["/home/ubuntu/Datasets/BR/seed1_384"]
-    save_dir = "/home/ubuntu/Datasets/BR/set1_384"
-    total_steps = 300000
-    num_valid = 1000
+    data_dir = ["/data/Datasets/BR/seed0_384"]
+    save_dir = "/data/Datasets/BR/test"
+    total_steps = 1000
+    num_valid = 100
     classes = ["Baskin_robbins"] # Baskin_robbins
 
     img_size = 384
@@ -225,7 +247,11 @@ if __name__ == "__main__":
     mixup_prob = 0.4
     mixup_min = 0.1
     mixup_max = 0.3
-    mixup_data_dir = ["/home/ubuntu/Datasets/VOCdevkit/VOC2012/JPEGImages", "/home/ubuntu/Datasets/SPC/Background"]
+    mixup_data_dir = ["/data/Datasets/VOCdevkit/VOC2012/JPEGImages", "/data/Datasets/SPC/Background"]
+
+    negative_false = True
+    nf_ratio = 0.1
+    nf_data_dir = "/data/Datasets/SPC/download"
 
     basic_transform = A.Compose([
         A.Resize(img_size, img_size, p=1),
@@ -263,3 +289,6 @@ if __name__ == "__main__":
     train_files, valid_files = make_file_list(data_dir, num_valid)
     train_augmentation(train_files[:1000])
     valid_augmentation(valid_files)
+
+    if negative_false:
+        add_nf_data(nf_data_dir)
