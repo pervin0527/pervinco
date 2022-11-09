@@ -92,7 +92,7 @@ def label_check(dir):
             if not label[0] in CLASSES:
                 print(file, label)
                 return False
-<<<<<<< HEAD
+
     return True, len(files)
 
 
@@ -118,9 +118,7 @@ def add_negative_false(path, total_files):
         except:
             os.remove(file)
 
-=======
     return True
->>>>>>> 3b45de715aa72bce876c0f1c2757295d77d0b141
 
 if __name__ == "__main__":
     ROOT_DIR = "/home/ubuntu/Datasets/BR"
@@ -144,13 +142,8 @@ if __name__ == "__main__":
         add_negative_false(NF_DIR, train_files)
     
     if train_check and valid_check:
-<<<<<<< HEAD
         EPOCHS = 100
         BATCH_SIZE = 32 * len(gpus)
-=======
-        EPOCHS = 200
-        BATCH_SIZE = 16 * len(gpus)
->>>>>>> 3b45de715aa72bce876c0f1c2757295d77d0b141
         MAX_DETECTIONS = 10
         HPARAMS = {
             "optimizer" : "sgd",

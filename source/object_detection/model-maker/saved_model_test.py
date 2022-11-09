@@ -68,11 +68,7 @@ def inference(model_path):
 
 
 if __name__ == "__main__":
-<<<<<<< HEAD
     pb_path = "/data/Models/NIPA/BR-set0_384-100/saved_model"
-=======
-    pb_path = "/data/Models/efficientdet_lite/BR-set0_384-100/saved_model"
->>>>>>> 3b45de715aa72bce876c0f1c2757295d77d0b141
     save_path = f"/data/Datasets/BR/eval"
     frame_path = "/home/jun/Pictures"
     input_shape = (384, 384)
