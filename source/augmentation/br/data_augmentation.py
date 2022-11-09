@@ -58,7 +58,7 @@ def mixup_augmentation(fg_image, min=0.4, max=0.5, alpha=1.0):
         ], p=0.3),
 
         A.ChannelShuffle(p=0.3),
-        A.MotionBlur(blur_limit=(3, 7), p=0.3),
+        # A.MotionBlur(blur_limit=(3, 7), p=0.3),
         A.RGBShift(p=0.3),
 
         A.Resize(height=fg_image.shape[0], width=fg_image.shape[1], p=1),
@@ -89,7 +89,7 @@ def crop_image(image, bboxes, labels, coordinates):
         ], p=0.3),
 
         A.ChannelShuffle(p=0.3),
-        A.MotionBlur(blur_limit=(3, 7), p=0.3),
+        # A.MotionBlur(blur_limit=(3, 7), p=0.3),
         A.RGBShift(p=0.3),
 
         A.OneOf([
@@ -213,7 +213,11 @@ def valid_augmentation(files):
 
 if __name__ == "__main__":
     data_dir = ["/home/ubuntu/Datasets/BR/seed1_384"]
+<<<<<<< HEAD
     save_dir = "/home/ubuntu/Datasets/BR/set1_384"
+=======
+    save_dir = "/home/ubuntu/Datasets/BR/set1_384_test"
+>>>>>>> 3b45de715aa72bce876c0f1c2757295d77d0b141
     total_steps = 300000
     num_valid = 1000
     classes = ["Baskin_robbins"] # Baskin_robbins
@@ -251,7 +255,7 @@ if __name__ == "__main__":
         ], p=0.3),
 
         A.ChannelShuffle(p=0.3),
-        A.MotionBlur(blur_limit=(3, 7), p=0.3),
+        # A.MotionBlur(blur_limit=(3, 7), p=0.3),
         A.RGBShift(p=0.3),
 
     ], bbox_params=A.BboxParams(format="pascal_voc", label_fields=["labels"]))
