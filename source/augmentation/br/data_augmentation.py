@@ -169,6 +169,7 @@ def train_augmentation(files):
     save_path = f"{save_dir}/train"
     make_save_dir(save_path)
 
+    random.shuffle(files)
     for number in tqdm(range(total_steps)):
         if mosaic and random.random() < mosaic_prob:
             result_image, result_bboxes, result_labels = mosaic_augmentation(files)
@@ -215,14 +216,20 @@ def valid_augmentation(files):
 
 def add_nf_data(path):
     save_path = f"{save_dir}/train"
+    nf_files = []
+    ratio = int(nf_ratio * total_steps)
 
-    files = glob(f"{path}/*/*")
-    for idx in tqdm(range(int(total_steps * nf_ratio))):
-        random.shuffle(files)
+    folders = glob(f"{path}/*")
+    for folder in folders:
+        files = glob(f"{folder}/*")
+        if len(files) > int(ratio / len(folders)):
+            files = random.sample(files, int(ratio / len(folders)))
+        nf_files.extend(files)
+
+    for idx in tqdm(range(len(nf_files))):
         try:
             nf_image = cv2.imread(files[idx])
             nf_image = cv2.resize(nf_image, (img_size, img_size))
-            del files[idx]
 
             cv2.imwrite(f"{save_path}/JPEGImages/NF_{idx}.jpg", nf_image)
             annot_write(f"{save_path}/Annotations/NF_{idx}.xml", None, None, (img_size, img_size))
@@ -231,12 +238,10 @@ def add_nf_data(path):
             os.remove(files[idx])
 
 
-
-
 if __name__ == "__main__":
-    data_dir = ["/data/Datasets/BR/seed0_384"]
-    save_dir = "/data/Datasets/BR/test"
-    total_steps = 1000
+    data_dir = ["/home/ubuntu/Datasets/BR/seed1_384"]
+    save_dir = "/home/ubuntu/Datasets/BR/set1_384"
+    total_steps = 100000
     num_valid = 100
     classes = ["Baskin_robbins"] # Baskin_robbins
 
@@ -247,11 +252,11 @@ if __name__ == "__main__":
     mixup_prob = 0.4
     mixup_min = 0.1
     mixup_max = 0.3
-    mixup_data_dir = ["/data/Datasets/VOCdevkit/VOC2012/JPEGImages", "/data/Datasets/SPC/Background"]
+    mixup_data_dir = ["/home/ubuntu/Datasets/VOCdevkit/VOC2012/JPEGImages", "/home/ubuntu/Datasets/SPC/Background"]
 
     negative_false = True
-    nf_ratio = 0.1
-    nf_data_dir = "/data/Datasets/SPC/download"
+    nf_ratio = 0.5
+    nf_data_dir = "/home/ubuntu/Datasets/SPC/download"
 
     basic_transform = A.Compose([
         A.Resize(img_size, img_size, p=1),
@@ -287,7 +292,7 @@ if __name__ == "__main__":
     ], bbox_params=A.BboxParams(format="pascal_voc", label_fields=["labels"]))
 
     train_files, valid_files = make_file_list(data_dir, num_valid)
-    train_augmentation(train_files[:1000])
+    train_augmentation(train_files)
     valid_augmentation(valid_files)
 
     if negative_false:
