@@ -74,10 +74,10 @@ def kmeans_aspect_ratios(bboxes, kmeans_max_iter, num_aspect_ratios):
 
 
 if __name__ == "__main__":
-    annot_path = "/home/ubuntu/Datasets/BR/set1_384/train/Annotations"
-    image_path = "/home/ubuntu/Datasets/BR/set1_384/train/JPEGImages"
+    annot_path = "/data/Datasets/BR/set2_384/train/Annotations"
+    image_path = "/data/Datasets/BR/set2_384/train/JPEGImages"
     aspect_ratios = 4 ## can be [2, 3, 4, 5, 6]
-    kmeans_max_iter = 10000
+    kmeans_max_iter = 100000
     height, width = 384, 384
 
     check_file_crash(annot_path)

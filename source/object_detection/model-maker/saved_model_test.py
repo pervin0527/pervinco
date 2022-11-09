@@ -68,11 +68,11 @@ def inference(model_path):
 
 
 if __name__ == "__main__":
-    pb_path = "/data/Models/NIPA/BR-set0_384-100/saved_model"
+    pb_path = "/data/Models/efficientdet_lite/BR-set0_384-50/saved_model"
     save_path = f"/data/Datasets/BR/eval"
-    frame_path = "/home/jun/Pictures"
+    frame_path = "/home/jun/Pictures/testset"
     input_shape = (384, 384)
-    threshold = 0.8
+    threshold = 0.7
 
     if not os.path.isdir(save_path):
         os.makedirs(f"{save_path}/O")

@@ -228,20 +228,19 @@ def add_nf_data(path):
 
     for idx in tqdm(range(len(nf_files))):
         try:
-            nf_image = cv2.imread(files[idx])
+            nf_image = cv2.imread(nf_files[idx])
             nf_image = cv2.resize(nf_image, (img_size, img_size))
 
             cv2.imwrite(f"{save_path}/JPEGImages/NF_{idx}.jpg", nf_image)
             annot_write(f"{save_path}/Annotations/NF_{idx}.xml", None, None, (img_size, img_size))
-
         except:
-            os.remove(files[idx])
+            os.remove(nf_files[idx])
 
 
 if __name__ == "__main__":
-    data_dir = ["/home/ubuntu/Datasets/BR/seed1_384"]
-    save_dir = "/home/ubuntu/Datasets/BR/set1_384"
-    total_steps = 100000
+    data_dir = ["/data/Datasets/BR/seed0_384"]
+    save_dir = "/data/Datasets/BR/set2_384"
+    total_steps = 30000
     num_valid = 100
     classes = ["Baskin_robbins"] # Baskin_robbins
 
@@ -252,11 +251,11 @@ if __name__ == "__main__":
     mixup_prob = 0.4
     mixup_min = 0.1
     mixup_max = 0.3
-    mixup_data_dir = ["/home/ubuntu/Datasets/VOCdevkit/VOC2012/JPEGImages", "/home/ubuntu/Datasets/SPC/Background"]
+    mixup_data_dir = ["/data/Datasets/VOCdevkit/VOC2012/JPEGImages"]
 
     negative_false = True
-    nf_ratio = 0.5
-    nf_data_dir = "/home/ubuntu/Datasets/SPC/download"
+    nf_ratio = 0.7
+    nf_data_dir = "/data/Datasets/SPC/download"
 
     basic_transform = A.Compose([
         A.Resize(img_size, img_size, p=1),
