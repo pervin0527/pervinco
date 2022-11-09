@@ -1,10 +1,13 @@
 import os
+import cv2
+import random
 import pandas as pd
 import tensorflow as tf
 import xml.etree.ElementTree as ET
 
 from tqdm import tqdm
 from glob import glob
+from lxml.etree import Element, SubElement
 from tflite_model_maker import object_detector
 from tflite_model_maker.config import ExportFormat
 
@@ -27,6 +30,25 @@ else:
         strategy = tf.distribute.experimental.CentralStorageStrategy()
     except RuntimeError as e:
         print(e)
+
+
+def annot_write(dst, img_size):
+    root = Element("annotation")
+    folder = SubElement(root, "folder")
+    folder.text = "JPEGImages"
+    filename = SubElement(root, "filename")
+    filename.text = dst.split('/')[-1].split('.')[0] + ".jpg"
+
+    size = SubElement(root, "size")
+    h = SubElement(size, "height")
+    h.text = str(img_size[0])
+    w = SubElement(size, "width")
+    w.text = str(img_size[1])
+    depth = SubElement(size, "depth")
+    depth.text = "3"
+    
+    tree = ET.ElementTree(root)    
+    tree.write(dst)
 
 
 def load_annot_data(annot_file, target_classes):
@@ -70,9 +92,31 @@ def label_check(dir):
             if not label[0] in CLASSES:
                 print(file, label)
                 return False
+    return True, len(files)
 
-    print(targets)
-    return True
+
+def add_negative_false(path, total_files):
+    nf_files = []
+    total_nf = int(NF_RATIO * total_files)
+    folders = sorted(glob(f"{path}/*"))
+    for folder in folders:
+        files = glob(f"{folder}/*")
+        if len(files) > int(total_nf / len(folders)):
+            files = random.sample(files, int(total_nf / len(folders)))
+
+        # print(folder, len(files))    
+        nf_files.extend(files)
+
+    for idx in tqdm(range(len(nf_files))):
+        file = nf_files[idx]
+        try:
+            nf_image = cv2.imread(file)
+            nf_image = cv2.resize(nf_image, (IMG_SIZE, IMG_SIZE))
+            cv2.imwrite(f"{TRAIN_DIR}/JPEGImages/NF_{idx}.jpg", nf_image)
+            annot_write(f"{TRAIN_DIR}/Annotations/NF_{idx}.xml", (IMG_SIZE, IMG_SIZE))
+        except:
+            os.remove(file)
+
 
 if __name__ == "__main__":
     ROOT_DIR = "/home/ubuntu/Datasets/BR"
@@ -84,12 +128,20 @@ if __name__ == "__main__":
     CLASSES = LABEL_FILE[0].tolist()
     print(CLASSES)
 
-    train_check = label_check(TRAIN_DIR)
-    valid_check = label_check(VALID_DIR)
+    IMG_SIZE = 384
+    NF_DIR = "/home/ubuntu/Datasets/SPC/download"
+    NF_RATIO = 0.1
+    ADD_NF = False
+
+    train_check, train_files = label_check(TRAIN_DIR)
+    valid_check, valid_files = label_check(VALID_DIR)
+
+    if os.path.isfile(f"{TRAIN_DIR}/Annotations/NF_0.xml") and ADD_NF:
+        add_negative_false(NF_DIR, train_files)
     
     if train_check and valid_check:
         EPOCHS = 100
-        BATCH_SIZE = 64
+        BATCH_SIZE = 32 * len(gpus)
         MAX_DETECTIONS = 10
         HPARAMS = {
             "optimizer" : "sgd",
@@ -98,7 +150,7 @@ if __name__ == "__main__":
             "learning_rate" : 0.008,
             "lr_warmup_init" : 0.0008,
             "lr_warmup_epoch" : 1.0,
-            "aspect_ratios" : [8.69, 3.89, 1.52, 0.41], ## [9.44, 4.73, 2.32, 0.96, 0.22], [8.41, 4.38, 2.25, 1.0, 0.25]
+            "aspect_ratios" : [8.69, 3.89, 1.52, 0.41], ## [0.94, 2.79, 6.91], [8.69, 3.89, 1.52, 0.41]
             "alpha" : 0.25,
             "gamma" : 2,
             "first_lr_drop_epoch" : EPOCHS * (2/3),

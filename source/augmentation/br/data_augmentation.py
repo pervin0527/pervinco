@@ -214,7 +214,7 @@ def valid_augmentation(files):
 if __name__ == "__main__":
     data_dir = ["/home/ubuntu/Datasets/BR/seed1_384"]
     save_dir = "/home/ubuntu/Datasets/BR/set1_384"
-    total_steps = 250000
+    total_steps = 300000
     num_valid = 1000
     classes = ["Baskin_robbins"] # Baskin_robbins
 
