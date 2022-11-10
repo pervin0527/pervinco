@@ -244,9 +244,9 @@ def add_nf_data(path, transform):
 
 
 if __name__ == "__main__":
-    data_dir = ["/data/Datasets/BR/seed0_384"]
-    save_dir = "/data/Datasets/BR/set2_384"
-    total_steps = 30000
+    data_dir = ["/home/ubuntu/Datasets/BR/seed1_384"]
+    save_dir = f"{data_dir[0]}/set1"
+    total_steps = 100000
     num_valid = 100
     classes = ["Baskin_robbins"] # Baskin_robbins
 
@@ -257,11 +257,11 @@ if __name__ == "__main__":
     mixup_prob = 0.4
     mixup_min = 0.1
     mixup_max = 0.3
-    mixup_data_dir = ["/data/Datasets/VOCdevkit/VOC2012/JPEGImages"]
+    mixup_data_dir = ["/home/ubuntu/Datasets/VOCdevkit/VOC2012/JPEGImages"]
 
     negative_false = True
-    nf_ratio = 0.7
-    nf_data_dir = "/data/Datasets/SPC/download"
+    nf_ratio = 0.9
+    nf_data_dir = "/home/ubuntu/Datasets/SPC/download"
 
     basic_transform = A.Compose([
         A.Resize(img_size, img_size, p=1),
