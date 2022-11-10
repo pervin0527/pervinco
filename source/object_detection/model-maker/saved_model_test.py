@@ -1,5 +1,6 @@
 import os
 import cv2
+import shutil
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -26,17 +27,26 @@ else:
         print(e)
 
 
-def inference(model_path):
+def preprocessing(path):
+    files = sorted(glob(f"{path}/*"))
+    for idx in tqdm(range(len(files))):
+        file = files[idx]
+        image = cv2.imread(file)
+        image = cv2.resize(image, input_shape)
+
+        cv2.imwrite(f"{save_path}/images/{idx:>05}.jpg", image)
+
+
+def inference(model_path, eval_path):
     model = tf.saved_model.load(model_path)
     print("Model Loaded")
 
     detection_result = []
-    files = sorted(glob(f"{frame_path}/*"))
+    files = sorted(glob(f"{eval_path}/*"))
     print(len(files))
     for idx in tqdm(range(len(files))):
         try:
             file = files[idx]
-            file_name = file.split('/')[-1].split('.')[0]
             image = cv2.imread(file)
             image = cv2.resize(image, input_shape)
             input_tensor = np.expand_dims(image, axis=0)
@@ -69,13 +79,22 @@ def inference(model_path):
 
 if __name__ == "__main__":
     pb_path = "/data/Models/efficientdet_lite/BR-set0_384-50/saved_model"
+    frame_path = "/data/Datasets/BR/testset"
     save_path = f"/data/Datasets/BR/eval"
-    frame_path = "/home/jun/Pictures/testset"
     input_shape = (384, 384)
-    threshold = 0.7
+    threshold = 0.4
 
     if not os.path.isdir(save_path):
+        os.makedirs(f"{save_path}/images")
         os.makedirs(f"{save_path}/O")
         os.makedirs(f"{save_path}/X")
 
-    total_matched = inference(pb_path)
+        preprocessing(frame_path)
+
+    elif os.path.isdir(f"{save_path}/O") and os.path.isdir(f"{save_path}/X"):
+        shutil.rmtree(f"{save_path}/O")
+        shutil.rmtree(f"{save_path}/X")
+        os.makedirs(f"{save_path}/O")
+        os.makedirs(f"{save_path}/X")
+
+    total_matched = inference(pb_path, f"{save_path}/images")

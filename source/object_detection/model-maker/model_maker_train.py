@@ -96,8 +96,8 @@ if __name__ == "__main__":
             "optimizer" : "sgd",
             "momentum" : 0.9,
             "lr_decay_method" : "cosine",
-            "learning_rate" : 0.008,
-            "lr_warmup_init" : 0.0008,
+            "learning_rate" : 0.004,
+            "lr_warmup_init" : 0.0004,
             "lr_warmup_epoch" : 1.0,
             "aspect_ratios" : [0.88, 2.61, 5.93], ## [0.94, 2.79, 6.91], [8.69, 3.89, 1.52, 0.41], [0.83, 2.38, 5.3, 8.68]
             "alpha" : 0.25,

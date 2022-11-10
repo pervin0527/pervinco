@@ -214,7 +214,7 @@ def valid_augmentation(files):
         cv2.imwrite(f"{save_path}/Results/{idx:>09}.jpg", sample)
 
 
-def add_nf_data(path):
+def add_nf_data(path, transform):
     save_path = f"{save_dir}/train"
     nf_files = []
     ratio = int(nf_ratio * total_steps)
@@ -230,9 +230,15 @@ def add_nf_data(path):
         try:
             nf_image = cv2.imread(nf_files[idx])
             nf_image = cv2.resize(nf_image, (img_size, img_size))
+            nf_transform = transform(image=nf_image)
 
-            cv2.imwrite(f"{save_path}/JPEGImages/NF_{idx}.jpg", nf_image)
+            nf_t_image = nf_transform["image"]
+
+            cv2.imwrite(f"{save_path}/JPEGImages/NF_{idx}.jpg", nf_t_image)
             annot_write(f"{save_path}/Annotations/NF_{idx}.xml", None, None, (img_size, img_size))
+
+            # cv2.imshow("NF", nf_t_image)
+            # cv2.waitKey(0)
         except:
             os.remove(nf_files[idx])
 
@@ -295,4 +301,29 @@ if __name__ == "__main__":
     valid_augmentation(valid_files)
 
     if negative_false:
-        add_nf_data(nf_data_dir)
+        nf_transform = A.Compose([
+            A.OneOf([
+                A.Resize(img_size, img_size, p=0.35),
+                A.CropAndPad(percent=0.2, pad_mode=0, keep_size=True, p=0.35),
+                A.RandomCrop(img_size, img_size, p=0.3),
+            ], p=1),
+
+            A.OneOf([
+                A.HueSaturationValue(p=0.4),
+                A.ChannelShuffle(p=0.3),
+                A.RGBShift(p=0.3)
+            ]),
+
+            A.OneOf([
+                A.Downscale(0.25, 0.65, p=0.4, interpolation=cv2.INTER_NEAREST),
+                A.ISONoise(p=0.4),
+                A.MotionBlur(p=0.4)
+            ], p=0.45),
+
+            A.OneOf([
+                A.HorizontalFlip(p=0.3),
+                A.VerticalFlip(p=0.3),
+                A.RandomGridShuffle(p=0.3)
+            ], p=0.3)
+        ])
+        add_nf_data(nf_data_dir, nf_transform)
