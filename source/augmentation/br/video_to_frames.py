@@ -21,6 +21,7 @@ def split_frames(path):
             
             frame = cv2.flip(frame, 0)
             frame = cv2.flip(frame, 1)
+            frame = cv2.resize(frame, (384, 384))
             cv2.imwrite(f"{save_path}/{name}/frame_{index:>06}.jpg", frame)
             index += 1
 

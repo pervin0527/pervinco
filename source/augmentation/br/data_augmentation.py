@@ -245,8 +245,8 @@ def add_nf_data(path, transform):
 
 if __name__ == "__main__":
     data_dir = ["/home/ubuntu/Datasets/BR/seed1_384"]
-    save_dir = f"{data_dir[0]}/set1"
-    total_steps = 100000
+    save_dir = f"{data_dir[0]}/set0"
+    total_steps = 50000
     num_valid = 100
     classes = ["Baskin_robbins"] # Baskin_robbins
 

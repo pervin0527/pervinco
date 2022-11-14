@@ -41,6 +41,10 @@ def inference(model_path, eval_path):
     model = tf.saved_model.load(model_path)
     print("Model Loaded")
 
+    if not os.path.isdir(save_path):
+        os.makedirs(f"{save_path}/O")
+        os.makedirs(f"{save_path}/X")
+
     detection_result = []
     files = sorted(glob(f"{eval_path}/*"))
     print(len(files))
@@ -67,8 +71,20 @@ def inference(model_path, eval_path):
                 cv2.imwrite(f"{save_path}/O/{idx:>06}.jpg", image)
             
             else:
-                detection_result.append([f"{idx:>06}.jpg", None, None])
-                cv2.imwrite(f"{save_path}/X/{idx:>06}.jpg", image)
+                indices = np.where(scores > 0.15)[0]
+                if indices.size > 0:
+                    bbox = boxes[indices]
+                    score = scores[indices]
+                    class_id = class_ids[indices]
+
+                    detection_result.append([f"{idx:>06}.jpg", class_id, score])
+                    for b in bbox:
+                        ymin, xmin, ymax, xmax = int(b[0]), int(b[1]), int(b[2]), int(b[3])
+                        cv2.rectangle(image, (xmin, ymin), (xmax, ymax), (0, 0, 255), thickness=3)
+                    cv2.imwrite(f"{save_path}/X/{idx:>06}.jpg", image)
+                else:
+                    detection_result.append([f"{idx:>06}.jpg", None, None])
+                    cv2.imwrite(f"{save_path}/X/{idx:>06}.jpg", image)
 
         except:
             print(f"{file} Broken")
@@ -77,24 +93,70 @@ def inference(model_path, eval_path):
     df.to_csv(f"{save_path}/result.csv", index=False, header=["file_name", "class_ids", "scores"])
 
 
+def spot_inference(model_path, eval_path):
+    model = tf.saved_model.load(model_path)
+    print("Model Loaded")
+
+    detection_result = []
+    folders = sorted(glob(f"{eval_path}/*"))
+    for folder in folders:
+        spot_name = folder.split('/')[-1]
+        frames = sorted(glob(f"{folder}/*.jpg"))
+
+        if not os.path.isdir(f"{save_path}/{spot_name}"):
+            os.makedirs(f"{save_path}/{spot_name}/O")
+            os.makedirs(f"{save_path}/{spot_name}/X")
+
+        for idx in tqdm(range(len(frames))):
+            try:
+                frame = frames[idx]
+                image = cv2.imread(frame)
+                input_tensor = np.expand_dims(image, axis=0)
+
+                prediction = model(input_tensor)
+                boxes, scores, class_ids = prediction[0][0].numpy(), prediction[1][0].numpy(), prediction[2][0].numpy()
+
+                indices = np.where(scores > threshold)[0]
+                if indices.size > 0:
+                    bbox = boxes[indices]
+                    score = scores[indices]
+                    class_id = class_ids[indices]
+
+                    detection_result.append([f"{spot_name}", f"{idx:>06}.jpg", class_id, score])
+                    for b in bbox:
+                        ymin, xmin, ymax, xmax = int(b[0]), int(b[1]), int(b[2]), int(b[3])
+                        cv2.rectangle(image, (xmin, ymin), (xmax, ymax), (0, 0, 255), thickness=3)
+                    cv2.imwrite(f"{save_path}/{spot_name}/O/{idx:>06}.jpg", image)
+                
+                else:
+                    indices = np.where(scores > 0.15)[0]
+                    if indices.size > 0:
+                        bbox = boxes[indices]
+                        score = scores[indices]
+                        class_id = class_ids[indices]
+
+                        detection_result.append([f"{spot_name}", f"{idx:>06}.jpg", class_id, score])
+                        for b in bbox:
+                            ymin, xmin, ymax, xmax = int(b[0]), int(b[1]), int(b[2]), int(b[3])
+                            cv2.rectangle(image, (xmin, ymin), (xmax, ymax), (0, 0, 255), thickness=3)
+                        cv2.imwrite(f"{save_path}/{spot_name}/X/{idx:>06}.jpg", image)
+                    else:
+                        detection_result.append([f"{spot_name}", f"{idx:>06}.jpg", None, None])
+                        cv2.imwrite(f"{save_path}/{spot_name}/X/{idx:>06}.jpg", image)
+
+            except:
+                print(f"{frame} Broken")
+                
+    df = pd.DataFrame(detection_result)
+    df.to_csv(f"{save_path}/result.csv", index=False, header=["file_name", "class_ids", "scores"])
+
 if __name__ == "__main__":
-    pb_path = "/data/Models/efficientdet_lite/BR-set0_384-50/saved_model"
-    frame_path = "/data/Datasets/BR/testset"
+    pb_path = "/data/Models/NIPA/BR-set1-300/saved_model"
+    frame_path = "/data/Datasets/BR/frames"
     save_path = f"/data/Datasets/BR/eval"
     input_shape = (384, 384)
     threshold = 0.4
 
-    if not os.path.isdir(save_path):
-        os.makedirs(f"{save_path}/images")
-        os.makedirs(f"{save_path}/O")
-        os.makedirs(f"{save_path}/X")
-
-        preprocessing(frame_path)
-
-    elif os.path.isdir(f"{save_path}/O") and os.path.isdir(f"{save_path}/X"):
-        shutil.rmtree(f"{save_path}/O")
-        shutil.rmtree(f"{save_path}/X")
-        os.makedirs(f"{save_path}/O")
-        os.makedirs(f"{save_path}/X")
-
-    total_matched = inference(pb_path, f"{save_path}/images")
+    # inference(pb_path, frame_path)
+    spot_inference(pb_path, frame_path)
+    
