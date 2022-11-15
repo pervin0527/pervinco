@@ -76,8 +76,8 @@ def label_check(dir):
 
 if __name__ == "__main__":
     ROOT_DIR = "/home/ubuntu/Datasets/BR"
-    TRAIN_DIR = f"{ROOT_DIR}/seed1_384/set0/train"
-    VALID_DIR = f"{ROOT_DIR}/seed1_384/set0/valid"
+    TRAIN_DIR = f"{ROOT_DIR}/seed1_384/set1/train"
+    VALID_DIR = f"{ROOT_DIR}/seed1_384/set1/valid"
     SAVE_PATH = "/home/ubuntu/Models/efficientdet_lite"
 
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
@@ -89,26 +89,28 @@ if __name__ == "__main__":
     valid_check, valid_files = label_check(VALID_DIR)
     
     if train_check and valid_check:
-        EPOCHS = 100
+        EPOCHS = 300
         BATCH_SIZE = 32 * len(gpus)
         MAX_DETECTIONS = 10
         HPARAMS = {
             "optimizer" : "sgd",
             "momentum" : 0.9,
             "lr_decay_method" : "cosine",
-            "learning_rate" : 0.004,
-            "lr_warmup_init" : 0.0004,
+            "learning_rate" : 0.008,
+            "lr_warmup_init" : 0.0008,
             "lr_warmup_epoch" : 1.0,
-            "aspect_ratios" : [0.25, 0.96, 2.18, 4.14, 7.17, 12.26], ## [0.94, 2.92, 6.89]
+            "anchor_scale" : 7.0,
+            "aspect_ratios" : [8.0, 4.0, 2.0, 1.0, 0.5, 0.25], ## [8.0, 4.0, 2.0, 1.0, 0.5], [0.25, 0.96, 2.18, 4.14, 7.17, 12.26], [0.94, 2.92, 6.89]
+            "num_scales" : 5,
             "alpha" : 0.25,
             "gamma" : 2,
-            "first_lr_drop_epoch" : EPOCHS * (2/3),
-            "second_lr_drop_epoch" : EPOCHS * (6/5)
+            "first_lr_drop_epoch" : 200, ## EPOCHS * (2/3)
+            "second_lr_drop_epoch" : 250 ## EPOCHS * (6/5)
         }
 
         PROJECT = ROOT_DIR.split('/')[-1]
         DS_NAME = TRAIN_DIR.split('/')[-2]
-        MODEL_FILE = f"{PROJECT}-{DS_NAME}-{EPOCHS}-test"
+        MODEL_FILE = f"{PROJECT}-{DS_NAME}-{EPOCHS}-final"
 
         train_data = object_detector.DataLoader.from_pascal_voc(images_dir=f"{TRAIN_DIR}/JPEGImages",
                                                                 annotations_dir=f"{TRAIN_DIR}/Annotations", 
