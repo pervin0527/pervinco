@@ -76,8 +76,8 @@ def label_check(dir):
 
 if __name__ == "__main__":
     ROOT_DIR = "/home/ubuntu/Datasets/BR"
-    TRAIN_DIR = f"{ROOT_DIR}/seed1_384/set1/train"
-    VALID_DIR = f"{ROOT_DIR}/seed1_384/set1/valid"
+    TRAIN_DIR = f"{ROOT_DIR}/seed1_384/set3/train"
+    VALID_DIR = f"{ROOT_DIR}/seed1_384/set3/valid"
     SAVE_PATH = "/home/ubuntu/Models/efficientdet_lite"
 
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
@@ -100,7 +100,7 @@ if __name__ == "__main__":
             "lr_warmup_init" : 0.0008,
             "lr_warmup_epoch" : 1.0,
             "anchor_scale" : 7.0,
-            "aspect_ratios" : [8.0, 4.0, 2.0, 1.0, 0.5], ## [8.0, 4.0, 2.0, 1.0, 0.5]
+            "aspect_ratios" : [8.0, 4.0, 2.0, 1.0, 0.5, 0.25], ## [8.0, 4.0, 2.0, 1.0, 0.5]
             "num_scales" : 5,
             "alpha" : 0.25,
             "gamma" : 2,

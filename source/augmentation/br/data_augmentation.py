@@ -1,5 +1,6 @@
 import os
 import cv2
+import copy
 import random
 import numpy as np
 import albumentations as A
@@ -12,6 +13,8 @@ from utils import make_file_list, load_annot_data, make_save_dir, annot_write
 def basic_augmentation(current_files):
     idx = random.randint(0, len(current_files)-1)
     image_file, annot_file = current_files[idx]
+    del current_files[idx]
+
     image = cv2.imread(image_file)
     bboxes, labels = load_annot_data(annot_file, target_classes=classes)
 
@@ -51,16 +54,9 @@ def mixup_augmentation(fg_image, min=0.4, max=0.5, alpha=1.0):
             A.RandomBrightnessContrast(brightness_limit=(-0.3, 0.3), p=0.8),
             A.HueSaturationValue(hue_shift_limit=0, sat_shift_limit=(0, 0), val_shift_limit=(0, 100), p=0.8),
         ], p=0.7),
-        
-        A.OneOf([
-            A.RandomRotate90(p=0.4),
-            A.HorizontalFlip(p=0.3),
-            A.VerticalFlip(p=0.3),
-        ], p=0.3),
 
-        A.ChannelShuffle(p=0.3),
-        # A.MotionBlur(blur_limit=(3, 7), p=0.3),
-        A.RGBShift(p=0.3),
+        # A.ChannelShuffle(p=0.3),
+        A.MotionBlur(p=0.3),
 
         A.Resize(height=fg_image.shape[0], width=fg_image.shape[1], p=1),
     ])
@@ -82,21 +78,13 @@ def crop_image(image, bboxes, labels, coordinates):
             A.RandomBrightnessContrast(brightness_limit=(-0.3, 0.3), p=0.8),
             A.HueSaturationValue(hue_shift_limit=0, sat_shift_limit=(0, 0), val_shift_limit=(0, 100), p=0.8),
         ], p=0.7),
-        
-        A.OneOf([
-            A.RandomRotate90(p=0.4),
-            A.HorizontalFlip(p=0.3),
-            A.VerticalFlip(p=0.3),
-        ], p=0.3),
 
-        A.ChannelShuffle(p=0.3),
-        # A.MotionBlur(blur_limit=(3, 7), p=0.3),
-        A.RGBShift(p=0.3),
+        # A.ChannelShuffle(p=0.3),
+        A.MotionBlur(p=0.3),
 
         A.OneOf([
             A.RandomSizedBBoxSafeCrop(img_size, img_size, p=0.4),
             A.CropAndPad(percent=0.2, pad_mode=0, keep_size=True, p=0.4),
-            # A.RandomCrop(img_size, img_size, p=0.2),
         ],p=0.6),
 
         A.Resize(height=coordinates[3]-coordinates[1], width=coordinates[2]-coordinates[0], p=1),
@@ -117,9 +105,12 @@ def mosaic_augmentation(current_files):
 
     xc = int(random.uniform(img_size * 0.25, img_size * 0.75))
     yc = int(random.uniform(img_size * 0.25, img_size * 0.75))
-    indices = [random.randint(0, len(current_files)-1) for _ in range(4)]
+    # indices = [random.randint(0, len(current_files)-1) for _ in range(4)]
+    indices = [0, 1, 2, 3]
     for i, index in enumerate(indices):
         image_file, annotation_file = current_files[index]
+        del current_files[index]
+
         image = cv2.imread(image_file)
         bboxes, labels = load_annot_data(annotation_file, target_classes=classes)
         # bboxes = adjust_coordinates(bboxes)
@@ -168,13 +159,18 @@ def mosaic_augmentation(current_files):
 def train_augmentation(files):
     save_path = f"{save_dir}/train"
     make_save_dir(save_path)
+    tmp = copy.deepcopy(files)
 
-    random.shuffle(files)
     for number in tqdm(range(total_steps)):
+        if len(tmp) < 10:
+            # print("update")
+            tmp = copy.deepcopy(files)
+
+        random.shuffle(tmp)
         if mosaic and random.random() < mosaic_prob:
-            result_image, result_bboxes, result_labels = mosaic_augmentation(files)
+            result_image, result_bboxes, result_labels = mosaic_augmentation(tmp)
         else:
-            result_image, result_bboxes, result_labels = basic_augmentation(files)
+            result_image, result_bboxes, result_labels = basic_augmentation(tmp)
 
         if mixup and random.random() < mixup_prob:
             result_image = mixup_augmentation(result_image, mixup_min, mixup_max)
@@ -260,7 +256,7 @@ if __name__ == "__main__":
     mixup_data_dir = ["/home/ubuntu/Datasets/VOCdevkit/VOC2012/JPEGImages"]
 
     negative_false = True
-    nf_ratio = 0.9
+    nf_ratio = 0.2
     nf_data_dir = "/home/ubuntu/Datasets/SPC/download"
 
     basic_transform = A.Compose([
@@ -269,26 +265,15 @@ if __name__ == "__main__":
         A.OneOf([
             A.RandomSizedBBoxSafeCrop(img_size, img_size, p=0.4),
             A.CropAndPad(percent=0.2, pad_mode=0, keep_size=True, p=0.4),
-            # A.RandomCrop(img_size, img_size, p=0.2),
         ],p=0.4),
-
-        A.OneOf([
-            
-        ], p=1),
 
         A.OneOf([
             A.RandomBrightnessContrast(brightness_limit=(-0.3, 0.3), p=0.8),
             A.HueSaturationValue(hue_shift_limit=0, sat_shift_limit=(0, 0), val_shift_limit=(0, 100), p=0.8),
         ], p=0.5),
         
-        A.OneOf([
-            A.HorizontalFlip(p=0.3),
-            A.VerticalFlip(p=0.3),
-        ], p=0.3),
-
-        A.ChannelShuffle(p=0.3),
-        # A.MotionBlur(blur_limit=(3, 7), p=0.3),
-        A.RGBShift(p=0.3),
+        # A.ChannelShuffle(p=0.3),
+        A.MotionBlur(p=0.3),
 
     ], bbox_params=A.BboxParams(format="pascal_voc", label_fields=["labels"]))
 
@@ -310,7 +295,7 @@ if __name__ == "__main__":
 
             A.OneOf([
                 A.HueSaturationValue(p=0.4),
-                A.ChannelShuffle(p=0.3),
+                # A.ChannelShuffle(p=0.3),
                 A.RGBShift(p=0.3)
             ]),
 

@@ -78,8 +78,7 @@ if __name__ == "__main__":
     ROOT_DIR = "/home/ubuntu/Datasets/BR"
     TRAIN_DIR = f"{ROOT_DIR}/seed1_384/set0/train"
     VALID_DIR = f"{ROOT_DIR}/seed1_384/set0/valid"
-    SAVE_PATH = "/home/ubuntu/Models/efficientdet_lite"
-    CKPT_PATH = "/home/ubuntu/Models/efficientdet_lite/BR-set1-300-final"
+    CKPT_PATH = "/home/ubuntu/Models/efficientdet_lite/BR-set1-300-final/"
 
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
     LABEL_FILE = pd.read_csv(LABEL_FILE, sep=',', index_col=False, header=None)
@@ -110,10 +109,6 @@ if __name__ == "__main__":
             "moving_average_decay" : 0.9998
         }
 
-        PROJECT = ROOT_DIR.split('/')[-1]
-        DS_NAME = TRAIN_DIR.split('/')[-2]
-        MODEL_FILE = f"export-test"
-
         train_data = object_detector.DataLoader.from_pascal_voc(images_dir=f"{TRAIN_DIR}/JPEGImages",
                                                                 annotations_dir=f"{TRAIN_DIR}/Annotations", 
                                                                 label_map=CLASSES)
@@ -126,7 +121,7 @@ if __name__ == "__main__":
                                                      strategy=None, # 'gpus', None
                                                      hparams=HPARAMS,
                                                      tflite_max_detections=MAX_DETECTIONS,
-                                                     model_dir=f'{SAVE_PATH}/{MODEL_FILE}')
+                                                     model_dir=f'{CKPT_PATH}/export')
 
         detector = object_detector.create(train_data,
                                           model_spec=spec,
@@ -160,8 +155,8 @@ if __name__ == "__main__":
             model.summary()
 
         detector.model = model
-        detector.export(export_dir=f"{SAVE_PATH}/{MODEL_FILE}",
-                        tflite_filename=f'{MODEL_FILE}.tflite',
-                        saved_model_filename=f'{SAVE_PATH}/{MODEL_FILE}/saved_model',
+        detector.export(export_dir=f"{CKPT_PATH}/export",
+                        tflite_filename='model.tflite',
+                        saved_model_filename=f'{CKPT_PATH}/export/saved_model',
                         export_format=[ExportFormat.TFLITE, ExportFormat.SAVED_MODEL])
         print("exported")
