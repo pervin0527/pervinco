@@ -8,7 +8,7 @@ from tqdm import tqdm
 from glob import glob
 from tflite_model_maker import object_detector
 from tflite_model_maker.config import ExportFormat
-from tensorflow_examples.lite.model_maker.third_party.efficientdet.keras import train, train_lib
+from tensorflow_examples.lite.model_maker.third_party.efficientdet.keras import train
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 gpus = tf.config.experimental.list_physical_devices('GPU')

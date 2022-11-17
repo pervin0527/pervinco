@@ -89,23 +89,21 @@ if __name__ == "__main__":
     valid_check, valid_files = label_check(VALID_DIR)
     
     if train_check and valid_check:
-        EPOCHS = 20
+        EPOCHS = 600
         BATCH_SIZE = 32 * len(gpus)
         MAX_DETECTIONS = 10
         HPARAMS = {
             "optimizer" : "sgd",
             "momentum" : 0.9,
             "lr_decay_method" : "cosine",
-            "learning_rate" : 0.008,
-            "lr_warmup_init" : 0.0008,
+            "learning_rate" : 0.004,
+            "lr_warmup_init" : 0.0004,
             "lr_warmup_epoch" : 1.0,
             "anchor_scale" : 5.0, ## 7.0
-            "aspect_ratios" : [8.24, 4.42, 2.2, 0.92], ## [8.0, 4.0, 2.0, 1.0, 0.5]]
+            "aspect_ratios" : [8.24, 4.42, 2.2, 0.92], ## [8.0, 4.0, 2.0, 1.0, 0.5]
             "num_scales" : 4, ## 5
             "alpha" : 0.25,
             "gamma" : 2,
-            # "first_lr_drop_epoch" : 200, ## EPOCHS * (2/3)
-            # "second_lr_drop_epoch" : 250 ## EPOCHS * (6/5)
         }
 
         PROJECT = ROOT_DIR.split('/')[-1]

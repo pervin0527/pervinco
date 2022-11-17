@@ -98,8 +98,8 @@ def spot_inference(model_path, eval_path):
     print("Model Loaded")
 
     detection_result = []
-    # folders = sorted(glob(f"{eval_path}/*"))
-    folders = [f"{eval_path}/삼청마당_18", f"{eval_path}/삼청마당_15", f"{eval_path}/서초우성_09"]
+    folders = sorted(glob(f"{eval_path}/*"))
+    # folders = [f"{eval_path}/삼청마당_18", f"{eval_path}/삼청마당_15", f"{eval_path}/서초우성_09"]
     for folder in folders:
         spot_name = folder.split('/')[-1]
         frames = sorted(glob(f"{folder}/*.jpg"))
@@ -123,7 +123,7 @@ def spot_inference(model_path, eval_path):
                     score = scores[indices]
                     class_id = class_ids[indices]
 
-                    detection_result.append([f"{spot_name}", f"{idx:>06}.jpg", class_id, score])
+                    detection_result.append([f"{idx:>06}.jpg", class_id, score])
                     for b in bbox:
                         ymin, xmin, ymax, xmax = int(b[0]), int(b[1]), int(b[2]), int(b[3])
                         cv2.rectangle(image, (xmin, ymin), (xmax, ymax), (0, 0, 255), thickness=3)
@@ -136,27 +136,30 @@ def spot_inference(model_path, eval_path):
                         score = scores[indices]
                         class_id = class_ids[indices]
 
-                        detection_result.append([f"{spot_name}", f"{idx:>06}.jpg", class_id, score])
+                        detection_result.append([f"{idx:>06}.jpg", class_id, score])
                         for b in bbox:
                             ymin, xmin, ymax, xmax = int(b[0]), int(b[1]), int(b[2]), int(b[3])
                             cv2.rectangle(image, (xmin, ymin), (xmax, ymax), (0, 0, 255), thickness=3)
                         cv2.imwrite(f"{save_path}/{spot_name}/X/{idx:>06}.jpg", image)
                     else:
-                        detection_result.append([f"{spot_name}", f"{idx:>06}.jpg", None, None])
+                        detection_result.append([f"{idx:>06}.jpg", None, None])
                         cv2.imwrite(f"{save_path}/{spot_name}/X/{idx:>06}.jpg", image)
 
             except:
                 print(f"{frame} Broken")
                 
-    df = pd.DataFrame(detection_result)
-    df.to_csv(f"{save_path}/result.csv", index=False, header=["spot_name", "file_name", "class_ids", "scores"])
+        df = pd.DataFrame(detection_result)
+        df.to_csv(f"{save_path}/{spot_name}.csv", index=False, header=["file_name", "class_ids", "scores"])
 
 if __name__ == "__main__":
-    pb_path = "/data/Models/NIPA/BR-set1-300/saved_model"
-    frame_path = "/data/Datasets/BR/frames"
-    save_path = f"/data/Datasets/BR/ttest"
+    pb_path = "/home/ubuntu/Models/efficientdet_lite/BR-set1-300/saved_model"
+    frame_path = "/home/ubuntu/Datasets/BR/frames"
+
+    model_name = pb_path.split('/')[-2]
+    testset_name = frame_path.split('/')[-1]
+    save_path = f"/home/ubuntu/Datasets/BR/testset/{model_name}_{testset_name}"
     input_shape = (384, 384)
-    threshold = 0.9
+    threshold = 0.4
 
     if os.path.isdir(save_path):
         shutil.rmtree(save_path)
