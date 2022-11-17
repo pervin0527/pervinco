@@ -1,4 +1,5 @@
 import os
+import shutil
 import pandas as pd
 import tensorflow as tf
 import xml.etree.ElementTree as ET
@@ -87,6 +88,9 @@ if __name__ == "__main__":
 
     train_check, train_files = label_check(TRAIN_DIR)
     valid_check, valid_files = label_check(VALID_DIR)
+
+    if os.path.isdir(f"{CKPT_PATH}/export"):
+        shutil.rmtree(f"{CKPT_PATH}/export")
     
     if train_check and valid_check:
         EPOCHS = 300

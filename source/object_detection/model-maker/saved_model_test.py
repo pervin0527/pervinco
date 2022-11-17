@@ -98,7 +98,8 @@ def spot_inference(model_path, eval_path):
     print("Model Loaded")
 
     detection_result = []
-    folders = sorted(glob(f"{eval_path}/*"))
+    # folders = sorted(glob(f"{eval_path}/*"))
+    folders = [f"{eval_path}/삼청마당_18", f"{eval_path}/삼청마당_15", f"{eval_path}/서초우성_09"]
     for folder in folders:
         spot_name = folder.split('/')[-1]
         frames = sorted(glob(f"{folder}/*.jpg"))
@@ -148,14 +149,17 @@ def spot_inference(model_path, eval_path):
                 print(f"{frame} Broken")
                 
     df = pd.DataFrame(detection_result)
-    df.to_csv(f"{save_path}/result.csv", index=False, header=["file_name", "class_ids", "scores"])
+    df.to_csv(f"{save_path}/result.csv", index=False, header=["spot_name", "file_name", "class_ids", "scores"])
 
 if __name__ == "__main__":
     pb_path = "/data/Models/NIPA/BR-set1-300/saved_model"
     frame_path = "/data/Datasets/BR/frames"
-    save_path = f"/data/Datasets/BR/eval"
+    save_path = f"/data/Datasets/BR/ttest"
     input_shape = (384, 384)
-    threshold = 0.4
+    threshold = 0.9
+
+    if os.path.isdir(save_path):
+        shutil.rmtree(save_path)
 
     # inference(pb_path, frame_path)
     spot_inference(pb_path, frame_path)

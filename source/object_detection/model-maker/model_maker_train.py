@@ -89,7 +89,7 @@ if __name__ == "__main__":
     valid_check, valid_files = label_check(VALID_DIR)
     
     if train_check and valid_check:
-        EPOCHS = 300
+        EPOCHS = 20
         BATCH_SIZE = 32 * len(gpus)
         MAX_DETECTIONS = 10
         HPARAMS = {
@@ -99,18 +99,18 @@ if __name__ == "__main__":
             "learning_rate" : 0.008,
             "lr_warmup_init" : 0.0008,
             "lr_warmup_epoch" : 1.0,
-            "anchor_scale" : 7.0,
-            "aspect_ratios" : [8.0, 4.0, 2.0, 1.0, 0.5, 0.25], ## [8.0, 4.0, 2.0, 1.0, 0.5]
-            "num_scales" : 5,
+            "anchor_scale" : 5.0, ## 7.0
+            "aspect_ratios" : [8.24, 4.42, 2.2, 0.92], ## [8.0, 4.0, 2.0, 1.0, 0.5]]
+            "num_scales" : 4, ## 5
             "alpha" : 0.25,
             "gamma" : 2,
-            "first_lr_drop_epoch" : 200, ## EPOCHS * (2/3)
-            "second_lr_drop_epoch" : 250 ## EPOCHS * (6/5)
+            # "first_lr_drop_epoch" : 200, ## EPOCHS * (2/3)
+            # "second_lr_drop_epoch" : 250 ## EPOCHS * (6/5)
         }
 
         PROJECT = ROOT_DIR.split('/')[-1]
         DS_NAME = TRAIN_DIR.split('/')[-2]
-        MODEL_FILE = f"{PROJECT}-{DS_NAME}-{EPOCHS}-final"
+        MODEL_FILE = f"{PROJECT}-{DS_NAME}-{EPOCHS}-test"
 
         train_data = object_detector.DataLoader.from_pascal_voc(images_dir=f"{TRAIN_DIR}/JPEGImages",
                                                                 annotations_dir=f"{TRAIN_DIR}/Annotations", 
