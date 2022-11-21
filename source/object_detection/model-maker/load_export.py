@@ -77,11 +77,11 @@ def label_check(dir):
 
 if __name__ == "__main__":
     ROOT_DIR = "/home/ubuntu/Datasets/BR"
-    TRAIN_DIR = f"{ROOT_DIR}/seed1_384/set4/train"
-    VALID_DIR = f"{ROOT_DIR}/seed1_384/set4/valid"
-    CKPT_PATH = "/home/ubuntu/Models/efficientdet_lite/BR-set3-600-test"
+    TRAIN_DIR = f"{ROOT_DIR}/seed1_384/set5/train"
+    VALID_DIR = f"{ROOT_DIR}/seed1_384/set5/valid"
+    CKPT_PATH = "/home/ubuntu/Models/efficientdet_lite/BR-set4-200"
     IS_TRAIN = True
-    NAME = "BR-set4-200"
+    NAME = "BR-set5-100"
 
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
     LABEL_FILE = pd.read_csv(LABEL_FILE, sep=',', index_col=False, header=None)
@@ -92,7 +92,7 @@ if __name__ == "__main__":
     valid_check, valid_files = label_check(VALID_DIR)
     
     SAVE_PATH = '/'.join(CKPT_PATH.split('/')[:-1])
-    EPOCHS = 800
+    EPOCHS = 900
     BATCH_SIZE = 32 * len(gpus)
     MAX_DETECTIONS = 10
     HPARAMS = {
@@ -118,18 +118,18 @@ if __name__ == "__main__":
                                                                     label_map=CLASSES)
 
     spec = object_detector.EfficientDetLite1Spec(verbose=1,
-                                                    strategy="gpus", # 'gpus', None
-                                                    hparams=HPARAMS,
-                                                    tflite_max_detections=MAX_DETECTIONS,
-                                                    model_dir=f'{SAVE_PATH}/{NAME}')
+                                                 strategy="gpus", # 'gpus', None
+                                                 hparams=HPARAMS,
+                                                 tflite_max_detections=MAX_DETECTIONS,
+                                                 model_dir=f'{SAVE_PATH}/{NAME}')
 
     detector = object_detector.create(train_data,
-                                        model_spec=spec,
-                                        epochs=EPOCHS,
-                                        batch_size=BATCH_SIZE,
-                                        validation_data=validation_data,
-                                        do_train=False,
-                                        train_whole_model=True)
+                                      model_spec=spec,
+                                      epochs=EPOCHS,
+                                      batch_size=BATCH_SIZE,
+                                      validation_data=validation_data,
+                                      do_train=False,
+                                      train_whole_model=True)
 
     train_ds, steps_per_epoch, _ = detector._get_dataset_and_steps(train_data, BATCH_SIZE, is_training=True)
     validation_ds, validation_steps, val_json_file = detector._get_dataset_and_steps(validation_data, BATCH_SIZE, is_training=False)
@@ -160,17 +160,17 @@ if __name__ == "__main__":
         if IS_TRAIN:
             model.fit(
                 train_ds,
-                epochs=EPOCHS,
-                initial_epoch=last_epoch, 
+                initial_epoch=0, 
+                epochs=(EPOCHS - last_epoch),
                 steps_per_epoch=steps_per_epoch,
                 validation_data=validation_ds,
                 validation_steps=validation_steps,
                 callbacks=train_lib.get_callbacks(config.as_dict(), validation_ds)
             )
 
-        detector.model = model
-        detector.export(export_dir=f"{SAVE_PATH}/{NAME}",
-                        tflite_filename='model.tflite',
-                        saved_model_filename=f'{SAVE_PATH}/{NAME}/saved_model',
-                        export_format=[ExportFormat.TFLITE, ExportFormat.SAVED_MODEL])
-        print("exported")
+    detector.model = model
+    detector.export(export_dir=f"{SAVE_PATH}/{NAME}",
+                    tflite_filename='model.tflite',
+                    saved_model_filename=f'{SAVE_PATH}/{NAME}/saved_model',
+                    export_format=[ExportFormat.TFLITE, ExportFormat.SAVED_MODEL])
+    print("exported")
