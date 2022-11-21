@@ -77,11 +77,10 @@ def label_check(dir):
 
 if __name__ == "__main__":
     ROOT_DIR = "/home/ubuntu/Datasets/BR"
-    TRAIN_DIR = f"{ROOT_DIR}/seed1_384/set5/train"
-    VALID_DIR = f"{ROOT_DIR}/seed1_384/set5/valid"
-    CKPT_PATH = "/home/ubuntu/Models/efficientdet_lite/BR-set4-200"
+    TRAIN_DIR = f"{ROOT_DIR}/seed1_384/set4/train"
+    VALID_DIR = f"{ROOT_DIR}/seed1_384/set4/valid"
+    CKPT_PATH = "/home/ubuntu/Models/BR_FINAL/BR-set3-200"
     IS_TRAIN = True
-    NAME = "BR-set5-100"
 
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
     LABEL_FILE = pd.read_csv(LABEL_FILE, sep=',', index_col=False, header=None)
@@ -92,22 +91,30 @@ if __name__ == "__main__":
     valid_check, valid_files = label_check(VALID_DIR)
     
     SAVE_PATH = '/'.join(CKPT_PATH.split('/')[:-1])
-    EPOCHS = 900
+    EPOCHS = 400
     BATCH_SIZE = 32 * len(gpus)
     MAX_DETECTIONS = 10
     HPARAMS = {
         "optimizer" : "sgd",
         "momentum" : 0.9,
         "lr_decay_method" : "cosine",
-        "learning_rate" : 0.004,
-        "lr_warmup_init" : 0.0004,
+        "learning_rate" : 0.0005,
+        "lr_warmup_init" : 0.00005,
         "lr_warmup_epoch" : 1.0,
-        "anchor_scale" : 5.0, ## 7.0
-        "aspect_ratios" : [8.24, 4.42, 2.2, 0.92], ## [8.0, 4.0, 2.0, 1.0, 0.5]
-        "num_scales" : 4, ## 5
+        "aspect_ratios" : [12.59, 7.38, 4.58, 2.74, 1.5, 0.73], ## [8.24, 4.42, 2.2, 0.92]
+        # "num_scales" : 4,
+        # "anchor_scale" : 5.0,
         "alpha" : 0.25,
         "gamma" : 2,
+        "max_instances_per_image" : 10
     }
+
+    if IS_TRAIN:
+        PROJECT = ROOT_DIR.split('/')[-1]
+        DS_NAME = TRAIN_DIR.split('/')[-2]
+        MODEL_FILE = f"{PROJECT}-{DS_NAME}-{EPOCHS}"
+    else:
+        MODEL_FILE = CKPT_PATH.split('/')[-1] + "-export"
 
     train_data = object_detector.DataLoader.from_pascal_voc(images_dir=f"{TRAIN_DIR}/JPEGImages",
                                                             annotations_dir=f"{TRAIN_DIR}/Annotations", 
@@ -121,7 +128,7 @@ if __name__ == "__main__":
                                                  strategy="gpus", # 'gpus', None
                                                  hparams=HPARAMS,
                                                  tflite_max_detections=MAX_DETECTIONS,
-                                                 model_dir=f'{SAVE_PATH}/{NAME}')
+                                                 model_dir=f'{SAVE_PATH}/{MODEL_FILE}')
 
     detector = object_detector.create(train_data,
                                       model_spec=spec,
@@ -169,8 +176,8 @@ if __name__ == "__main__":
             )
 
     detector.model = model
-    detector.export(export_dir=f"{SAVE_PATH}/{NAME}",
+    detector.export(export_dir=f"{SAVE_PATH}/{MODEL_FILE}",
                     tflite_filename='model.tflite',
-                    saved_model_filename=f'{SAVE_PATH}/{NAME}/saved_model',
+                    saved_model_filename=f'{SAVE_PATH}/{MODEL_FILE}/saved_model',
                     export_format=[ExportFormat.TFLITE, ExportFormat.SAVED_MODEL])
     print("exported")

@@ -76,9 +76,9 @@ def label_check(dir):
 
 if __name__ == "__main__":
     ROOT_DIR = "/home/ubuntu/Datasets/BR"
-    TRAIN_DIR = f"{ROOT_DIR}/seed1_384/set4/train"
-    VALID_DIR = f"{ROOT_DIR}/seed1_384/set4/valid"
-    SAVE_PATH = "/home/ubuntu/Models/efficientdet_lite"
+    TRAIN_DIR = f"{ROOT_DIR}/seed1_384/set3/train"
+    VALID_DIR = f"{ROOT_DIR}/seed1_384/set3/valid"
+    SAVE_PATH = "/home/ubuntu/Models/BR_FINAL"
 
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
     LABEL_FILE = pd.read_csv(LABEL_FILE, sep=',', index_col=False, header=None)
@@ -89,7 +89,7 @@ if __name__ == "__main__":
     valid_check, valid_files = label_check(VALID_DIR)
     
     if train_check and valid_check:
-        EPOCHS = 800
+        EPOCHS = 200
         BATCH_SIZE = 32 * len(gpus)
         MAX_DETECTIONS = 10
         HPARAMS = {
@@ -99,11 +99,12 @@ if __name__ == "__main__":
             "learning_rate" : 0.004,
             "lr_warmup_init" : 0.0004,
             "lr_warmup_epoch" : 1.0,
-            "anchor_scale" : 5.0, ## 7.0
-            "aspect_ratios" : [8.24, 4.42, 2.2, 0.92], ## [8.0, 4.0, 2.0, 1.0, 0.5]
-            "num_scales" : 4, ## 5
+            "aspect_ratios" : [12.59, 7.38, 4.58, 2.74, 1.5, 0.73], ## [8.24, 4.42, 2.2, 0.92]
+            # "num_scales" : 4,
+            # "anchor_scale" : 5.0,
             "alpha" : 0.25,
             "gamma" : 2,
+            "max_instances_per_image" : 10
         }
 
         PROJECT = ROOT_DIR.split('/')[-1]

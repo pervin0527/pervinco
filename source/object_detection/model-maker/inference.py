@@ -91,10 +91,11 @@ def inference(weight, testset, mode="images"):
         df.to_csv(f"{save_dir}/result.csv", index=False, header=["filename", "labels", "scores"])
 
     elif mode == "folders":
+        total_results = []
         folders = sorted(glob(f"{testset}/*"))
         # folders = [f"{testset}/삼청마당_18", f"{testset}/삼청마당_15", f"{testset}/서초우성_09"]
+        
         for folder in folders:
-            total_results = []
             test_images = sorted(glob(f"{folder}/*"))
             print(f"{folder} has {len(test_images)} images")
 
@@ -118,22 +119,21 @@ def inference(weight, testset, mode="images"):
 
                 res_boxes, res_scores, res_labels = get_result(model, input_tensor)
                 if len(res_boxes) > 0:
-                    total_results.append([name, res_labels, res_scores])
+                    total_results.append([spot, name, res_labels, res_scores])
                     for box in res_boxes:
                         cv2.rectangle(image, (box[0], box[1]), (box[2], box[3]), (0, 0, 255), 3)
                     cv2.imwrite(f"{save_dir}/{spot}/O/{idx:06}.jpg", image)
                 else:
-                    total_results.append([name, None, None])
+                    total_results.append([spot, name, None, None])
                     cv2.imwrite(f"{save_dir}/{spot}/X/{idx:06}.jpg", image)
     
-            df = pd.DataFrame(total_results)
-            df.to_csv(f"{save_dir}/{spot}.csv", index=False, header=["filename", "labels", "scores"])
+        df = pd.DataFrame(total_results)
+        df.to_csv(f"{save_dir}/{spot}.csv", index=False, header=["spot_name", "file_name", "labels", "scores"])
 
 
 if __name__ == "__main__":
-    weight_dir = "/home/ubuntu/Models/efficientdet_lite/BR-set1-300"
+    weight_dir = "/home/ubuntu/Models/efficientdet_lite/BR-set5-100-export"
     label_dir = "/home/ubuntu/Datasets/BR/Labels/labels.txt"
-    # testset_dir = "/home/ubuntu/Datasets/BR/testset/set1"
     testset_dir = "/home/ubuntu/Datasets/BR/frames"
     mode = "folders"
 
