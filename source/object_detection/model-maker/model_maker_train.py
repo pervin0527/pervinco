@@ -8,7 +8,6 @@ from glob import glob
 from tflite_model_maker import object_detector
 from tflite_model_maker.config import ExportFormat
 
-
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if len(gpus) > 1:
