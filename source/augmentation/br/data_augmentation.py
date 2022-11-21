@@ -51,13 +51,11 @@ def get_background_image(dirs):
 def mixup_augmentation(fg_image, min=0.4, max=0.5, alpha=1.0):
     background_transform = A.Compose([
         A.OneOf([
-            A.RandomBrightnessContrast(brightness_limit=(-0.3, 0.3), p=0.8),
-            A.HueSaturationValue(hue_shift_limit=0, sat_shift_limit=(0, 0), val_shift_limit=(0, 100), p=0.8),
+            A.RandomBrightnessContrast(brightness_limit=(-0.3, 0.3), p=0.4),
+            A.HueSaturationValue(hue_shift_limit=0, sat_shift_limit=(0, 0), val_shift_limit=(65, 100), p=0.4),
         ], p=0.7),
 
-        # A.ChannelShuffle(p=0.3),
         A.MotionBlur(p=0.3),
-
         A.Resize(height=fg_image.shape[0], width=fg_image.shape[1], p=1),
     ])
 
@@ -75,12 +73,10 @@ def mixup_augmentation(fg_image, min=0.4, max=0.5, alpha=1.0):
 def crop_image(image, bboxes, labels, coordinates):
     crop_transform = A.Compose([
         A.OneOf([
-            A.RandomBrightnessContrast(brightness_limit=(-0.3, 0.3), p=0.8),
-            A.HueSaturationValue(hue_shift_limit=0, sat_shift_limit=(0, 0), val_shift_limit=(0, 100), p=0.8),
+            A.RandomBrightnessContrast(brightness_limit=(-0.3, 0.3), p=0.4),
+            A.HueSaturationValue(hue_shift_limit=0, sat_shift_limit=(0, 0), val_shift_limit=(65, 100), p=0.4),
+            A.MotionBlur(p=0.2),
         ], p=0.7),
-
-        # A.ChannelShuffle(p=0.3),
-        A.MotionBlur(p=0.3),
 
         A.OneOf([
             A.RandomSizedBBoxSafeCrop(img_size, img_size, p=0.4),
@@ -163,7 +159,7 @@ def train_augmentation(files):
 
     for number in tqdm(range(total_steps)):
         if len(tmp) < 10:
-            # print("update")
+            print("update")
             tmp = copy.deepcopy(files)
 
         random.shuffle(tmp)
@@ -240,9 +236,11 @@ def add_nf_data(path, transform):
 
 
 if __name__ == "__main__":
+    # data_dir = ["/home/ubuntu/Datasets/BR/seed1_384", "/home/ubuntu/Datasets/BR/br_train"]
     data_dir = ["/home/ubuntu/Datasets/BR/seed1_384"]
-    save_dir = f"{data_dir[0]}/set3"
-    total_steps = 50000
+
+    save_dir = f"{data_dir[0]}/set5"
+    total_steps = 150000
     num_valid = 100
     classes = ["Baskin_robbins"] # Baskin_robbins
 
@@ -268,13 +266,11 @@ if __name__ == "__main__":
         ],p=0.4),
 
         A.OneOf([
-            A.RandomBrightnessContrast(brightness_limit=(-0.3, 0.3), p=0.8),
-            A.HueSaturationValue(hue_shift_limit=0, sat_shift_limit=(0, 0), val_shift_limit=(0, 100), p=0.8),
+            A.RandomBrightnessContrast(brightness_limit=(-0.3, 0.3), p=0.5),
+            A.HueSaturationValue(hue_shift_limit=0, sat_shift_limit=(0, 0), val_shift_limit=(65, 100), p=0.5),
         ], p=0.5),
         
-        # A.ChannelShuffle(p=0.3),
         A.MotionBlur(p=0.3),
-
     ], bbox_params=A.BboxParams(format="pascal_voc", label_fields=["labels"]))
 
     valid_transform = A.Compose([
@@ -295,7 +291,6 @@ if __name__ == "__main__":
 
             A.OneOf([
                 A.HueSaturationValue(p=0.4),
-                # A.ChannelShuffle(p=0.3),
                 A.RGBShift(p=0.3)
             ]),
 

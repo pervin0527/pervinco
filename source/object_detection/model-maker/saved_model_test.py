@@ -98,8 +98,8 @@ def spot_inference(model_path, eval_path):
     print("Model Loaded")
 
     detection_result = []
-    folders = sorted(glob(f"{eval_path}/*"))
-    # folders = [f"{eval_path}/삼청마당_18", f"{eval_path}/삼청마당_15", f"{eval_path}/서초우성_09"]
+    # folders = sorted(glob(f"{eval_path}/*"))
+    folders = [f"{eval_path}/삼청마당_18", f"{eval_path}/삼청마당_15", f"{eval_path}/서초우성_09"]
     for folder in folders:
         spot_name = folder.split('/')[-1]
         frames = sorted(glob(f"{folder}/*.jpg"))
@@ -117,7 +117,7 @@ def spot_inference(model_path, eval_path):
                 prediction = model(input_tensor)
                 boxes, scores, class_ids = prediction[0][0].numpy(), prediction[1][0].numpy(), prediction[2][0].numpy()
 
-                indices = np.where(scores > threshold)[0]
+                indices = np.where(scores >= 0.3)[0]
                 if indices.size > 0:
                     bbox = boxes[indices]
                     score = scores[indices]
@@ -130,20 +130,8 @@ def spot_inference(model_path, eval_path):
                     cv2.imwrite(f"{save_path}/{spot_name}/O/{idx:>06}.jpg", image)
                 
                 else:
-                    indices = np.where(scores > 0.15)[0]
-                    if indices.size > 0:
-                        bbox = boxes[indices]
-                        score = scores[indices]
-                        class_id = class_ids[indices]
-
-                        detection_result.append([f"{idx:>06}.jpg", class_id, score])
-                        for b in bbox:
-                            ymin, xmin, ymax, xmax = int(b[0]), int(b[1]), int(b[2]), int(b[3])
-                            cv2.rectangle(image, (xmin, ymin), (xmax, ymax), (0, 0, 255), thickness=3)
-                        cv2.imwrite(f"{save_path}/{spot_name}/X/{idx:>06}.jpg", image)
-                    else:
-                        detection_result.append([f"{idx:>06}.jpg", None, None])
-                        cv2.imwrite(f"{save_path}/{spot_name}/X/{idx:>06}.jpg", image)
+                    detection_result.append([f"{idx:>06}.jpg", None, None])
+                    cv2.imwrite(f"{save_path}/{spot_name}/X/{idx:>06}.jpg", image)
 
             except:
                 print(f"{frame} Broken")
@@ -152,14 +140,14 @@ def spot_inference(model_path, eval_path):
         df.to_csv(f"{save_path}/{spot_name}.csv", index=False, header=["file_name", "class_ids", "scores"])
 
 if __name__ == "__main__":
-    pb_path = "/home/ubuntu/Models/efficientdet_lite/BR-set1-300/saved_model"
+    pb_path = "/home/ubuntu/Models/efficientdet_lite/BR-set3-600-test/saved_model"
     frame_path = "/home/ubuntu/Datasets/BR/frames"
 
     model_name = pb_path.split('/')[-2]
     testset_name = frame_path.split('/')[-1]
     save_path = f"/home/ubuntu/Datasets/BR/testset/{model_name}_{testset_name}"
     input_shape = (384, 384)
-    threshold = 0.4
+    threshold = 0.9
 
     if os.path.isdir(save_path):
         shutil.rmtree(save_path)

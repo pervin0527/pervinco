@@ -76,8 +76,8 @@ def label_check(dir):
 
 if __name__ == "__main__":
     ROOT_DIR = "/home/ubuntu/Datasets/BR"
-    TRAIN_DIR = f"{ROOT_DIR}/seed1_384/set3/train"
-    VALID_DIR = f"{ROOT_DIR}/seed1_384/set3/valid"
+    TRAIN_DIR = f"{ROOT_DIR}/seed1_384/set4/train"
+    VALID_DIR = f"{ROOT_DIR}/seed1_384/set4/valid"
     SAVE_PATH = "/home/ubuntu/Models/efficientdet_lite"
 
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
@@ -89,7 +89,7 @@ if __name__ == "__main__":
     valid_check, valid_files = label_check(VALID_DIR)
     
     if train_check and valid_check:
-        EPOCHS = 600
+        EPOCHS = 800
         BATCH_SIZE = 32 * len(gpus)
         MAX_DETECTIONS = 10
         HPARAMS = {
@@ -108,7 +108,7 @@ if __name__ == "__main__":
 
         PROJECT = ROOT_DIR.split('/')[-1]
         DS_NAME = TRAIN_DIR.split('/')[-2]
-        MODEL_FILE = f"{PROJECT}-{DS_NAME}-{EPOCHS}-test"
+        MODEL_FILE = f"{PROJECT}-{DS_NAME}-{EPOCHS}"
 
         train_data = object_detector.DataLoader.from_pascal_voc(images_dir=f"{TRAIN_DIR}/JPEGImages",
                                                                 annotations_dir=f"{TRAIN_DIR}/Annotations", 
