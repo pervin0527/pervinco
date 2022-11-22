@@ -75,10 +75,11 @@ def label_check(dir):
 
 
 if __name__ == "__main__":
-    ROOT_DIR = "/data/Datasets/BR"
-    SAVE_PATH = "/data/Models/BR_FINAL"
+    ROOT_DIR = "/home/ubuntu/Datasets/BR"
+    SAVE_PATH = "/home/ubuntu/Models/BR_FINAL"
     TRAIN_DIR = f"{ROOT_DIR}/seed1_384/fold00/train"
     VALID_DIR = f"{ROOT_DIR}/seed1_384/fold00/valid"
+    CKPT_DIR = "/home/ubuntu/Models/BR_FINAL/BR-set4-400"
     
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
     LABEL_FILE = pd.read_csv(LABEL_FILE, sep=',', index_col=False, header=None)
@@ -86,15 +87,15 @@ if __name__ == "__main__":
     print(CLASSES)
     
     FOLDS = 10
-    EPOCHS = 100
+    EPOCHS = 1000
     BATCH_SIZE = 32 * len(gpus)
     MAX_DETECTIONS = 10
     HPARAMS = {
-        "optimizer" : "adam",
+        "optimizer" : "sgd",
         "momentum" : 0.9,
         "lr_decay_method" : "cosine",
-        "learning_rate" : 0.008,
-        "lr_warmup_init" : 0.0008,
+        "learning_rate" : 0.004,
+        "lr_warmup_init" : 0.0004,
         "lr_warmup_epoch" : 1.0,
         "aspect_ratios" : [12.59, 7.38, 4.58, 2.74, 1.5, 0.73], ## [8.24, 4.42, 2.2, 0.92]
         # "num_scales" : 4,
@@ -119,14 +120,14 @@ if __name__ == "__main__":
                                                                     label_map=CLASSES)
 
         spec = object_detector.EfficientDetLite1Spec(verbose=1,
-                                                    strategy=None, # 'gpus', None
-                                                    hparams=HPARAMS,
-                                                    tflite_max_detections=MAX_DETECTIONS,
-                                                    model_dir=f'{SAVE_PATH}/{MODEL_FILE}')
+                                                     strategy="gpus", # 'gpus', None
+                                                     hparams=HPARAMS,
+                                                     tflite_max_detections=MAX_DETECTIONS,
+                                                     model_dir=f'{SAVE_PATH}/{MODEL_FILE}')
 
         detector = object_detector.create(train_data,
                                           model_spec=spec,
-                                          epochs=EPOCHS,
+                                          epochs=int(EPOCHS / (100 * (f+1))),
                                           batch_size=BATCH_SIZE,
                                           validation_data=validation_data,
                                           do_train=False,
@@ -135,23 +136,34 @@ if __name__ == "__main__":
         train_ds, steps_per_epoch, _ = detector._get_dataset_and_steps(train_data, BATCH_SIZE, is_training=True)
         validation_ds, validation_steps, val_json_file = detector._get_dataset_and_steps(validation_data, BATCH_SIZE, is_training=False)
 
+        config = spec.config
+        config.update(dict(steps_per_epoch=steps_per_epoch,
+                           eval_samples=BATCH_SIZE*validation_steps,
+                           val_json_file=val_json_file,
+                           batch_size=BATCH_SIZE))
+        if not tf.io.gfile.makedirs(f"{SAVE_PATH}/{MODEL_FILE}"):
+            config_file = os.path.join(f"{SAVE_PATH}/{MODEL_FILE}", 'config.yaml')   
+            tf.io.gfile.GFile(config_file, 'w').write(str(config))
+
+
         if f == 0:
             with strategy.scope():
                 model = detector.create_model()
-                config = spec.config
-                config.update(
-                    dict(
-                        steps_per_epoch=steps_per_epoch,
-                        eval_samples=BATCH_SIZE*validation_steps,
-                        val_json_file=val_json_file,
-                        batch_size=BATCH_SIZE
-                    )
-                )
                 train.setup_model(model, config)
+
+                try:
+                    latest = tf.train.latest_checkpoint(f"{CKPT_DIR}/")
+                    last_epoch = int(latest.split('/')[-1].split("-")[1])
+                    model.load_weights(latest)
+                    print("Checkpoint found {}".format(latest))
+
+                except Exception as e:
+                    print("Checkpoint not found: ", e)
+
                 model.summary()
                 model.fit(train_ds,
                           initial_epoch=0, 
-                          epochs=EPOCHS,
+                          epochs=int(EPOCHS / (100 * (f+1))),
                           steps_per_epoch=steps_per_epoch,
                           validation_data=validation_ds,
                           validation_steps=validation_steps,
@@ -159,29 +171,20 @@ if __name__ == "__main__":
         else:
             with strategy.scope():
                 model = detector.create_model()
-                config = spec.config
-                config.update(
-                    dict(
-                        steps_per_epoch=steps_per_epoch,
-                        eval_samples=BATCH_SIZE*validation_steps,
-                        val_json_file=val_json_file,
-                        batch_size=BATCH_SIZE
-                    )
-                )
                 train.setup_model(model, config)
 
                 try:
                     latest = tf.train.latest_checkpoint(f"{SAVE_PATH}/{MODEL_FILE}/")
                     last_epoch = int(latest.split('/')[-1].split("-")[1])
                     model.load_weights(latest)
-
                     print("Checkpoint found {}".format(latest))
+
                 except Exception as e:
                     print("Checkpoint not found: ", e)
 
                 model.fit(train_ds,
                           initial_epoch=last_epoch, 
-                          epochs=EPOCHS * (f+1),
+                          epochs=int(EPOCHS / (100 * (f+1))),
                           steps_per_epoch=steps_per_epoch,
                           validation_data=validation_ds,
                           validation_steps=validation_steps,

@@ -40,7 +40,7 @@ def get_result(model, input_tensor):
             result_scores.append(score)
             result_labels.append(class_id)
 
-        elif 0.5 <= score < threshold:
+        elif minimum_score <= score < threshold:
             class_id = labels[int(classes[i])-1]
             ymin, xmin, ymax, xmax = int(bboxes[i][0]), int(bboxes[i][1]), int(bboxes[i][2]), int(bboxes[i][3])
             
@@ -93,7 +93,7 @@ def inference(weight, testset, mode="images"):
     elif mode == "folders":
         total_results = []
         folders = sorted(glob(f"{testset}/*"))
-        # folders = [f"{testset}/삼청마당_18", f"{testset}/삼청마당_15", f"{testset}/서초우성_09"]
+        # folders = [f"{testset}/현대판교_15", f"{testset}/삼청마당_15", f"{testset}/삼청마당_21", f"{testset}/서초우성_09", f"{testset}/서초우성_18", f"{testset}/서초우성_21"]
         
         for folder in folders:
             test_images = sorted(glob(f"{folder}/*"))
@@ -132,7 +132,9 @@ def inference(weight, testset, mode="images"):
 
 
 if __name__ == "__main__":
-    weight_dir = "/home/ubuntu/Models/efficientdet_lite/BR-set5-100-export"
+    # weight_dir = "/home/ubuntu/Models/BR_FINAL/BR-set3-200"
+    # weight_dir = "/home/ubuntu/Models/efficientdet_lite/BR-set1-300"
+    weight_dir = "/home/ubuntu/Models/efficientdet_lite/BR-set4-200"
     label_dir = "/home/ubuntu/Datasets/BR/Labels/labels.txt"
     testset_dir = "/home/ubuntu/Datasets/BR/frames"
     mode = "folders"
@@ -140,6 +142,7 @@ if __name__ == "__main__":
     input_shape = (384, 384)
     max_detections = 10
     threshold = 0.9
+    minimum_score = 0.55
 
     model_name = weight_dir.split("/")[-1]
     testset_name = testset_dir.split("/")[-1]
