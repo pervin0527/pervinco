@@ -1,5 +1,4 @@
 import os
-import shutil
 import pandas as pd
 import tensorflow as tf
 import xml.etree.ElementTree as ET
@@ -91,13 +90,15 @@ if __name__ == "__main__":
     BATCH_SIZE = 32 * len(gpus)
     MAX_DETECTIONS = 10
     HPARAMS = {
-        "optimizer" : "sgd",
+        "optimizer" : "adam",
         "momentum" : 0.9,
         "lr_decay_method" : "cosine",
-        "learning_rate" : 0.0005,
-        "lr_warmup_init" : 0.00005,
+        "learning_rate" : 0.008,
+        "lr_warmup_init" : 0.0008,
         "lr_warmup_epoch" : 1.0,
-        "aspect_ratios" : [12.59, 7.38, 4.58, 2.74, 1.5, 0.73],
+        "aspect_ratios" : [12.59, 7.38, 4.58, 2.74, 1.5, 0.73], ## [8.24, 4.42, 2.2, 0.92]
+        # "num_scales" : 4,
+        # "anchor_scale" : 5.0,
         "alpha" : 0.25,
         "gamma" : 2,
         "max_instances_per_image" : 10
@@ -105,9 +106,10 @@ if __name__ == "__main__":
 
     PROJECT = ROOT_DIR.split('/')[-1]
     DS_NAME = TRAIN_DIR.split('/')[-2]
-    MODEL_FILE = f"{PROJECT}-{DS_NAME}-{EPOCHS}"
+    MODEL_FILE = f"{PROJECT}-{DS_NAME}-f{FOLDS}"
 
     for f in range(FOLDS):
+        print("FOLD : ", f)
         train_data = object_detector.DataLoader.from_pascal_voc(images_dir=f"{TRAIN_DIR}/{f}/JPEGImages",
                                                                 annotations_dir=f"{TRAIN_DIR}/{f}/Annotations", 
                                                                 label_map=CLASSES)
@@ -133,40 +135,61 @@ if __name__ == "__main__":
         train_ds, steps_per_epoch, _ = detector._get_dataset_and_steps(train_data, BATCH_SIZE, is_training=True)
         validation_ds, validation_steps, val_json_file = detector._get_dataset_and_steps(validation_data, BATCH_SIZE, is_training=False)
 
-        with strategy.scope():
-            model = detector.create_model()
-            config = spec.config
-            config.update(
-                dict(
-                    steps_per_epoch=steps_per_epoch,
-                    eval_samples=BATCH_SIZE*validation_steps,
-                    val_json_file=val_json_file,
-                    batch_size=BATCH_SIZE
+        if f == 0:
+            with strategy.scope():
+                model = detector.create_model()
+                config = spec.config
+                config.update(
+                    dict(
+                        steps_per_epoch=steps_per_epoch,
+                        eval_samples=BATCH_SIZE*validation_steps,
+                        val_json_file=val_json_file,
+                        batch_size=BATCH_SIZE
+                    )
                 )
-            )
-            train.setup_model(model, config)
-            model.summary()
+                train.setup_model(model, config)
+                model.summary()
+                model.fit(train_ds,
+                          initial_epoch=0, 
+                          epochs=EPOCHS,
+                          steps_per_epoch=steps_per_epoch,
+                          validation_data=validation_ds,
+                          validation_steps=validation_steps,
+                          callbacks=train_lib.get_callbacks(config.as_dict(), validation_ds))
+        else:
+            with strategy.scope():
+                model = detector.create_model()
+                config = spec.config
+                config.update(
+                    dict(
+                        steps_per_epoch=steps_per_epoch,
+                        eval_samples=BATCH_SIZE*validation_steps,
+                        val_json_file=val_json_file,
+                        batch_size=BATCH_SIZE
+                    )
+                )
+                train.setup_model(model, config)
 
-            try:
-                latest = tf.train.latest_checkpoint(f"{SAVE_PATH}/")
-                last_epoch = int(latest.split('/')[-1].split("-")[1])
-                model.load_weights(latest)
+                try:
+                    latest = tf.train.latest_checkpoint(f"{SAVE_PATH}/{MODEL_FILE}/")
+                    last_epoch = int(latest.split('/')[-1].split("-")[1])
+                    model.load_weights(latest)
 
-                print("Checkpoint found {}".format(latest))
-            except Exception as e:
-                print("Checkpoint not found: ", e)
+                    print("Checkpoint found {}".format(latest))
+                except Exception as e:
+                    print("Checkpoint not found: ", e)
 
-            model.fit(train_ds,
-                      initial_epoch=EPOCHS * f, 
-                      epochs=EPOCHS * (f+1),
-                      steps_per_epoch=steps_per_epoch,
-                      validation_data=validation_ds,
-                      validation_steps=validation_steps,
-                      callbacks=train_lib.get_callbacks(config.as_dict(), validation_ds))
+                model.fit(train_ds,
+                          initial_epoch=last_epoch, 
+                          epochs=EPOCHS * (f+1),
+                          steps_per_epoch=steps_per_epoch,
+                          validation_data=validation_ds,
+                          validation_steps=validation_steps,
+                          callbacks=train_lib.get_callbacks(config.as_dict(), validation_ds))
 
-        detector.model = model
-        detector.export(export_dir=f"{SAVE_PATH}/{MODEL_FILE}",
-                        tflite_filename='model.tflite',
-                        saved_model_filename=f'{SAVE_PATH}/{MODEL_FILE}/saved_model',
-                        export_format=[ExportFormat.TFLITE, ExportFormat.SAVED_MODEL])
-        print("exported")
+    detector.model = model
+    detector.export(export_dir=f"{SAVE_PATH}/{MODEL_FILE}",
+                    tflite_filename='model.tflite',
+                    saved_model_filename=f'{SAVE_PATH}/{MODEL_FILE}/saved_model',
+                    export_format=[ExportFormat.TFLITE, ExportFormat.SAVED_MODEL])
+    print("exported")

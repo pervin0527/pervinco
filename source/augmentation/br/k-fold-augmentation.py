@@ -238,7 +238,7 @@ def add_nf_data(path, transform):
 
 
 if __name__ == "__main__":
-    data_dir = ["/data/Datasets/BR/seed1_384", "/data/Datasets/BR/br_train"]
+    data_dir = ["/home/ubuntu/Datasets/BR/seed1_384", "/home/ubuntu/Datasets/BR/br_train"]
     save_dir = f"{data_dir[0]}/fold00"
     total_steps = 32000
     num_valid = 320
@@ -252,11 +252,11 @@ if __name__ == "__main__":
     mixup_prob = 0.4
     mixup_min = 0.1
     mixup_max = 0.3
-    mixup_data_dir = ["/data/Datasets/VOCdevkit/VOC2012/JPEGImages"]
+    mixup_data_dir = ["/home/ubuntu/Datasets/VOCdevkit/VOC2012/JPEGImages"]
 
     negative_false = True
-    nf_ratio = 0.2
-    nf_data_dir = "/data/Datasets/SPC/download"
+    nf_ratio = 0.1
+    nf_data_dir = "/home/ubuntu/Datasets/SPC/download"
 
     basic_transform = A.Compose([
         A.Resize(img_size, img_size, p=1),
