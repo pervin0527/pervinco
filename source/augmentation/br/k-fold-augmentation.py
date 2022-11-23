@@ -209,7 +209,7 @@ def valid_augmentation(files):
 
 
 def add_nf_data(path, transform):
-    save_path = f"{save_dir}/train"
+    save_path = f"{save_dir}/train/3"
     nf_files = []
     ratio = int(nf_ratio * total_steps)
 
@@ -239,10 +239,10 @@ def add_nf_data(path, transform):
 
 if __name__ == "__main__":
     data_dir = ["/home/ubuntu/Datasets/BR/seed1_384", "/home/ubuntu/Datasets/BR/br_train"]
-    save_dir = f"{data_dir[0]}/fold00"
+    save_dir = f"{data_dir[0]}/fold01"
     total_steps = 32000
     num_valid = 320
-    folds = 10
+    folds = 20
     classes = ["Baskin_robbins"] # Baskin_robbins
 
     img_size = 384

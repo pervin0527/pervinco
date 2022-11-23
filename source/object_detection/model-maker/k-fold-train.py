@@ -75,11 +75,11 @@ def label_check(dir):
 
 
 if __name__ == "__main__":
-    ROOT_DIR = "/data/Datasets/BR"
-    SAVE_PATH = "/data/Models/BR_FINAL"
+    ROOT_DIR = "/home/ubuntu/Datasets/BR"
+    SAVE_PATH = "/home/ubuntu/Models/BR_FINAL"
     TRAIN_DIR = f"{ROOT_DIR}/seed1_384/fold00/train"
     VALID_DIR = f"{ROOT_DIR}/seed1_384/fold00/valid"
-    CKPT_DIR = "/data/Models/BR_FINAL/BR-fold00-f10"
+    CKPT_DIR = "/home/ubuntu/Models/efficientdet_lite/BR-set4-200"
     
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
     LABEL_FILE = pd.read_csv(LABEL_FILE, sep=',', index_col=False, header=None)
@@ -87,19 +87,19 @@ if __name__ == "__main__":
     print(CLASSES)
     
     FOLDS = 10
-    EPOCHS = 1000
-    BATCH_SIZE = 32 * len(gpus)
+    EPOCHS = 100
+    BATCH_SIZE = 64 * len(gpus)
     MAX_DETECTIONS = 10
     HPARAMS = {
         "optimizer" : "sgd",
         "momentum" : 0.9,
         "lr_decay_method" : "cosine",
-        "learning_rate" : 0.004,
-        "lr_warmup_init" : 0.0004,
+        "learning_rate" : 0.008,
+        "lr_warmup_init" : 0.0008,
         "lr_warmup_epoch" : 1.0,
-        "aspect_ratios" : [12.59, 7.38, 4.58, 2.74, 1.5, 0.73], ## [8.24, 4.42, 2.2, 0.92]
-        # "num_scales" : 4,
-        # "anchor_scale" : 5.0,
+        "aspect_ratios" : [8.24, 4.42, 2.2, 0.92],
+        "anchor_scale" : 5,
+        "num_scales" : 4,
         "alpha" : 0.25,
         "gamma" : 2,
         "max_instances_per_image" : 10
@@ -109,7 +109,7 @@ if __name__ == "__main__":
     DS_NAME = TRAIN_DIR.split('/')[-2]
     MODEL_FILE = f"{PROJECT}-{DS_NAME}-f{FOLDS}"
 
-    for f in range(1, FOLDS+1):
+    for f in range(FOLDS):
         train_data = object_detector.DataLoader.from_pascal_voc(images_dir=f"{TRAIN_DIR}/{f}/JPEGImages",
                                                                 annotations_dir=f"{TRAIN_DIR}/{f}/Annotations", 
                                                                 label_map=CLASSES)
@@ -119,7 +119,7 @@ if __name__ == "__main__":
                                                                     label_map=CLASSES)
 
         spec = object_detector.EfficientDetLite1Spec(verbose=1,
-                                                     strategy=None, # 'gpus', None
+                                                     strategy="gpus", # 'gpus', None
                                                      hparams=HPARAMS,
                                                      tflite_max_detections=MAX_DETECTIONS,
                                                      model_dir=f'{SAVE_PATH}/{MODEL_FILE}')
@@ -145,9 +145,9 @@ if __name__ == "__main__":
             tf.io.gfile.GFile(config_file, 'w').write(str(config))
 
 
-        tmp_epoch = int(EPOCHS / (100 * f))
-        print(f"Fold : {f}, Epoch : {tmp_epoch}")
-        if f == 1:
+        # tmp_epoch = EPOCHS * (f + 1)
+        # print(f"Fold : {f}, Epoch : {tmp_epoch}")
+        if f == 0:
             with strategy.scope():
                 model = detector.create_model()
                 train.setup_model(model, config)
@@ -164,7 +164,7 @@ if __name__ == "__main__":
                 model.summary()
                 model.fit(train_ds,
                           initial_epoch=0, 
-                          epochs=tmp_epoch,
+                          epochs=EPOCHS,
                           steps_per_epoch=steps_per_epoch,
                           validation_data=validation_ds,
                           validation_steps=validation_steps,
@@ -184,12 +184,14 @@ if __name__ == "__main__":
                     print("Checkpoint not found: ", e)
 
                 model.fit(train_ds,
-                          initial_epoch=last_epoch, 
-                          epochs=tmp_epoch,
+                          initial_epoch=0, 
+                          epochs=EPOCHS,
                           steps_per_epoch=steps_per_epoch,
                           validation_data=validation_ds,
                           validation_steps=validation_steps,
                           callbacks=train_lib.get_callbacks(config.as_dict(), validation_ds))
+
+        del train_data, validation_data, spec, detector, train_ds, steps_per_epoch, validation_ds, validation_steps, model
 
     detector.model = model
     detector.export(export_dir=f"{SAVE_PATH}/{MODEL_FILE}",
