@@ -75,11 +75,11 @@ def label_check(dir):
 
 
 if __name__ == "__main__":
-    ROOT_DIR = "/home/ubuntu/Datasets/BR"
-    SAVE_PATH = "/home/ubuntu/Models/BR_FINAL"
+    ROOT_DIR = "/data/Datasets/BR"
+    SAVE_PATH = "/data/Models/BR_FINAL"
     TRAIN_DIR = f"{ROOT_DIR}/seed1_384/fold00/train"
     VALID_DIR = f"{ROOT_DIR}/seed1_384/fold00/valid"
-    CKPT_DIR = "/home/ubuntu/Models/BR_FINAL/BR-set4-400"
+    CKPT_DIR = "/data/Models/BR_FINAL/BR-fold00-f10"
     
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
     LABEL_FILE = pd.read_csv(LABEL_FILE, sep=',', index_col=False, header=None)
@@ -109,8 +109,7 @@ if __name__ == "__main__":
     DS_NAME = TRAIN_DIR.split('/')[-2]
     MODEL_FILE = f"{PROJECT}-{DS_NAME}-f{FOLDS}"
 
-    for f in range(FOLDS):
-        print("FOLD : ", f)
+    for f in range(1, FOLDS+1):
         train_data = object_detector.DataLoader.from_pascal_voc(images_dir=f"{TRAIN_DIR}/{f}/JPEGImages",
                                                                 annotations_dir=f"{TRAIN_DIR}/{f}/Annotations", 
                                                                 label_map=CLASSES)
@@ -120,14 +119,14 @@ if __name__ == "__main__":
                                                                     label_map=CLASSES)
 
         spec = object_detector.EfficientDetLite1Spec(verbose=1,
-                                                     strategy="gpus", # 'gpus', None
+                                                     strategy=None, # 'gpus', None
                                                      hparams=HPARAMS,
                                                      tflite_max_detections=MAX_DETECTIONS,
                                                      model_dir=f'{SAVE_PATH}/{MODEL_FILE}')
 
         detector = object_detector.create(train_data,
                                           model_spec=spec,
-                                          epochs=int(EPOCHS / (100 * (f+1))),
+                                          epochs=EPOCHS,
                                           batch_size=BATCH_SIZE,
                                           validation_data=validation_data,
                                           do_train=False,
@@ -146,7 +145,9 @@ if __name__ == "__main__":
             tf.io.gfile.GFile(config_file, 'w').write(str(config))
 
 
-        if f == 0:
+        tmp_epoch = int(EPOCHS / (100 * f))
+        print(f"Fold : {f}, Epoch : {tmp_epoch}")
+        if f == 1:
             with strategy.scope():
                 model = detector.create_model()
                 train.setup_model(model, config)
@@ -163,7 +164,7 @@ if __name__ == "__main__":
                 model.summary()
                 model.fit(train_ds,
                           initial_epoch=0, 
-                          epochs=int(EPOCHS / (100 * (f+1))),
+                          epochs=tmp_epoch,
                           steps_per_epoch=steps_per_epoch,
                           validation_data=validation_ds,
                           validation_steps=validation_steps,
@@ -184,7 +185,7 @@ if __name__ == "__main__":
 
                 model.fit(train_ds,
                           initial_epoch=last_epoch, 
-                          epochs=int(EPOCHS / (100 * (f+1))),
+                          epochs=tmp_epoch,
                           steps_per_epoch=steps_per_epoch,
                           validation_data=validation_ds,
                           validation_steps=validation_steps,
