@@ -92,8 +92,8 @@ def inference(weight, testset, mode="images"):
 
     elif mode == "folders":
         total_results = []
-        folders = sorted(glob(f"{testset}/*"))
-        # folders = [f"{testset}/현대판교_15", f"{testset}/삼청마당_15", f"{testset}/삼청마당_21", f"{testset}/서초우성_09", f"{testset}/서초우성_18", f"{testset}/서초우성_21"]
+        # folders = sorted(glob(f"{testset}/*"))
+        folders = [f"{testset}/현대판교_15", f"{testset}/삼청마당_15", f"{testset}/삼청마당_21", f"{testset}/서초우성_09", f"{testset}/서초우성_18", f"{testset}/서초우성_21"]
         
         for folder in folders:
             test_images = sorted(glob(f"{folder}/*"))
@@ -128,13 +128,13 @@ def inference(weight, testset, mode="images"):
                     cv2.imwrite(f"{save_dir}/{spot}/X/{idx:06}.jpg", image)
     
         df = pd.DataFrame(total_results)
-        df.to_csv(f"{save_dir}/{spot}.csv", index=False, header=["spot_name", "file_name", "labels", "scores"])
+        df.to_csv(f"{save_dir}/result.csv", index=False, header=["spot_name", "file_name", "labels", "scores"])
 
 
 if __name__ == "__main__":
-    # weight_dir = "/home/ubuntu/Models/BR_FINAL/BR-set3-200"
+    weight_dir = "/home/ubuntu/Models/BR_FINAL/BR-set3-200"
     # weight_dir = "/home/ubuntu/Models/efficientdet_lite/BR-set1-300"
-    weight_dir = "/home/ubuntu/Models/efficientdet_lite/BR-set4-200"
+    # weight_dir = "/home/ubuntu/Models/efficientdet_lite/BR-set4-200"
     label_dir = "/home/ubuntu/Datasets/BR/Labels/labels.txt"
     testset_dir = "/home/ubuntu/Datasets/BR/frames"
     mode = "folders"
