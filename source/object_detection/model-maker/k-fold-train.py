@@ -86,7 +86,7 @@ if __name__ == "__main__":
     CLASSES = LABEL_FILE[0].tolist()
     print(CLASSES)
     
-    FOLDS = 10
+    FOLDS = len(glob(f"{TRAIN_DIR}/*"))
     EPOCHS = 100
     BATCH_SIZE = 64 * len(gpus)
     MAX_DETECTIONS = 10
@@ -144,9 +144,8 @@ if __name__ == "__main__":
             config_file = os.path.join(f"{SAVE_PATH}/{MODEL_FILE}", 'config.yaml')   
             tf.io.gfile.GFile(config_file, 'w').write(str(config))
 
-
-        # tmp_epoch = EPOCHS * (f + 1)
-        # print(f"Fold : {f}, Epoch : {tmp_epoch}")
+        os.system("clear")
+        print(f"Fold : {f}")
         if f == 0:
             with strategy.scope():
                 model = detector.create_model()

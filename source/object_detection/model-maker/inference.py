@@ -132,7 +132,7 @@ def inference(weight, testset, mode="images"):
 
 
 if __name__ == "__main__":
-    weight_dir = "/home/ubuntu/Models/efficientdet_lite/BR-set1-300"
+    weight_dir = "/home/ubuntu/Models/BR_FINAL/BR-fold00-f10-export"
     label_dir = "/home/ubuntu/Datasets/BR/Labels/labels.txt"
     testset_dir = "/home/ubuntu/Datasets/BR/frames"
     mode = "folders"

@@ -78,8 +78,8 @@ if __name__ == "__main__":
     ROOT_DIR = "/home/ubuntu/Datasets/BR"
     TRAIN_DIR = f"{ROOT_DIR}/seed1_384/set4/train"
     VALID_DIR = f"{ROOT_DIR}/seed1_384/set4/valid"
-    CKPT_PATH = "/home/ubuntu/Models/BR_FINAL/BR-set3-200"
-    IS_TRAIN = True
+    CKPT_PATH = "/home/ubuntu/Models/BR_FINAL/BR-fold00-f10"
+    IS_TRAIN = False
 
     LABEL_FILE = f"{ROOT_DIR}/Labels/labels.txt"
     LABEL_FILE = pd.read_csv(LABEL_FILE, sep=',', index_col=False, header=None)
@@ -98,12 +98,12 @@ if __name__ == "__main__":
             "optimizer" : "sgd",
             "momentum" : 0.9,
             "lr_decay_method" : "cosine",
-            "learning_rate" : 0.0005,
-            "lr_warmup_init" : 0.00005,
+            "learning_rate" : 0.008,
+            "lr_warmup_init" : 0.0008,
             "lr_warmup_epoch" : 1.0,
-            "aspect_ratios" : [12.59, 7.38, 4.58, 2.74, 1.5, 0.73], ## [8.24, 4.42, 2.2, 0.92]
-            # "num_scales" : 4,
-            # "anchor_scale" : 5.0,
+            "aspect_ratios" : [8.24, 4.42, 2.2, 0.92],
+            "anchor_scale" : 5,
+            "num_scales" : 4,
             "alpha" : 0.25,
             "gamma" : 2,
             "max_instances_per_image" : 10
